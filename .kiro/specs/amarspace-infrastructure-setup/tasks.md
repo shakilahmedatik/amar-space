@@ -6,15 +6,15 @@ This plan implements the foundational infrastructure for AmarSpace — a propert
 
 ## Tasks
 
-- [ ] 1. Set up the `packages/db` shared package
-  - [ ] 1.1 Create `packages/db` package structure and configuration
+- [x] 1. Set up the `packages/db` shared package
+  - [x] 1.1 Create `packages/db` package structure and configuration
     - Create `packages/db/package.json` with `@repo/db` name, exports map (`.`, `./schema`, `./client`, `./migrate`), and exact-pinned dependencies: `drizzle-orm`, `@neondatabase/serverless`, `zod`
     - Create `packages/db/tsconfig.json` extending `@repo/typescript-config` with `strict: true`, `declaration: true`, `declarationMap: true`
     - Create `packages/db/drizzle.config.ts` with PostgreSQL dialect, schema path, migrations output directory, strict and verbose mode
     - Create `packages/db/src/index.ts` barrel export file
     - _Requirements: 3.2, 3.3, 4.1, 4.2, 9.1, 9.6_
 
-  - [ ] 1.2 Implement Drizzle schema definitions
+  - [x] 1.2 Implement Drizzle schema definitions
     - Create `packages/db/src/schema/users.ts` with users table (id, email, name, hashedPassword, emailVerified, createdAt, updatedAt)
     - Create `packages/db/src/schema/sessions.ts` with sessions table (id, userId FK, token, expiresAt, ipAddress, userAgent, createdAt)
     - Create `packages/db/src/schema/login-attempts.ts` with login_attempts table (id, email, success, ipAddress, attemptedAt)
@@ -22,14 +22,14 @@ This plan implements the foundational infrastructure for AmarSpace — a propert
     - Create `packages/db/src/schema/index.ts` barrel export for all schemas
     - _Requirements: 3.2, 5.3, 7.2, 7.8_
 
-  - [ ] 1.3 Implement database client and connection configuration
+  - [x] 1.3 Implement database client and connection configuration
     - Create `packages/db/src/client.ts` with `createDbClient` function using Neon serverless driver
     - Configure connection pooling with max 10 connections, 30s idle timeout, 10s connection timeout from environment variables
     - Implement connection validation on checkout
     - Export `Database` type for consumers
     - _Requirements: 3.4, 3.5, 3.6, 3.7, 3.8_
 
-  - [ ] 1.4 Implement migration utilities and seed script
+  - [x] 1.4 Implement migration utilities and seed script
     - Create `packages/db/src/migrate.ts` with migration runner that applies pending migrations
     - Create `packages/db/src/seed.ts` with idempotent seed function using `onConflictDoNothing`
     - Add `db:generate`, `db:migrate`, `db:seed` scripts to `packages/db/package.json`
