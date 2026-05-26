@@ -1,7 +1,6 @@
-import { createDbClient } from './client';
-import { users } from './schema';
-
-import type { Database } from './client';
+import type { Database } from './client'
+import { createDbClient } from './client'
+import { users } from './schema'
 
 /**
  * Seeds the database with initial development data.
@@ -22,11 +21,11 @@ import type { Database } from './client';
  * ```
  */
 export async function seed(db: Database): Promise<void> {
-  console.log('[seed] Seeding database with development data...');
+  console.log('[seed] Seeding database with development data...')
 
   // Placeholder password hashes — replace with real bcrypt hashes in production.
   // These follow the bcrypt format ($2b$rounds$hash) but are NOT real hashes.
-  const PLACEHOLDER_HASH = '$2b$10$placeholder_hash_replace_in_production';
+  const PLACEHOLDER_HASH = '$2b$10$placeholder_hash_replace_in_production'
 
   await db
     .insert(users)
@@ -50,21 +49,24 @@ export async function seed(db: Database): Promise<void> {
         emailVerified: true,
       },
     ])
-    .onConflictDoNothing({ target: users.email });
+    .onConflictDoNothing({ target: users.email })
 
-  console.log('[seed] Database seeded successfully.');
+  console.log('[seed] Database seeded successfully.')
 }
 
 // Main block: runs seed when this file is executed directly (e.g., `bun run src/seed.ts`)
-if (import.meta.url === `file://${process.argv[1]}` || process.argv[1]?.endsWith('seed.ts')) {
-  const db = createDbClient();
+if (
+  import.meta.url === `file://${process.argv[1]}` ||
+  process.argv[1]?.endsWith('seed.ts')
+) {
+  const db = createDbClient()
   seed(db)
     .then(() => {
-      console.log('[seed] Done.');
-      process.exit(0);
+      console.log('[seed] Done.')
+      process.exit(0)
     })
     .catch((error) => {
-      console.error('[seed] Seed failed:', error);
-      process.exit(1);
-    });
+      console.error('[seed] Seed failed:', error)
+      process.exit(1)
+    })
 }

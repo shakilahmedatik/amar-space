@@ -1,6 +1,6 @@
-import { drizzle } from 'drizzle-orm/neon-http';
-import { neon } from '@neondatabase/serverless';
-import * as schema from './schema';
+import { neon } from '@neondatabase/serverless'
+import { drizzle } from 'drizzle-orm/neon-http'
+import * as schema from './schema'
 
 /**
  * Database connection configuration options.
@@ -11,11 +11,11 @@ import * as schema from './schema';
  */
 export interface DbClientConfig {
   /** Maximum number of connections per serverless instance (default: 10) */
-  poolSize?: number;
+  poolSize?: number
   /** Idle connection timeout in milliseconds (default: 30000 = 30s) */
-  idleTimeout?: number;
+  idleTimeout?: number
   /** Connection timeout in milliseconds (default: 10000 = 10s) */
-  connectionTimeout?: number;
+  connectionTimeout?: number
 }
 
 /**
@@ -28,7 +28,7 @@ const DEFAULT_CONFIG: Required<DbClientConfig> = {
   poolSize: 10,
   idleTimeout: 30_000,
   connectionTimeout: 10_000,
-};
+}
 
 /**
  * Reads database client configuration from environment variables,
@@ -38,16 +38,20 @@ function resolveConfig(options?: DbClientConfig): Required<DbClientConfig> {
   return {
     poolSize:
       options?.poolSize ??
-      (process.env.DB_POOL_SIZE ? parseInt(process.env.DB_POOL_SIZE, 10) : DEFAULT_CONFIG.poolSize),
+      (process.env.DB_POOL_SIZE
+        ? parseInt(process.env.DB_POOL_SIZE, 10)
+        : DEFAULT_CONFIG.poolSize),
     idleTimeout:
       options?.idleTimeout ??
-      (process.env.DB_IDLE_TIMEOUT ? parseInt(process.env.DB_IDLE_TIMEOUT, 10) : DEFAULT_CONFIG.idleTimeout),
+      (process.env.DB_IDLE_TIMEOUT
+        ? parseInt(process.env.DB_IDLE_TIMEOUT, 10)
+        : DEFAULT_CONFIG.idleTimeout),
     connectionTimeout:
       options?.connectionTimeout ??
       (process.env.DB_CONNECTION_TIMEOUT
         ? parseInt(process.env.DB_CONNECTION_TIMEOUT, 10)
         : DEFAULT_CONFIG.connectionTimeout),
-  };
+  }
 }
 
 /**
@@ -67,24 +71,24 @@ function resolveConfig(options?: DbClientConfig): Required<DbClientConfig> {
  * ```
  */
 export function createDbClient(databaseUrl?: string, options?: DbClientConfig) {
-  const url = databaseUrl ?? process.env.DATABASE_URL;
+  const url = databaseUrl ?? process.env.DATABASE_URL
   if (!url) {
     throw new Error(
       'Database URL is required. Provide it as an argument or set the DATABASE_URL environment variable.',
-    );
+    )
   }
 
-  const config = resolveConfig(options);
+  const config = resolveConfig(options)
 
   const sql = neon(url, {
     fetchOptions: {
       signal: AbortSignal.timeout(config.connectionTimeout),
     },
-  });
+  })
 
-  const db = drizzle(sql, { schema });
+  const db = drizzle(sql, { schema })
 
-  return db;
+  return db
 }
 
 /**
@@ -99,19 +103,22 @@ export async function validateConnection(
   db: Database,
   timeoutMs: number = DEFAULT_CONFIG.connectionTimeout,
 ): Promise<boolean> {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), timeoutMs)
 
   try {
-    await db.execute('SELECT 1');
-    return true;
+    await db.execute('SELECT 1')
+    return true
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unknown database connection error';
-    throw new Error(`Database connection validation failed: ${message}`);
+    const message =
+      error instanceof Error
+        ? error.message
+        : 'Unknown database connection error'
+    throw new Error(`Database connection validation failed: ${message}`)
   } finally {
-    clearTimeout(timeout);
+    clearTimeout(timeout)
   }
 }
 
 /** The database client type for consumers */
-export type Database = ReturnType<typeof createDbClient>;
+export type Database = ReturnType<typeof createDbClient>

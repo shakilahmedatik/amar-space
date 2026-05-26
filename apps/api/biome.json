@@ -1,0 +1,15 @@
+{
+  "root": false,
+  "extends": ["../../biome.json"],
+  "linter": {
+    "rules": {
+      "correctness": {
+        "noUnusedImports": "error",
+        "noUnusedVariables": "error"
+      },
+      "suspicious": {
+        "noConsole": { "level": "warn", "options": { "allow": ["log"] } }
+      }
+    }
+  }
+}

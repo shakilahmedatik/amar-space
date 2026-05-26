@@ -1,5 +1,5 @@
-import { migrate as drizzleMigrate } from 'drizzle-orm/neon-http/migrator';
-import { createDbClient, type Database } from './client';
+import { migrate as drizzleMigrate } from 'drizzle-orm/neon-http/migrator'
+import { createDbClient, type Database } from './client'
 
 /**
  * Applies all pending database migrations from the migrations directory.
@@ -32,16 +32,16 @@ export async function runMigrations(
   const db: Database =
     typeof dbOrUrl === 'string'
       ? createDbClient(dbOrUrl)
-      : dbOrUrl ?? createDbClient();
+      : (dbOrUrl ?? createDbClient())
 
-  console.log(`[migrate] Applying pending migrations from: ${migrationsFolder}`);
+  console.log(`[migrate] Applying pending migrations from: ${migrationsFolder}`)
 
   try {
-    await drizzleMigrate(db, { migrationsFolder });
-    console.log('[migrate] All pending migrations applied successfully.');
+    await drizzleMigrate(db, { migrationsFolder })
+    console.log('[migrate] All pending migrations applied successfully.')
   } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    console.error(`[migrate] Migration failed: ${message}`);
-    throw new Error(`Migration failed: ${message}`);
+    const message = error instanceof Error ? error.message : String(error)
+    console.error(`[migrate] Migration failed: ${message}`)
+    throw new Error(`Migration failed: ${message}`)
   }
 }

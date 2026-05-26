@@ -41,8 +41,8 @@ This plan implements the foundational infrastructure for AmarSpace — a propert
     - Verify that running seed N times produces same row count and content as running once
     - **Validates: Requirements 4.4**
 
-- [ ] 2. Set up the `apps/api` Fastify backend application
-  - [ ] 2.1 Create `apps/api` package structure and core configuration
+- [x] 2. Set up the `apps/api` Fastify backend application
+  - [x] 2.1 Create `apps/api` package structure and core configuration
     - Create `apps/api/package.json` with exact-pinned dependencies: `fastify`, `fastify-type-provider-zod`, `zod`, `better-auth`, `@repo/db`
     - Create `apps/api/tsconfig.json` extending `@repo/typescript-config` with strict mode
     - Create directory structure: `src/`, `src/plugins/`, `src/routes/`, `src/middleware/`, `src/lib/`, `tests/unit/`, `tests/properties/`, `tests/integration/`
@@ -50,7 +50,7 @@ This plan implements the foundational infrastructure for AmarSpace — a propert
     - Install and configure Vitest with `vitest.config.ts`
     - _Requirements: 2.1, 2.2, 10.2_
 
-  - [ ] 2.2 Implement environment validation plugin
+  - [x] 2.2 Implement environment validation plugin
     - Create `apps/api/src/plugins/env.ts` with Zod schema validating DATABASE_URL, AUTH_SECRET (min 32 chars), AUTH_BASE_URL, DB_POOL_SIZE, DB_IDLE_TIMEOUT, DB_CONNECTION_TIMEOUT, NODE_ENV
     - Implement startup validation that logs missing/invalid variables to stderr and exits with non-zero code
     - Register as Fastify plugin that decorates the app instance with validated env
@@ -63,7 +63,7 @@ This plan implements the foundational infrastructure for AmarSpace — a propert
     - Verify application-level values override root-level values
     - **Validates: Requirements 8.1, 8.3, 8.5, 8.6**
 
-  - [ ] 2.4 Implement Fastify app factory and global error handler
+  - [x] 2.4 Implement Fastify app factory and global error handler
     - Create `apps/api/src/app.ts` with `buildApp` function using `ZodTypeProvider`
     - Implement global error handler that sanitizes 500 errors (no stack traces, file paths, DB URLs)
     - Transform Zod validation errors into structured `{ statusCode, error, message, details: FieldError[] }` format
@@ -82,7 +82,7 @@ This plan implements the foundational infrastructure for AmarSpace — a propert
     - Generate random Error objects with stack traces, file paths, DB URLs; verify 500 responses contain only generic message
     - **Validates: Requirements 2.8**
 
-  - [ ] 2.7 Implement Vercel serverless entry point
+  - [x] 2.7 Implement Vercel serverless entry point
     - Create `apps/api/src/index.ts` as the Vercel serverless handler
     - Export default async handler that builds the app, calls `app.ready()`, and delegates to `app.fetch()`
     - Ensure stateless request handling within 10s execution limit

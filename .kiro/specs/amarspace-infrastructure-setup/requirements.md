@@ -28,7 +28,7 @@ AmarSpace is a property management platform targeting Bangladeshi property owner
 1. THE Build_System SHALL organize the codebase into an `apps/` directory for applications and a `packages/` directory for shared code, with both directories registered as workspace globs in the root `package.json`
 2. THE Build_System SHALL include a `apps/web` workspace for the Next.js 16 frontend application and a `apps/docs` workspace for the documentation application
 3. THE Build_System SHALL include a `apps/api` workspace for the Fastify backend application
-4. THE Build_System SHALL include shared packages under the `@repo` scope: `@repo/typescript-config` for TypeScript configuration, `@repo/eslint-config` for ESLint configuration, and `@repo/ui` for reusable UI components
+4. THE Build_System SHALL include shared packages under the `@repo` scope: `@repo/typescript-config` for TypeScript configuration and `@repo/eslint-config` for ESLint configuration
 5. THE Build_System SHALL use Bun as the package manager with workspace support, and each workspace SHALL reference shared packages using the `@repo/*` scope identifier
 6. THE Build_System SHALL configure Turborepo task pipelines for `build`, `dev`, `lint`, and `check-types` commands, where `build` depends on upstream workspace builds (`^build`) and caches `.next` output, `dev` runs persistently without caching, and `lint` and `check-types` depend on their upstream workspace counterparts
 
