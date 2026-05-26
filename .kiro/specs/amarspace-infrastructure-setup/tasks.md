@@ -124,15 +124,15 @@ This plan implements the foundational infrastructure for AmarSpace — a propert
     - Generate random/expired/malformed tokens; verify all are rejected and grant no access to protected resources
     - **Validates: Requirements 5.9**
 
-- [ ] 5. Implement audit log system
-  - [~] 5.1 Implement audit logger plugin
+- [x] 5. Implement audit log system
+  - [x] 5.1 Implement audit logger plugin
     - Create `apps/api/src/plugins/audit.ts` with `AuditLogger` class
     - Implement async log writing with in-memory retry queue (exponential backoff, max 3 retries)
     - Ensure audit log failures don't block primary action completion
     - Validate entityType ≤ 100 chars, action ≤ 100 chars, JSON values ≤ 10KB
     - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.8_
 
-  - [~] 5.2 Implement audit log query endpoint with RBAC
+  - [x] 5.2 Implement audit log query endpoint with RBAC
     - Create `apps/api/src/routes/audit.ts` with paginated query endpoint
     - Implement Owner role: access to all entries, max 100 per page
     - Implement Manager role: access restricted to entries for assigned properties, max 100 per page
