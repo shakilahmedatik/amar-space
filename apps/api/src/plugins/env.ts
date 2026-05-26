@@ -34,7 +34,7 @@ export default fp(
     if (!result.success) {
       for (const issue of result.error.issues) {
         const path = issue.path.join('.')
-        if (issue.code === 'invalid_type' && issue.received === 'undefined') {
+        if (issue.code === 'invalid_type' && issue.input === undefined) {
           process.stderr.write(`Environment variable ${path} is missing\n`)
         } else {
           process.stderr.write(

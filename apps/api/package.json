@@ -13,7 +13,8 @@
     "test": "vitest --run",
     "test:unit": "vitest --run tests/unit",
     "test:properties": "vitest --run tests/properties",
-    "test:integration": "vitest --run tests/integration"
+    "test:integration": "vitest --run tests/integration",
+    "check-types": "tsc --noEmit"
   },
   "dependencies": {
     "fastify": "5.8.5",
