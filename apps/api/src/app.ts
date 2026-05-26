@@ -79,6 +79,16 @@ export function buildApp(opts = {}) {
     return reply.status(500).send(response)
   })
 
+  // Custom 404 handler for consistent JSON responses
+  app.setNotFoundHandler((_request, reply) => {
+    const response: ApiError = {
+      statusCode: 404,
+      error: 'Not Found',
+      message: 'Route not found',
+    }
+    return reply.status(404).send(response)
+  })
+
   // Register plugins
   app.register(import('./plugins/env'))
   app.register(import('./plugins/auth'))

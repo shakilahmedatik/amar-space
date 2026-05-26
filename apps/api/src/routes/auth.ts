@@ -1,5 +1,4 @@
 import type { FastifyInstance, FastifyRequest } from 'fastify'
-import fp from 'fastify-plugin'
 
 /**
  * Auth routes plugin.
@@ -145,38 +144,39 @@ function sanitizeAuthErrorResponse(
   return null
 }
 
-export default fp(
-  async function authRoutes(fastify: FastifyInstance) {
-    const { auth } = fastify
+/**
+ * Auth routes plugin.
+ * NOT wrapped in fp() so the catch-all route stays encapsulated
+ * within the /api/auth prefix and doesn't leak to the root scope.
+ */
+async function authRoutes(fastify: FastifyInstance) {
+  const { auth } = fastify
 
-    // Catch-all route that delegates to Better Auth's handler.
-    // Better Auth manages its own routing internally for auth endpoints.
-    fastify.all('/*', async (request, reply) => {
-      const webRequest = toWebRequest(request, fastify.env.AUTH_BASE_URL)
-      const response = await auth.handler(webRequest)
+  // Catch-all route that delegates to Better Auth's handler.
+  // Better Auth manages its own routing internally for auth endpoints.
+  fastify.all('/*', async (request, reply) => {
+    const webRequest = toWebRequest(request, fastify.env.AUTH_BASE_URL)
+    const response = await auth.handler(webRequest)
 
-      const body = await response.text()
+    const body = await response.text()
 
-      // Sanitize auth error responses to prevent information leakage
-      const sanitized = sanitizeAuthErrorResponse(response.status, body)
+    // Sanitize auth error responses to prevent information leakage
+    const sanitized = sanitizeAuthErrorResponse(response.status, body)
 
-      if (sanitized) {
-        reply.status(sanitized.status)
-        reply.header('content-type', 'application/json')
-        return reply.send(sanitized.body)
-      }
+    if (sanitized) {
+      reply.status(sanitized.status)
+      reply.header('content-type', 'application/json')
+      return reply.send(sanitized.body)
+    }
 
-      // Copy response headers from Better Auth's response
-      for (const [key, value] of response.headers.entries()) {
-        reply.header(key, value)
-      }
+    // Copy response headers from Better Auth's response
+    for (const [key, value] of response.headers.entries()) {
+      reply.header(key, value)
+    }
 
-      reply.status(response.status)
-      return reply.send(body)
-    })
-  },
-  {
-    name: 'auth-routes',
-    dependencies: ['env', 'auth'],
-  },
-)
+    reply.status(response.status)
+    return reply.send(body)
+  })
+}
+
+export default authRoutes

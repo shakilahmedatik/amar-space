@@ -157,17 +157,17 @@ This plan implements the foundational infrastructure for AmarSpace — a propert
     - Generate random users/roles/properties; verify Owner sees all, Manager sees only assigned, others get denied, pagination ≤ 100
     - **Validates: Requirements 7.5, 7.6, 7.7**
 
-- [~] 6. Checkpoint - Auth and audit verified
+- [x] 6. Checkpoint - Auth and audit verified
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 7. Set up Docker containerization
-  - [~] 7.1 Create Dockerfiles for web and api applications
+  - [ ] 7.1 Create Dockerfiles for web and api applications
     - Create `apps/web/Dockerfile` with multi-stage build: deps install → build → production runtime (Node.js 22 Alpine)
     - Create `apps/api/Dockerfile` with multi-stage build: deps install → build → production runtime (Node.js 22 Alpine)
     - Optimize layer caching by copying package.json/lockfile first
     - _Requirements: 6.1, 6.2_
 
-  - [~] 7.2 Create docker-compose configuration
+  - [ ] 7.2 Create docker-compose configuration
     - Create `docker-compose.yml` at repo root with services: db (PostgreSQL 16 Alpine), api, web
     - Configure db with named volume `pgdata`, health check using `pg_isready`
     - Configure service startup order: db → api → web using `depends_on` with health check conditions
@@ -175,36 +175,39 @@ This plan implements the foundational infrastructure for AmarSpace — a propert
     - Reference `.env` file via `env_file` directive
     - _Requirements: 6.3, 6.4, 6.5, 6.6, 6.7_
 
-  - [~] 7.3 Create docker-compose override and nginx configuration
+  - [ ] 7.3 Create docker-compose override and nginx configuration
     - Create `docker-compose.override.yml` with dev overrides: volume mounts for hot-reloading, use node:22-alpine image directly
     - Create `docker/nginx/default.conf` with reverse proxy configuration for web and api services
     - _Requirements: 6.8, 6.9_
 
 - [ ] 8. Set up environment configuration and health endpoint
-  - [~] 8.1 Create environment configuration files
+  - [ ] 8.1 Create environment configuration files
     - Create `.env.example` at repo root with all required variables (DATABASE_URL, AUTH_SECRET, AUTH_BASE_URL, POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_DB, etc.) with placeholder values and inline comments
     - Create `apps/api/.env.example` with API-specific variables
     - Create `apps/web/.env.example` with frontend-specific variables
     - Update `.gitignore` to exclude `.env` files while keeping `.env.example` tracked
     - _Requirements: 8.1, 8.2, 8.4_
 
-  - [~] 8.2 Implement health check route
+  - [ ] 8.2 Implement health check route
     - Create `apps/api/src/routes/health.ts` with `/api/health` endpoint
     - Return service status, database connectivity check, and uptime
+    - Register the health route in the Fastify app factory (`src/app.ts`)
     - Use for Docker health check and monitoring
     - _Requirements: 2.2, 6.6_
 
 - [ ] 9. Wire monorepo integration and update Turborepo configuration
-  - [~] 9.1 Update root Turborepo and workspace configuration
-    - Update `turbo.json` to include `apps/api` build outputs and task dependencies
+  - [ ] 9.1 Update root Turborepo and workspace configuration
+    - Update `turbo.json` to include `apps/api` build outputs (`dist/**`) in the `build` task outputs array
     - Ensure `packages/db` is in the Turborepo task dependency graph (builds before dependents)
     - Verify workspace references resolve correctly between `apps/api` → `@repo/db`
+    - Add `db:generate` and `db:migrate` tasks to turbo.json if needed
     - _Requirements: 1.5, 1.6, 9.5, 9.7_
 
-  - [~] 9.2 Configure shared TypeScript and lint settings for new packages
-    - Ensure `packages/db/tsconfig.json` and `apps/api/tsconfig.json` extend shared configs
+  - [ ] 9.2 Configure shared TypeScript and lint settings for new packages
+    - Ensure `packages/db/tsconfig.json` and `apps/api/tsconfig.json` extend shared configs correctly
     - Verify `declaration: true` and `declarationMap: true` in `packages/db` for type exports
     - Verify that importing unexported symbols from `@repo/db` produces TypeScript compilation errors
+    - Run `turbo run check-types` to validate cross-workspace type resolution
     - _Requirements: 9.2, 9.3, 9.6, 9.8_
 
   - [ ]* 9.3 Write integration tests for monorepo wiring
@@ -213,7 +216,7 @@ This plan implements the foundational infrastructure for AmarSpace — a propert
     - Test that `turbo run check-types` catches type errors across workspace boundaries
     - _Requirements: 9.5, 9.7, 9.8_
 
-- [~] 10. Final checkpoint - Full infrastructure verified
+- [ ] 10. Final checkpoint - Full infrastructure verified
   - Ensure all tests pass, ask the user if questions arise.
 
 ## Notes
@@ -232,16 +235,11 @@ This plan implements the foundational infrastructure for AmarSpace — a propert
 ```json
 {
   "waves": [
-    { "id": 0, "tasks": ["1.1", "2.1"] },
-    { "id": 1, "tasks": ["1.2", "1.3", "2.2"] },
-    { "id": 2, "tasks": ["1.4", "2.4", "2.7"] },
-    { "id": 3, "tasks": ["1.5", "2.3", "2.5", "2.6"] },
-    { "id": 4, "tasks": ["4.1", "7.1"] },
-    { "id": 5, "tasks": ["4.2", "5.1", "7.2"] },
-    { "id": 6, "tasks": ["4.3", "4.4", "4.5", "5.2", "7.3"] },
-    { "id": 7, "tasks": ["5.3", "5.4", "5.5", "8.1", "8.2"] },
-    { "id": 8, "tasks": ["9.1", "9.2"] },
-    { "id": 9, "tasks": ["9.3"] }
+    { "id": 0, "tasks": ["7.1", "8.1"] },
+    { "id": 1, "tasks": ["7.2", "8.2"] },
+    { "id": 2, "tasks": ["7.3", "9.1"] },
+    { "id": 3, "tasks": ["9.2"] },
+    { "id": 4, "tasks": ["9.3"] }
   ]
 }
 ```

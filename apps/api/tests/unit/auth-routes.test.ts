@@ -24,8 +24,15 @@ describe('Auth Routes', () => {
       const app = buildApp({ logger: false })
       await app.ready()
 
-      // The auth routes plugin should be registered
-      expect(app.hasPlugin('auth-routes')).toBe(true)
+      // Verify auth routes are registered by checking that /api/auth/* is handled
+      // (not returning our custom 404 "Route not found" message)
+      const response = await app.inject({
+        method: 'GET',
+        url: '/api/auth/get-session',
+      })
+
+      // Better Auth handles this route — it should NOT return our custom 404
+      expect(response.statusCode).not.toBe(404)
 
       await app.close()
     })
