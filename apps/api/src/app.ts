@@ -81,8 +81,10 @@ export function buildApp(opts = {}) {
 
   // Register plugins
   app.register(import('./plugins/env'))
+  app.register(import('./plugins/auth'))
 
-  // Register routes (placeholder for future tasks)
+  // Register routes
+  app.register(import('./routes/auth'), { prefix: '/api/auth' })
 
   return app
 }

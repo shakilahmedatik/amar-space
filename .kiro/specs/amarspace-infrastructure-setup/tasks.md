@@ -91,15 +91,15 @@ This plan implements the foundational infrastructure for AmarSpace — a propert
 - [x] 3. Checkpoint - Core packages verified
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 4. Implement authentication system
-  - [ ] 4.1 Implement Better Auth plugin
+- [x] 4. Implement authentication system
+  - [x] 4.1 Implement Better Auth plugin
     - Create `apps/api/src/plugins/auth.ts` with `createAuth` function using Better Auth with Drizzle adapter
     - Configure email/password authentication, 7-day session expiry, daily session refresh
     - Configure rate limiting: 5 max attempts per 15-minute window
     - Register as Fastify plugin that decorates app with auth instance
     - _Requirements: 5.1, 5.2, 5.3, 5.8_
 
-  - [ ] 4.2 Implement auth route handlers
+  - [x] 4.2 Implement auth route handlers
     - Create `apps/api/src/routes/auth.ts` with sign-up, sign-in, sign-out, and session retrieval endpoints
     - Implement generic error responses that don't reveal whether email or password was incorrect
     - Implement session token creation on successful authentication
@@ -125,14 +125,14 @@ This plan implements the foundational infrastructure for AmarSpace — a propert
     - **Validates: Requirements 5.9**
 
 - [ ] 5. Implement audit log system
-  - [ ] 5.1 Implement audit logger plugin
+  - [~] 5.1 Implement audit logger plugin
     - Create `apps/api/src/plugins/audit.ts` with `AuditLogger` class
     - Implement async log writing with in-memory retry queue (exponential backoff, max 3 retries)
     - Ensure audit log failures don't block primary action completion
     - Validate entityType ≤ 100 chars, action ≤ 100 chars, JSON values ≤ 10KB
     - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.8_
 
-  - [ ] 5.2 Implement audit log query endpoint with RBAC
+  - [~] 5.2 Implement audit log query endpoint with RBAC
     - Create `apps/api/src/routes/audit.ts` with paginated query endpoint
     - Implement Owner role: access to all entries, max 100 per page
     - Implement Manager role: access restricted to entries for assigned properties, max 100 per page
@@ -157,17 +157,17 @@ This plan implements the foundational infrastructure for AmarSpace — a propert
     - Generate random users/roles/properties; verify Owner sees all, Manager sees only assigned, others get denied, pagination ≤ 100
     - **Validates: Requirements 7.5, 7.6, 7.7**
 
-- [ ] 6. Checkpoint - Auth and audit verified
+- [~] 6. Checkpoint - Auth and audit verified
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 7. Set up Docker containerization
-  - [ ] 7.1 Create Dockerfiles for web and api applications
+  - [~] 7.1 Create Dockerfiles for web and api applications
     - Create `apps/web/Dockerfile` with multi-stage build: deps install → build → production runtime (Node.js 22 Alpine)
     - Create `apps/api/Dockerfile` with multi-stage build: deps install → build → production runtime (Node.js 22 Alpine)
     - Optimize layer caching by copying package.json/lockfile first
     - _Requirements: 6.1, 6.2_
 
-  - [ ] 7.2 Create docker-compose configuration
+  - [~] 7.2 Create docker-compose configuration
     - Create `docker-compose.yml` at repo root with services: db (PostgreSQL 16 Alpine), api, web
     - Configure db with named volume `pgdata`, health check using `pg_isready`
     - Configure service startup order: db → api → web using `depends_on` with health check conditions
@@ -175,33 +175,33 @@ This plan implements the foundational infrastructure for AmarSpace — a propert
     - Reference `.env` file via `env_file` directive
     - _Requirements: 6.3, 6.4, 6.5, 6.6, 6.7_
 
-  - [ ] 7.3 Create docker-compose override and nginx configuration
+  - [~] 7.3 Create docker-compose override and nginx configuration
     - Create `docker-compose.override.yml` with dev overrides: volume mounts for hot-reloading, use node:22-alpine image directly
     - Create `docker/nginx/default.conf` with reverse proxy configuration for web and api services
     - _Requirements: 6.8, 6.9_
 
 - [ ] 8. Set up environment configuration and health endpoint
-  - [ ] 8.1 Create environment configuration files
+  - [~] 8.1 Create environment configuration files
     - Create `.env.example` at repo root with all required variables (DATABASE_URL, AUTH_SECRET, AUTH_BASE_URL, POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_DB, etc.) with placeholder values and inline comments
     - Create `apps/api/.env.example` with API-specific variables
     - Create `apps/web/.env.example` with frontend-specific variables
     - Update `.gitignore` to exclude `.env` files while keeping `.env.example` tracked
     - _Requirements: 8.1, 8.2, 8.4_
 
-  - [ ] 8.2 Implement health check route
+  - [~] 8.2 Implement health check route
     - Create `apps/api/src/routes/health.ts` with `/api/health` endpoint
     - Return service status, database connectivity check, and uptime
     - Use for Docker health check and monitoring
     - _Requirements: 2.2, 6.6_
 
 - [ ] 9. Wire monorepo integration and update Turborepo configuration
-  - [ ] 9.1 Update root Turborepo and workspace configuration
+  - [~] 9.1 Update root Turborepo and workspace configuration
     - Update `turbo.json` to include `apps/api` build outputs and task dependencies
     - Ensure `packages/db` is in the Turborepo task dependency graph (builds before dependents)
     - Verify workspace references resolve correctly between `apps/api` → `@repo/db`
     - _Requirements: 1.5, 1.6, 9.5, 9.7_
 
-  - [ ] 9.2 Configure shared TypeScript and lint settings for new packages
+  - [~] 9.2 Configure shared TypeScript and lint settings for new packages
     - Ensure `packages/db/tsconfig.json` and `apps/api/tsconfig.json` extend shared configs
     - Verify `declaration: true` and `declarationMap: true` in `packages/db` for type exports
     - Verify that importing unexported symbols from `@repo/db` produces TypeScript compilation errors
@@ -213,7 +213,7 @@ This plan implements the foundational infrastructure for AmarSpace — a propert
     - Test that `turbo run check-types` catches type errors across workspace boundaries
     - _Requirements: 9.5, 9.7, 9.8_
 
-- [ ] 10. Final checkpoint - Full infrastructure verified
+- [~] 10. Final checkpoint - Full infrastructure verified
   - Ensure all tests pass, ask the user if questions arise.
 
 ## Notes
