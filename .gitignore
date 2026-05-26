@@ -11,6 +11,10 @@ node_modules
 .env.development.local
 .env.test.local
 .env.production.local
+.env*.local
+
+# Keep .env.example tracked
+!.env.example
 
 # Testing
 coverage

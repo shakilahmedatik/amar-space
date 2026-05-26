@@ -35,7 +35,7 @@ This plan implements the foundational infrastructure for AmarSpace — a propert
     - Add `db:generate`, `db:migrate`, `db:seed` scripts to `packages/db/package.json`
     - _Requirements: 4.1, 4.3, 4.4, 4.5, 4.6, 4.7_
 
-  - [ ]* 1.5 Write property test for seed script idempotence
+  - [x] 1.5 Write property test for seed script idempotence
     - **Property 3: Seed Script Idempotence**
     - Create `packages/db/tests/properties/seed.test.ts`
     - Verify that running seed N times produces same row count and content as running once
@@ -56,7 +56,7 @@ This plan implements the foundational infrastructure for AmarSpace — a propert
     - Register as Fastify plugin that decorates the app instance with validated env
     - _Requirements: 8.3, 8.5, 8.6_
 
-  - [ ]* 2.3 Write property test for environment validation completeness
+  - [x] 2.3 Write property test for environment validation completeness
     - **Property 10: Environment Validation Completeness**
     - Create `apps/api/tests/properties/env.test.ts`
     - Generate random env var sets (present/missing/malformed) and verify correct startup/failure behavior
@@ -70,13 +70,13 @@ This plan implements the foundational infrastructure for AmarSpace — a propert
     - Handle known operational errors (4xx) with consistent response structure
     - _Requirements: 2.4, 2.6, 2.7, 2.8_
 
-  - [ ]* 2.5 Write property test for request validation correctness
+  - [x] 2.5 Write property test for request validation correctness
     - **Property 1: Request Validation Correctness**
     - Create `apps/api/tests/properties/validation.test.ts`
     - Generate random payloads against Zod schemas; verify conforming payloads invoke handler, non-conforming return 400 with field-level errors
     - **Validates: Requirements 2.6, 2.7**
 
-  - [ ]* 2.6 Write property test for error response sanitization
+  - [x] 2.6 Write property test for error response sanitization
     - **Property 2: Error Response Sanitization**
     - Create `apps/api/tests/properties/error-handling.test.ts`
     - Generate random Error objects with stack traces, file paths, DB URLs; verify 500 responses contain only generic message
@@ -106,19 +106,19 @@ This plan implements the foundational infrastructure for AmarSpace — a propert
     - Implement session invalidation on sign-out
     - _Requirements: 5.4, 5.5, 5.6, 5.7, 5.9_
 
-  - [ ]* 4.3 Write property test for authentication error opacity
+  - [x] 4.3 Write property test for authentication error opacity
     - **Property 4: Authentication Error Opacity**
     - Create `apps/api/tests/properties/auth.test.ts`
     - Generate random email/password combinations for non-existent emails and wrong passwords; verify identical error responses
     - **Validates: Requirements 5.6**
 
-  - [ ]* 4.4 Write property test for rate limiting enforcement
+  - [x] 4.4 Write property test for rate limiting enforcement
     - **Property 5: Rate Limiting Enforcement**
     - In `apps/api/tests/properties/auth.test.ts`
     - Verify that after 5 consecutive failures for any email, subsequent attempts are rejected for 15 minutes regardless of credential validity
     - **Validates: Requirements 5.8**
 
-  - [ ]* 4.5 Write property test for session token validation
+  - [x] 4.5 Write property test for session token validation
     - **Property 6: Session Token Validation**
     - In `apps/api/tests/properties/auth.test.ts`
     - Generate random/expired/malformed tokens; verify all are rejected and grant no access to protected resources
@@ -139,19 +139,19 @@ This plan implements the foundational infrastructure for AmarSpace — a propert
     - Deny access for users without Owner or Manager role with permissions error
     - _Requirements: 7.5, 7.6, 7.7_
 
-  - [ ]* 5.3 Write property test for audit log entry integrity
+  - [x] 5.3 Write property test for audit log entry integrity
     - **Property 7: Audit Log Entry Integrity**
     - Create `apps/api/tests/properties/audit.test.ts`
     - Generate random audit entry data and JSON values ≤ 10KB; verify all required fields present and JSON round-trips correctly
     - **Validates: Requirements 7.2, 7.8**
 
-  - [ ]* 5.4 Write property test for audit log fault tolerance
+  - [x] 5.4 Write property test for audit log fault tolerance
     - **Property 8: Audit Log Fault Tolerance**
     - In `apps/api/tests/properties/audit.test.ts`
     - Mock DB failures during audit writes; verify primary action still completes successfully
     - **Validates: Requirements 7.4**
 
-  - [ ]* 5.5 Write property test for audit log RBAC
+  - [x] 5.5 Write property test for audit log RBAC
     - **Property 9: Audit Log Role-Based Access Control**
     - In `apps/api/tests/properties/audit.test.ts`
     - Generate random users/roles/properties; verify Owner sees all, Manager sees only assigned, others get denied, pagination ≤ 100
@@ -160,14 +160,14 @@ This plan implements the foundational infrastructure for AmarSpace — a propert
 - [x] 6. Checkpoint - Auth and audit verified
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 7. Set up Docker containerization
-  - [ ] 7.1 Create Dockerfiles for web and api applications
+- [x] 7. Set up Docker containerization
+  - [x] 7.1 Create Dockerfiles for web and api applications
     - Create `apps/web/Dockerfile` with multi-stage build: deps install → build → production runtime (Node.js 22 Alpine)
     - Create `apps/api/Dockerfile` with multi-stage build: deps install → build → production runtime (Node.js 22 Alpine)
     - Optimize layer caching by copying package.json/lockfile first
     - _Requirements: 6.1, 6.2_
 
-  - [ ] 7.2 Create docker-compose configuration
+  - [x] 7.2 Create docker-compose configuration
     - Create `docker-compose.yml` at repo root with services: db (PostgreSQL 16 Alpine), api, web
     - Configure db with named volume `pgdata`, health check using `pg_isready`
     - Configure service startup order: db → api → web using `depends_on` with health check conditions
@@ -175,48 +175,48 @@ This plan implements the foundational infrastructure for AmarSpace — a propert
     - Reference `.env` file via `env_file` directive
     - _Requirements: 6.3, 6.4, 6.5, 6.6, 6.7_
 
-  - [ ] 7.3 Create docker-compose override and nginx configuration
+  - [x] 7.3 Create docker-compose override and nginx configuration
     - Create `docker-compose.override.yml` with dev overrides: volume mounts for hot-reloading, use node:22-alpine image directly
     - Create `docker/nginx/default.conf` with reverse proxy configuration for web and api services
     - _Requirements: 6.8, 6.9_
 
-- [ ] 8. Set up environment configuration and health endpoint
-  - [ ] 8.1 Create environment configuration files
+- [x] 8. Set up environment configuration and health endpoint
+  - [x] 8.1 Create environment configuration files
     - Create `.env.example` at repo root with all required variables (DATABASE_URL, AUTH_SECRET, AUTH_BASE_URL, POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_DB, etc.) with placeholder values and inline comments
     - Create `apps/api/.env.example` with API-specific variables
     - Create `apps/web/.env.example` with frontend-specific variables
     - Update `.gitignore` to exclude `.env` files while keeping `.env.example` tracked
     - _Requirements: 8.1, 8.2, 8.4_
 
-  - [ ] 8.2 Implement health check route
+  - [x] 8.2 Implement health check route
     - Create `apps/api/src/routes/health.ts` with `/api/health` endpoint
     - Return service status, database connectivity check, and uptime
     - Register the health route in the Fastify app factory (`src/app.ts`)
     - Use for Docker health check and monitoring
     - _Requirements: 2.2, 6.6_
 
-- [ ] 9. Wire monorepo integration and update Turborepo configuration
-  - [ ] 9.1 Update root Turborepo and workspace configuration
+- [x] 9. Wire monorepo integration and update Turborepo configuration
+  - [x] 9.1 Update root Turborepo and workspace configuration
     - Update `turbo.json` to include `apps/api` build outputs (`dist/**`) in the `build` task outputs array
     - Ensure `packages/db` is in the Turborepo task dependency graph (builds before dependents)
     - Verify workspace references resolve correctly between `apps/api` → `@repo/db`
     - Add `db:generate` and `db:migrate` tasks to turbo.json if needed
     - _Requirements: 1.5, 1.6, 9.5, 9.7_
 
-  - [ ] 9.2 Configure shared TypeScript and lint settings for new packages
+  - [x] 9.2 Configure shared TypeScript and lint settings for new packages
     - Ensure `packages/db/tsconfig.json` and `apps/api/tsconfig.json` extend shared configs correctly
     - Verify `declaration: true` and `declarationMap: true` in `packages/db` for type exports
     - Verify that importing unexported symbols from `@repo/db` produces TypeScript compilation errors
     - Run `turbo run check-types` to validate cross-workspace type resolution
     - _Requirements: 9.2, 9.3, 9.6, 9.8_
 
-  - [ ]* 9.3 Write integration tests for monorepo wiring
+  - [x] 9.3 Write integration tests for monorepo wiring
     - Test that `apps/api` can import from `@repo/db` and resolve types correctly
     - Test that `turbo run build` completes successfully with correct dependency order
     - Test that `turbo run check-types` catches type errors across workspace boundaries
     - _Requirements: 9.5, 9.7, 9.8_
 
-- [ ] 10. Final checkpoint - Full infrastructure verified
+- [x] 10. Final checkpoint - Full infrastructure verified
   - Ensure all tests pass, ask the user if questions arise.
 
 ## Notes

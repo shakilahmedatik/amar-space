@@ -1,0 +1,20 @@
+# Development overrides - automatically merged with docker-compose.yml
+# Use: docker compose up (no -f flag needed)
+services:
+  api:
+    build: !reset null
+    image: node:22-alpine
+    working_dir: /app
+    command: bun run dev --filter=api
+    volumes:
+      - .:/app
+      - /app/node_modules
+
+  web:
+    build: !reset null
+    image: node:22-alpine
+    working_dir: /app
+    command: bun run dev --filter=web
+    volumes:
+      - .:/app
+      - /app/node_modules

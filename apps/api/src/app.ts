@@ -95,6 +95,7 @@ export function buildApp(opts = {}) {
   app.register(import('./plugins/audit'))
 
   // Register routes
+  app.register(import('./routes/health'), { prefix: '/api/health' })
   app.register(import('./routes/auth'), { prefix: '/api/auth' })
   app.register(import('./routes/audit'), { prefix: '/api/audit' })
 

@@ -101,6 +101,14 @@ function sanitizeAuthErrorResponse(
     try {
       const parsed = JSON.parse(body)
 
+      // If parsed body is not an object, treat as unrecognized error and sanitize
+      if (typeof parsed !== 'object' || parsed === null) {
+        return {
+          status: 401,
+          body: JSON.stringify(GENERIC_AUTH_ERROR),
+        }
+      }
+
       // Invalid or expired session token (Requirement 5.9)
       if (
         parsed?.code === 'INVALID_SESSION' ||
@@ -131,6 +139,12 @@ function sanitizeAuthErrorResponse(
           status: 401,
           body: JSON.stringify(GENERIC_AUTH_ERROR),
         }
+      }
+
+      // Any other unrecognized 4xx auth error — sanitize to prevent leakage
+      return {
+        status: 401,
+        body: JSON.stringify(GENERIC_AUTH_ERROR),
       }
     } catch {
       // If body isn't JSON, return generic auth error for safety
