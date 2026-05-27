@@ -218,8 +218,8 @@ This plan implements the AmarSpace multi-tenant apartment management platform as
     - Validate request bodies with Zod schemas
     - _Requirements: 5.5, 6.7, 6.8, 6.9_
 
-- [ ] 7. Implement renter registration service
-  - [~] 7.1 Implement RenterRegistrationService
+- [x] 7. Implement renter registration service
+  - [x] 7.1 Implement RenterRegistrationService
     - Validate all required fields (NID 10-17 digits, phone 11 digits starting 01, blood group enum, family members 1-50)
     - Create user account with Renter role
     - Create renter record with personal data
@@ -230,12 +230,12 @@ This plan implements the AmarSpace multi-tenant apartment management platform as
     - Record audit event
     - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 4.7, 4.8, 4.9, 4.10, 4.11, 4.12, 4.13_
 
-  - [~] 7.2 Write property tests for renter registration validation
+  - [x] 7.2 Write property tests for renter registration validation
     - **Property 5: Renter registration field validation**
     - **Property 6: Flat assignment requires Vacant status**
     - **Validates: Requirements 4.3, 4.4, 4.5, 4.6, 4.9, 4.13, 6.6**
 
-  - [~] 7.3 Implement renter API routes
+  - [x] 7.3 Implement renter API routes
     - Register GET/POST /api/renters, GET /api/renters/:id
     - Apply auth guard, role guard (Owner, Manager), tenant scope
     - Validate request bodies with Zod schemas

@@ -158,6 +158,7 @@ export function buildApp(opts: Record<string, unknown> = {}) {
   app.register(import('./plugins/db'))
   app.register(import('./plugins/auth'))
   app.register(import('./plugins/audit-logger'))
+  app.register(import('./plugins/r2'))
 
   // Register routes
   app.register(import('./routes/health'), { prefix: '/api/health' })
@@ -167,6 +168,7 @@ export function buildApp(opts: Record<string, unknown> = {}) {
   app.register(import('./routes/roles'), { prefix: '/api/users' })
   app.register(import('./routes/buildings'), { prefix: '/api/buildings' })
   app.register(import('./routes/flats'), { prefix: '/api/flats' })
+  app.register(import('./routes/renters'), { prefix: '/api/renters' })
 
   return app
 }
