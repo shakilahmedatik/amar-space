@@ -361,8 +361,8 @@ This plan implements the AmarSpace multi-tenant apartment management platform as
     - Validate request bodies with Zod schemas
     - _Requirements: 12.5, 12.6, 12.9, 12.10_
 
-- [ ] 14. Implement audit log query service
-  - [~] 14.1 Implement AuditLogQueryService
+- [x] 14. Implement audit log query service
+  - [x] 14.1 Implement AuditLogQueryService
     - queryLogs: filter by entity type, entity ID, actor user ID, action name, date range
     - Paginated (max 100 per page), sorted by createdAt desc
     - Owner: full access to all logs
@@ -370,7 +370,7 @@ This plan implements the AmarSpace multi-tenant apartment management platform as
     - Renter: denied (403)
     - _Requirements: 13.3, 13.4, 13.5, 13.8_
 
-  - [~] 14.2 Implement audit log API route
+  - [x] 14.2 Implement audit log API route
     - Register GET /api/audit
     - Apply auth guard, role guard (Owner, Manager), tenant scope
     - Validate query parameters with Zod schemas
