@@ -156,27 +156,27 @@ This plan implements the AmarSpace multi-tenant apartment management platform as
     - Truncate old/new values exceeding 10KB
     - _Requirements: 13.1, 13.2, 13.6, 13.7_
 
-- [ ] 5. Implement authentication and registration services
-  - [~] 5.1 Implement user registration endpoint
+- [x] 5. Implement authentication and registration services
+  - [x] 5.1 Implement user registration endpoint
     - Validate email (≤254 chars, standard format, lowercase normalization)
     - Validate password (8-128 chars, uppercase + lowercase + digit)
     - Hash password, create user with Owner role
     - Create session on success, handle session creation failure gracefully
     - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7_
 
-  - [~] 5.2 Write property tests for registration validation
+  - [x] 5.2 Write property tests for registration validation
     - **Property 1: Registration produces valid account with Owner role**
     - **Property 2: Email and password validation correctness**
     - **Property 3: Duplicate email rejection**
     - **Validates: Requirements 1.1, 1.2, 1.3, 1.5, 1.6**
 
-  - [~] 5.3 Implement login and session management endpoints
+  - [x] 5.3 Implement login and session management endpoints
     - Authenticate with email/password via Better Auth
     - Record login event in audit log
     - Implement logout with session invalidation within 1 second
     - _Requirements: 2.1, 2.2, 2.4, 2.7_
 
-  - [~] 5.4 Implement role assignment service
+  - [x] 5.4 Implement role assignment service
     - Allow Owner to assign/change roles
     - Require building assignment for Manager role
     - Prevent removal of last Owner

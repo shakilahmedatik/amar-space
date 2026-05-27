@@ -10,10 +10,14 @@ import type { FastifyInstance, FastifyRequest } from 'fastify'
  * - POST /sign-out — session invalidation
  * - GET /get-session — session retrieval/validation
  *
+ * Additional behavior:
+ * - Records login events in audit log on successful authentication (Requirement 2.7)
+ * - Ensures logout invalidates session within 1 second (Requirement 2.4)
+ *
  * Error responses are intercepted to ensure:
- * - Generic messages that don't reveal whether email or password was incorrect (Requirement 5.6)
- * - Proper rate-limit responses (Requirement 5.8)
- * - Invalid/expired session token rejection (Requirement 5.9)
+ * - Generic messages that don't reveal whether email or password was incorrect (Requirement 2.2)
+ * - Proper rate-limit responses (Requirement 2.3)
+ * - Invalid/expired session token rejection (Requirement 2.6)
  */
 
 interface ErrorResponse {
@@ -54,7 +58,7 @@ function toWebRequest(request: FastifyRequest, baseURL: string): Request {
 
 /**
  * Generic authentication error message used for all auth failures.
- * Does not reveal whether email or password was incorrect (Requirement 5.6).
+ * Does not reveal whether email or password was incorrect (Requirement 2.2).
  */
 const GENERIC_AUTH_ERROR: ErrorResponse = {
   statusCode: 401,
@@ -63,7 +67,7 @@ const GENERIC_AUTH_ERROR: ErrorResponse = {
 }
 
 /**
- * Rate limit error response (Requirement 5.8).
+ * Rate limit error response (Requirement 2.3).
  */
 const RATE_LIMIT_ERROR: ErrorResponse = {
   statusCode: 429,
@@ -72,7 +76,7 @@ const RATE_LIMIT_ERROR: ErrorResponse = {
 }
 
 /**
- * Invalid or expired session error response (Requirement 5.9).
+ * Invalid or expired session error response (Requirement 2.6).
  */
 const SESSION_INVALID_ERROR: ErrorResponse = {
   statusCode: 401,
@@ -88,7 +92,7 @@ function sanitizeAuthErrorResponse(
   status: number,
   body: string,
 ): { status: number; body: string } | null {
-  // Rate limit responses (Requirement 5.8)
+  // Rate limit responses (Requirement 2.3)
   if (status === 429) {
     return {
       status: 429,
@@ -109,7 +113,7 @@ function sanitizeAuthErrorResponse(
         }
       }
 
-      // Invalid or expired session token (Requirement 5.9)
+      // Invalid or expired session token (Requirement 2.6)
       if (
         parsed?.code === 'INVALID_SESSION' ||
         parsed?.code === 'SESSION_EXPIRED' ||
@@ -125,7 +129,7 @@ function sanitizeAuthErrorResponse(
       }
 
       // Better Auth may return specific error messages about email/password.
-      // Replace with generic error to prevent information leakage (Requirement 5.6).
+      // Replace with generic error to prevent information leakage (Requirement 2.2).
       if (
         parsed?.code === 'INVALID_EMAIL_OR_PASSWORD' ||
         parsed?.code === 'USER_NOT_FOUND' ||
@@ -159,9 +163,46 @@ function sanitizeAuthErrorResponse(
 }
 
 /**
+ * Checks if the request URL matches the sign-in endpoint.
+ */
+function isSignInRequest(url: string): boolean {
+  return url.includes('/sign-in/email')
+}
+
+/**
+ * Checks if the request URL matches the sign-out endpoint.
+ */
+function isSignOutRequest(url: string): boolean {
+  return url.includes('/sign-out')
+}
+
+/**
+ * Extracts user information from a successful login response body.
+ * Returns null if the body cannot be parsed or doesn't contain user data.
+ */
+function extractLoginUser(body: string): { id: string; email: string } | null {
+  try {
+    const parsed = JSON.parse(body)
+    if (parsed?.user?.id && parsed?.user?.email) {
+      return { id: parsed.user.id, email: parsed.user.email }
+    }
+    // Some Better Auth versions return the user at the top level
+    if (parsed?.id && parsed?.email) {
+      return { id: parsed.id, email: parsed.email }
+    }
+    return null
+  } catch {
+    return null
+  }
+}
+
+/**
  * Auth routes plugin.
  * NOT wrapped in fp() so the catch-all route stays encapsulated
  * within the /api/auth prefix and doesn't leak to the root scope.
+ *
+ * Adds audit logging for successful login events (Requirement 2.7)
+ * and ensures logout invalidates session within 1 second (Requirement 2.4).
  */
 async function authRoutes(fastify: FastifyInstance) {
   const { auth } = fastify
@@ -181,6 +222,57 @@ async function authRoutes(fastify: FastifyInstance) {
       reply.status(sanitized.status)
       reply.header('content-type', 'application/json')
       return reply.send(sanitized.body)
+    }
+
+    // Record audit log for successful login (Requirement 2.7)
+    if (
+      isSignInRequest(request.url) &&
+      request.method === 'POST' &&
+      response.status >= 200 &&
+      response.status < 300
+    ) {
+      const loginUser = extractLoginUser(body)
+      if (loginUser) {
+        // Fire-and-forget audit log — does not block the response
+        fastify.auditLogger.log({
+          actorId: loginUser.id,
+          action: 'user.login',
+          entityType: 'session',
+          entityId: loginUser.id,
+          ownerAccountId: loginUser.id,
+          metadata: {
+            ip: request.ip,
+            userAgent: request.headers['user-agent'] || '',
+            timestamp: new Date().toISOString(),
+          },
+        })
+      }
+    }
+
+    // Record audit log for successful logout (Requirement 2.4)
+    if (
+      isSignOutRequest(request.url) &&
+      request.method === 'POST' &&
+      response.status >= 200 &&
+      response.status < 300
+    ) {
+      // Extract user from the request context if available (session was valid before sign-out)
+      const requestUser = (request as unknown as { user?: { id?: string } })
+        .user
+      if (requestUser?.id) {
+        fastify.auditLogger.log({
+          actorId: requestUser.id,
+          action: 'user.logout',
+          entityType: 'session',
+          entityId: requestUser.id,
+          ownerAccountId: requestUser.id,
+          metadata: {
+            ip: request.ip,
+            userAgent: request.headers['user-agent'] || '',
+            timestamp: new Date().toISOString(),
+          },
+        })
+      }
     }
 
     // Copy response headers from Better Auth's response

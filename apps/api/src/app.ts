@@ -162,7 +162,9 @@ export function buildApp(opts: Record<string, unknown> = {}) {
   // Register routes
   app.register(import('./routes/health'), { prefix: '/api/health' })
   app.register(import('./routes/auth'), { prefix: '/api/auth' })
+  app.register(import('./routes/register'), { prefix: '/api/register' })
   app.register(import('./routes/audit'), { prefix: '/api/audit' })
+  app.register(import('./routes/roles'), { prefix: '/api/users' })
 
   return app
 }
