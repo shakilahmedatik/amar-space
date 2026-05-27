@@ -83,9 +83,8 @@ export async function tenantScope(
         ),
       )
 
-    if (renterRecords.length > 0) {
-      const renterRecord = renterRecords[0]
-
+    const renterRecord = renterRecords[0]
+    if (renterRecord) {
       // Then find the active rental contract for this renter
       const contracts = await db
         .select({ flatId: rentalContracts.flatId })
@@ -98,8 +97,9 @@ export async function tenantScope(
           ),
         )
 
-      if (contracts.length > 0) {
-        scope.assignedFlatId = contracts[0].flatId
+      const activeContract = contracts[0]
+      if (activeContract) {
+        scope.assignedFlatId = activeContract.flatId
       }
     }
   }
