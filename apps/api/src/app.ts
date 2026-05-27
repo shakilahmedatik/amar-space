@@ -165,6 +165,8 @@ export function buildApp(opts: Record<string, unknown> = {}) {
   app.register(import('./routes/register'), { prefix: '/api/register' })
   app.register(import('./routes/audit'), { prefix: '/api/audit' })
   app.register(import('./routes/roles'), { prefix: '/api/users' })
+  app.register(import('./routes/buildings'), { prefix: '/api/buildings' })
+  app.register(import('./routes/flats'), { prefix: '/api/flats' })
 
   return app
 }

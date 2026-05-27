@@ -184,8 +184,8 @@ This plan implements the AmarSpace multi-tenant apartment management platform as
     - Record role changes in audit log
     - _Requirements: 3.5, 3.7, 3.8_
 
-- [ ] 6. Implement building and flat management services
-  - [~] 6.1 Implement BuildingService
+- [x] 6. Implement building and flat management services
+  - [x] 6.1 Implement BuildingService
     - createBuilding: validate name uniqueness per owner, enforce field constraints
     - updateBuilding: validate ownership, apply same constraints
     - listBuildings: tenant-scoped, paginated (max 50), sorted by createdAt desc
@@ -193,11 +193,11 @@ This plan implements the AmarSpace multi-tenant apartment management platform as
     - Record audit events for create/update
     - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.6, 5.7, 5.8, 5.9_
 
-  - [~] 6.2 Write property test for building name uniqueness
+  - [x] 6.2 Write property test for building name uniqueness
     - **Property 7: Building name uniqueness per owner**
     - **Validates: Requirements 5.9**
 
-  - [~] 6.3 Implement FlatService
+  - [x] 6.3 Implement FlatService
     - createFlat: validate flat number uniqueness within building, enforce field constraints
     - updateFlat: validate ownership, update properties
     - deleteFlat: only allow if status is Vacant
@@ -206,12 +206,12 @@ This plan implements the AmarSpace multi-tenant apartment management platform as
     - Record audit events
     - _Requirements: 6.1, 6.2, 6.3, 6.4, 6.5, 6.7, 6.10, 6.11, 6.12, 6.13, 6.14_
 
-  - [~] 6.4 Write property tests for flat management
+  - [x] 6.4 Write property tests for flat management
     - **Property 8: Flat number uniqueness within building**
     - **Property 9: Flat status transition validity**
     - **Validates: Requirements 6.12, 6.13, 6.14**
 
-  - [~] 6.5 Implement building and flat API routes
+  - [x] 6.5 Implement building and flat API routes
     - Register GET/POST /api/buildings, GET/PUT /api/buildings/:id
     - Register GET/POST /api/flats, GET/PUT/DELETE /api/flats/:id
     - Apply auth guard, role guard, tenant scope middleware
