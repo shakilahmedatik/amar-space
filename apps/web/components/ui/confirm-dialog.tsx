@@ -1,7 +1,7 @@
 'use client'
 
-import { useTranslation } from '@/lib/i18n'
 import { useCallback, useEffect, useRef } from 'react'
+import { useTranslation } from '@/lib/i18n'
 
 interface ConfirmDialogProps {
   open: boolean

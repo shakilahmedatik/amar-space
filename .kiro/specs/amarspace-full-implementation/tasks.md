@@ -22,7 +22,7 @@ This plan implements the AmarSpace multi-tenant apartment management platform as
     - Implement date formatter (DD/MM/YYYY Bangla locale)
     - _Requirements: 3.1, 15.3, 15.4, 19.2_
 
-  - [x]* 1.3 Write property test for BDT currency formatting
+  - [x] 1.3 Write property test for BDT currency formatting
     - **Property 19: BDT currency formatting**
     - **Validates: Requirements 15.3**
 
@@ -31,7 +31,7 @@ This plan implements the AmarSpace multi-tenant apartment management platform as
     - Ensure error response structure matches API contract (requestId, statusCode, errors array)
     - _Requirements: 19.2, 19.3, 19.4, 19.5_
 
-  - [x]* 1.5 Write property test for API error response structure
+  - [x] 1.5 Write property test for API error response structure
     - **Property 20: API error response structure**
     - **Validates: Requirements 19.2, 19.3, 19.4, 19.5, 19.6**
 
@@ -135,11 +135,11 @@ This plan implements the AmarSpace multi-tenant apartment management platform as
     - For renters: resolve assigned flat ID from rental_contracts
     - _Requirements: 17.2, 17.5, 17.7_
 
-  - [x]* 4.6 Write property test for role-based access control enforcement
+  - [x] 4.6 Write property test for role-based access control enforcement
     - **Property 4: Role-based access control enforcement**
     - **Validates: Requirements 3.1, 3.2, 3.3, 3.4, 3.6, 3.9**
 
-  - [x]* 4.7 Write property test for tenant data isolation
+  - [x] 4.7 Write property test for tenant data isolation
     - **Property 17: Tenant data isolation**
     - **Validates: Requirements 17.2, 17.3, 17.6**
 
@@ -164,7 +164,7 @@ This plan implements the AmarSpace multi-tenant apartment management platform as
     - Create session on success, handle session creation failure gracefully
     - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7_
 
-  - [x]* 5.2 Write property tests for registration validation
+  - [x] 5.2 Write property tests for registration validation
     - **Property 1: Registration produces valid account with Owner role**
     - **Property 2: Email and password validation correctness**
     - **Property 3: Duplicate email rejection**
@@ -193,7 +193,7 @@ This plan implements the AmarSpace multi-tenant apartment management platform as
     - Record audit events for create/update
     - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.6, 5.7, 5.8, 5.9_
 
-  - [x]* 6.2 Write property test for building name uniqueness
+  - [x] 6.2 Write property test for building name uniqueness
     - **Property 7: Building name uniqueness per owner**
     - **Validates: Requirements 5.9**
 
@@ -206,7 +206,7 @@ This plan implements the AmarSpace multi-tenant apartment management platform as
     - Record audit events
     - _Requirements: 6.1, 6.2, 6.3, 6.4, 6.5, 6.7, 6.10, 6.11, 6.12, 6.13, 6.14_
 
-  - [x]* 6.4 Write property tests for flat management
+  - [x] 6.4 Write property tests for flat management
     - **Property 8: Flat number uniqueness within building**
     - **Property 9: Flat status transition validity**
     - **Validates: Requirements 6.12, 6.13, 6.14**
@@ -230,7 +230,7 @@ This plan implements the AmarSpace multi-tenant apartment management platform as
     - Record audit event
     - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 4.7, 4.8, 4.9, 4.10, 4.11, 4.12, 4.13_
 
-  - [x]* 7.2 Write property tests for renter registration validation
+  - [x] 7.2 Write property tests for renter registration validation
     - **Property 5: Renter registration field validation**
     - **Property 6: Flat assignment requires Vacant status**
     - **Validates: Requirements 4.3, 4.4, 4.5, 4.6, 4.9, 4.13, 6.6**
@@ -255,7 +255,7 @@ This plan implements the AmarSpace multi-tenant apartment management platform as
     - Record audit events
     - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.5, 7.6, 7.7, 7.8, 7.9, 7.10, 7.11, 7.12, 7.13, 7.14_
 
-  - [ ]* 9.2 Write property tests for billing
+  - [x] 9.2 Write property tests for billing
     - **Property 10: Bill total equals base rent plus line items**
     - **Property 11: No duplicate bills per flat per month**
     - **Validates: Requirements 7.3, 7.10**
@@ -270,7 +270,7 @@ This plan implements the AmarSpace multi-tenant apartment management platform as
     - Record audit events
     - _Requirements: 8.1, 8.2, 8.3, 8.4, 8.5, 8.6, 8.7, 8.8, 8.9, 8.10, 8.11_
 
-  - [ ]* 9.4 Write property test for payment status updates
+  - [x] 9.4 Write property test for payment status updates
     - **Property 12: Payment correctly updates bill status**
     - **Validates: Requirements 8.2, 8.3, 8.4, 8.5**
 
@@ -292,7 +292,7 @@ This plan implements the AmarSpace multi-tenant apartment management platform as
     - Record audit events with old/new balance values
     - _Requirements: 9.1, 9.2, 9.3, 9.4, 9.5, 9.6, 9.7, 9.8, 9.9, 9.10, 9.11_
 
-  - [ ]* 10.2 Write property tests for deposit management
+  - [x] 10.2 Write property tests for deposit management
     - **Property 13: Deposit adjustment maintains balance invariant**
     - **Property 14: Deposit adjustment linked to bill acts as payment**
     - **Validates: Requirements 9.2, 9.3, 9.4, 9.5, 9.6**
@@ -316,7 +316,7 @@ This plan implements the AmarSpace multi-tenant apartment management platform as
     - Record audit events for status changes
     - _Requirements: 10.1, 10.2, 10.3, 10.4, 10.5, 10.6, 10.7, 10.8, 10.9, 10.10, 10.11, 10.12_
 
-  - [ ]* 12.2 Write property test for maintenance status transitions
+  - [x] 12.2 Write property test for maintenance status transitions
     - **Property 15: Maintenance request status transition validity**
     - **Validates: Requirements 10.5, 10.12**
 
@@ -328,7 +328,7 @@ This plan implements the AmarSpace multi-tenant apartment management platform as
     - Record audit events for status changes
     - _Requirements: 11.1, 11.2, 11.3, 11.4, 11.5, 11.6, 11.7, 11.8, 11.9, 11.10_
 
-  - [ ]* 12.4 Write property test for issue status transitions
+  - [x] 12.4 Write property test for issue status transitions
     - **Property 16: Issue status transition validity**
     - **Validates: Requirements 11.4, 11.8, 11.9**
 
@@ -339,7 +339,7 @@ This plan implements the AmarSpace multi-tenant apartment management platform as
     - Validate request bodies with Zod schemas
     - _Requirements: 10.6, 10.7, 10.8, 11.5, 11.6_
 
-  - [ ]* 12.6 Write property test for file upload validation
+  - [x] 12.6 Write property test for file upload validation
     - **Property 18: File upload validation**
     - **Validates: Requirements 18.3, 18.9**
 
@@ -466,28 +466,28 @@ This plan implements the AmarSpace multi-tenant apartment management platform as
     - Renter detail showing personal info, contract, and deposit balance
     - _Requirements: 4.1, 9.12_
 
-- [ ] 21. Implement frontend billing and payment pages
-  - [~] 21.1 Implement bill list and detail pages
+- [x] 21. Implement frontend billing and payment pages
+  - [x] 21.1 Implement bill list and detail pages
     - Bill list with multi-field filters (building, flat, renter, month, status), paginated
     - Bill generation action (Owner/Manager)
     - Bill detail showing line items and payment history
     - Add utility charge form (max 20 line items)
     - _Requirements: 7.1, 7.2, 7.6, 7.7, 7.8, 7.11_
 
-  - [~] 21.2 Implement payment recording and history pages
+  - [x] 21.2 Implement payment recording and history pages
     - Payment recording form with amount, date, method, note
     - Payment history with filters (bill, renter, date range, method), paginated
     - Payment receipt display with unique reference
     - _Requirements: 8.1, 8.5, 8.6, 8.8, 8.9_
 
-  - [~] 21.3 Implement deposit management pages
+  - [x] 21.3 Implement deposit management pages
     - Deposit balance display on renter detail
     - Adjustment form (Owner only) with amount, optional bill link, note
     - Adjustment history list, paginated
     - _Requirements: 9.7, 9.8, 9.9, 9.11, 9.12_
 
-- [ ] 22. Implement frontend maintenance and issue pages
-  - [~] 22.1 Implement maintenance request pages
+- [x] 22. Implement frontend maintenance and issue pages
+  - [x] 22.1 Implement maintenance request pages
     - Maintenance request list with filters (building, flat, status, priority), paginated
     - New request form (Renter) with title, description, priority, file attachments
     - Request detail with status badge, comments, and attachments
@@ -495,34 +495,34 @@ This plan implements the AmarSpace multi-tenant apartment management platform as
     - Comment form (all roles)
     - _Requirements: 10.1, 10.2, 10.3, 10.5, 10.6, 10.7, 10.8, 10.10_
 
-  - [~] 22.2 Implement issue tracking pages
+  - [x] 22.2 Implement issue tracking pages
     - Issue list with filters (building, category, status, priority, assignee), paginated
     - New issue form (Owner/Manager) with title, description, category, priority
     - Issue detail with status, assignee, resolution notes
     - Status update and assignment controls
     - _Requirements: 11.1, 11.2, 11.4, 11.5, 11.6, 11.7_
 
-- [ ] 23. Implement frontend notice and audit pages
-  - [~] 23.1 Implement notice pages
+- [x] 23. Implement frontend notice and audit pages
+  - [x] 23.1 Implement notice pages
     - Notice list with pinned notices at top, filtered by target audience, paginated
     - New notice form with title, body, target audience, building/flat selection
     - Notice detail with edit/delete (author or Owner)
     - Pin/unpin toggle (max 5 per scope)
     - _Requirements: 12.1, 12.2, 12.3, 12.4, 12.5, 12.6, 12.8, 12.9_
 
-  - [~] 23.2 Implement audit log viewer (Owner only)
+  - [x] 23.2 Implement audit log viewer (Owner only)
     - Audit log list with filters (entity type, entity ID, actor, action, date range)
     - Paginated (max 100 per page), sorted by timestamp desc
     - Display old/new values in expandable rows
     - _Requirements: 13.3, 13.4, 13.5_
 
-- [ ] 24. Implement frontend settings page
-  - [~] 24.1 Implement user settings page
+- [x] 24. Implement frontend settings page
+  - [x] 24.1 Implement user settings page
     - Language preference toggle (Bangla/English) with server-side persistence
     - Display current user role and account info
     - _Requirements: 15.5, 15.6_
 
-- [~] 25. Final checkpoint - Ensure all tests pass
+- [x] 25. Final checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
 ## Notes

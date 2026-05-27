@@ -1,7 +1,7 @@
 'use client'
 
-import { useTranslation } from '@/lib/i18n'
 import { type ReactNode, useCallback } from 'react'
+import { useTranslation } from '@/lib/i18n'
 
 export interface DataTableColumn<T> {
   key: string

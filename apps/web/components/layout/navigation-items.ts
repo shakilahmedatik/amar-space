@@ -96,6 +96,16 @@ export const navigationItems: NavigationItem[] = [
     showInBottomTab: true,
   },
   {
+    id: 'payments',
+    labelKey: 'nav.payments',
+    labelBn: 'পেমেন্ট',
+    labelEn: 'Payments',
+    href: '/payments',
+    icon: 'payments',
+    roles: ['owner', 'manager', 'renter'],
+    showInBottomTab: false,
+  },
+  {
     id: 'maintenance',
     labelKey: 'nav.maintenance',
     labelBn: 'রক্ষণাবেক্ষণ',
@@ -198,13 +208,13 @@ export function isNavItemActive(
  *   /dashboard
  *
  * Level 2 (Primary sections - one click from dashboard):
- *   /buildings, /flats, /renters, /bills, /maintenance,
+ *   /buildings, /flats, /renters, /bills, /payments, /maintenance,
  *   /issues, /notices, /audit, /settings
  *
  * Level 3 (Detail/Action pages - two clicks from dashboard):
  *   /buildings/[id], /flats/[id], /renters/[id], /renters/new,
- *   /bills/[id], /maintenance/[id], /maintenance/new,
- *   /issues/[id], /issues/new, /notices/[id], /notices/new
+ *   /bills/[id], /payments/[id], /payments/new, /maintenance/[id],
+ *   /maintenance/new, /issues/[id], /issues/new, /notices/[id], /notices/new
  *
  * No feature requires more than 3 levels of navigation.
  */

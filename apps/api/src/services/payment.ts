@@ -164,11 +164,12 @@ export class PaymentService {
     }
 
     // Calculate remaining balance (Requirement 8.4)
+    // Use rounded arithmetic to avoid floating point precision issues
     const totalAmount = Number.parseFloat(bill.totalAmount)
     const paidAmount = Number.parseFloat(bill.paidAmount)
-    const remainingBalance = totalAmount - paidAmount
+    const remainingBalance = Number((totalAmount - paidAmount).toFixed(2))
 
-    if (validated.amount > remainingBalance) {
+    if (Number(validated.amount.toFixed(2)) > remainingBalance) {
       throw new ValidationError([
         {
           field: 'amount',
@@ -200,9 +201,12 @@ export class PaymentService {
     }
 
     // Update bill paidAmount and status (Requirements 8.2, 8.3)
+    // Use rounded arithmetic to avoid floating point precision issues
     const newPaidAmount = paidAmount + validated.amount
+    const newPaidAmountRounded = Number(newPaidAmount.toFixed(2))
+    const totalAmountRounded = Number(totalAmount.toFixed(2))
     const newStatus =
-      newPaidAmount >= totalAmount
+      newPaidAmountRounded >= totalAmountRounded
         ? BILL_STATUS.PAID
         : BILL_STATUS.PARTIALLY_PAID
 

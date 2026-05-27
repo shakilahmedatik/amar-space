@@ -2,6 +2,11 @@
 
 import { useParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
+import {
+  DepositAdjustmentForm,
+  DepositAdjustmentHistory,
+  DepositBalanceCard,
+} from '@/components/deposits'
 import { DashboardLayout } from '@/components/layout'
 import { CurrencyDisplay } from '@/components/ui/currency-display'
 import { DateDisplay } from '@/components/ui/date-display'
@@ -15,8 +20,8 @@ type UserRole = 'owner' | 'manager' | 'renter'
 
 /**
  * Renter detail page — /renters/[id]
- * Shows personal info, contract details, and deposit balance.
- * Validates: Requirements 4.1, 9.12
+ * Shows personal info, contract details, deposit balance, adjustment form (Owner only), and adjustment history.
+ * Validates: Requirements 4.1, 9.7, 9.8, 9.9, 9.11, 9.12
  */
 export default function RenterDetailPage() {
   const { t } = useTranslation()
@@ -97,31 +102,10 @@ export default function RenterDetailPage() {
           </h1>
 
           {/* Deposit Balance - Prominent display (Requirement 9.12) */}
-          <div
-            style={{
-              padding: '1.25rem 1.5rem',
-              borderRadius: '0.5rem',
-              border: '1px solid #bbf7d0',
-              backgroundColor: '#f0fdf4',
-              marginBottom: '1.5rem',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              flexWrap: 'wrap',
-              gap: '0.5rem',
-            }}
-          >
-            <span
-              style={{
-                fontSize: '0.875rem',
-                fontWeight: 500,
-                color: '#166534',
-              }}
-            >
-              {t('renters.depositBalance')}
-            </span>
-            <CurrencyDisplay amount={renter.depositBalance} large />
-          </div>
+          <DepositBalanceCard
+            securityDepositAmount={renter.depositBalance}
+            remainingBalance={renter.depositBalance}
+          />
 
           {/* Personal Information */}
           <div
@@ -340,6 +324,19 @@ export default function RenterDetailPage() {
               </div>
             </div>
           </div>
+
+          {/* Deposit Adjustment Form - Owner only (Requirement 9.7, 9.8, 9.9) */}
+          {role === 'owner' && renter.contractId && (
+            <DepositAdjustmentForm
+              contractId={renter.contractId}
+              remainingBalance={renter.depositBalance}
+            />
+          )}
+
+          {/* Deposit Adjustment History (Requirement 9.11) */}
+          {renter.contractId && (
+            <DepositAdjustmentHistory contractId={renter.contractId} />
+          )}
 
           {/* Registration Date */}
           <div

@@ -1,4 +1,4 @@
-import type { ApiErrorResponse, FieldError } from '../types/index.js'
+import type { ApiErrorResponse, FieldError } from '../types/index'
 
 /**
  * HTTP status text mapping for error responses.
