@@ -407,23 +407,23 @@ This plan implements the AmarSpace multi-tenant apartment management platform as
     - Ensure WCAG AA contrast ratio (4.5:1 normal text, 3:1 large text)
     - _Requirements: 15.3, 15.4, 16.1, 16.3, 16.4, 16.5, 16.6, 16.7_
 
-- [ ] 17. Implement frontend authentication pages
-  - [ ] 17.1 Implement login page
+- [x] 17. Implement frontend authentication pages
+  - [x] 17.1 Implement login page
     - Create login form with email and password fields
     - Handle authentication errors with generic message
     - Display rate limit feedback
     - Redirect to dashboard on success
     - _Requirements: 2.1, 2.2, 2.3, 20.5_
 
-  - [ ] 17.2 Implement registration page
+  - [x] 17.2 Implement registration page
     - Create registration form with email and password fields
     - Display field-level validation errors
     - Handle duplicate email error
     - Redirect to dashboard on success
     - _Requirements: 1.1, 1.5, 1.6, 1.8_
 
-- [ ] 18. Implement frontend dashboard and navigation
-  - [ ] 18.1 Implement role-specific dashboard
+- [-] 18. Implement frontend dashboard and navigation
+  - [~] 18.1 Implement role-specific dashboard
     - Owner dashboard: total buildings, flats, occupancy ratio, unpaid bills (BDT), 5 recent maintenance, 5 recent audit entries
     - Manager dashboard: assigned buildings, flats with occupancy (max 20), unpaid bills (BDT), 10 pending maintenance
     - Renter dashboard: flat address, building name, current bill with status, deposit balance (BDT), active maintenance requests
@@ -431,21 +431,21 @@ This plan implements the AmarSpace multi-tenant apartment management platform as
     - Handle no-flat-assigned state for Renter
     - _Requirements: 20.1, 20.2, 20.3, 20.4, 20.7, 20.8_
 
-  - [ ] 18.2 Implement navigation structure
+  - [~] 18.2 Implement navigation structure
     - Max 3 levels from dashboard to any feature
     - One click/tap to reach primary sections (Buildings, Flats, Renters, Bills, Maintenance, Audit, Notices)
     - Role-based navigation item visibility
     - _Requirements: 16.3, 20.5, 20.6_
 
-- [ ] 19. Implement frontend building and flat management pages
-  - [ ] 19.1 Implement building list and detail pages
+- [~] 19. Implement frontend building and flat management pages
+  - [~] 19.1 Implement building list and detail pages
     - Building list with pagination (max 50)
     - Building creation form with name and address validation
     - Building detail with flat list
     - Owner can edit, Manager can only view
     - _Requirements: 5.1, 5.2, 5.4, 5.5, 5.7, 5.8_
 
-  - [ ] 19.2 Implement flat management pages
+  - [~] 19.2 Implement flat management pages
     - Flat list with status filter and pagination (max 50)
     - Flat creation form with flat number, floor, building reference
     - Flat detail with status badge
@@ -453,41 +453,41 @@ This plan implements the AmarSpace multi-tenant apartment management platform as
     - Delete confirmation for Vacant flats only
     - _Requirements: 6.1, 6.2, 6.7, 6.8, 6.9, 6.11, 6.13_
 
-- [ ] 20. Implement frontend renter management pages
-  - [ ] 20.1 Implement renter registration form
+- [~] 20. Implement frontend renter management pages
+  - [~] 20.1 Implement renter registration form
     - Multi-field form with all required and optional fields
     - NID photo upload and digital signature upload
     - Flat selection (only Vacant flats)
     - Field-level validation with Bangla error messages
     - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 4.9, 4.11, 4.12_
 
-  - [ ] 20.2 Implement renter list and detail pages
+  - [~] 20.2 Implement renter list and detail pages
     - Renter list with pagination
     - Renter detail showing personal info, contract, and deposit balance
     - _Requirements: 4.1, 9.12_
 
 - [ ] 21. Implement frontend billing and payment pages
-  - [ ] 21.1 Implement bill list and detail pages
+  - [~] 21.1 Implement bill list and detail pages
     - Bill list with multi-field filters (building, flat, renter, month, status), paginated
     - Bill generation action (Owner/Manager)
     - Bill detail showing line items and payment history
     - Add utility charge form (max 20 line items)
     - _Requirements: 7.1, 7.2, 7.6, 7.7, 7.8, 7.11_
 
-  - [ ] 21.2 Implement payment recording and history pages
+  - [~] 21.2 Implement payment recording and history pages
     - Payment recording form with amount, date, method, note
     - Payment history with filters (bill, renter, date range, method), paginated
     - Payment receipt display with unique reference
     - _Requirements: 8.1, 8.5, 8.6, 8.8, 8.9_
 
-  - [ ] 21.3 Implement deposit management pages
+  - [~] 21.3 Implement deposit management pages
     - Deposit balance display on renter detail
     - Adjustment form (Owner only) with amount, optional bill link, note
     - Adjustment history list, paginated
     - _Requirements: 9.7, 9.8, 9.9, 9.11, 9.12_
 
 - [ ] 22. Implement frontend maintenance and issue pages
-  - [ ] 22.1 Implement maintenance request pages
+  - [~] 22.1 Implement maintenance request pages
     - Maintenance request list with filters (building, flat, status, priority), paginated
     - New request form (Renter) with title, description, priority, file attachments
     - Request detail with status badge, comments, and attachments
@@ -495,7 +495,7 @@ This plan implements the AmarSpace multi-tenant apartment management platform as
     - Comment form (all roles)
     - _Requirements: 10.1, 10.2, 10.3, 10.5, 10.6, 10.7, 10.8, 10.10_
 
-  - [ ] 22.2 Implement issue tracking pages
+  - [~] 22.2 Implement issue tracking pages
     - Issue list with filters (building, category, status, priority, assignee), paginated
     - New issue form (Owner/Manager) with title, description, category, priority
     - Issue detail with status, assignee, resolution notes
@@ -503,26 +503,26 @@ This plan implements the AmarSpace multi-tenant apartment management platform as
     - _Requirements: 11.1, 11.2, 11.4, 11.5, 11.6, 11.7_
 
 - [ ] 23. Implement frontend notice and audit pages
-  - [ ] 23.1 Implement notice pages
+  - [~] 23.1 Implement notice pages
     - Notice list with pinned notices at top, filtered by target audience, paginated
     - New notice form with title, body, target audience, building/flat selection
     - Notice detail with edit/delete (author or Owner)
     - Pin/unpin toggle (max 5 per scope)
     - _Requirements: 12.1, 12.2, 12.3, 12.4, 12.5, 12.6, 12.8, 12.9_
 
-  - [ ] 23.2 Implement audit log viewer (Owner only)
+  - [~] 23.2 Implement audit log viewer (Owner only)
     - Audit log list with filters (entity type, entity ID, actor, action, date range)
     - Paginated (max 100 per page), sorted by timestamp desc
     - Display old/new values in expandable rows
     - _Requirements: 13.3, 13.4, 13.5_
 
 - [ ] 24. Implement frontend settings page
-  - [ ] 24.1 Implement user settings page
+  - [~] 24.1 Implement user settings page
     - Language preference toggle (Bangla/English) with server-side persistence
     - Display current user role and account info
     - _Requirements: 15.5, 15.6_
 
-- [ ] 25. Final checkpoint - Ensure all tests pass
+- [~] 25. Final checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
 ## Notes

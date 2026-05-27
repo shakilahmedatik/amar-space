@@ -91,14 +91,16 @@ export function FormField({
 
 interface FormInputProps extends InputHTMLAttributes<HTMLInputElement> {
   hasError?: boolean
+  ref?: React.Ref<HTMLInputElement>
 }
 
 /**
  * Styled input component that integrates with FormField.
  */
-export function FormInput({ hasError, style, ...props }: FormInputProps) {
+export function FormInput({ hasError, style, ref, ...props }: FormInputProps) {
   return (
     <input
+      ref={ref}
       {...props}
       style={{
         display: 'block',

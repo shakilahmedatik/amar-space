@@ -51,6 +51,8 @@ const en: TranslationDictionary = {
     registerError: 'Registration failed',
     rateLimitError: 'Too many attempts. Please try again later.',
     emailExists: 'This email is already in use',
+    noAccount: "Don't have an account?",
+    hasAccount: 'Already have an account?',
   },
   dashboard: {
     title: 'Dashboard',

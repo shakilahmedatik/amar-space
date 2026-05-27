@@ -51,6 +51,8 @@ const bn: TranslationDictionary = {
     registerError: 'নিবন্ধন ব্যর্থ হয়েছে',
     rateLimitError: 'অনেক বেশি চেষ্টা। পরে আবার চেষ্টা করুন।',
     emailExists: 'এই ইমেইল ইতিমধ্যে ব্যবহৃত হচ্ছে',
+    noAccount: 'অ্যাকাউন্ট নেই?',
+    hasAccount: 'ইতিমধ্যে অ্যাকাউন্ট আছে?',
   },
   dashboard: {
     title: 'ড্যাশবোর্ড',
