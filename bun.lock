@@ -15,6 +15,7 @@
       "version": "0.0.0",
       "dependencies": {
         "@repo/db": "workspace:*",
+        "@repo/shared": "workspace:*",
         "better-auth": "1.6.11",
         "drizzle-orm": "0.45.2",
         "fastify": "5.8.5",
@@ -51,6 +52,7 @@
       "name": "web",
       "version": "0.1.0",
       "dependencies": {
+        "@repo/shared": "workspace:*",
         "next": "16.2.0",
         "react": "^19.2.0",
         "react-dom": "^19.2.0",
@@ -75,6 +77,20 @@
         "@repo/typescript-config": "workspace:*",
         "@types/node": "22.15.30",
         "drizzle-kit": "0.31.10",
+        "fast-check": "4.8.0",
+        "typescript": "5.9.2",
+        "vitest": "4.1.7",
+      },
+    },
+    "packages/shared": {
+      "name": "@repo/shared",
+      "version": "0.0.0",
+      "dependencies": {
+        "zod": "4.4.3",
+      },
+      "devDependencies": {
+        "@repo/typescript-config": "workspace:*",
+        "@types/node": "22.15.30",
         "fast-check": "4.8.0",
         "typescript": "5.9.2",
         "vitest": "4.1.7",
@@ -285,6 +301,8 @@
     "@pinojs/redact": ["@pinojs/redact@0.4.0", "", {}, "sha512-k2ENnmBugE/rzQfEcdWHcCY+/FM3VLzH9cYEsbdsoqrvzAKRhUZeRNhAZvB8OitQJ1TBed3yqWtdjzS6wJKBwg=="],
 
     "@repo/db": ["@repo/db@workspace:packages/db"],
+
+    "@repo/shared": ["@repo/shared@workspace:packages/shared"],
 
     "@repo/typescript-config": ["@repo/typescript-config@workspace:packages/typescript-config"],
 

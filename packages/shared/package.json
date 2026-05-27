@@ -1,0 +1,32 @@
+{
+  "name": "@repo/shared",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./types": "./src/types/index.ts",
+    "./constants": "./src/constants/index.ts",
+    "./validation": "./src/validation/index.ts",
+    "./errors": "./src/errors/index.ts",
+    "./formatters": "./src/formatters/index.ts"
+  },
+  "scripts": {
+    "lint": "biome lint .",
+    "format": "biome format --write .",
+    "check": "biome check --write .",
+    "check-types": "tsc --noEmit",
+    "test": "vitest --run",
+    "test:properties": "vitest --run tests/properties"
+  },
+  "dependencies": {
+    "zod": "4.4.3"
+  },
+  "devDependencies": {
+    "@repo/typescript-config": "workspace:*",
+    "@types/node": "22.15.30",
+    "fast-check": "4.8.0",
+    "typescript": "5.9.2",
+    "vitest": "4.1.7"
+  }
+}
