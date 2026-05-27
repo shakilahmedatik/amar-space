@@ -1,7 +1,9 @@
+import type { Database } from '@repo/db'
 import { ConflictError } from '@repo/shared/errors'
 import type { RequestContext } from '@repo/shared/types'
 import fc from 'fast-check'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import type { AuditLogger } from '../../src/plugins/audit-logger'
 import { BuildingService } from '../../src/services/building'
 
 /**
@@ -23,7 +25,7 @@ function createMockAuditLogger() {
     query: vi.fn(),
     pendingRetries: 0,
     shutdown: vi.fn(),
-  }
+  } as unknown as AuditLogger
 }
 
 function createOwnerContext(ownerAccountId: string): RequestContext {
@@ -73,7 +75,7 @@ describe('Feature: amarspace-full-implementation, Property 7: Building name uniq
         validBuildingNameArb,
         validAddressArb,
         validAddressArb,
-        async (buildingName, address1, address2) => {
+        async (buildingName, _address1, address2) => {
           const ownerAccountId = 'owner-account-1'
           const ctx = createOwnerContext(ownerAccountId)
 
@@ -97,7 +99,7 @@ describe('Feature: amarspace-full-implementation, Property 7: Building name uniq
             select: vi.fn(),
           }
 
-          const service = new BuildingService(db as any, auditLogger as any)
+          const service = new BuildingService(db as unknown as Database, auditLogger)
 
           // Property: Duplicate name within same owner SHALL be rejected with ConflictError
           await expect(
@@ -178,8 +180,8 @@ describe('Feature: amarspace-full-implementation, Property 7: Building name uniq
             select: vi.fn(),
           }
 
-          const service1 = new BuildingService(db1 as any, auditLogger as any)
-          const service2 = new BuildingService(db2 as any, auditLogger as any)
+          const service1 = new BuildingService(db1 as unknown as Database, auditLogger)
+          const service2 = new BuildingService(db2 as unknown as Database, auditLogger)
 
           // Property: Same name across different owners SHALL succeed
           const result1 = await service1.createBuilding(ctx1, {
@@ -251,7 +253,7 @@ describe('Feature: amarspace-full-implementation, Property 7: Building name uniq
             select: vi.fn(),
           }
 
-          const service = new BuildingService(db as any, auditLogger as any)
+          const service = new BuildingService(db as unknown as Database, auditLogger)
 
           // Property: A case-different name is treated as a different name
           // (the DB query uses exact eq() match, so if findFirst returns null,
@@ -303,7 +305,7 @@ describe('Feature: amarspace-full-implementation, Property 7: Building name uniq
             select: vi.fn(),
           }
 
-          const service = new BuildingService(db as any, auditLogger as any)
+          const service = new BuildingService(db as unknown as Database, auditLogger)
 
           // Property: When no duplicate exists, creation succeeds
           const result = await service.createBuilding(ctx, {

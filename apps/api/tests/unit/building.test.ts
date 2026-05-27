@@ -1,3 +1,4 @@
+import type { Database } from '@repo/db'
 import {
   ConflictError,
   NotFoundError,
@@ -5,6 +6,7 @@ import {
 } from '@repo/shared/errors'
 import type { RequestContext } from '@repo/shared/types'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import type { AuditLogger } from '../../src/plugins/audit-logger'
 import { BuildingService } from '../../src/services/building'
 
 /**
@@ -28,7 +30,7 @@ function createMockAuditLogger() {
     query: vi.fn(),
     pendingRetries: 0,
     shutdown: vi.fn(),
-  }
+  } as unknown as AuditLogger
 }
 
 function createOwnerContext(
@@ -131,7 +133,7 @@ function createMockDb(
     insert: mockInsert,
     update: mockUpdate,
     select: smartSelect,
-  }
+  } as unknown as Database
 }
 
 // --- Tests ---
@@ -148,7 +150,7 @@ describe('BuildingService', () => {
   describe('createBuilding', () => {
     it('should create a building with valid input', async () => {
       const db = createMockDb()
-      const service = new BuildingService(db as any, auditLogger as any)
+      const service = new BuildingService(db, auditLogger)
 
       const result = await service.createBuilding(ctx, {
         name: 'My Building',
@@ -163,7 +165,7 @@ describe('BuildingService', () => {
 
     it('should create a building without totalFloors (optional)', async () => {
       const db = createMockDb()
-      const service = new BuildingService(db as any, auditLogger as any)
+      const service = new BuildingService(db, auditLogger)
 
       const result = await service.createBuilding(ctx, {
         name: 'My Building',
@@ -175,7 +177,7 @@ describe('BuildingService', () => {
 
     it('should reject building with empty name', async () => {
       const db = createMockDb()
-      const service = new BuildingService(db as any, auditLogger as any)
+      const service = new BuildingService(db, auditLogger)
 
       await expect(
         service.createBuilding(ctx, {
@@ -187,7 +189,7 @@ describe('BuildingService', () => {
 
     it('should reject building with name exceeding 200 characters', async () => {
       const db = createMockDb()
-      const service = new BuildingService(db as any, auditLogger as any)
+      const service = new BuildingService(db, auditLogger)
 
       await expect(
         service.createBuilding(ctx, {
@@ -199,7 +201,7 @@ describe('BuildingService', () => {
 
     it('should reject building with empty address', async () => {
       const db = createMockDb()
-      const service = new BuildingService(db as any, auditLogger as any)
+      const service = new BuildingService(db, auditLogger)
 
       await expect(
         service.createBuilding(ctx, {
@@ -211,7 +213,7 @@ describe('BuildingService', () => {
 
     it('should reject building with address exceeding 500 characters', async () => {
       const db = createMockDb()
-      const service = new BuildingService(db as any, auditLogger as any)
+      const service = new BuildingService(db, auditLogger)
 
       await expect(
         service.createBuilding(ctx, {
@@ -223,7 +225,7 @@ describe('BuildingService', () => {
 
     it('should reject building with totalFloors less than 1', async () => {
       const db = createMockDb()
-      const service = new BuildingService(db as any, auditLogger as any)
+      const service = new BuildingService(db, auditLogger)
 
       await expect(
         service.createBuilding(ctx, {
@@ -236,7 +238,7 @@ describe('BuildingService', () => {
 
     it('should reject building with totalFloors greater than 200', async () => {
       const db = createMockDb()
-      const service = new BuildingService(db as any, auditLogger as any)
+      const service = new BuildingService(db, auditLogger)
 
       await expect(
         service.createBuilding(ctx, {
@@ -255,7 +257,7 @@ describe('BuildingService', () => {
           name: 'My Building',
         },
       })
-      const service = new BuildingService(db as any, auditLogger as any)
+      const service = new BuildingService(db, auditLogger)
 
       await expect(
         service.createBuilding(ctx, {
@@ -267,7 +269,7 @@ describe('BuildingService', () => {
 
     it('should record audit event on successful creation', async () => {
       const db = createMockDb()
-      const service = new BuildingService(db as any, auditLogger as any)
+      const service = new BuildingService(db, auditLogger)
 
       await service.createBuilding(ctx, {
         name: 'My Building',
@@ -333,7 +335,7 @@ describe('BuildingService', () => {
         insert: vi.fn(),
       }
 
-      const service = new BuildingService(db as any, auditLogger as any)
+      const service = new BuildingService(db as unknown as Database, auditLogger)
 
       const result = await service.updateBuilding(ctx, 'building-1', {
         name: 'New Name',
@@ -344,7 +346,7 @@ describe('BuildingService', () => {
 
     it('should reject update for non-existent building', async () => {
       const db = createMockDb({ findFirstBuilding: null })
-      const service = new BuildingService(db as any, auditLogger as any)
+      const service = new BuildingService(db, auditLogger)
 
       await expect(
         service.updateBuilding(ctx, 'nonexistent-id', { name: 'New Name' }),
@@ -386,7 +388,7 @@ describe('BuildingService', () => {
         insert: vi.fn(),
       }
 
-      const service = new BuildingService(db as any, auditLogger as any)
+      const service = new BuildingService(db as unknown as Database, auditLogger)
 
       await expect(
         service.updateBuilding(ctx, 'building-1', { name: 'Taken Name' }),
@@ -405,7 +407,7 @@ describe('BuildingService', () => {
           updatedAt: new Date('2024-01-01'),
         },
       })
-      const service = new BuildingService(db as any, auditLogger as any)
+      const service = new BuildingService(db, auditLogger)
 
       await expect(
         service.updateBuilding(ctx, 'building-1', { totalFloors: 201 }),
@@ -451,7 +453,7 @@ describe('BuildingService', () => {
         insert: vi.fn(),
       }
 
-      const service = new BuildingService(db as any, auditLogger as any)
+      const service = new BuildingService(db as unknown as Database, auditLogger)
 
       await service.updateBuilding(ctx, 'building-1', { name: 'New Name' })
 
@@ -496,7 +498,7 @@ describe('BuildingService', () => {
         selectData: buildingsList,
         selectCount: 2,
       })
-      const service = new BuildingService(db as any, auditLogger as any)
+      const service = new BuildingService(db, auditLogger)
 
       const result = await service.listBuildings(ctx, { page: 1, pageSize: 50 })
 
@@ -509,7 +511,7 @@ describe('BuildingService', () => {
 
     it('should cap pageSize at 50', async () => {
       const db = createMockDb({ selectData: [], selectCount: 0 })
-      const service = new BuildingService(db as any, auditLogger as any)
+      const service = new BuildingService(db, auditLogger)
 
       const result = await service.listBuildings(ctx, {
         page: 1,
@@ -521,7 +523,7 @@ describe('BuildingService', () => {
 
     it('should enforce minimum page of 1', async () => {
       const db = createMockDb({ selectData: [], selectCount: 0 })
-      const service = new BuildingService(db as any, auditLogger as any)
+      const service = new BuildingService(db, auditLogger)
 
       const result = await service.listBuildings(ctx, { page: 0, pageSize: 10 })
 
@@ -542,7 +544,7 @@ describe('BuildingService', () => {
       }
 
       const db = createMockDb({ findFirstBuilding: building })
-      const service = new BuildingService(db as any, auditLogger as any)
+      const service = new BuildingService(db, auditLogger)
 
       const result = await service.getBuilding(ctx, 'building-1')
 
@@ -552,7 +554,7 @@ describe('BuildingService', () => {
 
     it('should throw NotFoundError when building does not exist', async () => {
       const db = createMockDb({ findFirstBuilding: null })
-      const service = new BuildingService(db as any, auditLogger as any)
+      const service = new BuildingService(db, auditLogger)
 
       await expect(service.getBuilding(ctx, 'nonexistent-id')).rejects.toThrow(
         NotFoundError,
@@ -561,7 +563,7 @@ describe('BuildingService', () => {
 
     it('should not return buildings from other accounts (tenant isolation)', async () => {
       const db = createMockDb({ findFirstBuilding: null })
-      const service = new BuildingService(db as any, auditLogger as any)
+      const service = new BuildingService(db, auditLogger)
 
       // The findFirst mock returns null because the query filters by ownerAccountId
       await expect(

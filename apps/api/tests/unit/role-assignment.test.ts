@@ -1,7 +1,10 @@
+import type { Database } from '@repo/db'
 import { ForbiddenError, ValidationError } from '@repo/shared/errors'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import type { AuditLogger } from '../../src/plugins/audit-logger'
 import {
   assignRole,
+  type Role,
   type RoleAssignmentContext,
   type RoleAssignmentInput,
 } from '../../src/services/role-assignment'
@@ -27,7 +30,7 @@ function createMockAuditLogger() {
     query: vi.fn(),
     pendingRetries: 0,
     shutdown: vi.fn(),
-  }
+  } as unknown as AuditLogger
 }
 
 function createMockDb(
@@ -89,7 +92,7 @@ function createMockDb(
     delete: mockDelete,
     insert: mockInsert,
     select: mockSelect,
-  } as unknown
+  } as unknown as Database
 }
 
 // --- Tests ---
@@ -114,9 +117,9 @@ describe('Role Assignment Service', () => {
         role: 'renter',
       }
 
-      await expect(
-        assignRole(db as any, auditLogger as any, ctx, input),
-      ).rejects.toThrow(ForbiddenError)
+      await expect(assignRole(db, auditLogger, ctx, input)).rejects.toThrow(
+        ForbiddenError,
+      )
     })
 
     it('should reject role assignment from non-owner (renter)', async () => {
@@ -132,9 +135,9 @@ describe('Role Assignment Service', () => {
         buildingIds: ['building-1'],
       }
 
-      await expect(
-        assignRole(db as any, auditLogger as any, ctx, input),
-      ).rejects.toThrow(ForbiddenError)
+      await expect(assignRole(db, auditLogger, ctx, input)).rejects.toThrow(
+        ForbiddenError,
+      )
     })
   })
 
@@ -151,9 +154,9 @@ describe('Role Assignment Service', () => {
         role: 'renter',
       }
 
-      await expect(
-        assignRole(db as any, auditLogger as any, ctx, input),
-      ).rejects.toThrow(ValidationError)
+      await expect(assignRole(db, auditLogger, ctx, input)).rejects.toThrow(
+        ValidationError,
+      )
     })
 
     it('should reject invalid role value', async () => {
@@ -165,12 +168,12 @@ describe('Role Assignment Service', () => {
       }
       const input = {
         userId: 'target-user-id',
-        role: 'admin' as any,
+        role: 'admin' as unknown as Role,
       }
 
-      await expect(
-        assignRole(db as any, auditLogger as any, ctx, input),
-      ).rejects.toThrow(ValidationError)
+      await expect(assignRole(db, auditLogger, ctx, input)).rejects.toThrow(
+        ValidationError,
+      )
     })
 
     it('should reject manager role without buildingIds', async () => {
@@ -185,9 +188,9 @@ describe('Role Assignment Service', () => {
         role: 'manager',
       }
 
-      await expect(
-        assignRole(db as any, auditLogger as any, ctx, input),
-      ).rejects.toThrow(ValidationError)
+      await expect(assignRole(db, auditLogger, ctx, input)).rejects.toThrow(
+        ValidationError,
+      )
     })
 
     it('should reject manager role with empty buildingIds array', async () => {
@@ -203,9 +206,9 @@ describe('Role Assignment Service', () => {
         buildingIds: [],
       }
 
-      await expect(
-        assignRole(db as any, auditLogger as any, ctx, input),
-      ).rejects.toThrow(ValidationError)
+      await expect(assignRole(db, auditLogger, ctx, input)).rejects.toThrow(
+        ValidationError,
+      )
     })
   })
 
@@ -231,21 +234,21 @@ describe('Role Assignment Service', () => {
         buildingIds: ['building-1'],
       }
 
-      await expect(
-        assignRole(db as any, auditLogger as any, ctx, input),
-      ).rejects.toThrow(ValidationError)
+      await expect(assignRole(db, auditLogger, ctx, input)).rejects.toThrow(
+        ValidationError,
+      )
     })
 
     it('should allow changing an owner to another role when multiple owners exist', async () => {
-      const db = createMockDb({
-        findFirstUser: {
-          id: 'owner-2',
-          email: 'owner2@example.com',
-          role: 'owner',
-          ownerAccountId: null,
-        },
-        ownerCount: 2,
-      })
+      // const db = createMockDb({
+      //   findFirstUser: {
+      //     id: 'owner-2',
+      //     email: 'owner2@example.com',
+      //     role: 'owner',
+      //     ownerAccountId: null,
+      //   },
+      //   ownerCount: 2,
+      // })
       // owner-2 belongs to owner-1's account because owner-2.id !== ctx.ownerAccountId
       // But wait - for owners, targetBelongsToAccount checks targetUser.id === ctx.ownerAccountId
       // owner-2 is an owner with id='owner-2', ctx.ownerAccountId='owner-1'
@@ -281,12 +284,7 @@ describe('Role Assignment Service', () => {
         role: 'renter',
       }
 
-      const result = await assignRole(
-        db2 as any,
-        auditLogger as any,
-        ctx,
-        input,
-      )
+      const result = await assignRole(db2, auditLogger, ctx, input)
       expect(result.user.role).toBe('renter')
     })
   })
@@ -304,7 +302,7 @@ describe('Role Assignment Service', () => {
         role: 'renter',
       }
 
-      const result = await assignRole(db as any, auditLogger as any, ctx, input)
+      const result = await assignRole(db, auditLogger, ctx, input)
 
       expect(result.user.id).toBe('target-user-id')
       expect(result.user.email).toBe('target@example.com')
@@ -324,7 +322,7 @@ describe('Role Assignment Service', () => {
         buildingIds: ['building-1'],
       }
 
-      const result = await assignRole(db as any, auditLogger as any, ctx, input)
+      const result = await assignRole(db, auditLogger, ctx, input)
 
       expect(result.user.role).toBe('manager')
     })
@@ -341,7 +339,7 @@ describe('Role Assignment Service', () => {
         role: 'owner',
       }
 
-      const result = await assignRole(db as any, auditLogger as any, ctx, input)
+      const result = await assignRole(db, auditLogger, ctx, input)
 
       expect(result.user.role).toBe('owner')
     })
@@ -368,7 +366,7 @@ describe('Role Assignment Service', () => {
         buildingIds: ['building-1'],
       }
 
-      await assignRole(db as any, auditLogger as any, ctx, input)
+      await assignRole(db, auditLogger, ctx, input)
 
       expect(auditLogger.log).toHaveBeenCalledWith({
         actorId: 'owner-1',
@@ -402,7 +400,7 @@ describe('Role Assignment Service', () => {
         role: 'renter',
       }
 
-      await assignRole(db as any, auditLogger as any, ctx, input)
+      await assignRole(db, auditLogger, ctx, input)
 
       expect(auditLogger.log).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -426,9 +424,9 @@ describe('Role Assignment Service', () => {
         role: 'renter',
       }
 
-      await expect(
-        assignRole(db as any, auditLogger as any, ctx, input),
-      ).rejects.toThrow(ValidationError)
+      await expect(assignRole(db, auditLogger, ctx, input)).rejects.toThrow(
+        ValidationError,
+      )
     })
   })
 
@@ -446,9 +444,9 @@ describe('Role Assignment Service', () => {
         buildingIds: ['nonexistent-building'],
       }
 
-      await expect(
-        assignRole(db as any, auditLogger as any, ctx, input),
-      ).rejects.toThrow(ValidationError)
+      await expect(assignRole(db, auditLogger, ctx, input)).rejects.toThrow(
+        ValidationError,
+      )
     })
   })
 })

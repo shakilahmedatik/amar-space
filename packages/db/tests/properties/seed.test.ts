@@ -27,30 +27,28 @@ function createMockDb() {
 
   const mockDb = {
     insert: vi.fn().mockReturnThis(),
-    values: vi
-      .fn()
-      .mockImplementation((rows: Array<Record<string, unknown>>) => {
-        // Store the rows that would be inserted (before conflict resolution)
-        const pendingRows = rows.map((row) => ({
-          email: row.email as string,
-          name: row.name as string,
-          hashedPassword: row.hashedPassword as string,
-          emailVerified: row.emailVerified as boolean,
-        }))
+    values: vi.fn().mockImplementation((rows: Record<string, unknown>[]) => {
+      // Store the rows that would be inserted (before conflict resolution)
+      const pendingRows = rows.map((row) => ({
+        email: row.email as string,
+        name: row.name as string,
+        hashedPassword: row.hashedPassword as string,
+        emailVerified: row.emailVerified as boolean,
+      }))
 
-        return {
-          onConflictDoNothing: vi.fn().mockImplementation(() => {
-            // Simulate ON CONFLICT DO NOTHING: only insert rows with unique emails
-            for (const row of pendingRows) {
-              const exists = insertedRows.some((r) => r.email === row.email)
-              if (!exists) {
-                insertedRows.push(row)
-              }
+      return {
+        onConflictDoNothing: vi.fn().mockImplementation(() => {
+          // Simulate ON CONFLICT DO NOTHING: only insert rows with unique emails
+          for (const row of pendingRows) {
+            const exists = insertedRows.some((r) => r.email === row.email)
+            if (!exists) {
+              insertedRows.push(row)
             }
-            return Promise.resolve()
-          }),
-        }
-      }),
+          }
+          return Promise.resolve()
+        }),
+      }
+    }),
     getInsertedRows: () => [...insertedRows],
     reset: () => {
       insertedRows.length = 0

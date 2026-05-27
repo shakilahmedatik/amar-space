@@ -2,10 +2,7 @@ import { ConflictError, ValidationError } from '@repo/shared/errors'
 import { emailSchema, passwordSchema } from '@repo/shared/validation'
 import fc from 'fast-check'
 import { describe, expect, it } from 'vitest'
-import {
-  type RegisterInput,
-  validateRegistrationInput,
-} from '../../src/services/registration'
+import { validateRegistrationInput } from '../../src/services/registration'
 
 /**
  * Feature: amarspace-full-implementation
@@ -108,7 +105,7 @@ const invalidPasswordArb = fc.oneof(
   fc.constant('Aa1'),
   fc.constant('Zz9xxxx'),
   // Too long (> 128 chars) - has all char types but too long
-  fc.constant('Aa1' + 'x'.repeat(126)),
+  fc.constant(`Aa1${'x'.repeat(126)}`),
   // Missing uppercase - only lowercase + digits, 8+ chars
   fc
     .stringMatching(/^[a-z]{4,10}[0-9]{4,10}$/)
@@ -343,7 +340,7 @@ describe('Feature: amarspace-full-implementation, Property 3: Duplicate email re
 
   it('duplicate email rejection is case-insensitive', () => {
     return fc.assert(
-      fc.property(mixedCaseEmailArb, validPasswordArb, (email, password) => {
+      fc.property(mixedCaseEmailArb, validPasswordArb, (email, _password) => {
         // Simulate existing users stored as lowercase
         const existingUsers = new Set([email.toLowerCase()])
 

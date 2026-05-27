@@ -109,16 +109,6 @@ export function FileUpload({
     if (!disabled) inputRef.current?.click()
   }, [disabled])
 
-  const handleKeyDown = useCallback(
-    (e: React.KeyboardEvent) => {
-      if ((e.key === 'Enter' || e.key === ' ') && !disabled) {
-        e.preventDefault()
-        inputRef.current?.click()
-      }
-    },
-    [disabled],
-  )
-
   const removeFile = useCallback(
     (index: number) => {
       const newFiles = selectedFiles.filter((_, i) => i !== index)
@@ -132,14 +122,13 @@ export function FileUpload({
 
   return (
     <div className={className}>
-      <div
-        role="button"
-        tabIndex={disabled ? -1 : 0}
+      <button
+        type="button"
         onClick={handleClick}
-        onKeyDown={handleKeyDown}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
+        disabled={disabled}
         aria-label="Upload files"
         style={{
           display: 'flex',
@@ -154,6 +143,7 @@ export function FileUpload({
           opacity: disabled ? 0.5 : 1,
           transition: 'border-color 0.15s, background-color 0.15s',
           minHeight: '120px',
+          width: '100%',
         }}
       >
         <svg
@@ -191,7 +181,7 @@ export function FileUpload({
           JPEG, PNG, WebP • Max {Math.round(maxSize / (1024 * 1024))}MB • Up to{' '}
           {maxFiles} files
         </p>
-      </div>
+      </button>
 
       <input
         ref={inputRef}
@@ -201,7 +191,7 @@ export function FileUpload({
         onChange={handleInputChange}
         disabled={disabled}
         style={{ display: 'none' }}
-        aria-hidden="true"
+        tabIndex={-1}
       />
 
       {displayError && (

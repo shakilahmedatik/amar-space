@@ -1,7 +1,7 @@
 import fc from 'fast-check'
-import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify'
+import type { FastifyInstance, FastifyRequest } from 'fastify'
 import Fastify from 'fastify'
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import type { AuthUser } from '../../src/middleware/auth-guard'
 import { roleGuard } from '../../src/middleware/role-guard'
 
@@ -33,7 +33,7 @@ const allowedRolesArb = fc.subarray<Role>(['owner', 'manager', 'renter'], {
 
 /** Generate a full user context for a given role */
 const userForRole = (role: Role): AuthUser => ({
-  id: 'user-' + role,
+  id: `user-${role}`,
   role,
   ownerAccountId: role === 'owner' ? 'user-owner' : 'owner-account-1',
   email: `${role}@test.com`,
@@ -54,7 +54,7 @@ function createTestApp(allowedRoles: Role[]): FastifyInstance {
     {
       preHandler: [roleGuard(allowedRoles)],
     },
-    async (request: FastifyRequest, reply: FastifyReply) => {
+    async (request: FastifyRequest) => {
       return { success: true, role: request.user.role }
     },
   )

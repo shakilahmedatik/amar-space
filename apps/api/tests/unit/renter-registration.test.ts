@@ -1,6 +1,9 @@
+import type { Database } from '@repo/db'
 import { NotFoundError, ValidationError } from '@repo/shared/errors'
 import type { RequestContext } from '@repo/shared/types'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import type { AuditLogger } from '../../src/plugins/audit-logger'
+import type { R2Client } from '../../src/plugins/r2'
 import { RenterRegistrationService } from '../../src/services/renter-registration'
 
 /**
@@ -36,7 +39,7 @@ function createMockAuditLogger() {
     query: vi.fn(),
     pendingRetries: 0,
     shutdown: vi.fn(),
-  }
+  } as unknown as AuditLogger
 }
 
 function createMockR2() {
@@ -48,7 +51,7 @@ function createMockR2() {
       ),
     getPresignedUrl: vi.fn().mockResolvedValue('https://r2.example.com/signed'),
     delete: vi.fn().mockResolvedValue(undefined),
-  }
+  } as unknown as R2Client
 }
 
 function createMockDb(
@@ -167,7 +170,7 @@ function createMockDb(
     insert: mockInsert,
     update: mockUpdate,
     select: mockSelect,
-  } as unknown
+  } as unknown as Database
 }
 
 function createOwnerContext(
@@ -217,11 +220,7 @@ describe('RenterRegistrationService', () => {
   describe('registerRenter', () => {
     it('should register a renter successfully with valid input', async () => {
       const db = createMockDb()
-      const service = new RenterRegistrationService(
-        db as any,
-        auditLogger as any,
-        r2 as any,
-      )
+      const service = new RenterRegistrationService(db, auditLogger, r2)
 
       const result = await service.registerRenter(ctx, validRenterInput())
 
@@ -234,11 +233,7 @@ describe('RenterRegistrationService', () => {
 
     it('should reject invalid NID number (less than 10 digits)', async () => {
       const db = createMockDb()
-      const service = new RenterRegistrationService(
-        db as any,
-        auditLogger as any,
-        r2 as any,
-      )
+      const service = new RenterRegistrationService(db, auditLogger, r2)
 
       const input = { ...validRenterInput(), nidNumber: '123456789' }
 
@@ -249,11 +244,7 @@ describe('RenterRegistrationService', () => {
 
     it('should reject invalid NID number (more than 17 digits)', async () => {
       const db = createMockDb()
-      const service = new RenterRegistrationService(
-        db as any,
-        auditLogger as any,
-        r2 as any,
-      )
+      const service = new RenterRegistrationService(db, auditLogger, r2)
 
       const input = {
         ...validRenterInput(),
@@ -267,11 +258,7 @@ describe('RenterRegistrationService', () => {
 
     it('should reject NID with non-numeric characters', async () => {
       const db = createMockDb()
-      const service = new RenterRegistrationService(
-        db as any,
-        auditLogger as any,
-        r2 as any,
-      )
+      const service = new RenterRegistrationService(db, auditLogger, r2)
 
       const input = { ...validRenterInput(), nidNumber: '12345abc90' }
 
@@ -282,11 +269,7 @@ describe('RenterRegistrationService', () => {
 
     it('should reject invalid phone number (not starting with 01)', async () => {
       const db = createMockDb()
-      const service = new RenterRegistrationService(
-        db as any,
-        auditLogger as any,
-        r2 as any,
-      )
+      const service = new RenterRegistrationService(db, auditLogger, r2)
 
       const input = { ...validRenterInput(), phone: '02712345678' }
 
@@ -297,11 +280,7 @@ describe('RenterRegistrationService', () => {
 
     it('should reject invalid phone number (not 11 digits)', async () => {
       const db = createMockDb()
-      const service = new RenterRegistrationService(
-        db as any,
-        auditLogger as any,
-        r2 as any,
-      )
+      const service = new RenterRegistrationService(db, auditLogger, r2)
 
       const input = { ...validRenterInput(), phone: '0171234567' }
 
@@ -312,13 +291,12 @@ describe('RenterRegistrationService', () => {
 
     it('should reject invalid blood group', async () => {
       const db = createMockDb()
-      const service = new RenterRegistrationService(
-        db as any,
-        auditLogger as any,
-        r2 as any,
-      )
+      const service = new RenterRegistrationService(db, auditLogger, r2)
 
-      const input = { ...validRenterInput(), bloodGroup: 'X+' as any }
+      const input = {
+        ...validRenterInput(),
+        bloodGroup: 'X+' as never,
+      }
 
       await expect(service.registerRenter(ctx, input)).rejects.toThrow(
         ValidationError,
@@ -327,11 +305,7 @@ describe('RenterRegistrationService', () => {
 
     it('should reject total family members less than 1', async () => {
       const db = createMockDb()
-      const service = new RenterRegistrationService(
-        db as any,
-        auditLogger as any,
-        r2 as any,
-      )
+      const service = new RenterRegistrationService(db, auditLogger, r2)
 
       const input = { ...validRenterInput(), totalFamilyMembers: 0 }
 
@@ -342,11 +316,7 @@ describe('RenterRegistrationService', () => {
 
     it('should reject total family members greater than 50', async () => {
       const db = createMockDb()
-      const service = new RenterRegistrationService(
-        db as any,
-        auditLogger as any,
-        r2 as any,
-      )
+      const service = new RenterRegistrationService(db, auditLogger, r2)
 
       const input = { ...validRenterInput(), totalFamilyMembers: 51 }
 
@@ -357,11 +327,7 @@ describe('RenterRegistrationService', () => {
 
     it('should reject when flat does not exist', async () => {
       const db = createMockDb({ findFirstFlat: null })
-      const service = new RenterRegistrationService(
-        db as any,
-        auditLogger as any,
-        r2 as any,
-      )
+      const service = new RenterRegistrationService(db, auditLogger, r2)
 
       await expect(
         service.registerRenter(ctx, validRenterInput()),
@@ -381,11 +347,7 @@ describe('RenterRegistrationService', () => {
           updatedAt: new Date('2024-01-01'),
         },
       })
-      const service = new RenterRegistrationService(
-        db as any,
-        auditLogger as any,
-        r2 as any,
-      )
+      const service = new RenterRegistrationService(db, auditLogger, r2)
 
       await expect(
         service.registerRenter(ctx, validRenterInput()),
@@ -405,11 +367,7 @@ describe('RenterRegistrationService', () => {
           updatedAt: new Date('2024-01-01'),
         },
       })
-      const service = new RenterRegistrationService(
-        db as any,
-        auditLogger as any,
-        r2 as any,
-      )
+      const service = new RenterRegistrationService(db, auditLogger, r2)
 
       await expect(
         service.registerRenter(ctx, validRenterInput()),
@@ -418,11 +376,7 @@ describe('RenterRegistrationService', () => {
 
     it('should record audit event on successful registration', async () => {
       const db = createMockDb()
-      const service = new RenterRegistrationService(
-        db as any,
-        auditLogger as any,
-        r2 as any,
-      )
+      const service = new RenterRegistrationService(db, auditLogger, r2)
 
       await service.registerRenter(ctx, validRenterInput())
 
@@ -439,11 +393,7 @@ describe('RenterRegistrationService', () => {
 
     it('should reject NID photo with invalid MIME type', async () => {
       const db = createMockDb()
-      const service = new RenterRegistrationService(
-        db as any,
-        auditLogger as any,
-        r2 as any,
-      )
+      const service = new RenterRegistrationService(db, auditLogger, r2)
 
       const input = {
         ...validRenterInput(),
@@ -462,11 +412,7 @@ describe('RenterRegistrationService', () => {
 
     it('should reject NID photo exceeding 5MB', async () => {
       const db = createMockDb()
-      const service = new RenterRegistrationService(
-        db as any,
-        auditLogger as any,
-        r2 as any,
-      )
+      const service = new RenterRegistrationService(db, auditLogger, r2)
 
       const input = {
         ...validRenterInput(),
@@ -485,11 +431,7 @@ describe('RenterRegistrationService', () => {
 
     it('should upload NID photo to R2 when provided', async () => {
       const db = createMockDb()
-      const service = new RenterRegistrationService(
-        db as any,
-        auditLogger as any,
-        r2 as any,
-      )
+      const service = new RenterRegistrationService(db, auditLogger, r2)
 
       const input = {
         ...validRenterInput(),
@@ -514,17 +456,22 @@ describe('RenterRegistrationService', () => {
     })
 
     it('should accept valid blood groups', async () => {
-      const validGroups = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-']
+      const validGroups = [
+        'A+',
+        'A-',
+        'B+',
+        'B-',
+        'AB+',
+        'AB-',
+        'O+',
+        'O-',
+      ] as const
 
       for (const group of validGroups) {
         const db = createMockDb()
-        const service = new RenterRegistrationService(
-          db as any,
-          auditLogger as any,
-          r2 as any,
-        )
+        const service = new RenterRegistrationService(db, auditLogger, r2)
 
-        const input = { ...validRenterInput(), bloodGroup: group as any }
+        const input = { ...validRenterInput(), bloodGroup: group }
         const result = await service.registerRenter(ctx, input)
         expect(result.renter.id).toBe(RENTER_ID)
       }
@@ -532,11 +479,7 @@ describe('RenterRegistrationService', () => {
 
     it('should accept NID with exactly 10 digits', async () => {
       const db = createMockDb()
-      const service = new RenterRegistrationService(
-        db as any,
-        auditLogger as any,
-        r2 as any,
-      )
+      const service = new RenterRegistrationService(db, auditLogger, r2)
 
       const input = { ...validRenterInput(), nidNumber: '1234567890' }
       const result = await service.registerRenter(ctx, input)
@@ -545,11 +488,7 @@ describe('RenterRegistrationService', () => {
 
     it('should accept NID with exactly 17 digits', async () => {
       const db = createMockDb()
-      const service = new RenterRegistrationService(
-        db as any,
-        auditLogger as any,
-        r2 as any,
-      )
+      const service = new RenterRegistrationService(db, auditLogger, r2)
 
       const input = { ...validRenterInput(), nidNumber: '12345678901234567' }
       const result = await service.registerRenter(ctx, input)
@@ -558,13 +497,9 @@ describe('RenterRegistrationService', () => {
 
     it('should reject missing required fields', async () => {
       const db = createMockDb()
-      const service = new RenterRegistrationService(
-        db as any,
-        auditLogger as any,
-        r2 as any,
-      )
+      const service = new RenterRegistrationService(db, auditLogger, r2)
 
-      const input = { fullName: 'Test' } as any
+      const input = { fullName: 'Test' } as never
 
       await expect(service.registerRenter(ctx, input)).rejects.toThrow(
         ValidationError,
@@ -573,11 +508,7 @@ describe('RenterRegistrationService', () => {
 
     it('should accept optional dateOfBirth field', async () => {
       const db = createMockDb()
-      const service = new RenterRegistrationService(
-        db as any,
-        auditLogger as any,
-        r2 as any,
-      )
+      const service = new RenterRegistrationService(db, auditLogger, r2)
 
       const input = { ...validRenterInput(), dateOfBirth: '1990-05-15' }
       const result = await service.registerRenter(ctx, input)
@@ -586,11 +517,7 @@ describe('RenterRegistrationService', () => {
 
     it('should accept optional familyMemberNames field', async () => {
       const db = createMockDb()
-      const service = new RenterRegistrationService(
-        db as any,
-        auditLogger as any,
-        r2 as any,
-      )
+      const service = new RenterRegistrationService(db, auditLogger, r2)
 
       const input = {
         ...validRenterInput(),
@@ -602,11 +529,7 @@ describe('RenterRegistrationService', () => {
 
     it('should reject familyMemberNames exceeding 20 entries', async () => {
       const db = createMockDb()
-      const service = new RenterRegistrationService(
-        db as any,
-        auditLogger as any,
-        r2 as any,
-      )
+      const service = new RenterRegistrationService(db, auditLogger, r2)
 
       const input = {
         ...validRenterInput(),

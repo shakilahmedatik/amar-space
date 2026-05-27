@@ -27,7 +27,7 @@ const dictionaries: Record<Locale, TranslationDictionary> = { bn, en }
  */
 function flattenDictionary(
   dict: TranslationDictionary,
-  prefix = ''
+  prefix = '',
 ): FlatTranslations {
   const result: FlatTranslations = {}
   for (const [key, value] of Object.entries(dict)) {
@@ -37,7 +37,7 @@ function flattenDictionary(
     } else {
       Object.assign(
         result,
-        flattenDictionary(value as TranslationDictionary, fullKey)
+        flattenDictionary(value as TranslationDictionary, fullKey),
       )
     }
   }
@@ -79,7 +79,7 @@ interface I18nProviderProps {
 
 export function I18nProvider({ children, initialLocale }: I18nProviderProps) {
   const [locale, setLocaleState] = useState<Locale>(
-    initialLocale ?? DEFAULT_LOCALE
+    initialLocale ?? DEFAULT_LOCALE,
   )
   const [isHydrated, setIsHydrated] = useState(false)
 
@@ -123,7 +123,7 @@ export function I18nProvider({ children, initialLocale }: I18nProviderProps) {
 
       return value
     },
-    [activeLocale]
+    [activeLocale],
   )
 
   const contextValue: I18nContextValue = {

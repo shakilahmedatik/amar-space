@@ -409,7 +409,9 @@ describe('IssueService', () => {
       const service = new IssueService(db as any, auditLogger as any)
 
       await expect(
-        service.assignIssue(ctx, ISSUE_ID, { assigneeId: '550e8400-e29b-41d4-a716-446655440099' }),
+        service.assignIssue(ctx, ISSUE_ID, {
+          assigneeId: '550e8400-e29b-41d4-a716-446655440099',
+        }),
       ).rejects.toThrow(ValidationError)
     })
 
@@ -418,7 +420,9 @@ describe('IssueService', () => {
       const service = new IssueService(db as any, auditLogger as any)
 
       await expect(
-        service.assignIssue(ctx, '550e8400-e29b-41d4-a716-446655440099', { assigneeId: MANAGER_ID }),
+        service.assignIssue(ctx, '550e8400-e29b-41d4-a716-446655440099', {
+          assigneeId: MANAGER_ID,
+        }),
       ).rejects.toThrow(NotFoundError)
     })
 

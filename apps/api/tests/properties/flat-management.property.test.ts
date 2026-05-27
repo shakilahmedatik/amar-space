@@ -273,7 +273,7 @@ describe('Feature: amarspace-full-implementation, Property 9: Flat status transi
 
   it('all valid transitions are exactly: Vacant→Occupied, Occupied→Vacant, Vacant→Under_Maintenance, Under_Maintenance→Vacant', () => {
     // Exhaustively verify the transition map matches the spec
-    const expectedTransitions: Array<[FlatStatus, FlatStatus]> = [
+    const expectedTransitions: [FlatStatus, FlatStatus][] = [
       [FLAT_STATUS.VACANT, FLAT_STATUS.OCCUPIED],
       [FLAT_STATUS.VACANT, FLAT_STATUS.UNDER_MAINTENANCE],
       [FLAT_STATUS.OCCUPIED, FLAT_STATUS.VACANT],

@@ -124,30 +124,30 @@ const invalidUrlArb = fc
 const invalidAuthSecretArb = fc.string({ minLength: 0, maxLength: 31 })
 
 /** Generate an invalid DB_POOL_SIZE (outside 1-20) */
-const invalidPoolSizeArb = fc.oneof(
-  fc.integer({ min: -100, max: 0 }).map(String),
-  fc.integer({ min: 21, max: 1000 }).map(String),
-  fc.constant('abc'),
-)
+// const invalidPoolSizeArb = fc.oneof(
+//   fc.integer({ min: -100, max: 0 }).map(String),
+//   fc.integer({ min: 21, max: 1000 }).map(String),
+//   fc.constant('abc'),
+// )
 
 /** Generate an invalid DB_IDLE_TIMEOUT (outside 1000-60000) */
-const invalidIdleTimeoutArb = fc.oneof(
-  fc.integer({ min: 0, max: 999 }).map(String),
-  fc.integer({ min: 60001, max: 100000 }).map(String),
-  fc.constant('abc'),
-)
+// const invalidIdleTimeoutArb = fc.oneof(
+//   fc.integer({ min: 0, max: 999 }).map(String),
+//   fc.integer({ min: 60001, max: 100000 }).map(String),
+//   fc.constant('abc'),
+// )
 
 /** Generate an invalid DB_CONNECTION_TIMEOUT (outside 1000-10000) */
-const invalidConnectionTimeoutArb = fc.oneof(
-  fc.integer({ min: 0, max: 999 }).map(String),
-  fc.integer({ min: 10001, max: 100000 }).map(String),
-  fc.constant('abc'),
-)
+// const invalidConnectionTimeoutArb = fc.oneof(
+//   fc.integer({ min: 0, max: 999 }).map(String),
+//   fc.integer({ min: 10001, max: 100000 }).map(String),
+//   fc.constant('abc'),
+// )
 
 /** Generate an invalid NODE_ENV */
-const invalidNodeEnvArb = fc
-  .stringMatching(/^[a-z]{1,20}$/)
-  .filter((s) => !['development', 'production', 'test'].includes(s))
+// const invalidNodeEnvArb = fc
+//   .stringMatching(/^[a-z]{1,20}$/)
+//   .filter((s) => !['development', 'production', 'test'].includes(s))
 
 // Required variable names
 const REQUIRED_VARS = [

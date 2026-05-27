@@ -1,6 +1,6 @@
 'use client'
 
-import { useTranslation, type Locale } from '@/lib/i18n'
+import { type Locale, useTranslation } from '@/lib/i18n'
 
 /**
  * Language toggle component that switches between Bangla and English.

@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
   addUtilityChargeSchema,
-  applyAdjustmentSchema,
   bdPhoneSchema,
   bloodGroupEnum,
   createBuildingSchema,
@@ -12,7 +11,6 @@ import {
   emailSchema,
   fileUploadSchema,
   generateBillsSchema,
-  loginSchema,
   nidSchema,
   passwordSchema,
   recordPaymentSchema,
@@ -63,7 +61,7 @@ describe('passwordSchema', () => {
   })
 
   it('rejects passwords exceeding 128 characters', () => {
-    const longPass = 'A' + 'a'.repeat(126) + '1' + 'x'
+    const longPass = `A${'a'.repeat(126)}1x`
     expect(passwordSchema.safeParse(longPass).success).toBe(false)
   })
 })

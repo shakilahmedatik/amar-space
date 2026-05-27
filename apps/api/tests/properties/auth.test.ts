@@ -632,11 +632,11 @@ const nonExistentSessionResponseArb = fc.constantFrom(
 const sessionFailureStatusArb = fc.constantFrom(401, 403, 422)
 
 /** Generate a random authorization header format */
-const authHeaderArb = (token: string) =>
-  fc.constantFrom(
-    `Bearer ${token}`,
-    token, // raw token without Bearer prefix
-  )
+// const authHeaderArb = (token: string) =>
+//   fc.constantFrom(
+//     `Bearer ${token}`,
+//     token, // raw token without Bearer prefix
+//   )
 
 describe('Feature: amarspace-infrastructure-setup, Property 6: Session Token Validation', () => {
   let app: FastifyInstance

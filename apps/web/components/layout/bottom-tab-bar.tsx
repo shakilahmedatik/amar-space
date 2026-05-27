@@ -39,7 +39,7 @@ export function BottomTabBar({
       className="fixed bottom-0 inset-x-0 z-50 md:hidden border-t border-gray-200 bg-white safe-area-bottom"
       aria-label={t('nav.dashboard')}
     >
-      <ul className="flex items-stretch justify-around w-full" role="list">
+      <ul className="flex items-stretch justify-around w-full">
         {visibleItems.map((item) => {
           const isActive =
             activePath === item.href || activePath.startsWith(`${item.href}/`)

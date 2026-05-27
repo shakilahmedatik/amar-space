@@ -1,7 +1,7 @@
 import type { FastifyInstance } from 'fastify'
 import Fastify from 'fastify'
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import { type AuthUser, authGuard } from '../../src/middleware/auth-guard'
+import { afterEach, describe, expect, it } from 'vitest'
+import type { AuthUser } from '../../src/middleware/auth-guard'
 import { roleGuard } from '../../src/middleware/role-guard'
 
 /**
@@ -26,7 +26,7 @@ describe('Role Guard Middleware', () => {
     const instance = Fastify({ logger: false })
 
     // Decorate request with user placeholder (matches auth-guard declaration)
-    instance.decorateRequest('user', null)
+    instance.decorateRequest('user', null as unknown as AuthUser)
 
     // Register a test route with roleGuard
     instance.get(

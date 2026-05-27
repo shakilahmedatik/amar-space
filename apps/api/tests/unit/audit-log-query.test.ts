@@ -1,6 +1,6 @@
 import { ForbiddenError } from '@repo/shared/errors'
 import type { RequestContext } from '@repo/shared/types'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { AuditLogQueryService } from '../../src/services/audit-log-query.service'
 
 /**
@@ -87,31 +87,31 @@ function createMockDb(
   const selectCount = overrides.selectCount ?? selectData.length
 
   // Track call count to differentiate between data and count queries
-  let selectCallCount = 0
+  // let selectCallCount = 0
 
-  const mockSelect = vi.fn().mockImplementation(() => {
-    selectCallCount++
-    const currentCall = selectCallCount
+  // const mockSelect = vi.fn().mockImplementation(() => {
+  //   selectCallCount++
+  //   const currentCall = selectCallCount
 
-    return {
-      from: vi.fn().mockReturnValue({
-        where: vi.fn().mockImplementation(() => {
-          // Even calls are count queries (second in Promise.all)
-          if (currentCall % 2 === 0) {
-            return Promise.resolve([{ count: selectCount }])
-          }
-          // Odd calls are data queries (first in Promise.all)
-          return {
-            orderBy: vi.fn().mockReturnValue({
-              limit: vi.fn().mockReturnValue({
-                offset: vi.fn().mockResolvedValue(selectData),
-              }),
-            }),
-          }
-        }),
-      }),
-    }
-  })
+  //   return {
+  //     from: vi.fn().mockReturnValue({
+  //       where: vi.fn().mockImplementation(() => {
+  //         // Even calls are count queries (second in Promise.all)
+  //         if (currentCall % 2 === 0) {
+  //           return Promise.resolve([{ count: selectCount }])
+  //         }
+  //         // Odd calls are data queries (first in Promise.all)
+  //         return {
+  //           orderBy: vi.fn().mockReturnValue({
+  //             limit: vi.fn().mockReturnValue({
+  //               offset: vi.fn().mockResolvedValue(selectData),
+  //             }),
+  //           }),
+  //         }
+  //       }),
+  //     }),
+  //   }
+  // })
 
   // Mock for getManagerAccessibleEntityIds - flat IDs query
   const flatSelectMock = vi
