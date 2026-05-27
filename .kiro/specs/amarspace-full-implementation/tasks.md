@@ -343,8 +343,8 @@ This plan implements the AmarSpace multi-tenant apartment management platform as
     - **Property 18: File upload validation**
     - **Validates: Requirements 18.3, 18.9**
 
-- [ ] 13. Implement notice service
-  - [~] 13.1 Implement NoticeService
+- [x] 13. Implement notice service
+  - [x] 13.1 Implement NoticeService
     - createNotice: validate title (max 200), body (max 5000), target audience enum
     - Validate building/flat reference for Specific_Building/Specific_Flat targets
     - Manager can only target assigned buildings
@@ -355,7 +355,7 @@ This plan implements the AmarSpace multi-tenant apartment management platform as
     - Record audit events
     - _Requirements: 12.1, 12.2, 12.3, 12.4, 12.5, 12.6, 12.7, 12.8, 12.9, 12.10, 12.11, 12.12, 12.13_
 
-  - [~] 13.2 Implement notice API routes
+  - [x] 13.2 Implement notice API routes
     - Register GET/POST /api/notices, GET/PUT/DELETE /api/notices/:id, PUT /api/notices/:id/pin
     - Apply auth guard, role guard (Owner, Manager for create/edit), tenant scope
     - Validate request bodies with Zod schemas

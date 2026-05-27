@@ -174,6 +174,7 @@ export function buildApp(opts: Record<string, unknown> = {}) {
   app.register(import('./routes/deposits'), { prefix: '/api/deposits' })
   app.register(import('./routes/maintenance'), { prefix: '/api/maintenance' })
   app.register(import('./routes/issues'), { prefix: '/api/issues' })
+  app.register(import('./routes/notices'), { prefix: '/api/notices' })
 
   return app
 }
