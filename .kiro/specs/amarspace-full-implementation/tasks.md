@@ -281,8 +281,8 @@ This plan implements the AmarSpace multi-tenant apartment management platform as
     - Validate request bodies with Zod schemas
     - _Requirements: 7.6, 7.7, 7.8, 7.14, 8.6, 8.9_
 
-- [ ] 10. Implement advance deposit management service
-  - [~] 10.1 Implement DepositService
+- [x] 10. Implement advance deposit management service
+  - [x] 10.1 Implement DepositService
     - getDeposit: fetch contract with remaining balance
     - applyAdjustment: validate amount ≤ remaining balance, deduct from balance, optionally link to bill
     - When linked to bill: apply as payment, update bill status accordingly
@@ -297,7 +297,7 @@ This plan implements the AmarSpace multi-tenant apartment management platform as
     - **Property 14: Deposit adjustment linked to bill acts as payment**
     - **Validates: Requirements 9.2, 9.3, 9.4, 9.5, 9.6**
 
-  - [~] 10.3 Implement deposit API routes
+  - [x] 10.3 Implement deposit API routes
     - Register GET /api/deposits/:contractId, POST /api/deposits/:contractId/adjust, GET /api/deposits/:contractId/history
     - Apply auth guard, role guard (Owner for adjustments, Manager/Renter for viewing), tenant scope
     - Validate request bodies with Zod schemas
@@ -306,8 +306,8 @@ This plan implements the AmarSpace multi-tenant apartment management platform as
 - [~] 11. Checkpoint - Verify financial services
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 12. Implement maintenance and issue tracking services
-  - [~] 12.1 Implement MaintenanceService
+- [x] 12. Implement maintenance and issue tracking services
+  - [x] 12.1 Implement MaintenanceService
     - createRequest: validate title (5-200 chars), description (10-2000 chars), priority enum, set status Open
     - Handle file attachments (max 5 images, JPEG/PNG/WebP, max 5MB each)
     - updateRequestStatus: validate state machine transitions
@@ -320,7 +320,7 @@ This plan implements the AmarSpace multi-tenant apartment management platform as
     - **Property 15: Maintenance request status transition validity**
     - **Validates: Requirements 10.5, 10.12**
 
-  - [~] 12.3 Implement IssueService
+  - [x] 12.3 Implement IssueService
     - createIssue: validate title (max 200), description (max 2000), category enum, priority enum, set status Open
     - assignIssue: validate assignee has Manager role
     - updateIssueStatus: validate state machine transitions, require resolution notes for Resolved
@@ -332,7 +332,7 @@ This plan implements the AmarSpace multi-tenant apartment management platform as
     - **Property 16: Issue status transition validity**
     - **Validates: Requirements 11.4, 11.8, 11.9**
 
-  - [~] 12.5 Implement maintenance and issue API routes
+  - [x] 12.5 Implement maintenance and issue API routes
     - Register GET/POST /api/maintenance, GET /api/maintenance/:id, PUT /api/maintenance/:id/status, POST /api/maintenance/:id/comments
     - Register GET/POST /api/issues, GET /api/issues/:id, PUT /api/issues/:id/status, PUT /api/issues/:id/assign
     - Apply auth guard, role guard, tenant scope middleware

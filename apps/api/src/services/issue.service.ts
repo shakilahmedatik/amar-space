@@ -1,0 +1,457 @@
+import { buildings, type Database, issues, users } from '@repo/db'
+import {
+  ISSUE_STATUS,
+  ISSUE_STATUS_TRANSITIONS,
+  type IssueStatus,
+} from '@repo/shared/constants'
+import { NotFoundError, ValidationError } from '@repo/shared/errors'
+import type { FieldError, RequestContext } from '@repo/shared/types'
+import {
+  type AssignIssueInput,
+  assignIssueSchema,
+  type CreateIssueInput,
+  createIssueSchema,
+  type UpdateIssueStatusInput,
+  updateIssueStatusSchema,
+} from '@repo/shared/validation'
+import { and, count, desc, eq } from 'drizzle-orm'
+import type { AuditLogger } from '../plugins/audit-logger'
+
+// --- Types ---
+
+export interface ListIssuesInput {
+  buildingId?: string
+  category?: string
+  status?: string
+  priority?: string
+  assigneeId?: string
+  page: number
+  pageSize: number
+}
+
+export interface IssueResult {
+  id: string
+  ownerAccountId: string
+  buildingId: string
+  title: string
+  description: string
+  category: string
+  priority: string
+  status: string
+  assigneeId: string | null
+  resolutionNotes: string | null
+  resolvedAt: Date | null
+  createdAt: Date
+  updatedAt: Date
+}
+
+export interface PaginatedIssues {
+  data: IssueResult[]
+  total: number
+  page: number
+  pageSize: number
+  totalPages: number
+}
+
+// --- Service ---
+
+/**
+ * IssueService handles building-level issue tracking with tenant isolation.
+ *
+ * Enforces:
+ * - Title (max 200 chars), description (max 2000 chars) validation
+ * - Category enum: plumbing, electrical, structural, cleaning, security, other
+ * - Priority enum: low, medium, high, urgent
+ * - Status state machine transitions (Open → In_Progress/Resolved/Closed, etc.)
+ * - Resolution notes required when marking as Resolved
+ * - Assignee must have Manager role
+ * - Pagination with max 50 per page
+ * - Audit events for status changes
+ *
+ * Requirements: 11.1, 11.2, 11.3, 11.4, 11.5, 11.6, 11.7, 11.8, 11.9, 11.10
+ */
+export class IssueService {
+  constructor(
+    private db: Database,
+    private auditLogger: AuditLogger,
+  ) {}
+
+  /**
+   * Creates a new building-level issue.
+   *
+   * Validates:
+   * - Title (1-200 chars), description (1-2000 chars) are required
+   * - Category must be a valid enum value
+   * - Priority must be a valid enum value
+   * - Building must exist and belong to the owner's account
+   * - Sets initial status to Open
+   *
+   * Requirements: 11.1, 11.7
+   */
+  async createIssue(
+    ctx: RequestContext,
+    input: CreateIssueInput,
+  ): Promise<IssueResult> {
+    // Step 1: Validate input using Zod schema
+    const parseResult = createIssueSchema.safeParse(input)
+    if (!parseResult.success) {
+      const errors: FieldError[] = parseResult.error.issues.map((issue) => ({
+        field: issue.path.join('.') || 'unknown',
+        message: issue.message,
+        rule: issue.code,
+      }))
+      throw new ValidationError(errors)
+    }
+
+    const validated = parseResult.data
+
+    // Step 2: Verify building exists and belongs to the owner's account
+    const building = await this.db.query.buildings.findFirst({
+      where: and(
+        eq(buildings.id, validated.buildingId),
+        eq(buildings.ownerAccountId, ctx.ownerAccountId),
+      ),
+    })
+
+    if (!building) {
+      throw new NotFoundError('Building')
+    }
+
+    // Step 3: Insert the issue with status Open
+    const [created] = await this.db
+      .insert(issues)
+      .values({
+        ownerAccountId: ctx.ownerAccountId,
+        buildingId: validated.buildingId,
+        title: validated.title,
+        description: validated.description,
+        category: validated.category,
+        priority: validated.priority,
+        status: ISSUE_STATUS.OPEN,
+      })
+      .returning()
+
+    if (!created) {
+      throw new Error('Failed to create issue')
+    }
+
+    // Step 4: Record audit event
+    this.auditLogger.log({
+      actorId: ctx.userId,
+      action: 'issue_created',
+      entityType: 'issue',
+      entityId: created.id,
+      ownerAccountId: ctx.ownerAccountId,
+      newValues: {
+        buildingId: validated.buildingId,
+        title: validated.title,
+        category: validated.category,
+        priority: validated.priority,
+        status: ISSUE_STATUS.OPEN,
+      },
+    })
+
+    return this.mapToResult(created)
+  }
+
+  /**
+   * Assigns an issue to a user with the Manager role.
+   *
+   * Validates:
+   * - Issue exists and belongs to the owner's account
+   * - Assignee exists and has the Manager role
+   *
+   * Requirements: 11.2, 11.10
+   */
+  async assignIssue(
+    ctx: RequestContext,
+    issueId: string,
+    input: AssignIssueInput,
+  ): Promise<IssueResult> {
+    // Step 1: Validate input
+    const parseResult = assignIssueSchema.safeParse(input)
+    if (!parseResult.success) {
+      const errors: FieldError[] = parseResult.error.issues.map((issue) => ({
+        field: issue.path.join('.') || 'unknown',
+        message: issue.message,
+        rule: issue.code,
+      }))
+      throw new ValidationError(errors)
+    }
+
+    const validated = parseResult.data
+
+    // Step 2: Verify issue exists and belongs to the owner's account
+    const existing = await this.db.query.issues.findFirst({
+      where: and(
+        eq(issues.id, issueId),
+        eq(issues.ownerAccountId, ctx.ownerAccountId),
+      ),
+    })
+
+    if (!existing) {
+      throw new NotFoundError('Issue')
+    }
+
+    // Step 3: Verify assignee exists and has Manager role (Requirement 11.10)
+    const assignee = await this.db.query.users.findFirst({
+      where: eq(users.id, validated.assigneeId),
+    })
+
+    if (!assignee || assignee.role !== 'manager') {
+      throw new ValidationError([
+        {
+          field: 'assigneeId',
+          message: 'Assignee must be a user with the Manager role',
+          rule: 'invalid_assignee',
+        },
+      ])
+    }
+
+    // Step 4: Update the issue with the assignee
+    const [updated] = await this.db
+      .update(issues)
+      .set({
+        assigneeId: validated.assigneeId,
+        updatedAt: new Date(),
+      })
+      .where(eq(issues.id, issueId))
+      .returning()
+
+    if (!updated) {
+      throw new Error('Failed to assign issue')
+    }
+
+    // Step 5: Record audit event
+    this.auditLogger.log({
+      actorId: ctx.userId,
+      action: 'issue_assigned',
+      entityType: 'issue',
+      entityId: issueId,
+      ownerAccountId: ctx.ownerAccountId,
+      oldValues: { assigneeId: existing.assigneeId },
+      newValues: { assigneeId: validated.assigneeId },
+    })
+
+    return this.mapToResult(updated)
+  }
+
+  /**
+   * Updates an issue's status according to the state machine.
+   *
+   * Valid transitions:
+   * - Open → In_Progress, Resolved, Closed
+   * - In_Progress → Resolved, Closed
+   * - Resolved → Closed
+   * - Closed → (no further transitions)
+   *
+   * When transitioning to Resolved:
+   * - Resolution notes are required (max 2000 chars)
+   * - resolvedAt timestamp is recorded
+   *
+   * Requirements: 11.3, 11.4, 11.8, 11.9
+   */
+  async updateIssueStatus(
+    ctx: RequestContext,
+    issueId: string,
+    input: UpdateIssueStatusInput,
+  ): Promise<IssueResult> {
+    // Step 1: Validate input
+    const parseResult = updateIssueStatusSchema.safeParse(input)
+    if (!parseResult.success) {
+      const errors: FieldError[] = parseResult.error.issues.map((issue) => ({
+        field: issue.path.join('.') || 'unknown',
+        message: issue.message,
+        rule: issue.code,
+      }))
+      throw new ValidationError(errors)
+    }
+
+    const validated = parseResult.data
+
+    // Step 2: Verify issue exists and belongs to the owner's account
+    const existing = await this.db.query.issues.findFirst({
+      where: and(
+        eq(issues.id, issueId),
+        eq(issues.ownerAccountId, ctx.ownerAccountId),
+      ),
+    })
+
+    if (!existing) {
+      throw new NotFoundError('Issue')
+    }
+
+    const currentStatus = existing.status as IssueStatus
+    const newStatus = validated.status as IssueStatus
+
+    // Step 3: Validate state machine transition (Requirement 11.8, 11.9)
+    const allowedTransitions = ISSUE_STATUS_TRANSITIONS[currentStatus]
+    if (!allowedTransitions?.includes(newStatus)) {
+      throw new ValidationError([
+        {
+          field: 'status',
+          message: `Cannot transition from '${currentStatus}' to '${newStatus}'. Allowed transitions: ${allowedTransitions?.join(', ') || 'none'}`,
+          rule: 'invalid_transition',
+        },
+      ])
+    }
+
+    // Step 4: Require resolution notes when marking as Resolved (Requirement 11.4)
+    if (newStatus === ISSUE_STATUS.RESOLVED) {
+      if (
+        !validated.resolutionNotes ||
+        validated.resolutionNotes.trim().length === 0
+      ) {
+        throw new ValidationError([
+          {
+            field: 'resolutionNotes',
+            message:
+              'Resolution notes are required when marking an issue as Resolved',
+            rule: 'required',
+          },
+        ])
+      }
+    }
+
+    // Step 5: Build update payload
+    const updatePayload: Record<string, unknown> = {
+      status: newStatus,
+      updatedAt: new Date(),
+    }
+
+    if (newStatus === ISSUE_STATUS.RESOLVED) {
+      updatePayload.resolutionNotes = validated.resolutionNotes
+      updatePayload.resolvedAt = new Date()
+    }
+
+    // Step 6: Perform the update
+    const [updated] = await this.db
+      .update(issues)
+      .set(updatePayload)
+      .where(eq(issues.id, issueId))
+      .returning()
+
+    if (!updated) {
+      throw new Error('Failed to update issue status')
+    }
+
+    // Step 7: Record audit event for status change (Requirement 11.3)
+    this.auditLogger.log({
+      actorId: ctx.userId,
+      action: 'issue_status_changed',
+      entityType: 'issue',
+      entityId: issueId,
+      ownerAccountId: ctx.ownerAccountId,
+      oldValues: { status: currentStatus },
+      newValues: {
+        status: newStatus,
+        ...(newStatus === ISSUE_STATUS.RESOLVED
+          ? { resolutionNotes: validated.resolutionNotes }
+          : {}),
+      },
+    })
+
+    return this.mapToResult(updated)
+  }
+
+  /**
+   * Lists issues with optional filtering by building, category, status, priority, and assignee.
+   * Paginated with max 50 per page, sorted by createdAt descending.
+   * Enforces tenant isolation via ownerAccountId.
+   *
+   * Requirement: 11.6
+   */
+  async listIssues(
+    ctx: RequestContext,
+    input: ListIssuesInput,
+  ): Promise<PaginatedIssues> {
+    const pageSize = Math.min(Math.max(input.pageSize, 1), 50)
+    const page = Math.max(input.page, 1)
+    const offset = (page - 1) * pageSize
+
+    const conditions = [eq(issues.ownerAccountId, ctx.ownerAccountId)]
+
+    if (input.buildingId) {
+      conditions.push(eq(issues.buildingId, input.buildingId))
+    }
+
+    if (input.category) {
+      conditions.push(eq(issues.category, input.category))
+    }
+
+    if (input.status) {
+      conditions.push(eq(issues.status, input.status))
+    }
+
+    if (input.priority) {
+      conditions.push(eq(issues.priority, input.priority))
+    }
+
+    if (input.assigneeId) {
+      conditions.push(eq(issues.assigneeId, input.assigneeId))
+    }
+
+    const whereClause = and(...conditions)
+
+    const [data, totalResult] = await Promise.all([
+      this.db
+        .select()
+        .from(issues)
+        .where(whereClause)
+        .orderBy(desc(issues.createdAt))
+        .limit(pageSize)
+        .offset(offset),
+      this.db.select({ count: count() }).from(issues).where(whereClause),
+    ])
+
+    const total = totalResult[0]?.count ?? 0
+
+    return {
+      data: data.map((row) => this.mapToResult(row)),
+      total,
+      page,
+      pageSize,
+      totalPages: Math.ceil(total / pageSize),
+    }
+  }
+
+  /**
+   * Gets a single issue by ID, scoped to the owner's account.
+   *
+   * Returns NotFoundError if the issue doesn't exist or belongs to another account.
+   */
+  async getIssue(ctx: RequestContext, issueId: string): Promise<IssueResult> {
+    const issue = await this.db.query.issues.findFirst({
+      where: and(
+        eq(issues.id, issueId),
+        eq(issues.ownerAccountId, ctx.ownerAccountId),
+      ),
+    })
+
+    if (!issue) {
+      throw new NotFoundError('Issue')
+    }
+
+    return this.mapToResult(issue)
+  }
+
+  // --- Private Helpers ---
+
+  private mapToResult(row: typeof issues.$inferSelect): IssueResult {
+    return {
+      id: row.id,
+      ownerAccountId: row.ownerAccountId,
+      buildingId: row.buildingId,
+      title: row.title,
+      description: row.description,
+      category: row.category,
+      priority: row.priority,
+      status: row.status,
+      assigneeId: row.assigneeId,
+      resolutionNotes: row.resolutionNotes,
+      resolvedAt: row.resolvedAt,
+      createdAt: row.createdAt,
+      updatedAt: row.updatedAt,
+    }
+  }
+}
