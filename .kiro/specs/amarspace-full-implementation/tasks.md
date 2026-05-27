@@ -422,8 +422,8 @@ This plan implements the AmarSpace multi-tenant apartment management platform as
     - Redirect to dashboard on success
     - _Requirements: 1.1, 1.5, 1.6, 1.8_
 
-- [-] 18. Implement frontend dashboard and navigation
-  - [~] 18.1 Implement role-specific dashboard
+- [x] 18. Implement frontend dashboard and navigation
+  - [x] 18.1 Implement role-specific dashboard
     - Owner dashboard: total buildings, flats, occupancy ratio, unpaid bills (BDT), 5 recent maintenance, 5 recent audit entries
     - Manager dashboard: assigned buildings, flats with occupancy (max 20), unpaid bills (BDT), 10 pending maintenance
     - Renter dashboard: flat address, building name, current bill with status, deposit balance (BDT), active maintenance requests
@@ -431,21 +431,21 @@ This plan implements the AmarSpace multi-tenant apartment management platform as
     - Handle no-flat-assigned state for Renter
     - _Requirements: 20.1, 20.2, 20.3, 20.4, 20.7, 20.8_
 
-  - [~] 18.2 Implement navigation structure
+  - [x] 18.2 Implement navigation structure
     - Max 3 levels from dashboard to any feature
     - One click/tap to reach primary sections (Buildings, Flats, Renters, Bills, Maintenance, Audit, Notices)
     - Role-based navigation item visibility
     - _Requirements: 16.3, 20.5, 20.6_
 
-- [~] 19. Implement frontend building and flat management pages
-  - [~] 19.1 Implement building list and detail pages
+- [x] 19. Implement frontend building and flat management pages
+  - [x] 19.1 Implement building list and detail pages
     - Building list with pagination (max 50)
     - Building creation form with name and address validation
     - Building detail with flat list
     - Owner can edit, Manager can only view
     - _Requirements: 5.1, 5.2, 5.4, 5.5, 5.7, 5.8_
 
-  - [~] 19.2 Implement flat management pages
+  - [x] 19.2 Implement flat management pages
     - Flat list with status filter and pagination (max 50)
     - Flat creation form with flat number, floor, building reference
     - Flat detail with status badge
@@ -453,15 +453,15 @@ This plan implements the AmarSpace multi-tenant apartment management platform as
     - Delete confirmation for Vacant flats only
     - _Requirements: 6.1, 6.2, 6.7, 6.8, 6.9, 6.11, 6.13_
 
-- [~] 20. Implement frontend renter management pages
-  - [~] 20.1 Implement renter registration form
+- [x] 20. Implement frontend renter management pages
+  - [x] 20.1 Implement renter registration form
     - Multi-field form with all required and optional fields
     - NID photo upload and digital signature upload
     - Flat selection (only Vacant flats)
     - Field-level validation with Bangla error messages
     - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 4.9, 4.11, 4.12_
 
-  - [~] 20.2 Implement renter list and detail pages
+  - [x] 20.2 Implement renter list and detail pages
     - Renter list with pagination
     - Renter detail showing personal info, contract, and deposit balance
     - _Requirements: 4.1, 9.12_

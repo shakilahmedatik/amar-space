@@ -2,7 +2,11 @@
 
 import { useTranslation } from '@/lib/i18n'
 import { NavIcon } from './nav-icon'
-import { getNavigationForRole, type UserRole } from './navigation-items'
+import {
+  getNavigationForRole,
+  isNavItemActive,
+  type UserRole,
+} from './navigation-items'
 
 interface SidebarProps {
   role: UserRole
@@ -10,9 +14,27 @@ interface SidebarProps {
   onNavigate?: (href: string) => void
 }
 
+/**
+ * Desktop sidebar navigation (≥ 768px).
+ * Hidden on mobile viewports via Tailwind responsive utilities.
+ *
+ * Features:
+ * - Role-based navigation item visibility
+ * - Active route highlighting (exact match + sub-path match)
+ * - One click to reach any primary section
+ * - Bangla labels as primary with English fallback via i18n
+ * - 44x44px minimum touch targets (min-h-11 min-w-11)
+ * - Settings shown at the bottom, separated by a border
+ *
+ * Requirements: 16.3, 20.5, 20.6
+ */
 export function Sidebar({ role, activePath, onNavigate }: SidebarProps) {
   const { t } = useTranslation()
-  const items = getNavigationForRole(role)
+  const allItems = getNavigationForRole(role)
+
+  // Separate settings from main navigation for visual grouping
+  const mainItems = allItems.filter((item) => item.id !== 'settings')
+  const settingsItem = allItems.find((item) => item.id === 'settings')
 
   return (
     <aside
@@ -26,9 +48,8 @@ export function Sidebar({ role, activePath, onNavigate }: SidebarProps) {
       </div>
       <nav className="flex-1 overflow-y-auto px-3 py-4">
         <ul className="flex flex-col gap-1">
-          {items.map((item) => {
-            const isActive =
-              activePath === item.href || activePath.startsWith(`${item.href}/`)
+          {mainItems.map((item) => {
+            const isActive = isNavItemActive(item.href, activePath)
             return (
               <li key={item.href}>
                 <a
@@ -55,27 +76,33 @@ export function Sidebar({ role, activePath, onNavigate }: SidebarProps) {
           })}
         </ul>
       </nav>
-      <div className="border-t border-gray-200 px-3 py-3">
-        <a
-          href="/settings"
-          onClick={(e) => {
-            if (onNavigate) {
-              e.preventDefault()
-              onNavigate('/settings')
+      {settingsItem && (
+        <div className="border-t border-gray-200 px-3 py-3">
+          <a
+            href={settingsItem.href}
+            onClick={(e) => {
+              if (onNavigate) {
+                e.preventDefault()
+                onNavigate(settingsItem.href)
+              }
+            }}
+            className={[
+              'flex items-center gap-3 px-3 rounded-lg min-h-11 min-w-11 text-base leading-relaxed font-medium transition-colors duration-150',
+              isNavItemActive(settingsItem.href, activePath)
+                ? 'bg-blue-50 text-blue-700'
+                : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900',
+            ].join(' ')}
+            aria-current={
+              isNavItemActive(settingsItem.href, activePath)
+                ? 'page'
+                : undefined
             }
-          }}
-          className={[
-            'flex items-center gap-3 px-3 rounded-lg min-h-11 min-w-11 text-base leading-relaxed font-medium transition-colors duration-150',
-            activePath === '/settings'
-              ? 'bg-blue-50 text-blue-700'
-              : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900',
-          ].join(' ')}
-          aria-current={activePath === '/settings' ? 'page' : undefined}
-        >
-          <NavIcon name="settings" />
-          <span>{t('common.settings')}</span>
-        </a>
-      </div>
+          >
+            <NavIcon name={settingsItem.icon} />
+            <span>{t(settingsItem.labelKey)}</span>
+          </a>
+        </div>
+      )}
     </aside>
   )
 }
