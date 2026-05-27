@@ -35,13 +35,13 @@ This plan implements the AmarSpace multi-tenant apartment management platform as
     - **Property 20: API error response structure**
     - **Validates: Requirements 19.2, 19.3, 19.4, 19.5, 19.6**
 
-- [ ] 2. Implement database schema and migrations (packages/db)
-  - [ ] 2.1 Create Drizzle schema for users table extension
+- [x] 2. Implement database schema and migrations (packages/db)
+  - [x] 2.1 Create Drizzle schema for users table extension
     - Add role, ownerAccountId, phone, languagePreference columns
     - Define relations to buildings, manager_assignments, rental_contracts
     - _Requirements: 1.1, 3.1, 17.4_
 
-  - [ ] 2.2 Create Drizzle schema for buildings and flats tables
+  - [x] 2.2 Create Drizzle schema for buildings and flats tables
     - Define buildings table with ownerAccountId, name, address, totalFloors
     - Add unique constraint on (ownerAccountId, name)
     - Define flats table with buildingId, flatNumber, floor, status
@@ -49,18 +49,18 @@ This plan implements the AmarSpace multi-tenant apartment management platform as
     - Define relations between buildings and flats
     - _Requirements: 5.1, 5.2, 5.9, 6.1, 6.2, 6.12_
 
-  - [ ] 2.3 Create Drizzle schema for manager_assignments table
+  - [x] 2.3 Create Drizzle schema for manager_assignments table
     - Define managerId, buildingId, ownerAccountId with unique constraint on (managerId, buildingId)
     - Define relations to users and buildings
     - _Requirements: 3.7, 17.5_
 
-  - [ ] 2.4 Create Drizzle schema for renters and rental_contracts tables
+  - [x] 2.4 Create Drizzle schema for renters and rental_contracts tables
     - Define renters table with all personal fields (fullName, phone, nidNumber, bloodGroup, etc.)
     - Define rental_contracts table with monthlyRent, startDate, securityDepositAmount, remainingDepositBalance, status
     - Define relations between renters, users, flats, and contracts
     - _Requirements: 4.1, 4.2, 4.7, 9.1_
 
-  - [ ] 2.5 Create Drizzle schema for bills, bill_line_items, and payments tables
+  - [x] 2.5 Create Drizzle schema for bills, bill_line_items, and payments tables
     - Define bills table with contractId, flatId, renterId, billingMonth, baseRent, totalAmount, paidAmount, status
     - Add unique constraint on (flatId, billingMonth)
     - Define bill_line_items with cascade delete on bill
@@ -68,30 +68,30 @@ This plan implements the AmarSpace multi-tenant apartment management platform as
     - Define relations between bills, line items, payments, and contracts
     - _Requirements: 7.1, 7.2, 7.10, 8.1, 8.8_
 
-  - [ ] 2.6 Create Drizzle schema for advance_adjustments table
+  - [x] 2.6 Create Drizzle schema for advance_adjustments table
     - Define contractId, amount, billId (optional), note, adjustedBy
     - Define relations to rental_contracts, bills, and users
     - _Requirements: 9.2, 9.11_
 
-  - [ ] 2.7 Create Drizzle schema for maintenance_requests, maintenance_attachments, and maintenance_comments tables
+  - [x] 2.7 Create Drizzle schema for maintenance_requests, maintenance_attachments, and maintenance_comments tables
     - Define maintenance_requests with flatId, renterId, buildingId, title, description, priority, status
     - Define maintenance_attachments with cascade delete on request
     - Define maintenance_comments with authorId
     - Define relations between requests, attachments, comments, flats, and buildings
     - _Requirements: 10.1, 10.2, 10.5_
 
-  - [ ] 2.8 Create Drizzle schema for issues table
+  - [x] 2.8 Create Drizzle schema for issues table
     - Define buildingId, title, description, category, priority, status, assigneeId, resolutionNotes, resolvedAt
     - Define relations to buildings and users
     - _Requirements: 11.1, 11.2, 11.4_
 
-  - [ ] 2.9 Create Drizzle schema for notices and file_references tables
+  - [x] 2.9 Create Drizzle schema for notices and file_references tables
     - Define notices table with authorId, title, body, targetAudience, targetBuildingId, targetFlatId, isPinned
     - Define file_references table with entityType, entityId, storageKey, fileName, fileSize, mimeType
     - Define relations for notices to buildings, flats, and users
     - _Requirements: 12.1, 18.2, 18.7_
 
-  - [ ] 2.10 Generate and run initial Drizzle migration
+  - [x] 2.10 Generate and run initial Drizzle migration
     - Run drizzle-kit generate to create migration SQL
     - Verify all constraints, indexes, and foreign keys are correct
     - Export database client and schema from packages/db
