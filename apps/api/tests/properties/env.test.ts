@@ -83,6 +83,10 @@ const validEnvArb = fc
         DATABASE_URL: databaseUrl,
         AUTH_SECRET: authSecret,
         AUTH_BASE_URL: authBaseUrl,
+        R2_ACCOUNT_ID: 'test-account-id',
+        R2_ACCESS_KEY_ID: 'test-access-key',
+        R2_SECRET_ACCESS_KEY: 'test-secret-key',
+        R2_BUCKET_NAME: 'test-bucket',
       }
       if (poolSize !== undefined) env.DB_POOL_SIZE = poolSize
       if (idleTimeout !== undefined) env.DB_IDLE_TIMEOUT = idleTimeout
@@ -146,7 +150,15 @@ const invalidNodeEnvArb = fc
   .filter((s) => !['development', 'production', 'test'].includes(s))
 
 // Required variable names
-const REQUIRED_VARS = ['DATABASE_URL', 'AUTH_SECRET', 'AUTH_BASE_URL'] as const
+const REQUIRED_VARS = [
+  'DATABASE_URL',
+  'AUTH_SECRET',
+  'AUTH_BASE_URL',
+  'R2_ACCOUNT_ID',
+  'R2_ACCESS_KEY_ID',
+  'R2_SECRET_ACCESS_KEY',
+  'R2_BUCKET_NAME',
+] as const
 
 describe('Feature: amarspace-infrastructure-setup, Property 10: Environment Validation Completeness', () => {
   describe('Schema validation properties', () => {
@@ -253,6 +265,10 @@ describe('Feature: amarspace-infrastructure-setup, Property 10: Environment Vali
               DATABASE_URL: dbUrl,
               AUTH_SECRET: secret,
               AUTH_BASE_URL: baseUrl,
+              R2_ACCOUNT_ID: 'test-account-id',
+              R2_ACCESS_KEY_ID: 'test-access-key',
+              R2_SECRET_ACCESS_KEY: 'test-secret-key',
+              R2_BUCKET_NAME: 'test-bucket',
             }
 
             const result = envSchema.safeParse(env)
@@ -362,6 +378,10 @@ describe('Feature: amarspace-infrastructure-setup, Property 10: Environment Vali
           DATABASE_URL: 'postgresql://user:pass@localhost:5432/db',
           AUTH_SECRET: 'a'.repeat(32),
           AUTH_BASE_URL: 'http://localhost:3001',
+          R2_ACCOUNT_ID: 'test-account-id',
+          R2_ACCESS_KEY_ID: 'test-access-key',
+          R2_SECRET_ACCESS_KEY: 'test-secret-key',
+          R2_BUCKET_NAME: 'test-bucket',
         }
 
         for (const v of missingVars) {
@@ -414,6 +434,10 @@ describe('Feature: amarspace-infrastructure-setup, Property 10: Environment Vali
           DATABASE_URL: 'postgresql://user:pass@localhost:5432/db',
           AUTH_SECRET: 'a'.repeat(32),
           AUTH_BASE_URL: 'http://localhost:3001',
+          R2_ACCOUNT_ID: 'test-account-id',
+          R2_ACCESS_KEY_ID: 'test-access-key',
+          R2_SECRET_ACCESS_KEY: 'test-secret-key',
+          R2_BUCKET_NAME: 'test-bucket',
           [varName]: value,
         }
 
@@ -444,6 +468,10 @@ describe('Feature: amarspace-infrastructure-setup, Property 10: Environment Vali
         DATABASE_URL: 'postgresql://user:pass@localhost:5432/db',
         AUTH_SECRET: 'a'.repeat(32),
         AUTH_BASE_URL: 'http://localhost:3001',
+        R2_ACCOUNT_ID: 'test-account-id',
+        R2_ACCESS_KEY_ID: 'test-access-key',
+        R2_SECRET_ACCESS_KEY: 'test-secret-key',
+        R2_BUCKET_NAME: 'test-bucket',
       }
 
       const app = Fastify()

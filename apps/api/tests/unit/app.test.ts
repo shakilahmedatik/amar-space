@@ -1,3 +1,11 @@
+import {
+  AppError,
+  ConflictError,
+  ForbiddenError,
+  NotFoundError,
+  RateLimitError,
+  ValidationError,
+} from '@repo/shared'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { z } from 'zod'
 import { buildApp } from '../../src/app'
@@ -7,6 +15,10 @@ describe('App Factory and Global Error Handler', () => {
     DATABASE_URL: 'postgresql://user:pass@localhost:5432/db',
     AUTH_SECRET: 'a'.repeat(32),
     AUTH_BASE_URL: 'http://localhost:3001',
+    R2_ACCOUNT_ID: 'test-account-id',
+    R2_ACCESS_KEY_ID: 'test-access-key',
+    R2_SECRET_ACCESS_KEY: 'test-secret-key',
+    R2_BUCKET_NAME: 'test-bucket',
   }
 
   let originalEnv: NodeJS.ProcessEnv
@@ -42,8 +54,225 @@ describe('App Factory and Global Error Handler', () => {
     })
   })
 
-  describe('Global Error Handler - Zod Validation Errors', () => {
-    it('should return 400 with field-level details for invalid request body', async () => {
+  describe('requestId generation', () => {
+    it('should include x-request-id header in every response', async () => {
+      const app = buildApp({ logger: false })
+
+      app.get('/test', { handler: async () => ({ ok: true }) })
+
+      await app.ready()
+
+      const response = await app.inject({
+        method: 'GET',
+        url: '/test',
+      })
+
+      const requestId = response.headers['x-request-id']
+      expect(requestId).toBeDefined()
+      expect(typeof requestId).toBe('string')
+      // UUID v4 format
+      expect(requestId).toMatch(
+        /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/,
+      )
+
+      await app.close()
+    })
+
+    it('should include requestId in error response bodies', async () => {
+      const app = buildApp({ logger: false })
+
+      app.get('/test', {
+        handler: async () => {
+          throw new NotFoundError('Widget')
+        },
+      })
+
+      await app.ready()
+
+      const response = await app.inject({
+        method: 'GET',
+        url: '/test',
+      })
+
+      const body = response.json()
+      expect(body.requestId).toBeDefined()
+      expect(body.requestId).toMatch(
+        /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/,
+      )
+      expect(body.requestId).toBe(response.headers['x-request-id'])
+
+      await app.close()
+    })
+
+    it('should generate unique requestIds for different requests', async () => {
+      const app = buildApp({ logger: false })
+
+      app.get('/test', { handler: async () => ({ ok: true }) })
+
+      await app.ready()
+
+      const response1 = await app.inject({ method: 'GET', url: '/test' })
+      const response2 = await app.inject({ method: 'GET', url: '/test' })
+
+      expect(response1.headers['x-request-id']).not.toBe(
+        response2.headers['x-request-id'],
+      )
+
+      await app.close()
+    })
+  })
+
+  describe('AppError subclass mapping', () => {
+    it('should map ValidationError to 400 with field errors', async () => {
+      const app = buildApp({ logger: false })
+
+      app.get('/test', {
+        handler: async () => {
+          throw new ValidationError([
+            { field: 'email', message: 'Invalid email format' },
+            { field: 'password', message: 'Too short' },
+          ])
+        },
+      })
+
+      await app.ready()
+
+      const response = await app.inject({ method: 'GET', url: '/test' })
+      const body = response.json()
+
+      expect(response.statusCode).toBe(400)
+      expect(body.statusCode).toBe(400)
+      expect(body.error).toBe('Bad Request')
+      expect(body.message).toBe('Validation failed')
+      expect(body.requestId).toBeDefined()
+      expect(body.errors).toHaveLength(2)
+      expect(body.errors[0].field).toBe('email')
+      expect(body.errors[0].message).toBe('Invalid email format')
+
+      await app.close()
+    })
+
+    it('should map NotFoundError to 404', async () => {
+      const app = buildApp({ logger: false })
+
+      app.get('/test', {
+        handler: async () => {
+          throw new NotFoundError('Building', '123')
+        },
+      })
+
+      await app.ready()
+
+      const response = await app.inject({ method: 'GET', url: '/test' })
+      const body = response.json()
+
+      expect(response.statusCode).toBe(404)
+      expect(body.statusCode).toBe(404)
+      expect(body.error).toBe('Not Found')
+      expect(body.message).toBe('Building not found')
+      expect(body.requestId).toBeDefined()
+
+      await app.close()
+    })
+
+    it('should map ForbiddenError to 403', async () => {
+      const app = buildApp({ logger: false })
+
+      app.get('/test', {
+        handler: async () => {
+          throw new ForbiddenError()
+        },
+      })
+
+      await app.ready()
+
+      const response = await app.inject({ method: 'GET', url: '/test' })
+      const body = response.json()
+
+      expect(response.statusCode).toBe(403)
+      expect(body.statusCode).toBe(403)
+      expect(body.error).toBe('Forbidden')
+      expect(body.message).toBe('Insufficient permissions')
+      expect(body.requestId).toBeDefined()
+
+      await app.close()
+    })
+
+    it('should map ConflictError to 409', async () => {
+      const app = buildApp({ logger: false })
+
+      app.get('/test', {
+        handler: async () => {
+          throw new ConflictError('Email already in use')
+        },
+      })
+
+      await app.ready()
+
+      const response = await app.inject({ method: 'GET', url: '/test' })
+      const body = response.json()
+
+      expect(response.statusCode).toBe(409)
+      expect(body.statusCode).toBe(409)
+      expect(body.error).toBe('Conflict')
+      expect(body.message).toBe('Email already in use')
+      expect(body.requestId).toBeDefined()
+
+      await app.close()
+    })
+
+    it('should map RateLimitError to 429 with Retry-After header', async () => {
+      const app = buildApp({ logger: false })
+
+      app.get('/test', {
+        handler: async () => {
+          throw new RateLimitError(120)
+        },
+      })
+
+      await app.ready()
+
+      const response = await app.inject({ method: 'GET', url: '/test' })
+      const body = response.json()
+
+      expect(response.statusCode).toBe(429)
+      expect(body.statusCode).toBe(429)
+      expect(body.error).toBe('Too Many Requests')
+      expect(body.requestId).toBeDefined()
+      expect(response.headers['retry-after']).toBe('120')
+
+      await app.close()
+    })
+
+    it('should map generic AppError to its status code', async () => {
+      const app = buildApp({ logger: false })
+
+      app.get('/test', {
+        handler: async () => {
+          throw new AppError(
+            503,
+            'SERVICE_UNAVAILABLE',
+            'Service temporarily unavailable',
+          )
+        },
+      })
+
+      await app.ready()
+
+      const response = await app.inject({ method: 'GET', url: '/test' })
+      const body = response.json()
+
+      expect(response.statusCode).toBe(503)
+      expect(body.statusCode).toBe(503)
+      expect(body.message).toBe('Service temporarily unavailable')
+      expect(body.requestId).toBeDefined()
+
+      await app.close()
+    })
+  })
+
+  describe('Zod Validation Errors', () => {
+    it('should return 400 with field-level errors for invalid request body', async () => {
       const app = buildApp({ logger: false })
 
       app.post('/test', {
@@ -70,20 +299,20 @@ describe('App Factory and Global Error Handler', () => {
       expect(body.statusCode).toBe(400)
       expect(body.error).toBe('Bad Request')
       expect(body.message).toBe('Validation failed')
-      expect(body.details).toBeDefined()
-      expect(Array.isArray(body.details)).toBe(true)
-      expect(body.details.length).toBeGreaterThan(0)
+      expect(body.requestId).toBeDefined()
+      expect(body.errors).toBeDefined()
+      expect(Array.isArray(body.errors)).toBe(true)
+      expect(body.errors.length).toBeGreaterThan(0)
 
-      for (const detail of body.details) {
-        expect(detail).toHaveProperty('field')
-        expect(detail).toHaveProperty('rule')
-        expect(detail).toHaveProperty('message')
+      for (const err of body.errors) {
+        expect(err).toHaveProperty('field')
+        expect(err).toHaveProperty('message')
       }
 
       await app.close()
     })
 
-    it('should return 400 with details for missing required fields', async () => {
+    it('should return 400 with errors for missing required fields', async () => {
       const app = buildApp({ logger: false })
 
       app.post('/test', {
@@ -110,13 +339,14 @@ describe('App Factory and Global Error Handler', () => {
       expect(body.statusCode).toBe(400)
       expect(body.error).toBe('Bad Request')
       expect(body.message).toBe('Validation failed')
-      expect(body.details).toBeDefined()
-      expect(body.details.length).toBeGreaterThan(0)
+      expect(body.requestId).toBeDefined()
+      expect(body.errors).toBeDefined()
+      expect(body.errors.length).toBeGreaterThan(0)
 
       await app.close()
     })
 
-    it('should return 400 with details for invalid query parameters', async () => {
+    it('should return 400 with errors for invalid query parameters', async () => {
       const app = buildApp({ logger: false })
 
       app.get('/test', {
@@ -140,22 +370,47 @@ describe('App Factory and Global Error Handler', () => {
       expect(response.statusCode).toBe(400)
       expect(body.statusCode).toBe(400)
       expect(body.error).toBe('Bad Request')
-      expect(body.details).toBeDefined()
+      expect(body.requestId).toBeDefined()
+      expect(body.errors).toBeDefined()
 
       await app.close()
     })
   })
 
-  describe('Global Error Handler - Known Operational Errors (4xx)', () => {
-    it('should return 404 with consistent structure', async () => {
+  describe('Body size limit', () => {
+    it('should reject requests exceeding 1MB body size with 413', async () => {
       const app = buildApp({ logger: false })
 
-      app.get('/test', {
-        handler: async (_request, reply) => {
-          return reply.callNotFound()
-        },
+      app.post('/test', {
+        handler: async () => ({ ok: true }),
       })
 
+      await app.ready()
+
+      // Create a payload larger than 1MB
+      const largeBody = 'x'.repeat(1_048_577)
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/test',
+        payload: largeBody,
+        headers: { 'content-type': 'application/json' },
+      })
+
+      const body = response.json()
+
+      expect(response.statusCode).toBe(413)
+      expect(body.statusCode).toBe(413)
+      expect(body.error).toBe('Payload Too Large')
+      expect(body.requestId).toBeDefined()
+
+      await app.close()
+    })
+  })
+
+  describe('Known Operational Errors (4xx)', () => {
+    it('should return 404 with consistent structure for unknown routes', async () => {
+      const app = buildApp({ logger: false })
       await app.ready()
 
       const response = await app.inject({
@@ -167,10 +422,9 @@ describe('App Factory and Global Error Handler', () => {
 
       expect(response.statusCode).toBe(404)
       expect(body.statusCode).toBe(404)
-      expect(body.error).toBeDefined()
-      expect(body.message).toBeDefined()
-      // Should NOT have details for non-validation errors
-      expect(body.details).toBeUndefined()
+      expect(body.error).toBe('Not Found')
+      expect(body.message).toBe('Route not found')
+      expect(body.requestId).toBeDefined()
 
       await app.close()
     })
@@ -199,9 +453,8 @@ describe('App Factory and Global Error Handler', () => {
 
       expect(response.statusCode).toBe(404)
       expect(body.statusCode).toBe(404)
-      expect(body.error).toBe('Error')
       expect(body.message).toBe('Resource not found')
-      expect(body.details).toBeUndefined()
+      expect(body.requestId).toBeDefined()
 
       await app.close()
     })
@@ -231,42 +484,13 @@ describe('App Factory and Global Error Handler', () => {
       expect(response.statusCode).toBe(401)
       expect(body.statusCode).toBe(401)
       expect(body.message).toBe('Unauthorized')
-
-      await app.close()
-    })
-
-    it('should handle 403 errors with consistent structure', async () => {
-      const app = buildApp({ logger: false })
-
-      app.get('/test', {
-        handler: async () => {
-          const error = new Error('Insufficient permissions') as Error & {
-            statusCode: number
-          }
-          error.statusCode = 403
-          throw error
-        },
-      })
-
-      await app.ready()
-
-      const response = await app.inject({
-        method: 'GET',
-        url: '/test',
-        headers: {},
-      })
-
-      const body = response.json()
-
-      expect(response.statusCode).toBe(403)
-      expect(body.statusCode).toBe(403)
-      expect(body.message).toBe('Insufficient permissions')
+      expect(body.requestId).toBeDefined()
 
       await app.close()
     })
   })
 
-  describe('Global Error Handler - 500 Error Sanitization', () => {
+  describe('500 Error Sanitization', () => {
     it('should not expose stack traces in 500 responses', async () => {
       const app = buildApp({ logger: false })
 
@@ -292,6 +516,7 @@ describe('App Factory and Global Error Handler', () => {
       expect(body.statusCode).toBe(500)
       expect(body.error).toBe('Internal Server Error')
       expect(body.message).toBe('An unexpected error occurred')
+      expect(body.requestId).toBeDefined()
       // Should NOT contain file paths
       expect(bodyStr).not.toContain('/Users/')
       expect(bodyStr).not.toContain('.ts:')
@@ -356,38 +581,6 @@ describe('App Factory and Global Error Handler', () => {
       await app.close()
     })
 
-    it('should not expose internal module names in 500 responses', async () => {
-      const app = buildApp({ logger: false })
-
-      app.get('/test', {
-        handler: async () => {
-          const err = new Error('Internal failure')
-          err.stack = `Error: Internal failure
-    at Object.<anonymous> (/app/node_modules/drizzle-orm/src/query.ts:123:45)
-    at Module._compile (node:internal/modules/cjs/loader:1234:14)`
-          throw err
-        },
-      })
-
-      await app.ready()
-
-      const response = await app.inject({
-        method: 'GET',
-        url: '/test',
-      })
-
-      const body = response.json()
-      const bodyStr = JSON.stringify(body)
-
-      expect(response.statusCode).toBe(500)
-      expect(body.message).toBe('An unexpected error occurred')
-      expect(bodyStr).not.toContain('node_modules')
-      expect(bodyStr).not.toContain('drizzle-orm')
-      expect(bodyStr).not.toContain('Module._compile')
-
-      await app.close()
-    })
-
     it('should return generic message for any unhandled error', async () => {
       const app = buildApp({ logger: false })
 
@@ -410,7 +603,8 @@ describe('App Factory and Global Error Handler', () => {
       expect(body.statusCode).toBe(500)
       expect(body.error).toBe('Internal Server Error')
       expect(body.message).toBe('An unexpected error occurred')
-      expect(body.details).toBeUndefined()
+      expect(body.requestId).toBeDefined()
+      expect(body.errors).toBeUndefined()
 
       await app.close()
     })

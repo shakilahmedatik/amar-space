@@ -164,7 +164,7 @@ export default async function auditRoutes(fastify: FastifyInstance) {
     }
 
     if (params.actorUserId) {
-      conditions.push(eq(auditLogs.actorUserId, params.actorUserId))
+      conditions.push(eq(auditLogs.actorId, params.actorUserId))
     }
 
     // Manager role: restrict to entries for assigned properties (Requirement 7.6)
@@ -183,7 +183,7 @@ export default async function auditRoutes(fastify: FastifyInstance) {
           conditions.push(inArray(auditLogs.entityId, assignedPropertyIds))
         } else {
           // If no assigned properties found, restrict to entries where manager is the actor
-          conditions.push(eq(auditLogs.actorUserId, userId))
+          conditions.push(eq(auditLogs.actorId, userId))
         }
       }
     } else if (role === 'owner' && params.propertyId) {

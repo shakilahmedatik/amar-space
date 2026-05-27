@@ -4,38 +4,45 @@ import { and, count, desc, eq } from 'drizzle-orm'
 import type { FastifyInstance } from 'fastify'
 import fp from 'fastify-plugin'
 
+// --- Constants ---
+
+const MAX_JSON_SIZE_BYTES = 10 * 1024 // 10KB
+const MAX_RETRIES = 3
+const RETRY_INTERVAL_MS = 30_000 // 30 seconds
+
 // --- Interfaces ---
 
-export interface AuditLogEntry {
-  actorUserId: string
-  entityType: string // max 100 chars
+export interface AuditLogInput {
+  actorId: string
+  action: string
+  entityType: string
   entityId: string
-  action: string // max 100 chars
-  oldValue?: unknown // JSON, max 10KB
-  newValue?: unknown // JSON, max 10KB
-  ipAddress: string
-  userAgent: string
-}
-
-export interface AuditQueryParams {
-  page: number
-  limit: number // max 100
-  entityType?: string
-  actorUserId?: string
-  propertyId?: string // for manager-scoped queries
+  ownerAccountId: string
+  oldValues?: Record<string, unknown>
+  newValues?: Record<string, unknown>
+  metadata?: Record<string, unknown>
 }
 
 export interface AuditLog {
   id: string
-  actorUserId: string
+  ownerAccountId: string
+  actorId: string
+  action: string
   entityType: string
   entityId: string
-  action: string
-  oldValue: unknown
-  newValue: unknown
-  ipAddress: string | null
-  userAgent: string | null
+  oldValues: unknown
+  newValues: unknown
+  metadata: unknown
   createdAt: Date
+}
+
+export interface AuditQueryParams {
+  page: number
+  limit: number
+  entityType?: string
+  entityId?: string
+  actorId?: string
+  action?: string
 }
 
 export interface PaginatedResult<T> {
@@ -47,69 +54,56 @@ export interface PaginatedResult<T> {
 }
 
 export interface AuditLoggerInterface {
-  log(entry: AuditLogEntry): Promise<void>
+  log(entry: AuditLogInput): void
   query(params: AuditQueryParams): Promise<PaginatedResult<AuditLog>>
 }
 
-// --- Validation ---
+// --- Truncation ---
 
-const MAX_ENTITY_TYPE_LENGTH = 100
-const MAX_ACTION_LENGTH = 100
-const MAX_JSON_SIZE_BYTES = 10 * 1024 // 10KB
-
-export class AuditValidationError extends Error {
-  constructor(message: string) {
-    super(message)
-    this.name = 'AuditValidationError'
-  }
-}
-
-function validateEntry(entry: AuditLogEntry): void {
-  if (entry.entityType.length > MAX_ENTITY_TYPE_LENGTH) {
-    throw new AuditValidationError(
-      `entityType exceeds maximum length of ${MAX_ENTITY_TYPE_LENGTH} characters`,
-    )
+/**
+ * Truncates a JSON value if its stringified form exceeds 10KB.
+ * Appends a `__truncated` flag to indicate truncation occurred.
+ */
+function truncateIfExceedsLimit(
+  value: Record<string, unknown> | undefined,
+): Record<string, unknown> | null {
+  if (value === undefined || value === null) {
+    return null
   }
 
-  if (entry.action.length > MAX_ACTION_LENGTH) {
-    throw new AuditValidationError(
-      `action exceeds maximum length of ${MAX_ACTION_LENGTH} characters`,
-    )
+  const json = JSON.stringify(value)
+  const byteLength = new TextEncoder().encode(json).length
+
+  if (byteLength <= MAX_JSON_SIZE_BYTES) {
+    return value
   }
 
-  if (entry.oldValue !== undefined) {
-    const oldValueJson = JSON.stringify(entry.oldValue)
-    if (new TextEncoder().encode(oldValueJson).length > MAX_JSON_SIZE_BYTES) {
-      throw new AuditValidationError(
-        `oldValue exceeds maximum size of ${MAX_JSON_SIZE_BYTES} bytes (10KB)`,
-      )
+  // Truncate: keep as much as possible within 10KB, add truncation indicator
+  const truncated: Record<string, unknown> = { __truncated: true }
+  let currentSize = new TextEncoder().encode(JSON.stringify(truncated)).length
+
+  for (const [key, val] of Object.entries(value)) {
+    const entryJson = JSON.stringify({ [key]: val })
+    const entrySize = new TextEncoder().encode(entryJson).length
+
+    // Reserve space for the comma and closing brace
+    if (currentSize + entrySize + 2 <= MAX_JSON_SIZE_BYTES) {
+      truncated[key] = val
+      currentSize += entrySize
+    } else {
+      break
     }
   }
 
-  if (entry.newValue !== undefined) {
-    const newValueJson = JSON.stringify(entry.newValue)
-    if (new TextEncoder().encode(newValueJson).length > MAX_JSON_SIZE_BYTES) {
-      throw new AuditValidationError(
-        `newValue exceeds maximum size of ${MAX_JSON_SIZE_BYTES} bytes (10KB)`,
-      )
-    }
-  }
+  return truncated
 }
 
 // --- Retry Queue ---
 
 interface RetryItem {
-  entry: AuditLogEntry
+  entry: AuditLogInput
   retryCount: number
   nextRetryAt: number
-}
-
-const MAX_RETRIES = 3
-const BASE_DELAY_MS = 1000 // 1 second base for exponential backoff
-
-function getBackoffDelay(retryCount: number): number {
-  // Exponential backoff: 1s, 2s, 4s
-  return BASE_DELAY_MS * Math.pow(2, retryCount)
 }
 
 // --- AuditLogger Class ---
@@ -125,20 +119,14 @@ export class AuditLogger implements AuditLoggerInterface {
   }
 
   /**
-   * Logs an audit entry. Validates the entry first, then writes to the database.
-   * If the write fails, the entry is queued for retry without blocking the caller.
-   * Validation errors are thrown immediately (they won't succeed on retry).
+   * Fire-and-forget audit log writer.
+   * Writes asynchronously without blocking the caller.
+   * If the write fails, the entry is queued for retry (max 3 attempts, 30s interval).
+   * Values exceeding 10KB are truncated before writing.
    */
-  async log(entry: AuditLogEntry): Promise<void> {
-    // Validation errors are thrown immediately — they won't succeed on retry
-    validateEntry(entry)
-
-    try {
-      await this.writeEntry(entry)
-    } catch {
-      // Queue for retry — don't block the primary action
-      this.enqueueRetry(entry)
-    }
+  log(entry: AuditLogInput): void {
+    // Fire and forget — do not await
+    this.writeWithRetry(entry)
   }
 
   /**
@@ -155,8 +143,16 @@ export class AuditLogger implements AuditLoggerInterface {
       conditions.push(eq(auditLogs.entityType, params.entityType))
     }
 
-    if (params.actorUserId) {
-      conditions.push(eq(auditLogs.actorUserId, params.actorUserId))
+    if (params.entityId) {
+      conditions.push(eq(auditLogs.entityId, params.entityId))
+    }
+
+    if (params.actorId) {
+      conditions.push(eq(auditLogs.actorId, params.actorId))
+    }
+
+    if (params.action) {
+      conditions.push(eq(auditLogs.action, params.action))
     }
 
     const whereClause = conditions.length > 0 ? and(...conditions) : undefined
@@ -177,14 +173,14 @@ export class AuditLogger implements AuditLoggerInterface {
     return {
       data: data.map((row) => ({
         id: row.id,
-        actorUserId: row.actorUserId,
+        ownerAccountId: row.ownerAccountId,
+        actorId: row.actorId,
+        action: row.action,
         entityType: row.entityType,
         entityId: row.entityId,
-        action: row.action,
-        oldValue: row.oldValue,
-        newValue: row.newValue,
-        ipAddress: row.ipAddress,
-        userAgent: row.userAgent,
+        oldValues: row.oldValues,
+        newValues: row.newValues,
+        metadata: row.metadata,
         createdAt: row.createdAt,
       })),
       total,
@@ -216,24 +212,36 @@ export class AuditLogger implements AuditLoggerInterface {
 
   // --- Private Methods ---
 
-  private async writeEntry(entry: AuditLogEntry): Promise<void> {
+  private async writeWithRetry(entry: AuditLogInput): Promise<void> {
+    try {
+      await this.writeEntry(entry)
+    } catch {
+      // Queue for retry — don't block the primary action
+      this.enqueueRetry(entry)
+    }
+  }
+
+  private async writeEntry(entry: AuditLogInput): Promise<void> {
+    const oldValues = truncateIfExceedsLimit(entry.oldValues)
+    const newValues = truncateIfExceedsLimit(entry.newValues)
+
     await this.db.insert(auditLogs).values({
-      actorUserId: entry.actorUserId,
+      ownerAccountId: entry.ownerAccountId,
+      actorId: entry.actorId,
+      action: entry.action,
       entityType: entry.entityType,
       entityId: entry.entityId,
-      action: entry.action,
-      oldValue: entry.oldValue ?? null,
-      newValue: entry.newValue ?? null,
-      ipAddress: entry.ipAddress,
-      userAgent: entry.userAgent,
+      oldValues,
+      newValues,
+      metadata: entry.metadata ?? null,
     })
   }
 
-  private enqueueRetry(entry: AuditLogEntry): void {
+  private enqueueRetry(entry: AuditLogInput): void {
     const item: RetryItem = {
       entry,
       retryCount: 0,
-      nextRetryAt: Date.now() + getBackoffDelay(0),
+      nextRetryAt: Date.now() + RETRY_INTERVAL_MS,
     }
     this.retryQueue.push(item)
     this.scheduleRetryProcessing()
@@ -277,12 +285,12 @@ export class AuditLogger implements AuditLoggerInterface {
         } catch {
           item.retryCount++
           if (item.retryCount >= MAX_RETRIES) {
-            // Max retries reached — drop the entry
+            // Max retries reached — drop the entry and log the failure
             const idx = this.retryQueue.indexOf(item)
             if (idx !== -1) this.retryQueue.splice(idx, 1)
           } else {
-            // Schedule next retry with exponential backoff
-            item.nextRetryAt = Date.now() + getBackoffDelay(item.retryCount)
+            // Schedule next retry with fixed 30s interval
+            item.nextRetryAt = Date.now() + RETRY_INTERVAL_MS
           }
         }
       }
@@ -305,7 +313,7 @@ declare module 'fastify' {
 }
 
 export default fp(
-  async function auditPlugin(fastify: FastifyInstance) {
+  async function auditLoggerPlugin(fastify: FastifyInstance) {
     const { env } = fastify
 
     const db = createDbClient(env.DATABASE_URL)
@@ -319,7 +327,7 @@ export default fp(
     })
   },
   {
-    name: 'audit',
+    name: 'audit-logger',
     dependencies: ['env'],
   },
 )

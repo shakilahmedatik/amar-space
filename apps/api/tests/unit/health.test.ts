@@ -14,6 +14,10 @@ describe('Health Check Route', () => {
     DATABASE_URL: 'postgresql://user:pass@localhost:5432/db',
     AUTH_SECRET: 'a'.repeat(32),
     AUTH_BASE_URL: 'http://localhost:3001',
+    R2_ACCOUNT_ID: 'test-account-id',
+    R2_ACCESS_KEY_ID: 'test-access-key',
+    R2_SECRET_ACCESS_KEY: 'test-secret-key',
+    R2_BUCKET_NAME: 'test-bucket',
   }
 
   let originalEnv: NodeJS.ProcessEnv
