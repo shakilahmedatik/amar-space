@@ -1,3 +1,4 @@
+import type { Database } from '@repo/db'
 import {
   ForbiddenError,
   NotFoundError,
@@ -5,6 +6,7 @@ import {
 } from '@repo/shared/errors'
 import type { RequestContext } from '@repo/shared/types'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import type { AuditLogger } from '../../src/plugins/audit-logger'
 import { DepositService } from '../../src/services/deposit'
 
 /**
@@ -150,7 +152,10 @@ describe('DepositService', () => {
       }
 
       const ctx = createOwnerContext()
-      const service = new DepositService(db as any, auditLogger as any)
+      const service = new DepositService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       const result = await service.getDeposit(ctx, 'contract-1')
 
@@ -169,7 +174,10 @@ describe('DepositService', () => {
       }
 
       const ctx = createOwnerContext()
-      const service = new DepositService(db as any, auditLogger as any)
+      const service = new DepositService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       await expect(service.getDeposit(ctx, 'nonexistent')).rejects.toThrow(
         NotFoundError,
@@ -188,7 +196,10 @@ describe('DepositService', () => {
       }
 
       const ctx = createManagerContext()
-      const service = new DepositService(db as any, auditLogger as any)
+      const service = new DepositService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       const result = await service.getDeposit(ctx, 'contract-1')
       expect(result.contractId).toBe('contract-1')
@@ -207,7 +218,10 @@ describe('DepositService', () => {
       }
 
       const ctx = createManagerContext({ assignedBuildingIds: ['building-1'] })
-      const service = new DepositService(db as any, auditLogger as any)
+      const service = new DepositService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       await expect(service.getDeposit(ctx, 'contract-1')).rejects.toThrow(
         NotFoundError,
@@ -231,7 +245,10 @@ describe('DepositService', () => {
       }
 
       const ctx = createRenterContext()
-      const service = new DepositService(db as any, auditLogger as any)
+      const service = new DepositService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       const result = await service.getDeposit(ctx, 'contract-1')
       expect(result.contractId).toBe('contract-1')
@@ -254,7 +271,10 @@ describe('DepositService', () => {
       }
 
       const ctx = createRenterContext()
-      const service = new DepositService(db as any, auditLogger as any)
+      const service = new DepositService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       await expect(service.getDeposit(ctx, 'contract-1')).rejects.toThrow(
         NotFoundError,
@@ -286,7 +306,10 @@ describe('DepositService', () => {
       }
 
       const ctx = createOwnerContext()
-      const service = new DepositService(db as any, auditLogger as any)
+      const service = new DepositService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       const result = await service.applyAdjustment(ctx, 'contract-1', {
         amount: 5000,
@@ -317,7 +340,10 @@ describe('DepositService', () => {
       }
 
       const ctx = createOwnerContext()
-      const service = new DepositService(db as any, auditLogger as any)
+      const service = new DepositService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       await expect(
         service.applyAdjustment(ctx, 'contract-1', { amount: 5000 }),
@@ -327,7 +353,10 @@ describe('DepositService', () => {
     it('should reject if manager tries to make adjustment (Req 9.7)', async () => {
       const db = { query: {}, update: vi.fn(), insert: vi.fn() }
       const ctx = createManagerContext()
-      const service = new DepositService(db as any, auditLogger as any)
+      const service = new DepositService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       await expect(
         service.applyAdjustment(ctx, 'contract-1', { amount: 1000 }),
@@ -337,7 +366,10 @@ describe('DepositService', () => {
     it('should reject if renter tries to make adjustment (Req 9.7)', async () => {
       const db = { query: {}, update: vi.fn(), insert: vi.fn() }
       const ctx = createRenterContext()
-      const service = new DepositService(db as any, auditLogger as any)
+      const service = new DepositService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       await expect(
         service.applyAdjustment(ctx, 'contract-1', { amount: 1000 }),
@@ -347,7 +379,10 @@ describe('DepositService', () => {
     it('should reject invalid amount (below 0.01)', async () => {
       const db = { query: {}, update: vi.fn(), insert: vi.fn() }
       const ctx = createOwnerContext()
-      const service = new DepositService(db as any, auditLogger as any)
+      const service = new DepositService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       await expect(
         service.applyAdjustment(ctx, 'contract-1', { amount: 0 }),
@@ -357,7 +392,10 @@ describe('DepositService', () => {
     it('should reject note exceeding 500 characters', async () => {
       const db = { query: {}, update: vi.fn(), insert: vi.fn() }
       const ctx = createOwnerContext()
-      const service = new DepositService(db as any, auditLogger as any)
+      const service = new DepositService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       await expect(
         service.applyAdjustment(ctx, 'contract-1', {
@@ -401,7 +439,10 @@ describe('DepositService', () => {
       }
 
       const ctx = createOwnerContext()
-      const service = new DepositService(db as any, auditLogger as any)
+      const service = new DepositService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       const result = await service.applyAdjustment(ctx, 'contract-1', {
         amount: 5000,
@@ -433,7 +474,10 @@ describe('DepositService', () => {
       }
 
       const ctx = createOwnerContext()
-      const service = new DepositService(db as any, auditLogger as any)
+      const service = new DepositService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       await expect(
         service.applyAdjustment(ctx, 'contract-1', {
@@ -466,7 +510,10 @@ describe('DepositService', () => {
       }
 
       const ctx = createOwnerContext()
-      const service = new DepositService(db as any, auditLogger as any)
+      const service = new DepositService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       await expect(
         service.applyAdjustment(ctx, 'contract-1', {
@@ -499,7 +546,10 @@ describe('DepositService', () => {
       }
 
       const ctx = createOwnerContext()
-      const service = new DepositService(db as any, auditLogger as any)
+      const service = new DepositService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       await service.applyAdjustment(ctx, 'contract-1', {
         amount: 5000,
@@ -535,7 +585,10 @@ describe('DepositService', () => {
       }
 
       const ctx = createOwnerContext()
-      const service = new DepositService(db as any, auditLogger as any)
+      const service = new DepositService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       await expect(
         service.applyAdjustment(ctx, 'nonexistent', { amount: 1000 }),
@@ -557,7 +610,10 @@ describe('DepositService', () => {
       }
 
       const ctx = createOwnerContext()
-      const service = new DepositService(db as any, auditLogger as any)
+      const service = new DepositService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       await expect(
         service.applyAdjustment(ctx, 'contract-1', {
@@ -605,7 +661,10 @@ describe('DepositService', () => {
       }
 
       const ctx = createOwnerContext()
-      const service = new DepositService(db as any, auditLogger as any)
+      const service = new DepositService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       const result = await service.listAdjustments(ctx, 'contract-1', {
         page: 1,
@@ -653,7 +712,10 @@ describe('DepositService', () => {
       }
 
       const ctx = createOwnerContext()
-      const service = new DepositService(db as any, auditLogger as any)
+      const service = new DepositService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       const result = await service.listAdjustments(ctx, 'contract-1', {
         page: 1,
@@ -674,7 +736,10 @@ describe('DepositService', () => {
       }
 
       const ctx = createRenterContext()
-      const service = new DepositService(db as any, auditLogger as any)
+      const service = new DepositService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       await expect(
         service.listAdjustments(ctx, 'contract-1', { page: 1, pageSize: 50 }),

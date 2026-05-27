@@ -1,6 +1,8 @@
+import type { Database } from '@repo/db'
 import { NotFoundError, ValidationError } from '@repo/shared/errors'
 import type { RequestContext } from '@repo/shared/types'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import type { AuditLogger } from '../../src/plugins/audit-logger'
 import { IssueService } from '../../src/services/issue.service'
 
 /**
@@ -192,7 +194,10 @@ describe('IssueService', () => {
   describe('createIssue', () => {
     it('should create an issue successfully with valid input', async () => {
       const db = createMockDb()
-      const service = new IssueService(db as any, auditLogger as any)
+      const service = new IssueService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       const result = await service.createIssue(ctx, {
         buildingId: BUILDING_ID,
@@ -211,7 +216,10 @@ describe('IssueService', () => {
 
     it('should reject title longer than 200 characters', async () => {
       const db = createMockDb()
-      const service = new IssueService(db as any, auditLogger as any)
+      const service = new IssueService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       await expect(
         service.createIssue(ctx, {
@@ -226,7 +234,10 @@ describe('IssueService', () => {
 
     it('should reject description longer than 2000 characters', async () => {
       const db = createMockDb()
-      const service = new IssueService(db as any, auditLogger as any)
+      const service = new IssueService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       await expect(
         service.createIssue(ctx, {
@@ -241,14 +252,17 @@ describe('IssueService', () => {
 
     it('should reject invalid category', async () => {
       const db = createMockDb()
-      const service = new IssueService(db as any, auditLogger as any)
+      const service = new IssueService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       await expect(
         service.createIssue(ctx, {
           buildingId: BUILDING_ID,
           title: 'Valid title',
           description: 'Valid description',
-          category: 'invalid_category' as any,
+          category: 'invalid_category' as unknown as 'structural',
           priority: 'low',
         }),
       ).rejects.toThrow(ValidationError)
@@ -256,7 +270,10 @@ describe('IssueService', () => {
 
     it('should reject invalid priority', async () => {
       const db = createMockDb()
-      const service = new IssueService(db as any, auditLogger as any)
+      const service = new IssueService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       await expect(
         service.createIssue(ctx, {
@@ -264,14 +281,17 @@ describe('IssueService', () => {
           title: 'Valid title',
           description: 'Valid description',
           category: 'plumbing',
-          priority: 'critical' as any,
+          priority: 'critical' as unknown as 'low',
         }),
       ).rejects.toThrow(ValidationError)
     })
 
     it('should reject when building does not exist', async () => {
       const db = createMockDb({ findFirstBuilding: null })
-      const service = new IssueService(db as any, auditLogger as any)
+      const service = new IssueService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       await expect(
         service.createIssue(ctx, {
@@ -286,7 +306,10 @@ describe('IssueService', () => {
 
     it('should record audit event on creation', async () => {
       const db = createMockDb()
-      const service = new IssueService(db as any, auditLogger as any)
+      const service = new IssueService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       await service.createIssue(ctx, {
         buildingId: BUILDING_ID,
@@ -309,7 +332,10 @@ describe('IssueService', () => {
 
     it('should reject empty title', async () => {
       const db = createMockDb()
-      const service = new IssueService(db as any, auditLogger as any)
+      const service = new IssueService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       await expect(
         service.createIssue(ctx, {
@@ -350,7 +376,10 @@ describe('IssueService', () => {
         findFirstUser: { id: MANAGER_ID, role: 'manager' },
         updateResult: updatedIssue,
       })
-      const service = new IssueService(db as any, auditLogger as any)
+      const service = new IssueService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       const result = await service.assignIssue(ctx, ISSUE_ID, {
         assigneeId: MANAGER_ID,
@@ -379,7 +408,10 @@ describe('IssueService', () => {
         findFirstIssue: existingIssue,
         findFirstUser: { id: RENTER_ID, role: 'renter' },
       })
-      const service = new IssueService(db as any, auditLogger as any)
+      const service = new IssueService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       await expect(
         service.assignIssue(ctx, ISSUE_ID, { assigneeId: RENTER_ID }),
@@ -406,7 +438,10 @@ describe('IssueService', () => {
         findFirstIssue: existingIssue,
         findFirstUser: null,
       })
-      const service = new IssueService(db as any, auditLogger as any)
+      const service = new IssueService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       await expect(
         service.assignIssue(ctx, ISSUE_ID, {
@@ -417,7 +452,10 @@ describe('IssueService', () => {
 
     it('should reject when issue does not exist', async () => {
       const db = createMockDb({ findFirstIssue: null })
-      const service = new IssueService(db as any, auditLogger as any)
+      const service = new IssueService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       await expect(
         service.assignIssue(ctx, '550e8400-e29b-41d4-a716-446655440099', {
@@ -447,7 +485,10 @@ describe('IssueService', () => {
         findFirstUser: { id: MANAGER_ID, role: 'manager' },
         updateResult: { ...existingIssue, assigneeId: MANAGER_ID },
       })
-      const service = new IssueService(db as any, auditLogger as any)
+      const service = new IssueService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       await service.assignIssue(ctx, ISSUE_ID, { assigneeId: MANAGER_ID })
 
@@ -485,7 +526,10 @@ describe('IssueService', () => {
         findFirstIssue: existingIssue,
         updateResult: { ...existingIssue, status: 'in_progress' },
       })
-      const service = new IssueService(db as any, auditLogger as any)
+      const service = new IssueService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       const result = await service.updateIssueStatus(ctx, ISSUE_ID, {
         status: 'in_progress',
@@ -519,7 +563,10 @@ describe('IssueService', () => {
           resolvedAt: new Date(),
         },
       })
-      const service = new IssueService(db as any, auditLogger as any)
+      const service = new IssueService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       const result = await service.updateIssueStatus(ctx, ISSUE_ID, {
         status: 'resolved',
@@ -547,7 +594,10 @@ describe('IssueService', () => {
         updatedAt: new Date('2024-01-01'),
       }
       const db = createMockDb({ findFirstIssue: existingIssue })
-      const service = new IssueService(db as any, auditLogger as any)
+      const service = new IssueService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       await expect(
         service.updateIssueStatus(ctx, ISSUE_ID, { status: 'resolved' }),
@@ -571,7 +621,10 @@ describe('IssueService', () => {
         updatedAt: new Date('2024-01-01'),
       }
       const db = createMockDb({ findFirstIssue: existingIssue })
-      const service = new IssueService(db as any, auditLogger as any)
+      const service = new IssueService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       await expect(
         service.updateIssueStatus(ctx, ISSUE_ID, {
@@ -598,7 +651,10 @@ describe('IssueService', () => {
         updatedAt: new Date('2024-01-01'),
       }
       const db = createMockDb({ findFirstIssue: existingIssue })
-      const service = new IssueService(db as any, auditLogger as any)
+      const service = new IssueService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       await expect(
         service.updateIssueStatus(ctx, ISSUE_ID, { status: 'open' }),
@@ -622,7 +678,10 @@ describe('IssueService', () => {
         updatedAt: new Date('2024-01-01'),
       }
       const db = createMockDb({ findFirstIssue: existingIssue })
-      const service = new IssueService(db as any, auditLogger as any)
+      const service = new IssueService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       await expect(
         service.updateIssueStatus(ctx, ISSUE_ID, { status: 'in_progress' }),
@@ -649,7 +708,10 @@ describe('IssueService', () => {
         findFirstIssue: existingIssue,
         updateResult: { ...existingIssue, status: 'closed' },
       })
-      const service = new IssueService(db as any, auditLogger as any)
+      const service = new IssueService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       const result = await service.updateIssueStatus(ctx, ISSUE_ID, {
         status: 'closed',
@@ -660,7 +722,10 @@ describe('IssueService', () => {
 
     it('should reject when issue does not exist', async () => {
       const db = createMockDb({ findFirstIssue: null })
-      const service = new IssueService(db as any, auditLogger as any)
+      const service = new IssueService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       await expect(
         service.updateIssueStatus(ctx, '550e8400-e29b-41d4-a716-446655440099', {
@@ -689,7 +754,10 @@ describe('IssueService', () => {
         findFirstIssue: existingIssue,
         updateResult: { ...existingIssue, status: 'in_progress' },
       })
-      const service = new IssueService(db as any, auditLogger as any)
+      const service = new IssueService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       await service.updateIssueStatus(ctx, ISSUE_ID, {
         status: 'in_progress',
@@ -711,7 +779,10 @@ describe('IssueService', () => {
   describe('listIssues', () => {
     it('should cap page size at 50', async () => {
       const db = createMockDb({ selectResult: [], countResult: 0 })
-      const service = new IssueService(db as any, auditLogger as any)
+      const service = new IssueService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       const result = await service.listIssues(ctx, {
         page: 1,
@@ -723,7 +794,10 @@ describe('IssueService', () => {
 
     it('should default page to 1 when less than 1', async () => {
       const db = createMockDb({ selectResult: [], countResult: 0 })
-      const service = new IssueService(db as any, auditLogger as any)
+      const service = new IssueService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       const result = await service.listIssues(ctx, {
         page: 0,
@@ -752,7 +826,10 @@ describe('IssueService', () => {
         },
       ]
       const db = createMockDb({ selectResult: issueData, countResult: 1 })
-      const service = new IssueService(db as any, auditLogger as any)
+      const service = new IssueService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       const result = await service.listIssues(ctx, {
         page: 1,

@@ -1,11 +1,9 @@
-import {
-  ForbiddenError,
-  NotFoundError,
-  ValidationError,
-} from '@repo/shared/errors'
+import { ForbiddenError, ValidationError } from '@repo/shared/errors'
 import type { RequestContext } from '@repo/shared/types'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { MaintenanceService } from '../../src/services/maintenance.service'
+
+type ServiceDeps = ConstructorParameters<typeof MaintenanceService>
 
 /**
  * Unit tests for the MaintenanceService.
@@ -149,9 +147,9 @@ describe('MaintenanceService', () => {
 
       const ctx = createRenterContext()
       const service = new MaintenanceService(
-        db as any,
-        auditLogger as any,
-        r2 as any,
+        db as unknown as ServiceDeps[0],
+        auditLogger as unknown as ServiceDeps[1],
+        r2 as unknown as ServiceDeps[2],
       )
 
       const result = await service.createRequest(ctx, {
@@ -177,9 +175,9 @@ describe('MaintenanceService', () => {
 
       const ctx = createRenterContext()
       const service = new MaintenanceService(
-        db as any,
-        auditLogger as any,
-        r2 as any,
+        db as unknown as ServiceDeps[0],
+        auditLogger as unknown as ServiceDeps[1],
+        r2 as unknown as ServiceDeps[2],
       )
 
       await expect(
@@ -203,9 +201,9 @@ describe('MaintenanceService', () => {
 
       const ctx = createRenterContext()
       const service = new MaintenanceService(
-        db as any,
-        auditLogger as any,
-        r2 as any,
+        db as unknown as ServiceDeps[0],
+        auditLogger as unknown as ServiceDeps[1],
+        r2 as unknown as ServiceDeps[2],
       )
 
       await expect(
@@ -229,16 +227,16 @@ describe('MaintenanceService', () => {
 
       const ctx = createRenterContext()
       const service = new MaintenanceService(
-        db as any,
-        auditLogger as any,
-        r2 as any,
+        db as unknown as ServiceDeps[0],
+        auditLogger as unknown as ServiceDeps[1],
+        r2 as unknown as ServiceDeps[2],
       )
 
       await expect(
         service.createRequest(ctx, {
           title: 'Valid title here',
           description: 'This is a valid description for the request',
-          priority: 'critical' as any,
+          priority: 'critical' as unknown as 'low' | 'medium' | 'high',
         }),
       ).rejects.toThrow(ValidationError)
     })
@@ -255,9 +253,9 @@ describe('MaintenanceService', () => {
 
       const ctx = createRenterContext()
       const service = new MaintenanceService(
-        db as any,
-        auditLogger as any,
-        r2 as any,
+        db as unknown as ServiceDeps[0],
+        auditLogger as unknown as ServiceDeps[1],
+        r2 as unknown as ServiceDeps[2],
       )
 
       const attachments = Array.from({ length: 6 }, (_, i) => ({
@@ -292,9 +290,9 @@ describe('MaintenanceService', () => {
 
       const ctx = createRenterContext()
       const service = new MaintenanceService(
-        db as any,
-        auditLogger as any,
-        r2 as any,
+        db as unknown as ServiceDeps[0],
+        auditLogger as unknown as ServiceDeps[1],
+        r2 as unknown as ServiceDeps[2],
       )
 
       const attachments = [
@@ -331,9 +329,9 @@ describe('MaintenanceService', () => {
 
       const ctx = createRenterContext()
       const service = new MaintenanceService(
-        db as any,
-        auditLogger as any,
-        r2 as any,
+        db as unknown as ServiceDeps[0],
+        auditLogger as unknown as ServiceDeps[1],
+        r2 as unknown as ServiceDeps[2],
       )
 
       const attachments = [
@@ -370,9 +368,9 @@ describe('MaintenanceService', () => {
 
       const ctx = createRenterContext({ assignedFlatId: undefined })
       const service = new MaintenanceService(
-        db as any,
-        auditLogger as any,
-        r2 as any,
+        db as unknown as ServiceDeps[0],
+        auditLogger as unknown as ServiceDeps[1],
+        r2 as unknown as ServiceDeps[2],
       )
 
       await expect(
@@ -400,9 +398,9 @@ describe('MaintenanceService', () => {
 
       const ctx = createRenterContext()
       const service = new MaintenanceService(
-        db as any,
-        auditLogger as any,
-        r2 as any,
+        db as unknown as ServiceDeps[0],
+        auditLogger as unknown as ServiceDeps[1],
+        r2 as unknown as ServiceDeps[2],
       )
 
       await service.createRequest(ctx, {
@@ -444,9 +442,9 @@ describe('MaintenanceService', () => {
 
       const ctx = createOwnerContext()
       const service = new MaintenanceService(
-        db as any,
-        auditLogger as any,
-        r2 as any,
+        db as unknown as ServiceDeps[0],
+        auditLogger as unknown as ServiceDeps[1],
+        r2 as unknown as ServiceDeps[2],
       )
 
       const result = await service.updateRequestStatus(
@@ -472,9 +470,9 @@ describe('MaintenanceService', () => {
 
       const ctx = createOwnerContext()
       const service = new MaintenanceService(
-        db as any,
-        auditLogger as any,
-        r2 as any,
+        db as unknown as ServiceDeps[0],
+        auditLogger as unknown as ServiceDeps[1],
+        r2 as unknown as ServiceDeps[2],
       )
 
       await expect(
@@ -504,9 +502,9 @@ describe('MaintenanceService', () => {
 
       const ctx = createOwnerContext()
       const service = new MaintenanceService(
-        db as any,
-        auditLogger as any,
-        r2 as any,
+        db as unknown as ServiceDeps[0],
+        auditLogger as unknown as ServiceDeps[1],
+        r2 as unknown as ServiceDeps[2],
       )
 
       const result = await service.updateRequestStatus(
@@ -529,9 +527,9 @@ describe('MaintenanceService', () => {
 
       const ctx = createRenterContext()
       const service = new MaintenanceService(
-        db as any,
-        auditLogger as any,
-        r2 as any,
+        db as unknown as ServiceDeps[0],
+        auditLogger as unknown as ServiceDeps[1],
+        r2 as unknown as ServiceDeps[2],
       )
 
       await expect(
@@ -551,13 +549,13 @@ describe('MaintenanceService', () => {
 
       const ctx = createOwnerContext()
       const service = new MaintenanceService(
-        db as any,
-        auditLogger as any,
-        r2 as any,
+        db as unknown as ServiceDeps[0],
+        auditLogger as unknown as ServiceDeps[1],
+        r2 as unknown as ServiceDeps[2],
       )
 
       await expect(
-        service.updateRequestStatus(ctx, 'request-1', 'invalid_status' as any),
+        service.updateRequestStatus(ctx, 'request-1', 'invalid_status'),
       ).rejects.toThrow(ValidationError)
     })
 
@@ -582,9 +580,9 @@ describe('MaintenanceService', () => {
 
       const ctx = createOwnerContext()
       const service = new MaintenanceService(
-        db as any,
-        auditLogger as any,
-        r2 as any,
+        db as unknown as ServiceDeps[0],
+        auditLogger as unknown as ServiceDeps[1],
+        r2 as unknown as ServiceDeps[2],
       )
 
       await service.updateRequestStatus(ctx, 'request-1', 'in_progress')
@@ -616,9 +614,9 @@ describe('MaintenanceService', () => {
 
       const ctx = createOwnerContext()
       const service = new MaintenanceService(
-        db as any,
-        auditLogger as any,
-        r2 as any,
+        db as unknown as ServiceDeps[0],
+        auditLogger as unknown as ServiceDeps[1],
+        r2 as unknown as ServiceDeps[2],
       )
 
       await expect(
@@ -656,9 +654,9 @@ describe('MaintenanceService', () => {
 
       const ctx = createRenterContext()
       const service = new MaintenanceService(
-        db as any,
-        auditLogger as any,
-        r2 as any,
+        db as unknown as ServiceDeps[0],
+        auditLogger as unknown as ServiceDeps[1],
+        r2 as unknown as ServiceDeps[2],
       )
 
       const result = await service.addComment(ctx, 'request-1', {
@@ -682,9 +680,9 @@ describe('MaintenanceService', () => {
 
       const ctx = createRenterContext()
       const service = new MaintenanceService(
-        db as any,
-        auditLogger as any,
-        r2 as any,
+        db as unknown as ServiceDeps[0],
+        auditLogger as unknown as ServiceDeps[1],
+        r2 as unknown as ServiceDeps[2],
       )
 
       await expect(
@@ -706,9 +704,9 @@ describe('MaintenanceService', () => {
 
       const ctx = createRenterContext()
       const service = new MaintenanceService(
-        db as any,
-        auditLogger as any,
-        r2 as any,
+        db as unknown as ServiceDeps[0],
+        auditLogger as unknown as ServiceDeps[1],
+        r2 as unknown as ServiceDeps[2],
       )
 
       await expect(
@@ -751,9 +749,9 @@ describe('MaintenanceService', () => {
 
       const ctx = createOwnerContext()
       const service = new MaintenanceService(
-        db as any,
-        auditLogger as any,
-        r2 as any,
+        db as unknown as ServiceDeps[0],
+        auditLogger as unknown as ServiceDeps[1],
+        r2 as unknown as ServiceDeps[2],
       )
 
       const result = await service.listRequests(
@@ -801,9 +799,9 @@ describe('MaintenanceService', () => {
 
       const ctx = createOwnerContext()
       const service = new MaintenanceService(
-        db as any,
-        auditLogger as any,
-        r2 as any,
+        db as unknown as ServiceDeps[0],
+        auditLogger as unknown as ServiceDeps[1],
+        r2 as unknown as ServiceDeps[2],
       )
 
       const result = await service.listRequests(
@@ -848,9 +846,9 @@ describe('MaintenanceService', () => {
 
       const ctx = createRenterContext()
       const service = new MaintenanceService(
-        db as any,
-        auditLogger as any,
-        r2 as any,
+        db as unknown as ServiceDeps[0],
+        auditLogger as unknown as ServiceDeps[1],
+        r2 as unknown as ServiceDeps[2],
       )
 
       const result = await service.listRequests(
@@ -874,9 +872,9 @@ describe('MaintenanceService', () => {
 
       const ctx = createRenterContext()
       const service = new MaintenanceService(
-        db as any,
-        auditLogger as any,
-        r2 as any,
+        db as unknown as ServiceDeps[0],
+        auditLogger as unknown as ServiceDeps[1],
+        r2 as unknown as ServiceDeps[2],
       )
 
       const result = await service.listRequests(
@@ -901,9 +899,9 @@ describe('MaintenanceService', () => {
 
       const ctx = createManagerContext({ assignedBuildingIds: [] })
       const service = new MaintenanceService(
-        db as any,
-        auditLogger as any,
-        r2 as any,
+        db as unknown as ServiceDeps[0],
+        auditLogger as unknown as ServiceDeps[1],
+        r2 as unknown as ServiceDeps[2],
       )
 
       const result = await service.listRequests(

@@ -335,7 +335,10 @@ describe('BuildingService', () => {
         insert: vi.fn(),
       }
 
-      const service = new BuildingService(db as unknown as Database, auditLogger)
+      const service = new BuildingService(
+        db as unknown as Database,
+        auditLogger,
+      )
 
       const result = await service.updateBuilding(ctx, 'building-1', {
         name: 'New Name',
@@ -388,7 +391,10 @@ describe('BuildingService', () => {
         insert: vi.fn(),
       }
 
-      const service = new BuildingService(db as unknown as Database, auditLogger)
+      const service = new BuildingService(
+        db as unknown as Database,
+        auditLogger,
+      )
 
       await expect(
         service.updateBuilding(ctx, 'building-1', { name: 'Taken Name' }),
@@ -453,7 +459,10 @@ describe('BuildingService', () => {
         insert: vi.fn(),
       }
 
-      const service = new BuildingService(db as unknown as Database, auditLogger)
+      const service = new BuildingService(
+        db as unknown as Database,
+        auditLogger,
+      )
 
       await service.updateBuilding(ctx, 'building-1', { name: 'New Name' })
 

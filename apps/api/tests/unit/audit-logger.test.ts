@@ -1,3 +1,4 @@
+import type { Database } from '@repo/db'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { AuditLogger, type AuditLogInput } from '../../src/plugins/audit-logger'
 
@@ -64,7 +65,7 @@ describe('AuditLogger', () => {
   describe('fire-and-forget log', () => {
     it('should return void immediately without blocking', () => {
       const mockDb = createMockDb()
-      logger = new AuditLogger(mockDb as unknown as any)
+      logger = new AuditLogger(mockDb as unknown as Database)
 
       const entry = validEntry()
       const result = logger.log(entry)
@@ -75,7 +76,7 @@ describe('AuditLogger', () => {
 
     it('should write entry to database asynchronously', async () => {
       const mockDb = createMockDb()
-      logger = new AuditLogger(mockDb as unknown as any)
+      logger = new AuditLogger(mockDb as unknown as Database)
 
       const entry = validEntry({
         oldValues: { name: 'old' },
@@ -91,7 +92,7 @@ describe('AuditLogger', () => {
 
     it('should not throw when database write fails (fault tolerance)', async () => {
       const mockDb = createMockDb({ shouldFail: true })
-      logger = new AuditLogger(mockDb as unknown as any)
+      logger = new AuditLogger(mockDb as unknown as Database)
 
       const entry = validEntry()
       // Should not throw — log is fire-and-forget
@@ -105,7 +106,7 @@ describe('AuditLogger', () => {
 
     it('should queue failed entries for retry', async () => {
       const mockDb = createMockDb({ shouldFail: true })
-      logger = new AuditLogger(mockDb as unknown as any)
+      logger = new AuditLogger(mockDb as unknown as Database)
 
       const entry = validEntry()
       logger.log(entry)
@@ -120,7 +121,7 @@ describe('AuditLogger', () => {
   describe('truncation', () => {
     it('should truncate oldValues exceeding 10KB', async () => {
       const mockDb = createMockDb()
-      logger = new AuditLogger(mockDb as unknown as any)
+      logger = new AuditLogger(mockDb as unknown as Database)
 
       // Create a value that exceeds 10KB
       const largeValue: Record<string, unknown> = {
@@ -145,7 +146,7 @@ describe('AuditLogger', () => {
 
     it('should truncate newValues exceeding 10KB', async () => {
       const mockDb = createMockDb()
-      logger = new AuditLogger(mockDb as unknown as any)
+      logger = new AuditLogger(mockDb as unknown as Database)
 
       const largeValue: Record<string, unknown> = {
         data: 'x'.repeat(11 * 1024),
@@ -164,7 +165,7 @@ describe('AuditLogger', () => {
 
     it('should not truncate values within 10KB', async () => {
       const mockDb = createMockDb()
-      logger = new AuditLogger(mockDb as unknown as any)
+      logger = new AuditLogger(mockDb as unknown as Database)
 
       const smallValue = { name: 'test', count: 42 }
       const entry = validEntry({ oldValues: smallValue, newValues: smallValue })
@@ -181,7 +182,7 @@ describe('AuditLogger', () => {
 
     it('should store metadata as-is', async () => {
       const mockDb = createMockDb()
-      logger = new AuditLogger(mockDb as unknown as any)
+      logger = new AuditLogger(mockDb as unknown as Database)
 
       const metadata = { ip: '192.168.1.1', userAgent: 'Mozilla/5.0' }
       const entry = validEntry({ metadata })
@@ -202,7 +203,7 @@ describe('AuditLogger', () => {
 
       // First call fails, subsequent calls succeed
       const mockDb = createMockDb({ failCount: 1 })
-      logger = new AuditLogger(mockDb as unknown as any)
+      logger = new AuditLogger(mockDb as unknown as Database)
 
       const entry = validEntry()
       logger.log(entry)
@@ -227,7 +228,7 @@ describe('AuditLogger', () => {
       vi.useFakeTimers()
 
       const mockDb = createMockDb({ shouldFail: true })
-      logger = new AuditLogger(mockDb as unknown as any)
+      logger = new AuditLogger(mockDb as unknown as Database)
 
       const entry = validEntry()
       logger.log(entry)
@@ -249,7 +250,7 @@ describe('AuditLogger', () => {
 
     it('should clear queue on shutdown', async () => {
       const mockDb = createMockDb({ shouldFail: true })
-      logger = new AuditLogger(mockDb as unknown as any)
+      logger = new AuditLogger(mockDb as unknown as Database)
 
       const entry = validEntry()
       logger.log(entry)
@@ -267,7 +268,7 @@ describe('AuditLogger', () => {
   describe('ownerAccountId', () => {
     it('should include ownerAccountId in the written entry', async () => {
       const mockDb = createMockDb()
-      logger = new AuditLogger(mockDb as unknown as any)
+      logger = new AuditLogger(mockDb as unknown as Database)
 
       const entry = validEntry({
         ownerAccountId: '550e8400-e29b-41d4-a716-446655440099',

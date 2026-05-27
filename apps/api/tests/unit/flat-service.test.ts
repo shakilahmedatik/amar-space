@@ -1,3 +1,4 @@
+import type { Database } from '@repo/db'
 import {
   ConflictError,
   NotFoundError,
@@ -5,6 +6,7 @@ import {
 } from '@repo/shared/errors'
 import type { RequestContext } from '@repo/shared/types'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import type { AuditLogger } from '../../src/plugins/audit-logger'
 import { FlatService } from '../../src/services/flat'
 
 /**
@@ -177,7 +179,10 @@ describe('FlatService', () => {
   describe('createFlat', () => {
     it('should create a flat successfully with valid input', async () => {
       const db = createMockDb()
-      const service = new FlatService(db as any, auditLogger as any)
+      const service = new FlatService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       const result = await service.createFlat(ctx, {
         buildingId: 'building-1',
@@ -193,7 +198,10 @@ describe('FlatService', () => {
 
     it('should reject flat number longer than 20 characters', async () => {
       const db = createMockDb()
-      const service = new FlatService(db as any, auditLogger as any)
+      const service = new FlatService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       await expect(
         service.createFlat(ctx, {
@@ -206,7 +214,10 @@ describe('FlatService', () => {
 
     it('should reject non-alphanumeric flat number', async () => {
       const db = createMockDb()
-      const service = new FlatService(db as any, auditLogger as any)
+      const service = new FlatService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       await expect(
         service.createFlat(ctx, {
@@ -219,7 +230,10 @@ describe('FlatService', () => {
 
     it('should reject empty flat number', async () => {
       const db = createMockDb()
-      const service = new FlatService(db as any, auditLogger as any)
+      const service = new FlatService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       await expect(
         service.createFlat(ctx, {
@@ -232,7 +246,10 @@ describe('FlatService', () => {
 
     it('should reject floor less than 1', async () => {
       const db = createMockDb()
-      const service = new FlatService(db as any, auditLogger as any)
+      const service = new FlatService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       await expect(
         service.createFlat(ctx, {
@@ -245,7 +262,10 @@ describe('FlatService', () => {
 
     it('should reject floor greater than 200', async () => {
       const db = createMockDb()
-      const service = new FlatService(db as any, auditLogger as any)
+      const service = new FlatService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       await expect(
         service.createFlat(ctx, {
@@ -258,7 +278,10 @@ describe('FlatService', () => {
 
     it('should reject when building does not exist', async () => {
       const db = createMockDb({ findFirstBuilding: null })
-      const service = new FlatService(db as any, auditLogger as any)
+      const service = new FlatService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       await expect(
         service.createFlat(ctx, {
@@ -277,7 +300,10 @@ describe('FlatService', () => {
           buildingId: 'building-1',
         },
       })
-      const service = new FlatService(db as any, auditLogger as any)
+      const service = new FlatService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       await expect(
         service.createFlat(ctx, {
@@ -290,7 +316,10 @@ describe('FlatService', () => {
 
     it('should record audit event on creation', async () => {
       const db = createMockDb()
-      const service = new FlatService(db as any, auditLogger as any)
+      const service = new FlatService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       await service.createFlat(ctx, {
         buildingId: 'building-1',
@@ -311,7 +340,10 @@ describe('FlatService', () => {
 
     it('should allow alphanumeric flat numbers with hyphens and underscores', async () => {
       const db = createMockDb()
-      const service = new FlatService(db as any, auditLogger as any)
+      const service = new FlatService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       const result = await service.createFlat(ctx, {
         buildingId: 'building-1',
@@ -346,11 +378,14 @@ describe('FlatService', () => {
         updateResult: updatedFlat,
       })
       // First findFirst returns the flat being updated, second returns null (no duplicate)
-      ;(db as any).query.flats.findFirst = vi
+      ;(db as unknown as Database).query.flats.findFirst = vi
         .fn()
         .mockResolvedValueOnce(existingFlat)
         .mockResolvedValueOnce(null)
-      const service = new FlatService(db as any, auditLogger as any)
+      const service = new FlatService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       const result = await service.updateFlat(ctx, 'flat-1', {
         flatNumber: 'B202',
@@ -363,7 +398,10 @@ describe('FlatService', () => {
 
     it('should reject when flat does not exist (tenant isolation)', async () => {
       const db = createMockDb({ findFirstFlat: null })
-      const service = new FlatService(db as any, auditLogger as any)
+      const service = new FlatService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       await expect(
         service.updateFlat(ctx, 'nonexistent', { flatNumber: 'B202' }),
@@ -388,9 +426,12 @@ describe('FlatService', () => {
         .fn()
         .mockResolvedValueOnce(existingFlat) // first call: find the flat
         .mockResolvedValueOnce({ id: 'flat-2', flatNumber: 'B202' }) // second call: duplicate check
-      ;(db as any).query.flats.findFirst = mockFindFirst
+      ;(db as unknown as Database).query.flats.findFirst = mockFindFirst
 
-      const service = new FlatService(db as any, auditLogger as any)
+      const service = new FlatService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       await expect(
         service.updateFlat(ctx, 'flat-1', { flatNumber: 'B202' }),
@@ -416,7 +457,10 @@ describe('FlatService', () => {
           updatedAt: new Date('2024-01-02'),
         },
       })
-      const service = new FlatService(db as any, auditLogger as any)
+      const service = new FlatService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       await service.updateFlat(ctx, 'flat-1', { floor: 3 })
 
@@ -446,7 +490,10 @@ describe('FlatService', () => {
         updatedAt: new Date('2024-01-01'),
       }
       const db = createMockDb({ findFirstFlat: existingFlat })
-      const service = new FlatService(db as any, auditLogger as any)
+      const service = new FlatService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       await expect(service.deleteFlat(ctx, 'flat-1')).resolves.toBeUndefined()
     })
@@ -463,7 +510,10 @@ describe('FlatService', () => {
         updatedAt: new Date('2024-01-01'),
       }
       const db = createMockDb({ findFirstFlat: existingFlat })
-      const service = new FlatService(db as any, auditLogger as any)
+      const service = new FlatService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       await expect(service.deleteFlat(ctx, 'flat-1')).rejects.toThrow(
         ValidationError,
@@ -482,7 +532,10 @@ describe('FlatService', () => {
         updatedAt: new Date('2024-01-01'),
       }
       const db = createMockDb({ findFirstFlat: existingFlat })
-      const service = new FlatService(db as any, auditLogger as any)
+      const service = new FlatService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       await expect(service.deleteFlat(ctx, 'flat-1')).rejects.toThrow(
         ValidationError,
@@ -491,7 +544,10 @@ describe('FlatService', () => {
 
     it('should reject deletion when flat not found', async () => {
       const db = createMockDb({ findFirstFlat: null })
-      const service = new FlatService(db as any, auditLogger as any)
+      const service = new FlatService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       await expect(service.deleteFlat(ctx, 'nonexistent')).rejects.toThrow(
         NotFoundError,
@@ -510,7 +566,10 @@ describe('FlatService', () => {
         updatedAt: new Date('2024-01-01'),
       }
       const db = createMockDb({ findFirstFlat: existingFlat })
-      const service = new FlatService(db as any, auditLogger as any)
+      const service = new FlatService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       await service.deleteFlat(ctx, 'flat-1')
 
@@ -546,7 +605,10 @@ describe('FlatService', () => {
           updatedAt: new Date('2024-01-02'),
         },
       })
-      const service = new FlatService(db as any, auditLogger as any)
+      const service = new FlatService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       const result = await service.transitionStatus(ctx, 'flat-1', 'occupied')
 
@@ -572,7 +634,10 @@ describe('FlatService', () => {
           updatedAt: new Date('2024-01-02'),
         },
       })
-      const service = new FlatService(db as any, auditLogger as any)
+      const service = new FlatService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       const result = await service.transitionStatus(ctx, 'flat-1', 'vacant')
 
@@ -598,7 +663,10 @@ describe('FlatService', () => {
           updatedAt: new Date('2024-01-02'),
         },
       })
-      const service = new FlatService(db as any, auditLogger as any)
+      const service = new FlatService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       const result = await service.transitionStatus(
         ctx,
@@ -628,7 +696,10 @@ describe('FlatService', () => {
           updatedAt: new Date('2024-01-02'),
         },
       })
-      const service = new FlatService(db as any, auditLogger as any)
+      const service = new FlatService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       const result = await service.transitionStatus(ctx, 'flat-1', 'vacant')
 
@@ -647,7 +718,10 @@ describe('FlatService', () => {
         updatedAt: new Date('2024-01-01'),
       }
       const db = createMockDb({ findFirstFlat: existingFlat })
-      const service = new FlatService(db as any, auditLogger as any)
+      const service = new FlatService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       await expect(
         service.transitionStatus(ctx, 'flat-1', 'under_maintenance'),
@@ -666,7 +740,10 @@ describe('FlatService', () => {
         updatedAt: new Date('2024-01-01'),
       }
       const db = createMockDb({ findFirstFlat: existingFlat })
-      const service = new FlatService(db as any, auditLogger as any)
+      const service = new FlatService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       await expect(
         service.transitionStatus(ctx, 'flat-1', 'occupied'),
@@ -675,7 +752,10 @@ describe('FlatService', () => {
 
     it('should reject when flat not found', async () => {
       const db = createMockDb({ findFirstFlat: null })
-      const service = new FlatService(db as any, auditLogger as any)
+      const service = new FlatService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       await expect(
         service.transitionStatus(ctx, 'nonexistent', 'occupied'),
@@ -701,7 +781,10 @@ describe('FlatService', () => {
           updatedAt: new Date('2024-01-02'),
         },
       })
-      const service = new FlatService(db as any, auditLogger as any)
+      const service = new FlatService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       await service.transitionStatus(ctx, 'flat-1', 'occupied')
 
@@ -721,7 +804,10 @@ describe('FlatService', () => {
   describe('listFlats', () => {
     it('should cap page size at 50', async () => {
       const db = createMockDb({ selectResult: [], countResult: 0 })
-      const service = new FlatService(db as any, auditLogger as any)
+      const service = new FlatService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       const result = await service.listFlats(ctx, {
         page: 1,
@@ -733,7 +819,10 @@ describe('FlatService', () => {
 
     it('should default page to 1 when less than 1', async () => {
       const db = createMockDb({ selectResult: [], countResult: 0 })
-      const service = new FlatService(db as any, auditLogger as any)
+      const service = new FlatService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       const result = await service.listFlats(ctx, {
         page: 0,
@@ -757,7 +846,10 @@ describe('FlatService', () => {
         },
       ]
       const db = createMockDb({ selectResult: flatData, countResult: 1 })
-      const service = new FlatService(db as any, auditLogger as any)
+      const service = new FlatService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       const result = await service.listFlats(ctx, {
         page: 1,

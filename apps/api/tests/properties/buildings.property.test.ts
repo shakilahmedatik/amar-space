@@ -99,7 +99,10 @@ describe('Feature: amarspace-full-implementation, Property 7: Building name uniq
             select: vi.fn(),
           }
 
-          const service = new BuildingService(db as unknown as Database, auditLogger)
+          const service = new BuildingService(
+            db as unknown as Database,
+            auditLogger,
+          )
 
           // Property: Duplicate name within same owner SHALL be rejected with ConflictError
           await expect(
@@ -180,8 +183,14 @@ describe('Feature: amarspace-full-implementation, Property 7: Building name uniq
             select: vi.fn(),
           }
 
-          const service1 = new BuildingService(db1 as unknown as Database, auditLogger)
-          const service2 = new BuildingService(db2 as unknown as Database, auditLogger)
+          const service1 = new BuildingService(
+            db1 as unknown as Database,
+            auditLogger,
+          )
+          const service2 = new BuildingService(
+            db2 as unknown as Database,
+            auditLogger,
+          )
 
           // Property: Same name across different owners SHALL succeed
           const result1 = await service1.createBuilding(ctx1, {
@@ -253,7 +262,10 @@ describe('Feature: amarspace-full-implementation, Property 7: Building name uniq
             select: vi.fn(),
           }
 
-          const service = new BuildingService(db as unknown as Database, auditLogger)
+          const service = new BuildingService(
+            db as unknown as Database,
+            auditLogger,
+          )
 
           // Property: A case-different name is treated as a different name
           // (the DB query uses exact eq() match, so if findFirst returns null,
@@ -305,7 +317,10 @@ describe('Feature: amarspace-full-implementation, Property 7: Building name uniq
             select: vi.fn(),
           }
 
-          const service = new BuildingService(db as unknown as Database, auditLogger)
+          const service = new BuildingService(
+            db as unknown as Database,
+            auditLogger,
+          )
 
           // Property: When no duplicate exists, creation succeeds
           const result = await service.createBuilding(ctx, {

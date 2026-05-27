@@ -1,3 +1,4 @@
+import type { Database } from '@repo/db'
 import {
   ForbiddenError,
   NotFoundError,
@@ -5,6 +6,8 @@ import {
 } from '@repo/shared/errors'
 import type { RequestContext } from '@repo/shared/types'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import type { AuditLogger } from '../../src/plugins/audit-logger'
+
 import { BillingService } from '../../src/services/billing'
 
 /**
@@ -150,7 +153,10 @@ describe('BillingService', () => {
       }
 
       const ctx = createOwnerContext()
-      const service = new BillingService(db as any, auditLogger as any)
+      const service = new BillingService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       const result = await service.generateBills(ctx, '2024-03')
 
@@ -178,7 +184,10 @@ describe('BillingService', () => {
       }
 
       const ctx = createOwnerContext()
-      const service = new BillingService(db as any, auditLogger as any)
+      const service = new BillingService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       const result = await service.generateBills(ctx, '2024-03')
 
@@ -207,7 +216,10 @@ describe('BillingService', () => {
       }
 
       const ctx = createOwnerContext()
-      const service = new BillingService(db as any, auditLogger as any)
+      const service = new BillingService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       const result = await service.generateBills(ctx, '2024-03')
 
@@ -237,7 +249,10 @@ describe('BillingService', () => {
       }
 
       const ctx = createOwnerContext()
-      const service = new BillingService(db as any, auditLogger as any)
+      const service = new BillingService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       const result = await service.generateBills(ctx, '2024-03')
 
@@ -249,7 +264,10 @@ describe('BillingService', () => {
     it('should reject renter from generating bills (Requirement 7.14)', async () => {
       const db = { select: vi.fn(), query: {} }
       const ctx = createRenterContext()
-      const service = new BillingService(db as any, auditLogger as any)
+      const service = new BillingService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       await expect(service.generateBills(ctx, '2024-03')).rejects.toThrow(
         ForbiddenError,
@@ -259,7 +277,10 @@ describe('BillingService', () => {
     it('should reject invalid billing month format', async () => {
       const db = { select: vi.fn(), query: {} }
       const ctx = createOwnerContext()
-      const service = new BillingService(db as any, auditLogger as any)
+      const service = new BillingService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       await expect(service.generateBills(ctx, '2024-13')).rejects.toThrow(
         ValidationError,
@@ -292,7 +313,10 @@ describe('BillingService', () => {
       }
 
       const ctx = createOwnerContext()
-      const service = new BillingService(db as any, auditLogger as any)
+      const service = new BillingService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       await service.generateBills(ctx, '2024-03')
 
@@ -330,7 +354,10 @@ describe('BillingService', () => {
       }
 
       const ctx = createManagerContext()
-      const service = new BillingService(db as any, auditLogger as any)
+      const service = new BillingService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       const result = await service.generateBills(ctx, '2024-03')
 
@@ -398,7 +425,10 @@ describe('BillingService', () => {
       })
 
       const ctx = createOwnerContext()
-      const service = new BillingService(db as any, auditLogger as any)
+      const service = new BillingService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       const result = await service.addUtilityCharge(ctx, 'bill-1', {
         description: 'Water bill',
@@ -433,7 +463,10 @@ describe('BillingService', () => {
       }
 
       const ctx = createOwnerContext()
-      const service = new BillingService(db as any, auditLogger as any)
+      const service = new BillingService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       await expect(
         service.addUtilityCharge(ctx, 'bill-1', {
@@ -446,7 +479,10 @@ describe('BillingService', () => {
     it('should reject renter from adding utility charges (Requirement 7.14)', async () => {
       const db = { query: {}, select: vi.fn() }
       const ctx = createRenterContext()
-      const service = new BillingService(db as any, auditLogger as any)
+      const service = new BillingService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       await expect(
         service.addUtilityCharge(ctx, 'bill-1', {
@@ -459,7 +495,10 @@ describe('BillingService', () => {
     it('should reject invalid charge description (empty)', async () => {
       const db = { query: {}, select: vi.fn() }
       const ctx = createOwnerContext()
-      const service = new BillingService(db as any, auditLogger as any)
+      const service = new BillingService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       await expect(
         service.addUtilityCharge(ctx, 'bill-1', {
@@ -472,7 +511,10 @@ describe('BillingService', () => {
     it('should reject charge amount exceeding 999,999.99', async () => {
       const db = { query: {}, select: vi.fn() }
       const ctx = createOwnerContext()
-      const service = new BillingService(db as any, auditLogger as any)
+      const service = new BillingService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       await expect(
         service.addUtilityCharge(ctx, 'bill-1', {
@@ -485,7 +527,10 @@ describe('BillingService', () => {
     it('should reject charge amount less than 0.01', async () => {
       const db = { query: {}, select: vi.fn() }
       const ctx = createOwnerContext()
-      const service = new BillingService(db as any, auditLogger as any)
+      const service = new BillingService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       await expect(
         service.addUtilityCharge(ctx, 'bill-1', {
@@ -510,7 +555,10 @@ describe('BillingService', () => {
       }
 
       const ctx = createOwnerContext()
-      const service = new BillingService(db as any, auditLogger as any)
+      const service = new BillingService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       await expect(
         service.addUtilityCharge(ctx, 'nonexistent-bill', {
@@ -570,7 +618,10 @@ describe('BillingService', () => {
       }
 
       const ctx = createOwnerContext()
-      const service = new BillingService(db as any, auditLogger as any)
+      const service = new BillingService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       await service.addUtilityCharge(ctx, 'bill-1', {
         description: 'Water',
@@ -627,7 +678,7 @@ describe('BillingService', () => {
           },
         },
         select: vi.fn().mockImplementation(() => ({
-          from: vi.fn().mockImplementation((table: any) => ({
+          from: vi.fn().mockImplementation((_table: unknown) => ({
             where: vi.fn().mockImplementation(() => {
               // Determine which table is being queried based on call order
               return []
@@ -652,7 +703,10 @@ describe('BillingService', () => {
       })
 
       const ctx = createOwnerContext()
-      const service = new BillingService(db as any, auditLogger as any)
+      const service = new BillingService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       const result = await service.getBill(ctx, 'bill-1')
 
@@ -674,7 +728,10 @@ describe('BillingService', () => {
       }
 
       const ctx = createOwnerContext()
-      const service = new BillingService(db as any, auditLogger as any)
+      const service = new BillingService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       await expect(service.getBill(ctx, 'nonexistent')).rejects.toThrow(
         NotFoundError,
@@ -698,7 +755,10 @@ describe('BillingService', () => {
       }
 
       const ctx = createRenterContext({ userId: 'different-user' })
-      const service = new BillingService(db as any, auditLogger as any)
+      const service = new BillingService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       await expect(service.getBill(ctx, 'bill-1')).rejects.toThrow(
         NotFoundError,
@@ -726,7 +786,10 @@ describe('BillingService', () => {
       const ctx = createManagerContext({
         assignedBuildingIds: ['building-1'],
       })
-      const service = new BillingService(db as any, auditLogger as any)
+      const service = new BillingService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       await expect(service.getBill(ctx, 'bill-1')).rejects.toThrow(
         NotFoundError,
@@ -769,7 +832,10 @@ describe('BillingService', () => {
       }
 
       const ctx = createOwnerContext()
-      const service = new BillingService(db as any, auditLogger as any)
+      const service = new BillingService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       const result = await service.listBills(ctx, {}, { page: 1, pageSize: 50 })
 
@@ -811,7 +877,10 @@ describe('BillingService', () => {
       }
 
       const ctx = createOwnerContext()
-      const service = new BillingService(db as any, auditLogger as any)
+      const service = new BillingService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       const result = await service.listBills(
         ctx,
@@ -833,7 +902,10 @@ describe('BillingService', () => {
       }
 
       const ctx = createRenterContext()
-      const service = new BillingService(db as any, auditLogger as any)
+      const service = new BillingService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       const result = await service.listBills(ctx, {}, { page: 1, pageSize: 50 })
 
@@ -856,7 +928,10 @@ describe('BillingService', () => {
       }
 
       const ctx = createManagerContext({ assignedBuildingIds: ['building-99'] })
-      const service = new BillingService(db as any, auditLogger as any)
+      const service = new BillingService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       const result = await service.listBills(ctx, {}, { page: 1, pageSize: 50 })
 
@@ -879,7 +954,10 @@ describe('BillingService', () => {
         }),
       }
 
-      const service = new BillingService(db as any, auditLogger as any)
+      const service = new BillingService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       const count = await service.updateOverdueBills()
 
@@ -898,7 +976,10 @@ describe('BillingService', () => {
         }),
       }
 
-      const service = new BillingService(db as any, auditLogger as any)
+      const service = new BillingService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       const count = await service.updateOverdueBills()
 
