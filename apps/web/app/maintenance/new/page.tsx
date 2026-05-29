@@ -1,7 +1,10 @@
 'use client'
 
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { type FormEvent, useEffect, useState } from 'react'
 import { DashboardLayout } from '@/components/layout'
+import { Button } from '@/components/ui/button'
 import { ErrorFeedback } from '@/components/ui/error-feedback'
 import { FileUpload } from '@/components/ui/file-upload'
 import { FormField, FormInput } from '@/components/ui/form-field'
@@ -21,6 +24,7 @@ type UserRole = 'owner' | 'manager' | 'renter'
  */
 export default function NewMaintenanceRequestPage() {
   const { t } = useTranslation()
+  const router = useRouter()
   const [user, setUser] = useState<{ id: string; role: string } | null>(null)
   const [isLoadingSession, setIsLoadingSession] = useState(true)
 
@@ -39,12 +43,12 @@ export default function NewMaintenanceRequestPage() {
       try {
         const session = await getSession()
         if (!session) {
-          window.location.href = '/login'
+          router.push('/login')
           return
         }
         setUser(session)
       } catch {
-        window.location.href = '/login'
+        router.push('/login')
       } finally {
         setIsLoadingSession(false)
       }
@@ -93,7 +97,7 @@ export default function NewMaintenanceRequestPage() {
       setSuccessMessage(t('maintenance.createSuccess'))
       // Redirect after short delay
       setTimeout(() => {
-        window.location.href = '/maintenance'
+        router.push('/maintenance')
       }, 1500)
     } catch (err) {
       setErrors({
@@ -104,7 +108,7 @@ export default function NewMaintenanceRequestPage() {
 
   if (isLoadingSession || !user) {
     return (
-      <div className="flex h-dvh items-center justify-center bg-gray-50">
+      <div className="flex h-dvh items-center justify-center bg-surface">
         <div className="w-full max-w-md px-4">
           <LoadingSkeleton rows={5} showHeader />
         </div>
@@ -125,57 +129,29 @@ export default function NewMaintenanceRequestPage() {
         />
       )}
 
-      <div style={{ marginBottom: '1.5rem' }}>
-        <a
+      <div className="mb-6">
+        <Link
           href="/maintenance"
-          style={{
-            fontSize: '0.875rem',
-            color: '#6b7280',
-            textDecoration: 'none',
-          }}
+          className="text-sm text-steel no-underline hover:underline"
         >
           ← {t('common.back')}
-        </a>
+        </Link>
       </div>
 
-      <div
-        style={{
-          padding: '1.5rem',
-          borderRadius: '0.5rem',
-          border: '1px solid #e5e7eb',
-          backgroundColor: '#ffffff',
-          maxWidth: '640px',
-        }}
-      >
-        <h1
-          style={{
-            fontSize: '1.5rem',
-            fontWeight: 700,
-            color: '#111827',
-            marginBottom: '1.5rem',
-          }}
-        >
+      <div className="p-6 rounded-xl border border-hairline bg-canvas max-w-[640px]">
+        <h1 className="text-2xl font-bold text-ink mb-6">
           {t('maintenance.createRequest')}
         </h1>
 
         {errors.form && (
-          <p
-            style={{
-              fontSize: '0.875rem',
-              color: '#dc2626',
-              marginBottom: '1rem',
-              padding: '0.75rem',
-              borderRadius: '0.375rem',
-              backgroundColor: '#fef2f2',
-            }}
-          >
+          <p className="text-sm text-error-text mb-4 px-3 py-3 rounded-md bg-error-bg">
             {errors.form}
           </p>
         )}
 
         <form onSubmit={handleSubmit}>
           {/* Title */}
-          <div style={{ marginBottom: '1.25rem' }}>
+          <div className="mb-5">
             <FormField
               label={t('maintenance.requestTitle')}
               required
@@ -195,7 +171,7 @@ export default function NewMaintenanceRequestPage() {
           </div>
 
           {/* Description */}
-          <div style={{ marginBottom: '1.25rem' }}>
+          <div className="mb-5">
             <FormField
               label={t('maintenance.description')}
               required
@@ -209,31 +185,19 @@ export default function NewMaintenanceRequestPage() {
                 maxLength={2000}
                 rows={5}
                 placeholder={t('maintenance.description')}
-                style={{
-                  width: '100%',
-                  padding: '0.5rem 0.75rem',
-                  fontSize: '0.875rem',
-                  borderRadius: '0.375rem',
-                  border: `1px solid ${errors.description ? '#dc2626' : '#d1d5db'}`,
-                  minHeight: '44px',
-                  resize: 'vertical',
-                  fontFamily: 'inherit',
-                }}
+                className={[
+                  'w-full px-3 py-2 text-sm rounded-md border min-h-[44px] resize-y font-[inherit]',
+                  errors.description
+                    ? 'border-error-text bg-error-bg'
+                    : 'border-hairline bg-canvas',
+                ].join(' ')}
               />
             </FormField>
-            <p
-              style={{
-                fontSize: '0.75rem',
-                color: '#6b7280',
-                marginTop: '0.25rem',
-              }}
-            >
-              {description.length}/2000
-            </p>
+            <p className="text-xs text-steel mt-1">{description.length}/2000</p>
           </div>
 
           {/* Priority */}
-          <div style={{ marginBottom: '1.25rem' }}>
+          <div className="mb-5">
             <FormField
               label={t('maintenance.priority')}
               required
@@ -246,15 +210,10 @@ export default function NewMaintenanceRequestPage() {
                 onChange={(e) =>
                   setPriority(e.target.value as MaintenancePriority | '')
                 }
-                style={{
-                  width: '100%',
-                  padding: '0.5rem 0.75rem',
-                  fontSize: '0.875rem',
-                  borderRadius: '0.375rem',
-                  border: `1px solid ${errors.priority ? '#dc2626' : '#d1d5db'}`,
-                  minHeight: '44px',
-                  backgroundColor: '#ffffff',
-                }}
+                className={[
+                  'w-full px-3 py-2 text-sm rounded-md border min-h-[44px] bg-canvas',
+                  errors.priority ? 'border-error-text' : 'border-hairline',
+                ].join(' ')}
               >
                 <option value="">{t('maintenance.selectPriority')}</option>
                 <option value="low">{t('maintenance.low')}</option>
@@ -266,16 +225,10 @@ export default function NewMaintenanceRequestPage() {
           </div>
 
           {/* File Attachments */}
-          <div style={{ marginBottom: '1.5rem' }}>
+          <div className="mb-6">
             <label
               htmlFor="file-attachments"
-              style={{
-                display: 'block',
-                fontSize: '0.875rem',
-                fontWeight: 500,
-                color: '#374151',
-                marginBottom: '0.5rem',
-              }}
+              className="block text-sm font-medium text-charcoal mb-2"
             >
               {t('maintenance.fileAttachments')}
             </label>
@@ -287,59 +240,23 @@ export default function NewMaintenanceRequestPage() {
           </div>
 
           {/* Submit */}
-          <div
-            style={{
-              display: 'flex',
-              gap: '0.75rem',
-              justifyContent: 'flex-end',
-            }}
-          >
-            <a
-              href="/maintenance"
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                minWidth: '44px',
-                minHeight: '44px',
-                padding: '0.5rem 1rem',
-                fontSize: '0.875rem',
-                fontWeight: 500,
-                borderRadius: '0.375rem',
-                backgroundColor: 'transparent',
-                color: '#374151',
-                border: '1px solid #d1d5db',
-                textDecoration: 'none',
-                cursor: 'pointer',
-              }}
+          <div className="flex gap-3 justify-end">
+            <Button
+              asChild
+              variant="outline"
+              className="rounded-full min-h-[44px]"
             >
-              {t('common.cancel')}
-            </a>
-            <button
+              <Link href="/maintenance">{t('common.cancel')}</Link>
+            </Button>
+            <Button
               type="submit"
               disabled={createMutation.isPending}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                minWidth: '44px',
-                minHeight: '44px',
-                padding: '0.5rem 1.25rem',
-                fontSize: '0.875rem',
-                fontWeight: 600,
-                borderRadius: '0.375rem',
-                backgroundColor: createMutation.isPending
-                  ? '#93c5fd'
-                  : '#2563eb',
-                color: '#ffffff',
-                border: 'none',
-                cursor: createMutation.isPending ? 'not-allowed' : 'pointer',
-              }}
+              className="rounded-full min-h-[44px] bg-primary text-on-primary font-semibold"
             >
               {createMutation.isPending
                 ? t('common.loading')
                 : t('common.submit')}
-            </button>
+            </Button>
           </div>
         </form>
       </div>

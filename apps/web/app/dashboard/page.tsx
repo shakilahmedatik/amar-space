@@ -1,5 +1,6 @@
 'use client'
 
+import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { DashboardLayout } from '@/components/layout'
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton'
@@ -25,6 +26,7 @@ interface SessionUser {
  */
 export default function DashboardPage() {
   const { t } = useTranslation()
+  const router = useRouter()
   const [user, setUser] = useState<SessionUser | null>(null)
   const [isLoadingSession, setIsLoadingSession] = useState(true)
 
@@ -34,12 +36,12 @@ export default function DashboardPage() {
         const session = await getSession()
         if (!session) {
           // Not authenticated, redirect to login
-          window.location.href = '/login'
+          router.push('/login')
           return
         }
         setUser(session)
       } catch {
-        window.location.href = '/login'
+        router.push('/login')
       } finally {
         setIsLoadingSession(false)
       }
@@ -49,7 +51,7 @@ export default function DashboardPage() {
 
   if (isLoadingSession || !user) {
     return (
-      <div className="flex h-dvh items-center justify-center bg-gray-50">
+      <div className="flex h-dvh items-center justify-center bg-surface">
         <div className="w-full max-w-md px-4">
           <LoadingSkeleton rows={5} showHeader />
         </div>
@@ -58,17 +60,10 @@ export default function DashboardPage() {
   }
 
   const role = user.role as UserRole
-
+  console.log(user)
   return (
     <DashboardLayout role={role} activePath="/dashboard">
-      <h1
-        style={{
-          fontSize: '1.5rem',
-          fontWeight: 700,
-          marginBottom: '1.5rem',
-          color: '#111827',
-        }}
-      >
+      <h1 className="text-2xl font-bold mb-6 text-ink">
         {t('dashboard.title')}
       </h1>
 

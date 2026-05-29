@@ -1,7 +1,11 @@
 'use client'
 
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { type FormEvent, useEffect, useState } from 'react'
 import { DashboardLayout } from '@/components/layout'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
 import { ErrorFeedback } from '@/components/ui/error-feedback'
 import { FormField, FormInput } from '@/components/ui/form-field'
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton'
@@ -22,6 +26,7 @@ type UserRole = 'owner' | 'manager' | 'renter'
  */
 export default function NewNoticePage() {
   const { t } = useTranslation()
+  const router = useRouter()
   const [user, setUser] = useState<{ id: string; role: string } | null>(null)
   const [isLoadingSession, setIsLoadingSession] = useState(true)
 
@@ -50,17 +55,17 @@ export default function NewNoticePage() {
       try {
         const session = await getSession()
         if (!session) {
-          window.location.href = '/login'
+          router.push('/login')
           return
         }
         // Only Owner and Manager can create notices
         if (session.role === 'renter') {
-          window.location.href = '/notices'
+          router.push('/notices')
           return
         }
         setUser(session)
       } catch {
-        window.location.href = '/login'
+        router.push('/login')
       } finally {
         setIsLoadingSession(false)
       }
@@ -150,7 +155,7 @@ export default function NewNoticePage() {
       })
       setSuccessMessage(t('notices.createSuccess'))
       setTimeout(() => {
-        window.location.href = '/notices'
+        router.push('/notices')
       }, 1500)
     } catch (err) {
       setErrors({
@@ -161,7 +166,7 @@ export default function NewNoticePage() {
 
   if (isLoadingSession || !user) {
     return (
-      <div className="flex h-dvh items-center justify-center bg-gray-50">
+      <div className="flex h-dvh items-center justify-center bg-surface">
         <div className="w-full max-w-md px-4">
           <LoadingSkeleton rows={5} showHeader />
         </div>
@@ -182,295 +187,206 @@ export default function NewNoticePage() {
         />
       )}
 
-      <div style={{ marginBottom: '1.5rem' }}>
-        <a
+      <div className="mb-6">
+        <Link
           href="/notices"
-          style={{
-            fontSize: '0.875rem',
-            color: '#6b7280',
-            textDecoration: 'none',
-          }}
+          className="text-sm text-steel no-underline hover:underline"
         >
           ← {t('common.back')}
-        </a>
+        </Link>
       </div>
 
-      <div
-        style={{
-          padding: '1.5rem',
-          borderRadius: '0.5rem',
-          border: '1px solid #e5e7eb',
-          backgroundColor: '#ffffff',
-          maxWidth: '640px',
-        }}
-      >
-        <h1
-          style={{
-            fontSize: '1.5rem',
-            fontWeight: 700,
-            color: '#111827',
-            marginBottom: '1.5rem',
-          }}
-        >
-          {t('notices.createNotice')}
-        </h1>
+      <Card className="max-w-[640px]">
+        <CardContent className="p-6">
+          <h1 className="text-2xl font-bold text-ink-strong mb-6">
+            {t('notices.createNotice')}
+          </h1>
 
-        {errors.form && (
-          <p
-            style={{
-              fontSize: '0.875rem',
-              color: '#dc2626',
-              marginBottom: '1rem',
-              padding: '0.75rem',
-              borderRadius: '0.375rem',
-              backgroundColor: '#fef2f2',
-            }}
-          >
-            {errors.form}
-          </p>
-        )}
-
-        <form onSubmit={handleSubmit}>
-          {/* Title */}
-          <div style={{ marginBottom: '1.25rem' }}>
-            <FormField
-              label={t('notices.noticeTitle')}
-              required
-              error={errors.title}
-              htmlFor="notice-title"
-            >
-              <FormInput
-                id="notice-title"
-                type="text"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                hasError={!!errors.title}
-                maxLength={200}
-                placeholder={t('notices.titlePlaceholder')}
-              />
-            </FormField>
-            <p
-              style={{
-                fontSize: '0.75rem',
-                color: '#6b7280',
-                marginTop: '0.25rem',
-              }}
-            >
-              {title.length}/200
+          {errors.form && (
+            <p className="text-sm text-error-text mb-4 px-3 py-3 rounded-md bg-error-bg">
+              {errors.form}
             </p>
-          </div>
+          )}
 
-          {/* Body */}
-          <div style={{ marginBottom: '1.25rem' }}>
-            <FormField
-              label={t('notices.body')}
-              required
-              error={errors.body}
-              htmlFor="notice-body"
-            >
-              <textarea
-                id="notice-body"
-                value={body}
-                onChange={(e) => setBody(e.target.value)}
-                maxLength={5000}
-                rows={8}
-                placeholder={t('notices.bodyPlaceholder')}
-                style={{
-                  width: '100%',
-                  padding: '0.5rem 0.75rem',
-                  fontSize: '0.875rem',
-                  borderRadius: '0.375rem',
-                  border: `1px solid ${errors.body ? '#dc2626' : '#d1d5db'}`,
-                  minHeight: '44px',
-                  resize: 'vertical',
-                  fontFamily: 'inherit',
-                }}
-              />
-            </FormField>
-            <p
-              style={{
-                fontSize: '0.75rem',
-                color: '#6b7280',
-                marginTop: '0.25rem',
-              }}
-            >
-              {body.length}/5000
-            </p>
-          </div>
-
-          {/* Target Audience */}
-          <div style={{ marginBottom: '1.25rem' }}>
-            <FormField
-              label={t('notices.targetAudience')}
-              required
-              error={errors.targetAudience}
-              htmlFor="notice-audience"
-            >
-              <select
-                id="notice-audience"
-                value={targetAudience}
-                onChange={(e) => {
-                  setTargetAudience(e.target.value as NoticeTargetAudience | '')
-                  setTargetBuildingId('')
-                  setTargetFlatId('')
-                  setFlatOptions([])
-                }}
-                style={{
-                  width: '100%',
-                  padding: '0.5rem 0.75rem',
-                  fontSize: '0.875rem',
-                  borderRadius: '0.375rem',
-                  border: `1px solid ${errors.targetAudience ? '#dc2626' : '#d1d5db'}`,
-                  minHeight: '44px',
-                  backgroundColor: '#ffffff',
-                }}
-              >
-                <option value="">{t('notices.selectAudience')}</option>
-                <option value="all_renters">{t('notices.allRenters')}</option>
-                <option value="specific_building">
-                  {t('notices.specificBuilding')}
-                </option>
-                <option value="specific_flat">
-                  {t('notices.specificFlat')}
-                </option>
-                <option value="managers_only">
-                  {t('notices.managersOnly')}
-                </option>
-              </select>
-            </FormField>
-          </div>
-
-          {/* Building Selection (for specific_building or specific_flat) */}
-          {(targetAudience === 'specific_building' ||
-            targetAudience === 'specific_flat') && (
-            <div style={{ marginBottom: '1.25rem' }}>
+          <form onSubmit={handleSubmit}>
+            {/* Title */}
+            <div className="mb-5">
               <FormField
-                label={t('notices.building')}
+                label={t('notices.noticeTitle')}
                 required
-                error={errors.targetBuildingId}
-                htmlFor="notice-building"
+                error={errors.title}
+                htmlFor="notice-title"
+              >
+                <FormInput
+                  id="notice-title"
+                  type="text"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  hasError={!!errors.title}
+                  maxLength={200}
+                  placeholder={t('notices.titlePlaceholder')}
+                />
+              </FormField>
+              <p className="text-xs text-steel mt-1">{title.length}/200</p>
+            </div>
+
+            {/* Body */}
+            <div className="mb-5">
+              <FormField
+                label={t('notices.body')}
+                required
+                error={errors.body}
+                htmlFor="notice-body"
+              >
+                <textarea
+                  id="notice-body"
+                  value={body}
+                  onChange={(e) => setBody(e.target.value)}
+                  maxLength={5000}
+                  rows={8}
+                  placeholder={t('notices.bodyPlaceholder')}
+                  className={[
+                    'w-full px-3 py-2 text-sm rounded-md border min-h-[44px] resize-y font-[inherit]',
+                    errors.body
+                      ? 'border-error-text bg-error-bg'
+                      : 'border-hairline bg-canvas',
+                  ].join(' ')}
+                />
+              </FormField>
+              <p className="text-xs text-steel mt-1">{body.length}/5000</p>
+            </div>
+
+            {/* Target Audience */}
+            <div className="mb-5">
+              <FormField
+                label={t('notices.targetAudience')}
+                required
+                error={errors.targetAudience}
+                htmlFor="notice-audience"
               >
                 <select
-                  id="notice-building"
-                  value={targetBuildingId}
+                  id="notice-audience"
+                  value={targetAudience}
                   onChange={(e) => {
-                    setTargetBuildingId(e.target.value)
+                    setTargetAudience(
+                      e.target.value as NoticeTargetAudience | '',
+                    )
+                    setTargetBuildingId('')
                     setTargetFlatId('')
                     setFlatOptions([])
                   }}
-                  style={{
-                    width: '100%',
-                    padding: '0.5rem 0.75rem',
-                    fontSize: '0.875rem',
-                    borderRadius: '0.375rem',
-                    border: `1px solid ${errors.targetBuildingId ? '#dc2626' : '#d1d5db'}`,
-                    minHeight: '44px',
-                    backgroundColor: '#ffffff',
-                  }}
+                  className={[
+                    'w-full px-3 py-2 text-sm rounded-md border min-h-[44px] bg-canvas',
+                    errors.targetAudience
+                      ? 'border-error-text'
+                      : 'border-hairline',
+                  ].join(' ')}
                 >
-                  <option value="">{t('notices.selectBuilding')}</option>
-                  {(buildingsData?.data ?? []).map((b) => (
-                    <option key={b.id} value={b.id}>
-                      {b.name}
-                    </option>
-                  ))}
+                  <option value="">{t('notices.selectAudience')}</option>
+                  <option value="all_renters">{t('notices.allRenters')}</option>
+                  <option value="specific_building">
+                    {t('notices.specificBuilding')}
+                  </option>
+                  <option value="specific_flat">
+                    {t('notices.specificFlat')}
+                  </option>
+                  <option value="managers_only">
+                    {t('notices.managersOnly')}
+                  </option>
                 </select>
               </FormField>
             </div>
-          )}
 
-          {/* Flat Selection (for specific_flat) */}
-          {targetAudience === 'specific_flat' && targetBuildingId && (
-            <div style={{ marginBottom: '1.25rem' }}>
-              <FormField
-                label={t('notices.flat')}
-                required
-                error={errors.targetFlatId}
-                htmlFor="notice-flat"
+            {/* Building Selection (for specific_building or specific_flat) */}
+            {(targetAudience === 'specific_building' ||
+              targetAudience === 'specific_flat') && (
+              <div className="mb-5">
+                <FormField
+                  label={t('notices.building')}
+                  required
+                  error={errors.targetBuildingId}
+                  htmlFor="notice-building"
+                >
+                  <select
+                    id="notice-building"
+                    value={targetBuildingId}
+                    onChange={(e) => {
+                      setTargetBuildingId(e.target.value)
+                      setTargetFlatId('')
+                      setFlatOptions([])
+                    }}
+                    className={[
+                      'w-full px-3 py-2 text-sm rounded-md border min-h-[44px] bg-canvas',
+                      errors.targetBuildingId
+                        ? 'border-error-text'
+                        : 'border-hairline',
+                    ].join(' ')}
+                  >
+                    <option value="">{t('notices.selectBuilding')}</option>
+                    {(buildingsData?.data ?? []).map((b) => (
+                      <option key={b.id} value={b.id}>
+                        {b.name}
+                      </option>
+                    ))}
+                  </select>
+                </FormField>
+              </div>
+            )}
+
+            {/* Flat Selection (for specific_flat) */}
+            {targetAudience === 'specific_flat' && targetBuildingId && (
+              <div className="mb-5">
+                <FormField
+                  label={t('notices.flat')}
+                  required
+                  error={errors.targetFlatId}
+                  htmlFor="notice-flat"
+                >
+                  <select
+                    id="notice-flat"
+                    value={targetFlatId}
+                    onChange={(e) => setTargetFlatId(e.target.value)}
+                    disabled={loadingFlats}
+                    className={[
+                      'w-full px-3 py-2 text-sm rounded-md border min-h-[44px] bg-canvas',
+                      errors.targetFlatId
+                        ? 'border-error-text'
+                        : 'border-hairline',
+                    ].join(' ')}
+                  >
+                    <option value="">{t('notices.selectFlat')}</option>
+                    {flatOptions.map((f) => (
+                      <option key={f.id} value={f.id}>
+                        {f.flatNumber}
+                      </option>
+                    ))}
+                  </select>
+                </FormField>
+              </div>
+            )}
+
+            {/* Submit */}
+            <div className="flex gap-3 justify-end">
+              <Button
+                asChild
+                variant="outline"
+                className="min-h-[44px] rounded-full"
               >
-                <select
-                  id="notice-flat"
-                  value={targetFlatId}
-                  onChange={(e) => setTargetFlatId(e.target.value)}
-                  disabled={loadingFlats}
-                  style={{
-                    width: '100%',
-                    padding: '0.5rem 0.75rem',
-                    fontSize: '0.875rem',
-                    borderRadius: '0.375rem',
-                    border: `1px solid ${errors.targetFlatId ? '#dc2626' : '#d1d5db'}`,
-                    minHeight: '44px',
-                    backgroundColor: '#ffffff',
-                  }}
-                >
-                  <option value="">{t('notices.selectFlat')}</option>
-                  {flatOptions.map((f) => (
-                    <option key={f.id} value={f.id}>
-                      {f.flatNumber}
-                    </option>
-                  ))}
-                </select>
-              </FormField>
+                <Link href="/notices">{t('common.cancel')}</Link>
+              </Button>
+              <Button
+                type="submit"
+                disabled={createMutation.isPending}
+                className="min-h-[44px] rounded-full bg-primary text-on-primary font-semibold"
+              >
+                {createMutation.isPending
+                  ? t('common.loading')
+                  : t('common.submit')}
+              </Button>
             </div>
-          )}
-
-          {/* Submit */}
-          <div
-            style={{
-              display: 'flex',
-              gap: '0.75rem',
-              justifyContent: 'flex-end',
-            }}
-          >
-            <a
-              href="/notices"
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                minWidth: '44px',
-                minHeight: '44px',
-                padding: '0.5rem 1rem',
-                fontSize: '0.875rem',
-                fontWeight: 500,
-                borderRadius: '0.375rem',
-                backgroundColor: 'transparent',
-                color: '#374151',
-                border: '1px solid #d1d5db',
-                textDecoration: 'none',
-                cursor: 'pointer',
-              }}
-            >
-              {t('common.cancel')}
-            </a>
-            <button
-              type="submit"
-              disabled={createMutation.isPending}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                minWidth: '44px',
-                minHeight: '44px',
-                padding: '0.5rem 1.25rem',
-                fontSize: '0.875rem',
-                fontWeight: 600,
-                borderRadius: '0.375rem',
-                backgroundColor: createMutation.isPending
-                  ? '#93c5fd'
-                  : '#2563eb',
-                color: '#ffffff',
-                border: 'none',
-                cursor: createMutation.isPending ? 'not-allowed' : 'pointer',
-              }}
-            >
-              {createMutation.isPending
-                ? t('common.loading')
-                : t('common.submit')}
-            </button>
-          </div>
-        </form>
-      </div>
+          </form>
+        </CardContent>
+      </Card>
     </DashboardLayout>
   )
 }

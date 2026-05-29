@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto'
 import {
   type Database,
   fileReferences,
@@ -177,12 +178,14 @@ export class RenterRegistrationService {
     const [renterUser] = await this.db
       .insert(users)
       .values({
+        id: randomUUID(),
         email: renterEmail,
         name: validated.fullName,
-        hashedPassword: '', // Renter accounts created by owner don't have passwords initially
         role: 'renter',
         ownerAccountId: ctx.ownerAccountId,
         phone: validated.phone,
+        createdAt: new Date(),
+        updatedAt: new Date(),
       })
       .returning()
 

@@ -37,7 +37,7 @@ export function DashboardLayout({
   onNavigate,
 }: DashboardLayoutProps) {
   return (
-    <div className="flex h-dvh w-full overflow-hidden bg-gray-50">
+    <div className="flex min-h-dvh w-full overflow-hidden bg-surface">
       <Sidebar role={role} activePath={activePath} onNavigate={onNavigate} />
 
       <main className="flex-1 overflow-y-auto text-base leading-relaxed pb-[72px] md:pb-0">

@@ -1,6 +1,7 @@
 import {
   integer,
   pgTable,
+  text,
   timestamp,
   unique,
   uuid,
@@ -13,7 +14,7 @@ export const flats = pgTable(
   'flats',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    ownerAccountId: uuid('owner_account_id')
+    ownerAccountId: text('owner_account_id')
       .notNull()
       .references(() => users.id),
     buildingId: uuid('building_id')

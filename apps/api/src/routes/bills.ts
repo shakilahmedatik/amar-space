@@ -7,6 +7,7 @@ import {
 } from '@repo/shared/validation'
 import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
+import { dateTimeResponseSchema, errorResponseSchema } from '../app'
 import { authGuard } from '../middleware/auth-guard'
 import { roleGuard } from '../middleware/role-guard'
 import { tenantScope } from '../middleware/tenant-scope'
@@ -75,6 +76,11 @@ async function billRoutes(fastify: FastifyInstance) {
         tenantScope,
       ],
       schema: {
+        tags: ['Bills'],
+        summary: 'List bills',
+        description:
+          'Returns paginated bills with optional filters by building, flat, renter, billing month, and status.\n\n**Roles: owner, manager, renter**',
+        security: [{ BearerAuth: [] }, { CookieAuth: [] }],
         querystring: z.object({
           buildingId: z.string().uuid().optional(),
           flatId: z.string().uuid().optional(),
@@ -85,8 +91,30 @@ async function billRoutes(fastify: FastifyInstance) {
             .optional(),
           status: billStatusEnum.optional(),
           page: z.coerce.number().int().min(1).default(1),
-          pageSize: z.coerce.number().int().min(1).max(50).default(20),
+          pageSize: z.coerce.number().int().min(1).max(100).default(20),
         }),
+        response: {
+          200: z.object({
+            data: z.array(
+              z.object({
+                id: z.string(),
+                billingMonth: z.string(),
+                totalAmount: z.number(),
+                paidAmount: z.number(),
+                status: z.enum(['unpaid', 'partially_paid', 'paid', 'overdue']),
+                flatId: z.string(),
+                renterId: z.string(),
+                ownerAccountId: z.string(),
+                createdAt: dateTimeResponseSchema,
+              }),
+            ),
+            total: z.number(),
+            page: z.number(),
+            pageSize: z.number(),
+          }),
+          401: errorResponseSchema,
+          403: errorResponseSchema,
+        },
       },
     },
     async (request, reply) => {
@@ -131,7 +159,22 @@ async function billRoutes(fastify: FastifyInstance) {
     {
       preHandler: [authGuard, roleGuard(['owner', 'manager']), tenantScope],
       schema: {
+        tags: ['Bills'],
+        summary: 'Generate monthly bills',
+        description:
+          'Generates monthly bills for all occupied flats in the specified billing month. Idempotent — skips flats that already have a bill for the month.\n\n**Roles: owner, manager**',
+        security: [{ BearerAuth: [] }, { CookieAuth: [] }],
         body: generateBillsSchema,
+        response: {
+          201: z.object({
+            generated: z.number(),
+            skipped: z.number(),
+            billingMonth: z.string(),
+          }),
+          400: errorResponseSchema,
+          401: errorResponseSchema,
+          403: errorResponseSchema,
+        },
       },
     },
     async (request, reply) => {
@@ -160,9 +203,46 @@ async function billRoutes(fastify: FastifyInstance) {
         tenantScope,
       ],
       schema: {
+        tags: ['Bills'],
+        summary: 'Get a bill',
+        description:
+          'Returns a bill with its line items and payment history.\n\n**Roles: owner, manager, renter**',
+        security: [{ BearerAuth: [] }, { CookieAuth: [] }],
         params: z.object({
           id: z.string().uuid('Invalid bill ID format'),
         }),
+        response: {
+          200: z.object({
+            id: z.string(),
+            billingMonth: z.string(),
+            totalAmount: z.number(),
+            paidAmount: z.number(),
+            status: z.enum(['unpaid', 'partially_paid', 'paid', 'overdue']),
+            flatId: z.string(),
+            renterId: z.string(),
+            ownerAccountId: z.string(),
+            createdAt: dateTimeResponseSchema,
+            lineItems: z.array(
+              z.object({
+                id: z.string(),
+                description: z.string(),
+                amount: z.number(),
+                createdAt: dateTimeResponseSchema,
+              }),
+            ),
+            payments: z.array(
+              z.object({
+                id: z.string(),
+                amount: z.number(),
+                paidAt: dateTimeResponseSchema,
+                method: z.string(),
+              }),
+            ),
+          }),
+          401: errorResponseSchema,
+          403: errorResponseSchema,
+          404: errorResponseSchema,
+        },
       },
     },
     async (request, reply) => {
@@ -187,10 +267,28 @@ async function billRoutes(fastify: FastifyInstance) {
     {
       preHandler: [authGuard, roleGuard(['owner', 'manager']), tenantScope],
       schema: {
+        tags: ['Bills'],
+        summary: 'Add utility charge',
+        description:
+          'Adds a utility charge (line item) to a bill. The bill total is updated automatically.\n\n**Roles: owner, manager**',
+        security: [{ BearerAuth: [] }, { CookieAuth: [] }],
         params: z.object({
           id: z.string().uuid('Invalid bill ID format'),
         }),
         body: addUtilityChargeSchema,
+        response: {
+          201: z.object({
+            id: z.string(),
+            billId: z.string(),
+            description: z.string(),
+            amount: z.number(),
+            createdAt: dateTimeResponseSchema,
+          }),
+          400: errorResponseSchema,
+          401: errorResponseSchema,
+          403: errorResponseSchema,
+          404: errorResponseSchema,
+        },
       },
     },
     async (request, reply) => {

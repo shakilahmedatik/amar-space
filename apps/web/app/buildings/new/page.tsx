@@ -1,7 +1,11 @@
 'use client'
 
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { type FormEvent, useEffect, useState } from 'react'
 import { DashboardLayout } from '@/components/layout'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
 import { ErrorFeedback } from '@/components/ui/error-feedback'
 import { FormField, FormInput } from '@/components/ui/form-field'
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton'
@@ -17,6 +21,7 @@ import { useTranslation } from '@/lib/i18n'
  */
 export default function NewBuildingPage() {
   const { t } = useTranslation()
+  const router = useRouter()
   const [user, setUser] = useState<{ id: string; role: string } | null>(null)
   const [isLoadingSession, setIsLoadingSession] = useState(true)
 
@@ -33,17 +38,17 @@ export default function NewBuildingPage() {
       try {
         const session = await getSession()
         if (!session) {
-          window.location.href = '/login'
+          router.push('/login')
           return
         }
         // Only owners can create buildings
         if (session.role !== 'owner') {
-          window.location.href = '/buildings'
+          router.push('/buildings')
           return
         }
         setUser(session)
       } catch {
-        window.location.href = '/login'
+        router.push('/login')
       } finally {
         setIsLoadingSession(false)
       }
@@ -92,7 +97,7 @@ export default function NewBuildingPage() {
       setSuccessMessage(t('buildings.createSuccess'))
       // Redirect to buildings list after short delay
       setTimeout(() => {
-        window.location.href = '/buildings'
+        router.push('/buildings')
       }, 1000)
     } catch (err) {
       setErrors({
@@ -103,7 +108,7 @@ export default function NewBuildingPage() {
 
   if (isLoadingSession || !user) {
     return (
-      <div className="flex h-dvh items-center justify-center bg-gray-50">
+      <div className="flex h-dvh items-center justify-center bg-surface">
         <div className="w-full max-w-md px-4">
           <LoadingSkeleton rows={5} showHeader />
         </div>
@@ -130,143 +135,93 @@ export default function NewBuildingPage() {
         />
       )}
 
-      <div style={{ marginBottom: '1.5rem' }}>
-        <a
+      <div className="mb-6">
+        <Link
           href="/buildings"
-          style={{
-            fontSize: '0.875rem',
-            color: '#6b7280',
-            textDecoration: 'none',
-          }}
+          className="text-sm text-steel no-underline hover:underline"
         >
           ← {t('common.back')}
-        </a>
+        </Link>
       </div>
 
-      <h1
-        style={{
-          fontSize: '1.5rem',
-          fontWeight: 700,
-          color: '#111827',
-          marginBottom: '1.5rem',
-        }}
-      >
+      <h1 className="text-2xl font-bold text-ink mb-6">
         {t('buildings.createBuilding')}
       </h1>
 
-      <form
-        onSubmit={handleSubmit}
-        style={{
-          maxWidth: '32rem',
-          padding: '1.5rem',
-          borderRadius: '0.5rem',
-          border: '1px solid #e5e7eb',
-          backgroundColor: '#ffffff',
-        }}
-      >
-        <FormField
-          label={t('buildings.buildingName')}
-          required
-          error={errors.name}
-          htmlFor="building-name"
-        >
-          <FormInput
-            id="building-name"
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            hasError={!!errors.name}
-            maxLength={200}
-            autoFocus
-          />
-        </FormField>
+      <Card className="max-w-lg bg-canvas border-hairline">
+        <CardContent className="p-6">
+          <form onSubmit={handleSubmit}>
+            <FormField
+              label={t('buildings.buildingName')}
+              required
+              error={errors.name}
+              htmlFor="building-name"
+            >
+              <FormInput
+                id="building-name"
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                hasError={!!errors.name}
+                maxLength={200}
+                autoFocus
+              />
+            </FormField>
 
-        <FormField
-          label={t('buildings.address')}
-          required
-          error={errors.address}
-          htmlFor="building-address"
-        >
-          <FormInput
-            id="building-address"
-            type="text"
-            value={address}
-            onChange={(e) => setAddress(e.target.value)}
-            hasError={!!errors.address}
-            maxLength={500}
-          />
-        </FormField>
+            <FormField
+              label={t('buildings.address')}
+              required
+              error={errors.address}
+              htmlFor="building-address"
+            >
+              <FormInput
+                id="building-address"
+                type="text"
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+                hasError={!!errors.address}
+                maxLength={500}
+              />
+            </FormField>
 
-        <FormField
-          label={t('buildings.totalFloors')}
-          error={errors.totalFloors}
-          htmlFor="building-floors"
-        >
-          <FormInput
-            id="building-floors"
-            type="number"
-            value={totalFloors}
-            onChange={(e) => setTotalFloors(e.target.value)}
-            hasError={!!errors.totalFloors}
-            min={1}
-            max={200}
-          />
-        </FormField>
+            <FormField
+              label={t('buildings.totalFloors')}
+              error={errors.totalFloors}
+              htmlFor="building-floors"
+            >
+              <FormInput
+                id="building-floors"
+                type="number"
+                value={totalFloors}
+                onChange={(e) => setTotalFloors(e.target.value)}
+                hasError={!!errors.totalFloors}
+                min={1}
+                max={200}
+              />
+            </FormField>
 
-        <div
-          style={{
-            display: 'flex',
-            gap: '0.75rem',
-            marginTop: '1.5rem',
-          }}
-        >
-          <button
-            type="submit"
-            disabled={createMutation.isPending}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              minWidth: '44px',
-              minHeight: '44px',
-              padding: '0.625rem 1.5rem',
-              fontSize: '0.875rem',
-              fontWeight: 600,
-              borderRadius: '0.5rem',
-              backgroundColor: createMutation.isPending ? '#93c5fd' : '#2563eb',
-              color: '#ffffff',
-              border: 'none',
-              cursor: createMutation.isPending ? 'not-allowed' : 'pointer',
-            }}
-          >
-            {createMutation.isPending
-              ? t('common.loading')
-              : t('common.create')}
-          </button>
+            <div className="flex gap-3 mt-6">
+              <Button
+                type="submit"
+                disabled={createMutation.isPending}
+                className="rounded-full min-h-[44px] bg-primary text-on-primary font-semibold"
+              >
+                {createMutation.isPending
+                  ? t('common.loading')
+                  : t('common.create')}
+              </Button>
 
-          <a
-            href="/buildings"
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              minWidth: '44px',
-              minHeight: '44px',
-              padding: '0.625rem 1.5rem',
-              fontSize: '0.875rem',
-              fontWeight: 500,
-              borderRadius: '0.5rem',
-              backgroundColor: 'transparent',
-              color: '#374151',
-              border: '1px solid #d1d5db',
-              textDecoration: 'none',
-              cursor: 'pointer',
-            }}
-          >
-            {t('common.cancel')}
-          </a>
-        </div>
-      </form>
+              <Button
+                asChild
+                variant="outline"
+                className="rounded-full min-h-[44px] text-charcoal border-hairline"
+              >
+                <Link href="/buildings">{t('common.cancel')}</Link>
+              </Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
     </DashboardLayout>
   )
 }

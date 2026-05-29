@@ -316,8 +316,19 @@ export class FlatService {
 
     const [data, totalResult] = await Promise.all([
       this.db
-        .select()
+        .select({
+          id: flats.id,
+          ownerAccountId: flats.ownerAccountId,
+          buildingId: flats.buildingId,
+          flatNumber: flats.flatNumber,
+          floor: flats.floor,
+          status: flats.status,
+          createdAt: flats.createdAt,
+          updatedAt: flats.updatedAt,
+          buildingName: buildings.name,
+        })
         .from(flats)
+        .leftJoin(buildings, eq(flats.buildingId, buildings.id))
         .where(whereClause)
         .limit(pageSize)
         .offset(offset),
@@ -327,7 +338,17 @@ export class FlatService {
     const total = totalResult[0]?.count ?? 0
 
     return {
-      data: data.map((row) => this.mapToResult(row)),
+      data: data.map((row) => ({
+        id: row.id,
+        ownerAccountId: row.ownerAccountId,
+        buildingId: row.buildingId,
+        flatNumber: row.flatNumber,
+        floor: row.floor,
+        status: row.status,
+        createdAt: row.createdAt,
+        updatedAt: row.updatedAt,
+        buildingName: row.buildingName ?? null,
+      })),
       total,
       page,
       pageSize,

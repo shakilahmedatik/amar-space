@@ -8,6 +8,8 @@ export interface AuthConfig {
   db: Database
   secret: string
   baseURL: string
+  /** Trusted origins allowed to make cross-origin auth requests (e.g. the web app) */
+  trustedOrigins: string[]
   /** Session max age in seconds (default: 7 days) */
   sessionMaxAge: number
   /** Max login attempts before rate limiting (default: 5) */
@@ -39,10 +41,22 @@ export function createAuth(config: AuthConfig) {
   return betterAuth({
     database: drizzleAdapter(config.db, {
       provider: 'pg',
+      usePlural: true,
     }),
     secret: config.secret,
     baseURL: config.baseURL,
+    trustedOrigins: config.trustedOrigins,
     emailAndPassword: { enabled: true },
+    user: {
+      additionalFields: {
+        role: {
+          type: 'string',
+          required: false,
+          defaultValue: 'owner',
+          input: false, // not settable by the client during sign-up
+        },
+      },
+    },
     session: {
       expiresIn: config.sessionMaxAge,
       updateAge: 0, // Refresh session on every authenticated request to reset the 7-day inactivity timer
@@ -76,13 +90,14 @@ declare module 'fastify' {
 export default fp(
   async function authPlugin(fastify: FastifyInstance) {
     const { env } = fastify
-
+    console.log(env.AUTH_TRUSTED_ORIGINS)
     const db = createDbClient(env.DATABASE_URL)
 
     const auth = createAuth({
       db,
       secret: env.AUTH_SECRET,
       baseURL: env.AUTH_BASE_URL,
+      trustedOrigins: env.AUTH_TRUSTED_ORIGINS,
       sessionMaxAge: SEVEN_DAYS_IN_SECONDS,
       loginRateLimitMax: 5,
       loginRateLimitWindow: FIFTEEN_MINUTES_IN_SECONDS,

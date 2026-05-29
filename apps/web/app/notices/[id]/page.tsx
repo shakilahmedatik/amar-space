@@ -1,8 +1,10 @@
 'use client'
 
-import { useParams } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import { type FormEvent, useEffect, useState } from 'react'
 import { DashboardLayout } from '@/components/layout'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { ErrorFeedback } from '@/components/ui/error-feedback'
 import { FormField, FormInput } from '@/components/ui/form-field'
@@ -29,6 +31,7 @@ type UserRole = 'owner' | 'manager' | 'renter'
 export default function NoticeDetailPage() {
   const { t } = useTranslation()
   const params = useParams()
+  const router = useRouter()
   const noticeId = params.id as string
 
   const [user, setUser] = useState<{ id: string; role: string } | null>(null)
@@ -67,12 +70,12 @@ export default function NoticeDetailPage() {
       try {
         const session = await getSession()
         if (!session) {
-          window.location.href = '/login'
+          router.push('/login')
           return
         }
         setUser(session)
       } catch {
-        window.location.href = '/login'
+        router.push('/login')
       } finally {
         setIsLoadingSession(false)
       }
@@ -188,7 +191,7 @@ export default function NoticeDetailPage() {
       await deleteMutation.mutateAsync()
       setSuccessMessage(t('notices.deleteSuccess'))
       setTimeout(() => {
-        window.location.href = '/notices'
+        router.push('/notices')
       }, 1500)
     } catch (err) {
       setSuccessMessage('')
@@ -211,7 +214,7 @@ export default function NoticeDetailPage() {
 
   if (isLoadingSession || !user) {
     return (
-      <div className="flex h-dvh items-center justify-center bg-gray-50">
+      <div className="flex h-dvh items-center justify-center bg-surface">
         <div className="w-full max-w-md px-4">
           <LoadingSkeleton rows={5} showHeader />
         </div>
@@ -251,14 +254,10 @@ export default function NoticeDetailPage() {
         />
       )}
 
-      <div style={{ marginBottom: '1.5rem' }}>
+      <div className="mb-6">
         <a
           href="/notices"
-          style={{
-            fontSize: '0.875rem',
-            color: '#6b7280',
-            textDecoration: 'none',
-          }}
+          className="text-sm text-steel no-underline hover:underline"
         >
           ← {t('common.back')}
         </a>
@@ -270,583 +269,337 @@ export default function NoticeDetailPage() {
         <>
           {/* Notice Content */}
           {!isEditing ? (
-            <div
-              style={{
-                padding: '1.5rem',
-                borderRadius: '0.5rem',
-                border: '1px solid #e5e7eb',
-                backgroundColor: '#ffffff',
-                marginBottom: '1.5rem',
-              }}
-            >
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  marginBottom: '1.25rem',
-                  flexWrap: 'wrap',
-                  gap: '0.75rem',
-                }}
-              >
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.75rem',
-                  }}
-                >
-                  <h1
-                    style={{
-                      fontSize: '1.5rem',
-                      fontWeight: 700,
-                      color: '#111827',
-                    }}
-                  >
-                    {notice.title}
-                  </h1>
-                  {notice.isPinned && (
-                    <span
-                      style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        padding: '0.125rem 0.5rem',
-                        fontSize: '0.75rem',
-                        fontWeight: 500,
-                        borderRadius: '9999px',
-                        backgroundColor: '#fef3c7',
-                        color: '#92400e',
-                      }}
-                    >
-                      📌 {t('notices.pinned')}
-                    </span>
+            <Card className="mb-6">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
+                  <div className="flex items-center gap-3">
+                    <h1 className="text-2xl font-bold text-ink-strong">
+                      {notice.title}
+                    </h1>
+                    {notice.isPinned && (
+                      <span className="inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full bg-warning-bg text-warning-text">
+                        📌 {t('notices.pinned')}
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="grid gap-4 grid-cols-[repeat(auto-fit,minmax(180px,1fr))] mb-5">
+                  <div>
+                    <p className="text-xs font-medium text-steel mb-1">
+                      {t('notices.targetAudience')}
+                    </p>
+                    <p className="text-base text-ink">
+                      {audienceLabels[notice.targetAudience]}
+                    </p>
+                  </div>
+                  {notice.targetBuildingName && (
+                    <div>
+                      <p className="text-xs font-medium text-steel mb-1">
+                        {t('notices.building')}
+                      </p>
+                      <p className="text-base text-ink">
+                        {notice.targetBuildingName}
+                      </p>
+                    </div>
                   )}
-                </div>
-              </div>
-
-              <div
-                style={{
-                  display: 'grid',
-                  gap: '1rem',
-                  gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-                  marginBottom: '1.25rem',
-                }}
-              >
-                <div>
-                  <p
-                    style={{
-                      fontSize: '0.75rem',
-                      fontWeight: 500,
-                      color: '#6b7280',
-                      marginBottom: '0.25rem',
-                    }}
-                  >
-                    {t('notices.targetAudience')}
-                  </p>
-                  <p style={{ fontSize: '1rem', color: '#111827' }}>
-                    {audienceLabels[notice.targetAudience]}
-                  </p>
-                </div>
-                {notice.targetBuildingName && (
+                  {notice.targetFlatNumber && (
+                    <div>
+                      <p className="text-xs font-medium text-steel mb-1">
+                        {t('notices.flat')}
+                      </p>
+                      <p className="text-base text-ink">
+                        {notice.targetFlatNumber}
+                      </p>
+                    </div>
+                  )}
                   <div>
-                    <p
-                      style={{
-                        fontSize: '0.75rem',
-                        fontWeight: 500,
-                        color: '#6b7280',
-                        marginBottom: '0.25rem',
-                      }}
-                    >
-                      {t('notices.building')}
+                    <p className="text-xs font-medium text-steel mb-1">
+                      {t('notices.author')}
                     </p>
-                    <p style={{ fontSize: '1rem', color: '#111827' }}>
-                      {notice.targetBuildingName}
+                    <p className="text-base text-ink">
+                      {notice.authorName || '—'}
                     </p>
                   </div>
-                )}
-                {notice.targetFlatNumber && (
                   <div>
-                    <p
-                      style={{
-                        fontSize: '0.75rem',
-                        fontWeight: 500,
-                        color: '#6b7280',
-                        marginBottom: '0.25rem',
-                      }}
-                    >
-                      {t('notices.flat')}
+                    <p className="text-xs font-medium text-steel mb-1">
+                      {t('notices.createdAt')}
                     </p>
-                    <p style={{ fontSize: '1rem', color: '#111827' }}>
-                      {notice.targetFlatNumber}
+                    <p className="text-base text-ink">
+                      {new Date(notice.createdAt).toLocaleDateString()}
                     </p>
                   </div>
-                )}
-                <div>
-                  <p
-                    style={{
-                      fontSize: '0.75rem',
-                      fontWeight: 500,
-                      color: '#6b7280',
-                      marginBottom: '0.25rem',
-                    }}
-                  >
-                    {t('notices.author')}
-                  </p>
-                  <p style={{ fontSize: '1rem', color: '#111827' }}>
-                    {notice.authorName || '—'}
-                  </p>
                 </div>
-                <div>
-                  <p
-                    style={{
-                      fontSize: '0.75rem',
-                      fontWeight: 500,
-                      color: '#6b7280',
-                      marginBottom: '0.25rem',
-                    }}
-                  >
-                    {t('notices.createdAt')}
-                  </p>
-                  <p style={{ fontSize: '1rem', color: '#111827' }}>
-                    {new Date(notice.createdAt).toLocaleDateString()}
-                  </p>
-                </div>
-              </div>
 
-              {/* Notice Body */}
-              <div style={{ marginBottom: '1rem' }}>
-                <p
-                  style={{
-                    fontSize: '0.75rem',
-                    fontWeight: 500,
-                    color: '#6b7280',
-                    marginBottom: '0.5rem',
-                  }}
-                >
-                  {t('notices.body')}
-                </p>
-                <p
-                  style={{
-                    fontSize: '0.9375rem',
-                    color: '#374151',
-                    lineHeight: 1.6,
-                    whiteSpace: 'pre-wrap',
-                  }}
-                >
-                  {notice.body}
-                </p>
-              </div>
-            </div>
+                {/* Notice Body */}
+                <div className="mb-4">
+                  <p className="text-xs font-medium text-steel mb-2">
+                    {t('notices.body')}
+                  </p>
+                  <p className="text-[0.9375rem] text-charcoal leading-relaxed whitespace-pre-wrap">
+                    {notice.body}
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
           ) : (
             /* Edit Form */
-            <div
-              style={{
-                padding: '1.5rem',
-                borderRadius: '0.5rem',
-                border: '1px solid #e5e7eb',
-                backgroundColor: '#ffffff',
-                marginBottom: '1.5rem',
-                maxWidth: '640px',
-              }}
-            >
-              <h2
-                style={{
-                  fontSize: '1.25rem',
-                  fontWeight: 600,
-                  color: '#111827',
-                  marginBottom: '1.25rem',
-                }}
-              >
-                {t('notices.editNotice')}
-              </h2>
+            <Card className="mb-6 max-w-[640px]">
+              <CardContent className="p-6">
+                <h2 className="text-xl font-semibold text-ink-strong mb-5">
+                  {t('notices.editNotice')}
+                </h2>
 
-              {editErrors.form && (
-                <p
-                  style={{
-                    fontSize: '0.875rem',
-                    color: '#dc2626',
-                    marginBottom: '1rem',
-                    padding: '0.75rem',
-                    borderRadius: '0.375rem',
-                    backgroundColor: '#fef2f2',
-                  }}
-                >
-                  {editErrors.form}
-                </p>
-              )}
-
-              <form onSubmit={handleUpdate}>
-                {/* Title */}
-                <div style={{ marginBottom: '1.25rem' }}>
-                  <FormField
-                    label={t('notices.noticeTitle')}
-                    required
-                    error={editErrors.title}
-                    htmlFor="edit-title"
-                  >
-                    <FormInput
-                      id="edit-title"
-                      type="text"
-                      value={editTitle}
-                      onChange={(e) => setEditTitle(e.target.value)}
-                      hasError={!!editErrors.title}
-                      maxLength={200}
-                      placeholder={t('notices.titlePlaceholder')}
-                    />
-                  </FormField>
-                  <p
-                    style={{
-                      fontSize: '0.75rem',
-                      color: '#6b7280',
-                      marginTop: '0.25rem',
-                    }}
-                  >
-                    {editTitle.length}/200
+                {editErrors.form && (
+                  <p className="text-sm text-error-text mb-4 px-3 py-3 rounded-md bg-error-bg">
+                    {editErrors.form}
                   </p>
-                </div>
+                )}
 
-                {/* Body */}
-                <div style={{ marginBottom: '1.25rem' }}>
-                  <FormField
-                    label={t('notices.body')}
-                    required
-                    error={editErrors.body}
-                    htmlFor="edit-body"
-                  >
-                    <textarea
-                      id="edit-body"
-                      value={editBody}
-                      onChange={(e) => setEditBody(e.target.value)}
-                      maxLength={5000}
-                      rows={8}
-                      placeholder={t('notices.bodyPlaceholder')}
-                      style={{
-                        width: '100%',
-                        padding: '0.5rem 0.75rem',
-                        fontSize: '0.875rem',
-                        borderRadius: '0.375rem',
-                        border: `1px solid ${editErrors.body ? '#dc2626' : '#d1d5db'}`,
-                        minHeight: '44px',
-                        resize: 'vertical',
-                        fontFamily: 'inherit',
-                      }}
-                    />
-                  </FormField>
-                  <p
-                    style={{
-                      fontSize: '0.75rem',
-                      color: '#6b7280',
-                      marginTop: '0.25rem',
-                    }}
-                  >
-                    {editBody.length}/5000
-                  </p>
-                </div>
-
-                {/* Target Audience */}
-                <div style={{ marginBottom: '1.25rem' }}>
-                  <FormField
-                    label={t('notices.targetAudience')}
-                    required
-                    error={editErrors.targetAudience}
-                    htmlFor="edit-audience"
-                  >
-                    <select
-                      id="edit-audience"
-                      value={editAudience}
-                      onChange={(e) => {
-                        setEditAudience(
-                          e.target.value as NoticeTargetAudience | '',
-                        )
-                        setEditBuildingId('')
-                        setEditFlatId('')
-                        setFlatOptions([])
-                      }}
-                      style={{
-                        width: '100%',
-                        padding: '0.5rem 0.75rem',
-                        fontSize: '0.875rem',
-                        borderRadius: '0.375rem',
-                        border: `1px solid ${editErrors.targetAudience ? '#dc2626' : '#d1d5db'}`,
-                        minHeight: '44px',
-                        backgroundColor: '#ffffff',
-                      }}
-                    >
-                      <option value="">{t('notices.selectAudience')}</option>
-                      <option value="all_renters">
-                        {t('notices.allRenters')}
-                      </option>
-                      <option value="specific_building">
-                        {t('notices.specificBuilding')}
-                      </option>
-                      <option value="specific_flat">
-                        {t('notices.specificFlat')}
-                      </option>
-                      <option value="managers_only">
-                        {t('notices.managersOnly')}
-                      </option>
-                    </select>
-                  </FormField>
-                </div>
-
-                {/* Building Selection */}
-                {(editAudience === 'specific_building' ||
-                  editAudience === 'specific_flat') && (
-                  <div style={{ marginBottom: '1.25rem' }}>
+                <form onSubmit={handleUpdate}>
+                  {/* Title */}
+                  <div className="mb-5">
                     <FormField
-                      label={t('notices.building')}
+                      label={t('notices.noticeTitle')}
                       required
-                      error={editErrors.targetBuildingId}
-                      htmlFor="edit-building"
+                      error={editErrors.title}
+                      htmlFor="edit-title"
+                    >
+                      <FormInput
+                        id="edit-title"
+                        type="text"
+                        value={editTitle}
+                        onChange={(e) => setEditTitle(e.target.value)}
+                        hasError={!!editErrors.title}
+                        maxLength={200}
+                        placeholder={t('notices.titlePlaceholder')}
+                      />
+                    </FormField>
+                    <p className="text-xs text-steel mt-1">
+                      {editTitle.length}/200
+                    </p>
+                  </div>
+
+                  {/* Body */}
+                  <div className="mb-5">
+                    <FormField
+                      label={t('notices.body')}
+                      required
+                      error={editErrors.body}
+                      htmlFor="edit-body"
+                    >
+                      <textarea
+                        id="edit-body"
+                        value={editBody}
+                        onChange={(e) => setEditBody(e.target.value)}
+                        maxLength={5000}
+                        rows={8}
+                        placeholder={t('notices.bodyPlaceholder')}
+                        className={[
+                          'w-full px-3 py-2 text-sm rounded-md border min-h-[44px] resize-y font-[inherit]',
+                          editErrors.body
+                            ? 'border-error-text bg-error-bg'
+                            : 'border-hairline bg-canvas',
+                        ].join(' ')}
+                      />
+                    </FormField>
+                    <p className="text-xs text-steel mt-1">
+                      {editBody.length}/5000
+                    </p>
+                  </div>
+
+                  {/* Target Audience */}
+                  <div className="mb-5">
+                    <FormField
+                      label={t('notices.targetAudience')}
+                      required
+                      error={editErrors.targetAudience}
+                      htmlFor="edit-audience"
                     >
                       <select
-                        id="edit-building"
-                        value={editBuildingId}
+                        id="edit-audience"
+                        value={editAudience}
                         onChange={(e) => {
-                          setEditBuildingId(e.target.value)
+                          setEditAudience(
+                            e.target.value as NoticeTargetAudience | '',
+                          )
+                          setEditBuildingId('')
                           setEditFlatId('')
                           setFlatOptions([])
                         }}
-                        style={{
-                          width: '100%',
-                          padding: '0.5rem 0.75rem',
-                          fontSize: '0.875rem',
-                          borderRadius: '0.375rem',
-                          border: `1px solid ${editErrors.targetBuildingId ? '#dc2626' : '#d1d5db'}`,
-                          minHeight: '44px',
-                          backgroundColor: '#ffffff',
-                        }}
+                        className={[
+                          'w-full px-3 py-2 text-sm rounded-md border min-h-[44px] bg-canvas',
+                          editErrors.targetAudience
+                            ? 'border-error-text'
+                            : 'border-hairline',
+                        ].join(' ')}
                       >
-                        <option value="">{t('notices.selectBuilding')}</option>
-                        {(buildingsData?.data ?? []).map((b) => (
-                          <option key={b.id} value={b.id}>
-                            {b.name}
-                          </option>
-                        ))}
+                        <option value="">{t('notices.selectAudience')}</option>
+                        <option value="all_renters">
+                          {t('notices.allRenters')}
+                        </option>
+                        <option value="specific_building">
+                          {t('notices.specificBuilding')}
+                        </option>
+                        <option value="specific_flat">
+                          {t('notices.specificFlat')}
+                        </option>
+                        <option value="managers_only">
+                          {t('notices.managersOnly')}
+                        </option>
                       </select>
                     </FormField>
                   </div>
-                )}
 
-                {/* Flat Selection */}
-                {editAudience === 'specific_flat' && editBuildingId && (
-                  <div style={{ marginBottom: '1.25rem' }}>
-                    <FormField
-                      label={t('notices.flat')}
-                      required
-                      error={editErrors.targetFlatId}
-                      htmlFor="edit-flat"
+                  {/* Building Selection */}
+                  {(editAudience === 'specific_building' ||
+                    editAudience === 'specific_flat') && (
+                    <div className="mb-5">
+                      <FormField
+                        label={t('notices.building')}
+                        required
+                        error={editErrors.targetBuildingId}
+                        htmlFor="edit-building"
+                      >
+                        <select
+                          id="edit-building"
+                          value={editBuildingId}
+                          onChange={(e) => {
+                            setEditBuildingId(e.target.value)
+                            setEditFlatId('')
+                            setFlatOptions([])
+                          }}
+                          className={[
+                            'w-full px-3 py-2 text-sm rounded-md border min-h-[44px] bg-canvas',
+                            editErrors.targetBuildingId
+                              ? 'border-error-text'
+                              : 'border-hairline',
+                          ].join(' ')}
+                        >
+                          <option value="">
+                            {t('notices.selectBuilding')}
+                          </option>
+                          {(buildingsData?.data ?? []).map((b) => (
+                            <option key={b.id} value={b.id}>
+                              {b.name}
+                            </option>
+                          ))}
+                        </select>
+                      </FormField>
+                    </div>
+                  )}
+
+                  {/* Flat Selection */}
+                  {editAudience === 'specific_flat' && editBuildingId && (
+                    <div className="mb-5">
+                      <FormField
+                        label={t('notices.flat')}
+                        required
+                        error={editErrors.targetFlatId}
+                        htmlFor="edit-flat"
+                      >
+                        <select
+                          id="edit-flat"
+                          value={editFlatId}
+                          onChange={(e) => setEditFlatId(e.target.value)}
+                          disabled={loadingFlats}
+                          className={[
+                            'w-full px-3 py-2 text-sm rounded-md border min-h-[44px] bg-canvas',
+                            editErrors.targetFlatId
+                              ? 'border-error-text'
+                              : 'border-hairline',
+                          ].join(' ')}
+                        >
+                          <option value="">{t('notices.selectFlat')}</option>
+                          {flatOptions.map((f) => (
+                            <option key={f.id} value={f.id}>
+                              {f.flatNumber}
+                            </option>
+                          ))}
+                        </select>
+                      </FormField>
+                    </div>
+                  )}
+
+                  {/* Submit/Cancel */}
+                  <div className="flex gap-3 justify-end">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={cancelEditing}
+                      className="min-h-[44px] rounded-full"
                     >
-                      <select
-                        id="edit-flat"
-                        value={editFlatId}
-                        onChange={(e) => setEditFlatId(e.target.value)}
-                        disabled={loadingFlats}
-                        style={{
-                          width: '100%',
-                          padding: '0.5rem 0.75rem',
-                          fontSize: '0.875rem',
-                          borderRadius: '0.375rem',
-                          border: `1px solid ${editErrors.targetFlatId ? '#dc2626' : '#d1d5db'}`,
-                          minHeight: '44px',
-                          backgroundColor: '#ffffff',
-                        }}
-                      >
-                        <option value="">{t('notices.selectFlat')}</option>
-                        {flatOptions.map((f) => (
-                          <option key={f.id} value={f.id}>
-                            {f.flatNumber}
-                          </option>
-                        ))}
-                      </select>
-                    </FormField>
+                      {t('common.cancel')}
+                    </Button>
+                    <Button
+                      type="submit"
+                      disabled={updateMutation.isPending}
+                      className="min-h-[44px] rounded-full bg-primary text-on-primary font-semibold"
+                    >
+                      {updateMutation.isPending
+                        ? t('common.loading')
+                        : t('common.save')}
+                    </Button>
                   </div>
-                )}
-
-                {/* Submit/Cancel */}
-                <div
-                  style={{
-                    display: 'flex',
-                    gap: '0.75rem',
-                    justifyContent: 'flex-end',
-                  }}
-                >
-                  <button
-                    type="button"
-                    onClick={cancelEditing}
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      minWidth: '44px',
-                      minHeight: '44px',
-                      padding: '0.5rem 1rem',
-                      fontSize: '0.875rem',
-                      fontWeight: 500,
-                      borderRadius: '0.375rem',
-                      backgroundColor: 'transparent',
-                      color: '#374151',
-                      border: '1px solid #d1d5db',
-                      cursor: 'pointer',
-                    }}
-                  >
-                    {t('common.cancel')}
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={updateMutation.isPending}
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      minWidth: '44px',
-                      minHeight: '44px',
-                      padding: '0.5rem 1.25rem',
-                      fontSize: '0.875rem',
-                      fontWeight: 600,
-                      borderRadius: '0.375rem',
-                      backgroundColor: updateMutation.isPending
-                        ? '#93c5fd'
-                        : '#2563eb',
-                      color: '#ffffff',
-                      border: 'none',
-                      cursor: updateMutation.isPending
-                        ? 'not-allowed'
-                        : 'pointer',
-                    }}
-                  >
-                    {updateMutation.isPending
-                      ? t('common.loading')
-                      : t('common.save')}
-                  </button>
-                </div>
-              </form>
-            </div>
+                </form>
+              </CardContent>
+            </Card>
           )}
 
           {/* Action Controls */}
           {(canEdit || canPin) && !isEditing && (
-            <div
-              style={{
-                padding: '1.5rem',
-                borderRadius: '0.5rem',
-                border: '1px solid #e5e7eb',
-                backgroundColor: '#ffffff',
-                marginBottom: '1.5rem',
-              }}
-            >
-              <h2
-                style={{
-                  fontSize: '1.125rem',
-                  fontWeight: 600,
-                  color: '#111827',
-                  marginBottom: '1rem',
-                }}
-              >
-                {t('notices.actions')}
-              </h2>
+            <Card className="mb-6">
+              <CardContent className="p-6">
+                <h2 className="text-lg font-semibold text-ink-strong mb-4">
+                  {t('notices.actions')}
+                </h2>
 
-              {editErrors.form && (
-                <p
-                  style={{
-                    fontSize: '0.75rem',
-                    color: '#dc2626',
-                    marginBottom: '0.75rem',
-                    padding: '0.5rem',
-                    borderRadius: '0.375rem',
-                    backgroundColor: '#fef2f2',
-                  }}
-                >
-                  {editErrors.form}
-                </p>
-              )}
-
-              <div
-                style={{
-                  display: 'flex',
-                  gap: '0.75rem',
-                  flexWrap: 'wrap',
-                }}
-              >
-                {/* Pin/Unpin Toggle */}
-                {canPin && (
-                  <button
-                    type="button"
-                    onClick={handleTogglePin}
-                    disabled={pinMutation.isPending}
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      minWidth: '44px',
-                      minHeight: '44px',
-                      padding: '0.5rem 1rem',
-                      fontSize: '0.875rem',
-                      fontWeight: 500,
-                      borderRadius: '0.375rem',
-                      backgroundColor: pinMutation.isPending
-                        ? '#e5e7eb'
-                        : 'transparent',
-                      color: '#f59e0b',
-                      border: '1px solid #f59e0b',
-                      cursor: pinMutation.isPending ? 'not-allowed' : 'pointer',
-                    }}
-                  >
-                    {notice.isPinned ? t('notices.unpin') : t('notices.pin')}
-                  </button>
+                {editErrors.form && (
+                  <p className="text-xs text-error-text mb-3 px-2 py-2 rounded-md bg-error-bg">
+                    {editErrors.form}
+                  </p>
                 )}
 
-                {/* Edit Button */}
-                {canEdit && (
-                  <button
-                    type="button"
-                    onClick={startEditing}
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      minWidth: '44px',
-                      minHeight: '44px',
-                      padding: '0.5rem 1rem',
-                      fontSize: '0.875rem',
-                      fontWeight: 500,
-                      borderRadius: '0.375rem',
-                      backgroundColor: 'transparent',
-                      color: '#2563eb',
-                      border: '1px solid #2563eb',
-                      cursor: 'pointer',
-                    }}
-                  >
-                    {t('common.edit')}
-                  </button>
-                )}
+                <div className="flex gap-3 flex-wrap">
+                  {/* Pin/Unpin Toggle */}
+                  {canPin && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={handleTogglePin}
+                      disabled={pinMutation.isPending}
+                      className="min-h-[44px] rounded-full border-brand-orange text-brand-orange hover:bg-warning-bg"
+                    >
+                      {notice.isPinned ? t('notices.unpin') : t('notices.pin')}
+                    </Button>
+                  )}
 
-                {/* Delete Button */}
-                {canEdit && (
-                  <button
-                    type="button"
-                    onClick={() => setShowDeleteConfirm(true)}
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      minWidth: '44px',
-                      minHeight: '44px',
-                      padding: '0.5rem 1rem',
-                      fontSize: '0.875rem',
-                      fontWeight: 500,
-                      borderRadius: '0.375rem',
-                      backgroundColor: 'transparent',
-                      color: '#dc2626',
-                      border: '1px solid #dc2626',
-                      cursor: 'pointer',
-                    }}
-                  >
-                    {t('common.delete')}
-                  </button>
-                )}
-              </div>
-            </div>
+                  {/* Edit Button */}
+                  {canEdit && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={startEditing}
+                      className="min-h-[44px] rounded-full border-brand-blue-deep text-brand-blue-deep hover:bg-brand-blue-200"
+                    >
+                      {t('common.edit')}
+                    </Button>
+                  )}
+
+                  {/* Delete Button */}
+                  {canEdit && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setShowDeleteConfirm(true)}
+                      className="min-h-[44px] rounded-full border-error-text text-error-text hover:bg-error-bg"
+                    >
+                      {t('common.delete')}
+                    </Button>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
           )}
 
           {/* Delete Confirmation Dialog */}

@@ -1,8 +1,18 @@
 import type { Metadata } from 'next'
-import { Noto_Sans_Bengali } from 'next/font/google'
-import localFont from 'next/font/local'
+import { DM_Sans, Noto_Sans_Bengali } from 'next/font/google'
 import { Providers } from '@/lib/providers'
 import './globals.css'
+
+/**
+ * DM Sans — primary Latin/UI font for AmarSpace.
+ * Matches the --font-sans token in globals.css @theme.
+ */
+const dmSans = DM_Sans({
+  subsets: ['latin'],
+  variable: '--font-dm-sans',
+  display: 'swap',
+  weight: ['400', '500', '600', '700'],
+})
 
 /**
  * Noto Sans Bengali — supports the full Unicode Bengali block (U+0980–U+09FF).
@@ -13,16 +23,6 @@ const notoSansBengali = Noto_Sans_Bengali({
   variable: '--font-noto-sans-bengali',
   display: 'swap',
   weight: ['400', '500', '600', '700'],
-})
-
-const geistSans = localFont({
-  src: './fonts/GeistVF.woff',
-  variable: '--font-geist-sans',
-})
-
-const geistMono = localFont({
-  src: './fonts/GeistMonoVF.woff',
-  variable: '--font-geist-mono',
 })
 
 export const metadata: Metadata = {
@@ -39,7 +39,7 @@ export default function RootLayout({
   return (
     <html lang="bn" suppressHydrationWarning>
       <body
-        className={`${notoSansBengali.variable} ${geistSans.variable} ${geistMono.variable} font-sans`}
+        className={`${dmSans.variable} ${notoSansBengali.variable} font-sans`}
       >
         <Providers>{children}</Providers>
       </body>

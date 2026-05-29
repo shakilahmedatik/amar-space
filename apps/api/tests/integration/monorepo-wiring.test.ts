@@ -88,11 +88,11 @@ describe('Monorepo Wiring Integration', () => {
   describe('turbo run check-types catches type errors across workspace boundaries', () => {
     it('should confirm exports map enforcement via @ts-expect-error validation', () => {
       // The tsconfig.type-check.json includes tests/type-checks/unexported-import.ts
-      // which uses @ts-expect-error on an import from "@repo/db/seed" (not in exports map).
+      // which uses a ts-expect-error directive on an import from "@repo/db/seed" (not in exports map).
       //
-      // If tsc passes with @ts-expect-error, it confirms the import IS invalid
+      // If tsc passes with the directive, it confirms the import IS invalid
       // (the directive suppresses the expected error). If the import were valid,
-      // @ts-expect-error would itself cause an "Unused directive" error and tsc would fail.
+      // the directive would itself cause an "Unused directive" error and tsc would fail.
       const result = execSync(
         'npx tsc --noEmit --project tsconfig.type-check.json',
         {
@@ -107,7 +107,9 @@ describe('Monorepo Wiring Integration', () => {
       expect(result.trim()).toBe('')
     })
 
-    it('should pass check-types for valid imports in apps/api', () => {
+    it('should pass check-types for valid imports in apps/api', {
+      timeout: 60_000,
+    }, () => {
       // Running check-types on the main tsconfig (which excludes the intentionally-broken file)
       // should succeed, confirming valid @repo/db imports resolve correctly
       const result = execSync('npx tsc --noEmit', {

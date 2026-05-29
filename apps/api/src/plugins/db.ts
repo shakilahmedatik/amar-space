@@ -11,8 +11,8 @@ declare module 'fastify' {
 /**
  * Database plugin that registers a Drizzle ORM client on the Fastify instance.
  *
- * Uses the DATABASE_URL from the env plugin to create a Neon serverless
- * HTTP-based database connection.
+ * Uses the DATABASE_URL from the env plugin to create a postgres.js-backed
+ * Drizzle client. Works with any standard PostgreSQL instance.
  *
  * Usage:
  * ```typescript

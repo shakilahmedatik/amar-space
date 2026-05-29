@@ -1,7 +1,10 @@
 'use client'
 
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { type FormEvent, useCallback, useEffect, useState } from 'react'
 import { DashboardLayout } from '@/components/layout'
+import { Button } from '@/components/ui/button'
 import { CurrencyDisplay } from '@/components/ui/currency-display'
 import { DataTable, type DataTableColumn } from '@/components/ui/data-table'
 import { ErrorFeedback } from '@/components/ui/error-feedback'
@@ -28,6 +31,7 @@ type UserRole = 'owner' | 'manager' | 'renter'
  */
 export default function BillsPage() {
   const { t } = useTranslation()
+  const router = useRouter()
   const [user, setUser] = useState<{ id: string; role: string } | null>(null)
   const [isLoadingSession, setIsLoadingSession] = useState(true)
   const [page, setPage] = useState(1)
@@ -50,12 +54,12 @@ export default function BillsPage() {
       try {
         const session = await getSession()
         if (!session) {
-          window.location.href = '/login'
+          router.push('/login')
           return
         }
         setUser(session)
       } catch {
-        window.location.href = '/login'
+        router.push('/login')
       } finally {
         setIsLoadingSession(false)
       }
@@ -126,7 +130,7 @@ export default function BillsPage() {
 
   if (isLoadingSession || !user) {
     return (
-      <div className="flex h-dvh items-center justify-center bg-gray-50">
+      <div className="flex h-dvh items-center justify-center bg-surface">
         <div className="w-full max-w-md px-4">
           <LoadingSkeleton rows={5} showHeader />
         </div>
@@ -201,16 +205,12 @@ export default function BillsPage() {
       key: 'billingMonth',
       header: t('bills.billMonth'),
       render: (row) => (
-        <a
+        <Link
           href={`/bills/${row.id}`}
-          style={{
-            color: '#2563eb',
-            fontWeight: 500,
-            textDecoration: 'none',
-          }}
+          className="text-brand-blue-deep font-medium no-underline hover:underline"
         >
           {row.billingMonth}
-        </a>
+        </Link>
       ),
       width: '110px',
     },
@@ -268,98 +268,33 @@ export default function BillsPage() {
         />
       )}
 
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          marginBottom: '1.5rem',
-          flexWrap: 'wrap',
-          gap: '1rem',
-        }}
-      >
-        <h1
-          style={{
-            fontSize: '1.5rem',
-            fontWeight: 700,
-            color: '#111827',
-          }}
-        >
-          {t('bills.title')}
-        </h1>
+      <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
+        <h1 className="text-2xl font-bold text-ink">{t('bills.title')}</h1>
 
         {canGenerate && (
-          <button
+          <Button
             type="button"
             onClick={() => setShowGenerateDialog(true)}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              minWidth: '44px',
-              minHeight: '44px',
-              padding: '0.625rem 1.25rem',
-              fontSize: '0.875rem',
-              fontWeight: 600,
-              borderRadius: '0.5rem',
-              backgroundColor: '#2563eb',
-              color: '#ffffff',
-              textDecoration: 'none',
-              border: 'none',
-              cursor: 'pointer',
-            }}
+            className="min-h-[44px] rounded-full bg-primary text-on-primary font-semibold px-6"
           >
             {t('bills.generateBills')}
-          </button>
+          </Button>
         )}
       </div>
 
       {/* Generate Bills Dialog */}
       {showGenerateDialog && (
-        <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.5)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 50,
-            padding: '1rem',
-          }}
-        >
-          <div
-            style={{
-              backgroundColor: '#ffffff',
-              borderRadius: '0.75rem',
-              padding: '1.5rem',
-              width: '100%',
-              maxWidth: '24rem',
-              boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)',
-            }}
-          >
-            <h2
-              style={{
-                fontSize: '1.125rem',
-                fontWeight: 600,
-                color: '#111827',
-                marginBottom: '1rem',
-              }}
-            >
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-canvas rounded-xl p-6 w-full max-w-sm shadow-lg">
+            <h2 className="text-lg font-semibold text-ink mb-4">
               {t('bills.generateBills')}
             </h2>
 
             <form onSubmit={handleGenerateBills}>
-              <div style={{ marginBottom: '1rem' }}>
+              <div className="mb-4">
                 <label
                   htmlFor="generate-month"
-                  style={{
-                    display: 'block',
-                    fontSize: '0.875rem',
-                    fontWeight: 500,
-                    color: '#374151',
-                    marginBottom: '0.375rem',
-                  }}
+                  className="block text-sm font-medium text-charcoal mb-2"
                 >
                   {t('bills.billMonth')}
                 </label>
@@ -368,81 +303,37 @@ export default function BillsPage() {
                   type="month"
                   value={generateMonth}
                   onChange={(e) => setGenerateMonth(e.target.value)}
-                  style={{
-                    width: '100%',
-                    padding: '0.5rem 0.75rem',
-                    fontSize: '0.875rem',
-                    borderRadius: '0.375rem',
-                    border: '1px solid #d1d5db',
-                    minHeight: '44px',
-                  }}
+                  className="w-full px-3 py-2 text-sm rounded-md border border-hairline min-h-[44px] bg-canvas text-ink focus:outline-none focus:ring-2 focus:ring-brand-blue"
                 />
                 {generateError && (
-                  <p
-                    style={{
-                      fontSize: '0.75rem',
-                      color: '#dc2626',
-                      marginTop: '0.25rem',
-                    }}
-                  >
+                  <p className="text-xs text-error-text mt-1">
                     {generateError}
                   </p>
                 )}
               </div>
 
-              <div
-                style={{
-                  display: 'flex',
-                  gap: '0.75rem',
-                  justifyContent: 'flex-end',
-                }}
-              >
-                <button
+              <div className="flex gap-3 justify-end">
+                <Button
                   type="button"
+                  variant="outline"
                   onClick={() => {
                     setShowGenerateDialog(false)
                     setGenerateMonth('')
                     setGenerateError('')
                   }}
-                  style={{
-                    minWidth: '44px',
-                    minHeight: '44px',
-                    padding: '0.5rem 1rem',
-                    fontSize: '0.875rem',
-                    fontWeight: 500,
-                    borderRadius: '0.375rem',
-                    backgroundColor: 'transparent',
-                    color: '#374151',
-                    border: '1px solid #d1d5db',
-                    cursor: 'pointer',
-                  }}
+                  className="min-h-[44px] rounded-full border-hairline text-charcoal"
                 >
                   {t('common.cancel')}
-                </button>
-                <button
+                </Button>
+                <Button
                   type="submit"
                   disabled={generateMutation.isPending}
-                  style={{
-                    minWidth: '44px',
-                    minHeight: '44px',
-                    padding: '0.5rem 1rem',
-                    fontSize: '0.875rem',
-                    fontWeight: 600,
-                    borderRadius: '0.375rem',
-                    backgroundColor: generateMutation.isPending
-                      ? '#93c5fd'
-                      : '#2563eb',
-                    color: '#ffffff',
-                    border: 'none',
-                    cursor: generateMutation.isPending
-                      ? 'not-allowed'
-                      : 'pointer',
-                  }}
+                  className="min-h-[44px] rounded-full bg-primary text-on-primary font-semibold disabled:opacity-50"
                 >
                   {generateMutation.isPending
                     ? t('common.loading')
                     : t('bills.generateBills')}
-                </button>
+                </Button>
               </div>
             </form>
           </div>
@@ -456,7 +347,11 @@ export default function BillsPage() {
           columns={columns}
           data={data?.data ?? []}
           getRowKey={(row) => row.id}
-          pagination={data?.pagination}
+          pagination={
+            data
+              ? { total: data.total, page: data.page, pageSize: data.pageSize }
+              : undefined
+          }
           onPageChange={setPage}
           filters={filters}
           filterValues={filterValues}

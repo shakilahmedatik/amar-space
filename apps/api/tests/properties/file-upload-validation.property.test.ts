@@ -160,7 +160,7 @@ const invalidFileSizeArb = fc.integer({
  * Generate a valid file name: alphanumeric with extension.
  */
 const validFileNameArb = fc
-  .stringMatching(/^[a-zA-Z0-9_\-]{1,20}$/)
+  .stringMatching(/^[a-zA-Z0-9_-]{1,20}$/)
   .map((name) => `${name}.jpg`)
 
 /**

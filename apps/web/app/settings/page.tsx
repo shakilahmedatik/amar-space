@@ -1,7 +1,10 @@
 'use client'
 
+import { useRouter } from 'next/navigation'
 import { useCallback, useEffect, useState } from 'react'
 import { DashboardLayout } from '@/components/layout'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
 import { ErrorFeedback } from '@/components/ui/error-feedback'
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton'
 import {
@@ -22,6 +25,7 @@ type UserRole = 'owner' | 'manager' | 'renter'
  */
 export default function SettingsPage() {
   const { t, locale, setLocale } = useTranslation()
+  const router = useRouter()
   const [user, setUser] = useState<{ id: string; role: string } | null>(null)
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [isLoadingSession, setIsLoadingSession] = useState(true)
@@ -37,12 +41,12 @@ export default function SettingsPage() {
       try {
         const session = await getSession()
         if (!session) {
-          window.location.href = '/login'
+          router.push('/login')
           return
         }
         setUser(session)
       } catch {
-        window.location.href = '/login'
+        router.push('/login')
       } finally {
         setIsLoadingSession(false)
       }
@@ -99,7 +103,7 @@ export default function SettingsPage() {
 
   if (isLoadingSession || !user) {
     return (
-      <div className="flex h-dvh items-center justify-center bg-gray-50">
+      <div className="flex h-dvh items-center justify-center bg-surface">
         <div className="w-full max-w-md px-4">
           <LoadingSkeleton rows={5} showHeader />
         </div>
@@ -136,178 +140,87 @@ export default function SettingsPage() {
         />
       )}
 
-      <h1
-        style={{
-          fontSize: '1.5rem',
-          fontWeight: 700,
-          marginBottom: '1.5rem',
-          color: '#111827',
-        }}
-      >
+      <h1 className="text-2xl font-bold mb-6 text-ink">
         {t('settings.title')}
       </h1>
 
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '1.5rem',
-          maxWidth: '640px',
-        }}
-      >
+      <div className="flex flex-col gap-6 max-w-[640px]">
         {/* Language Preference Section */}
-        <section
-          style={{
-            padding: '1.5rem',
-            borderRadius: '0.5rem',
-            border: '1px solid #e5e7eb',
-            backgroundColor: '#ffffff',
-          }}
-        >
-          <h2
-            style={{
-              fontSize: '1.125rem',
-              fontWeight: 600,
-              color: '#111827',
-              marginBottom: '0.5rem',
-            }}
-          >
-            {t('settings.languagePreference')}
-          </h2>
-          <p
-            style={{
-              fontSize: '0.875rem',
-              color: '#6b7280',
-              marginBottom: '1rem',
-              lineHeight: '1.6',
-            }}
-          >
-            {t('settings.languageDescription')}
-          </p>
+        <Card className="bg-canvas border border-hairline rounded-lg">
+          <CardContent className="p-6">
+            <h2 className="text-lg font-semibold text-ink mb-2">
+              {t('settings.languagePreference')}
+            </h2>
+            <p className="text-sm text-steel mb-4 leading-relaxed">
+              {t('settings.languageDescription')}
+            </p>
 
-          <div
-            style={{
-              display: 'flex',
-              gap: '0.75rem',
-              flexWrap: 'wrap',
-            }}
-          >
-            <button
-              type="button"
-              onClick={() => handleLanguageChange('bn')}
-              disabled={isSavingLanguage}
-              aria-pressed={locale === 'bn'}
-              style={{
-                minWidth: '44px',
-                minHeight: '44px',
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                padding: '0.625rem 1.25rem',
-                fontSize: '1rem',
-                fontWeight: 500,
-                borderRadius: '0.375rem',
-                border:
-                  locale === 'bn' ? '2px solid #2563eb' : '1px solid #d1d5db',
-                backgroundColor: locale === 'bn' ? '#eff6ff' : 'transparent',
-                color: locale === 'bn' ? '#2563eb' : '#374151',
-                cursor: isSavingLanguage ? 'not-allowed' : 'pointer',
-                opacity: isSavingLanguage ? 0.7 : 1,
-                transition: 'all 0.15s ease',
-              }}
-            >
-              বাংলা
-            </button>
-            <button
-              type="button"
-              onClick={() => handleLanguageChange('en')}
-              disabled={isSavingLanguage}
-              aria-pressed={locale === 'en'}
-              style={{
-                minWidth: '44px',
-                minHeight: '44px',
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                padding: '0.625rem 1.25rem',
-                fontSize: '1rem',
-                fontWeight: 500,
-                borderRadius: '0.375rem',
-                border:
-                  locale === 'en' ? '2px solid #2563eb' : '1px solid #d1d5db',
-                backgroundColor: locale === 'en' ? '#eff6ff' : 'transparent',
-                color: locale === 'en' ? '#2563eb' : '#374151',
-                cursor: isSavingLanguage ? 'not-allowed' : 'pointer',
-                opacity: isSavingLanguage ? 0.7 : 1,
-                transition: 'all 0.15s ease',
-              }}
-            >
-              English
-            </button>
-          </div>
-        </section>
+            <div className="flex gap-3 flex-wrap">
+              <Button
+                type="button"
+                variant={locale === 'bn' ? 'default' : 'outline'}
+                onClick={() => handleLanguageChange('bn')}
+                disabled={isSavingLanguage}
+                aria-pressed={locale === 'bn'}
+                className="rounded-full min-h-[44px] px-5 font-medium"
+              >
+                বাংলা
+              </Button>
+              <Button
+                type="button"
+                variant={locale === 'en' ? 'default' : 'outline'}
+                onClick={() => handleLanguageChange('en')}
+                disabled={isSavingLanguage}
+                aria-pressed={locale === 'en'}
+                className="rounded-full min-h-[44px] px-5 font-medium"
+              >
+                English
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Account Information Section */}
-        <section
-          style={{
-            padding: '1.5rem',
-            borderRadius: '0.5rem',
-            border: '1px solid #e5e7eb',
-            backgroundColor: '#ffffff',
-          }}
-        >
-          <h2
-            style={{
-              fontSize: '1.125rem',
-              fontWeight: 600,
-              color: '#111827',
-              marginBottom: '1rem',
-            }}
-          >
-            {t('settings.accountInfo')}
-          </h2>
+        <Card className="bg-canvas border border-hairline rounded-lg">
+          <CardContent className="p-6">
+            <h2 className="text-lg font-semibold text-ink mb-4">
+              {t('settings.accountInfo')}
+            </h2>
 
-          {isLoadingProfile ? (
-            <LoadingSkeleton rows={4} />
-          ) : profile ? (
-            <dl
-              style={{
-                display: 'grid',
-                gridTemplateColumns: '1fr',
-                gap: '0.75rem',
-              }}
-            >
-              <InfoRow label={t('settings.email')} value={profile.email} />
-              <InfoRow
-                label={t('settings.name')}
-                value={profile.name || t('settings.notProvided')}
-              />
-              <InfoRow
-                label={t('settings.role')}
-                value={getRoleLabel(profile.role)}
-              />
-              <InfoRow
-                label={t('settings.phone')}
-                value={profile.phone || t('settings.notProvided')}
-              />
-              <InfoRow
-                label={t('settings.memberSince')}
-                value={new Date(profile.createdAt).toLocaleDateString(
-                  locale === 'bn' ? 'bn-BD' : 'en-GB',
-                  {
-                    day: '2-digit',
-                    month: '2-digit',
-                    year: 'numeric',
-                  },
-                )}
-              />
-            </dl>
-          ) : (
-            <p style={{ color: '#6b7280', fontSize: '0.875rem' }}>
-              {t('settings.loadError')}
-            </p>
-          )}
-        </section>
+            {isLoadingProfile ? (
+              <LoadingSkeleton rows={4} />
+            ) : profile ? (
+              <dl className="grid grid-cols-1 gap-3">
+                <InfoRow label={t('settings.email')} value={profile.email} />
+                <InfoRow
+                  label={t('settings.name')}
+                  value={profile.name || t('settings.notProvided')}
+                />
+                <InfoRow
+                  label={t('settings.role')}
+                  value={getRoleLabel(profile.role)}
+                />
+                <InfoRow
+                  label={t('settings.phone')}
+                  value={profile.phone || t('settings.notProvided')}
+                />
+                <InfoRow
+                  label={t('settings.memberSince')}
+                  value={new Date(profile.createdAt).toLocaleDateString(
+                    locale === 'bn' ? 'bn-BD' : 'en-GB',
+                    {
+                      day: '2-digit',
+                      month: '2-digit',
+                      year: 'numeric',
+                    },
+                  )}
+                />
+              </dl>
+            ) : (
+              <p className="text-steel text-sm">{t('settings.loadError')}</p>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </DashboardLayout>
   )
@@ -318,34 +231,9 @@ export default function SettingsPage() {
  */
 function InfoRow({ label, value }: { label: string; value: string }) {
   return (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '0.25rem',
-        padding: '0.5rem 0',
-        borderBottom: '1px solid #f3f4f6',
-      }}
-    >
-      <dt
-        style={{
-          fontSize: '0.8125rem',
-          fontWeight: 500,
-          color: '#6b7280',
-        }}
-      >
-        {label}
-      </dt>
-      <dd
-        style={{
-          fontSize: '1rem',
-          fontWeight: 400,
-          color: '#111827',
-          margin: 0,
-        }}
-      >
-        {value}
-      </dd>
+    <div className="flex flex-col gap-1 py-2 border-b border-surface-soft">
+      <dt className="text-[0.8125rem] font-medium text-steel">{label}</dt>
+      <dd className="text-base font-normal text-ink m-0">{value}</dd>
     </div>
   )
 }

@@ -1,6 +1,14 @@
 'use client'
 
 import { type ReactNode, useCallback } from 'react'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
 import { useTranslation } from '@/lib/i18n'
 
 export interface DataTableColumn<T> {
@@ -21,7 +29,7 @@ export interface DataTableFilter {
 interface PaginationInfo {
   page: number
   pageSize: number
-  totalItems: number
+  total: number
 }
 
 interface DataTableProps<T> {
@@ -57,7 +65,7 @@ export function DataTable<T>({
 }: DataTableProps<T>) {
   const { t } = useTranslation()
   const totalPages = pagination
-    ? Math.ceil(pagination.totalItems / pagination.pageSize)
+    ? Math.ceil(pagination.total / pagination.pageSize)
     : 1
 
   const handlePrevious = useCallback(() => {
@@ -72,31 +80,12 @@ export function DataTable<T>({
   return (
     <div className={className}>
       {filters && filters.length > 0 && (
-        <div
-          style={{
-            display: 'flex',
-            flexWrap: 'wrap',
-            gap: '0.75rem',
-            marginBottom: '1rem',
-            padding: '0.75rem',
-            borderRadius: '0.5rem',
-            border: '1px solid #e5e7eb',
-          }}
-        >
+        <div className="flex flex-wrap gap-3 mb-4 p-3 rounded-lg border border-hairline">
           {filters.map((filter) => (
-            <div
-              key={filter.key}
-              style={{ minWidth: '150px', flex: '1 1 auto' }}
-            >
+            <div key={filter.key} className="min-w-[150px] flex-1">
               <label
                 htmlFor={`filter-${filter.key}`}
-                style={{
-                  display: 'block',
-                  fontSize: '0.75rem',
-                  fontWeight: 500,
-                  color: '#6b7280',
-                  marginBottom: '0.25rem',
-                }}
+                className="block text-xs font-medium text-steel mb-1"
               >
                 {filter.label}
               </label>
@@ -105,16 +94,7 @@ export function DataTable<T>({
                   id={`filter-${filter.key}`}
                   value={filterValues[filter.key] || ''}
                   onChange={(e) => onFilterChange?.(filter.key, e.target.value)}
-                  style={{
-                    width: '100%',
-                    padding: '0.5rem 0.75rem',
-                    fontSize: '0.875rem',
-                    borderRadius: '0.375rem',
-                    border: '1px solid #d1d5db',
-                    backgroundColor: 'var(--background)',
-                    color: 'var(--foreground)',
-                    minHeight: '44px',
-                  }}
+                  className="w-full px-3 py-2 text-sm rounded-md border border-hairline bg-canvas text-ink min-h-[44px]"
                 >
                   <option value="">
                     {filter.placeholder || t('common.filter')}
@@ -132,16 +112,7 @@ export function DataTable<T>({
                   value={filterValues[filter.key] || ''}
                   onChange={(e) => onFilterChange?.(filter.key, e.target.value)}
                   placeholder={filter.placeholder || t('common.search')}
-                  style={{
-                    width: '100%',
-                    padding: '0.5rem 0.75rem',
-                    fontSize: '0.875rem',
-                    borderRadius: '0.375rem',
-                    border: '1px solid #d1d5db',
-                    backgroundColor: 'var(--background)',
-                    color: 'var(--foreground)',
-                    minHeight: '44px',
-                  }}
+                  className="w-full px-3 py-2 text-sm rounded-md border border-hairline bg-canvas text-ink min-h-[44px]"
                 />
               )}
             </div>
@@ -149,130 +120,69 @@ export function DataTable<T>({
         </div>
       )}
 
-      <div
-        style={{
-          overflowX: 'auto',
-          borderRadius: '0.5rem',
-          border: '1px solid #e5e7eb',
-        }}
-      >
-        <table
-          style={{
-            width: '100%',
-            borderCollapse: 'collapse',
-            fontSize: '0.875rem',
-          }}
-        >
-          <thead>
-            <tr style={{ borderBottom: '1px solid #e5e7eb' }}>
+      <div className="rounded-lg border border-hairline overflow-x-auto">
+        <Table>
+          <TableHeader>
+            <TableRow className="bg-surface min-h-section-sm">
               {columns.map((col) => (
-                <th
+                <TableHead
                   key={col.key}
-                  style={{
-                    padding: '0.75rem 1rem',
-                    textAlign: 'left',
-                    fontWeight: 600,
-                    fontSize: '0.75rem',
-                    color: '#6b7280',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.05em',
-                    backgroundColor: '#f9fafb',
-                    width: col.width,
-                    whiteSpace: 'nowrap',
-                  }}
+                  className="text-steel font-semibold text-xs uppercase tracking-wide whitespace-nowrap"
                 >
                   {col.header}
-                </th>
+                </TableHead>
               ))}
-            </tr>
-          </thead>
-          <tbody>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {loading ? (
-              <tr>
-                <td
+              <TableRow className="bg-canvas min-h-section-sm">
+                <TableCell
                   colSpan={columns.length}
-                  style={{
-                    padding: '2rem',
-                    textAlign: 'center',
-                    color: '#6b7280',
-                  }}
+                  className="py-8 text-center text-steel"
                 >
                   {t('common.loading')}
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             ) : data.length === 0 ? (
-              <tr>
-                <td
+              <TableRow className="bg-canvas min-h-section-sm">
+                <TableCell
                   colSpan={columns.length}
-                  style={{
-                    padding: '2rem',
-                    textAlign: 'center',
-                    color: '#6b7280',
-                  }}
+                  className="py-8 text-center text-steel"
                 >
                   {emptyMessage || 'No data found'}
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             ) : (
               data.map((row) => (
-                <tr
+                <TableRow
                   key={getRowKey(row)}
-                  style={{ borderBottom: '1px solid #f3f4f6' }}
+                  className="bg-canvas text-ink min-h-section-sm"
                 >
                   {columns.map((col) => (
-                    <td
-                      key={col.key}
-                      style={{
-                        padding: '0.75rem 1rem',
-                        verticalAlign: 'middle',
-                      }}
-                    >
+                    <TableCell key={col.key} className="align-middle">
                       {col.render(row)}
-                    </td>
+                    </TableCell>
                   ))}
-                </tr>
+                </TableRow>
               ))
             )}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
 
       {pagination && totalPages > 1 && (
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            marginTop: '1rem',
-            fontSize: '0.875rem',
-            color: '#6b7280',
-          }}
-        >
+        <div className="flex items-center justify-between mt-4 text-sm text-steel">
           <span>
             {pagination.page} / {totalPages}
           </span>
-          <div style={{ display: 'flex', gap: '0.5rem' }}>
+          <div className="flex gap-2">
             <button
               type="button"
               onClick={handlePrevious}
               disabled={pagination.page <= 1}
               aria-label={t('common.previous')}
-              style={{
-                minWidth: '44px',
-                minHeight: '44px',
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                padding: '0.5rem 0.75rem',
-                fontSize: '0.875rem',
-                fontWeight: 500,
-                borderRadius: '0.375rem',
-                border: '1px solid #d1d5db',
-                backgroundColor: 'transparent',
-                color: pagination.page <= 1 ? '#9ca3af' : 'var(--foreground)',
-                cursor: pagination.page <= 1 ? 'not-allowed' : 'pointer',
-                opacity: pagination.page <= 1 ? 0.5 : 1,
-              }}
+              className="min-w-[44px] min-h-[44px] inline-flex items-center justify-center px-3 py-2 text-sm font-medium rounded-md border border-hairline bg-transparent text-ink disabled:text-stone disabled:cursor-not-allowed disabled:opacity-50"
             >
               {t('common.previous')}
             </button>
@@ -281,26 +191,7 @@ export function DataTable<T>({
               onClick={handleNext}
               disabled={pagination.page >= totalPages}
               aria-label={t('common.next')}
-              style={{
-                minWidth: '44px',
-                minHeight: '44px',
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                padding: '0.5rem 0.75rem',
-                fontSize: '0.875rem',
-                fontWeight: 500,
-                borderRadius: '0.375rem',
-                border: '1px solid #d1d5db',
-                backgroundColor: 'transparent',
-                color:
-                  pagination.page >= totalPages
-                    ? '#9ca3af'
-                    : 'var(--foreground)',
-                cursor:
-                  pagination.page >= totalPages ? 'not-allowed' : 'pointer',
-                opacity: pagination.page >= totalPages ? 0.5 : 1,
-              }}
+              className="min-w-[44px] min-h-[44px] inline-flex items-center justify-center px-3 py-2 text-sm font-medium rounded-md border border-hairline bg-transparent text-ink disabled:text-stone disabled:cursor-not-allowed disabled:opacity-50"
             >
               {t('common.next')}
             </button>

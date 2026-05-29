@@ -2,6 +2,7 @@ import type { RequestContext } from '@repo/shared/types'
 import { applyAdjustmentSchema } from '@repo/shared/validation'
 import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
+import { dateTimeResponseSchema, errorResponseSchema } from '../app'
 import { authGuard } from '../middleware/auth-guard'
 import { roleGuard } from '../middleware/role-guard'
 import { tenantScope } from '../middleware/tenant-scope'
@@ -69,9 +70,25 @@ async function depositRoutes(fastify: FastifyInstance) {
         tenantScope,
       ],
       schema: {
+        tags: ['Deposits'],
+        summary: 'Get deposit balance',
+        description:
+          'Returns the deposit balance for a rental contract.\n\n**Roles: owner, manager, renter**',
+        security: [{ BearerAuth: [] }, { CookieAuth: [] }],
         params: z.object({
           contractId: z.string().uuid('Invalid contract ID format'),
         }),
+        response: {
+          200: z.object({
+            contractId: z.string(),
+            initialAmount: z.number(),
+            remainingBalance: z.number(),
+            totalAdjusted: z.number(),
+          }),
+          401: errorResponseSchema,
+          403: errorResponseSchema,
+          404: errorResponseSchema,
+        },
       },
     },
     async (request, reply) => {
@@ -96,10 +113,29 @@ async function depositRoutes(fastify: FastifyInstance) {
     {
       preHandler: [authGuard, roleGuard(['owner']), tenantScope],
       schema: {
+        tags: ['Deposits'],
+        summary: 'Apply deposit adjustment',
+        description:
+          "Applies an advance adjustment against a contract's deposit balance. Can be linked to a specific bill.\n\n**Roles: owner**",
+        security: [{ BearerAuth: [] }, { CookieAuth: [] }],
         params: z.object({
           contractId: z.string().uuid('Invalid contract ID format'),
         }),
         body: applyAdjustmentSchema,
+        response: {
+          201: z.object({
+            id: z.string(),
+            contractId: z.string(),
+            amount: z.number(),
+            billId: z.string().nullable(),
+            note: z.string().nullable(),
+            createdAt: dateTimeResponseSchema,
+          }),
+          400: errorResponseSchema,
+          401: errorResponseSchema,
+          403: errorResponseSchema,
+          404: errorResponseSchema,
+        },
       },
     },
     async (request, reply) => {
@@ -137,13 +173,38 @@ async function depositRoutes(fastify: FastifyInstance) {
         tenantScope,
       ],
       schema: {
+        tags: ['Deposits'],
+        summary: 'List deposit adjustments',
+        description:
+          'Returns a paginated history of deposit adjustments for a rental contract.\n\n**Roles: owner, manager, renter**',
+        security: [{ BearerAuth: [] }, { CookieAuth: [] }],
         params: z.object({
           contractId: z.string().uuid('Invalid contract ID format'),
         }),
         querystring: z.object({
           page: z.coerce.number().int().min(1).default(1),
-          pageSize: z.coerce.number().int().min(1).max(50).default(20),
+          pageSize: z.coerce.number().int().min(1).max(100).default(20),
         }),
+        response: {
+          200: z.object({
+            data: z.array(
+              z.object({
+                id: z.string(),
+                contractId: z.string(),
+                amount: z.number(),
+                billId: z.string().nullable(),
+                note: z.string().nullable(),
+                createdAt: dateTimeResponseSchema,
+              }),
+            ),
+            total: z.number(),
+            page: z.number(),
+            pageSize: z.number(),
+          }),
+          401: errorResponseSchema,
+          403: errorResponseSchema,
+          404: errorResponseSchema,
+        },
       },
     },
     async (request, reply) => {

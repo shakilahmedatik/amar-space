@@ -11,5 +11,8 @@
      "[json]": { "editor.defaultFormatter": "biomejs.biome" },
     "[jsonc]": {
       "editor.defaultFormatter": "biomejs.biome"
-    }
+    },
+    "typescript.autoClosingTags": false,
+    "css.validate": false,
+    "scss.validate": false
    }

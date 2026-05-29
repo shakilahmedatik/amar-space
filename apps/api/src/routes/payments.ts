@@ -3,6 +3,7 @@ import type { RequestContext } from '@repo/shared/types'
 import { paymentMethodEnum, recordPaymentSchema } from '@repo/shared/validation'
 import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
+import { dateTimeResponseSchema, errorResponseSchema } from '../app'
 import { authGuard } from '../middleware/auth-guard'
 import { roleGuard } from '../middleware/role-guard'
 import { tenantScope } from '../middleware/tenant-scope'
@@ -70,6 +71,11 @@ async function paymentRoutes(fastify: FastifyInstance) {
         tenantScope,
       ],
       schema: {
+        tags: ['Payments'],
+        summary: 'List payments',
+        description:
+          'Returns paginated payments with optional filters by bill, renter, date range, and payment method.\n\n**Roles: owner, manager, renter**',
+        security: [{ BearerAuth: [] }, { CookieAuth: [] }],
         querystring: z.object({
           billId: z.string().uuid().optional(),
           renterId: z.string().uuid().optional(),
@@ -83,8 +89,34 @@ async function paymentRoutes(fastify: FastifyInstance) {
             .optional(),
           paymentMethod: paymentMethodEnum.optional(),
           page: z.coerce.number().int().min(1).default(1),
-          pageSize: z.coerce.number().int().min(1).max(50).default(20),
+          pageSize: z.coerce.number().int().min(1).max(100).default(20),
         }),
+        response: {
+          200: z.object({
+            data: z.array(
+              z.object({
+                id: z.string(),
+                billId: z.string(),
+                amount: z.number(),
+                paymentDate: z.string(),
+                paymentMethod: z.enum([
+                  'cash',
+                  'bank_transfer',
+                  'mobile_banking',
+                  'cheque',
+                ]),
+                note: z.string().nullable(),
+                ownerAccountId: z.string(),
+                createdAt: dateTimeResponseSchema,
+              }),
+            ),
+            total: z.number(),
+            page: z.number(),
+            pageSize: z.number(),
+          }),
+          401: errorResponseSchema,
+          403: errorResponseSchema,
+        },
       },
     },
     async (request, reply) => {
@@ -129,7 +161,33 @@ async function paymentRoutes(fastify: FastifyInstance) {
     {
       preHandler: [authGuard, roleGuard(['owner', 'manager']), tenantScope],
       schema: {
+        tags: ['Payments'],
+        summary: 'Record a payment',
+        description:
+          "Records a payment against a bill. Automatically updates the bill's paid amount and status.\n\n**Roles: owner, manager**",
+        security: [{ BearerAuth: [] }, { CookieAuth: [] }],
         body: recordPaymentSchema,
+        response: {
+          201: z.object({
+            id: z.string(),
+            billId: z.string(),
+            amount: z.number(),
+            paymentDate: z.string(),
+            paymentMethod: z.enum([
+              'cash',
+              'bank_transfer',
+              'mobile_banking',
+              'cheque',
+            ]),
+            note: z.string().nullable(),
+            ownerAccountId: z.string(),
+            createdAt: dateTimeResponseSchema,
+          }),
+          400: errorResponseSchema,
+          401: errorResponseSchema,
+          403: errorResponseSchema,
+          404: errorResponseSchema,
+        },
       },
     },
     async (request, reply) => {
@@ -164,9 +222,34 @@ async function paymentRoutes(fastify: FastifyInstance) {
         tenantScope,
       ],
       schema: {
+        tags: ['Payments'],
+        summary: 'Get a payment',
+        description:
+          'Returns a payment receipt by ID.\n\n**Roles: owner, manager, renter**',
+        security: [{ BearerAuth: [] }, { CookieAuth: [] }],
         params: z.object({
           id: z.string().uuid('Invalid payment ID format'),
         }),
+        response: {
+          200: z.object({
+            id: z.string(),
+            billId: z.string(),
+            amount: z.number(),
+            paymentDate: z.string(),
+            paymentMethod: z.enum([
+              'cash',
+              'bank_transfer',
+              'mobile_banking',
+              'cheque',
+            ]),
+            note: z.string().nullable(),
+            ownerAccountId: z.string(),
+            createdAt: dateTimeResponseSchema,
+          }),
+          401: errorResponseSchema,
+          403: errorResponseSchema,
+          404: errorResponseSchema,
+        },
       },
     },
     async (request, reply) => {

@@ -2,6 +2,8 @@ import { RateLimitError } from '@repo/shared/errors'
 import type { ApiErrorResponse } from '@repo/shared/types'
 import { registerSchema } from '@repo/shared/validation'
 import type { FastifyInstance } from 'fastify'
+import { z } from 'zod'
+import { dateTimeResponseSchema, errorResponseSchema } from '../app'
 import { registerUser } from '../services/registration'
 
 /**
@@ -83,7 +85,31 @@ async function registerRoutes(fastify: FastifyInstance) {
     '/',
     {
       schema: {
+        tags: ['Authentication'],
+        summary: 'Register a new owner account',
+        description:
+          'Creates a new user account with the Owner role and returns a session token. Rate limited to 10 attempts per 15 minutes per IP.',
+        security: [],
         body: registerSchema,
+        response: {
+          201: z.object({
+            user: z.object({
+              id: z.string(),
+              email: z.string(),
+              name: z.string().nullable(),
+              role: z.string(),
+              createdAt: dateTimeResponseSchema,
+            }),
+            session: z
+              .object({
+                token: z.string(),
+                expiresAt: dateTimeResponseSchema,
+              })
+              .nullable(),
+          }),
+          400: errorResponseSchema,
+          429: errorResponseSchema,
+        },
       },
     },
     async (request, reply) => {

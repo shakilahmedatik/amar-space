@@ -1,9 +1,11 @@
 export type Locale = 'bn' | 'en'
 
-export type TranslationDictionary = Record<
-  string,
-  string | Record<string, string>
->
+export type TranslationValue =
+  | string
+  | Record<string, string>
+  | Record<string, Record<string, string>>
+
+export type TranslationDictionary = Record<string, TranslationValue>
 
 export type FlatTranslations = Record<string, string>
 

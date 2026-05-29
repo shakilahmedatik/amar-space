@@ -1,12 +1,14 @@
 'use client'
 
 import { type FormEvent, useCallback, useState } from 'react'
+import { Button } from '@/components/ui/button'
 import { FormField, FormInput } from '@/components/ui/form-field'
 import {
   useApplyAdjustment,
   useUnpaidBillsForContract,
 } from '@/hooks/use-deposits'
 import { useTranslation } from '@/lib/i18n'
+import { cn } from '@/lib/utils'
 
 interface DepositAdjustmentFormProps {
   contractId: string
@@ -88,43 +90,15 @@ export function DepositAdjustmentForm({
   const unpaidBills = billsData?.data || []
 
   return (
-    <div
-      style={{
-        padding: '1.5rem',
-        borderRadius: '0.5rem',
-        border: '1px solid #e5e7eb',
-        backgroundColor: '#ffffff',
-        marginBottom: '1.5rem',
-      }}
-    >
-      <h2
-        style={{
-          fontSize: '1.125rem',
-          fontWeight: 600,
-          color: '#111827',
-          marginBottom: '1rem',
-          paddingBottom: '0.5rem',
-          borderBottom: '1px solid #e5e7eb',
-        }}
-      >
+    <div className="p-6 rounded-lg border border-hairline bg-canvas mb-6">
+      <h2 className="text-lg font-semibold text-ink-strong mb-4 pb-2 border-b border-hairline">
         {t('deposits.applyAdjustment')}
       </h2>
 
       {successMessage && (
         <div
           role="status"
-          style={{
-            padding: '0.75rem 1rem',
-            borderRadius: '0.375rem',
-            backgroundColor: '#f0fdf4',
-            border: '1px solid #bbf7d0',
-            color: '#166534',
-            fontSize: '0.875rem',
-            marginBottom: '1rem',
-            minHeight: '48px',
-            display: 'flex',
-            alignItems: 'center',
-          }}
+          className="px-4 py-3 rounded-md bg-success-bg border border-success-text/30 text-success-text text-sm mb-4 min-h-section-sm flex items-center"
         >
           {successMessage}
         </div>
@@ -133,18 +107,7 @@ export function DepositAdjustmentForm({
       {errors.form && (
         <div
           role="alert"
-          style={{
-            padding: '0.75rem 1rem',
-            borderRadius: '0.375rem',
-            backgroundColor: '#fef2f2',
-            border: '1px solid #fecaca',
-            color: '#dc2626',
-            fontSize: '0.875rem',
-            marginBottom: '1rem',
-            minHeight: '48px',
-            display: 'flex',
-            alignItems: 'center',
-          }}
+          className="px-4 py-3 rounded-md bg-error-bg border border-error-text/30 text-error-text text-sm mb-4 min-h-section-sm flex items-center"
         >
           {errors.form}
         </div>
@@ -178,18 +141,7 @@ export function DepositAdjustmentForm({
             id="adjustment-bill"
             value={billId}
             onChange={(e) => setBillId(e.target.value)}
-            style={{
-              display: 'block',
-              width: '100%',
-              padding: '0.625rem 0.75rem',
-              fontSize: '1rem',
-              lineHeight: '1.5',
-              borderRadius: '0.375rem',
-              border: '1px solid #d1d5db',
-              backgroundColor: 'var(--background)',
-              color: 'var(--foreground)',
-              minHeight: '44px',
-            }}
+            className="block w-full px-3 py-2.5 text-base leading-normal rounded-md border border-hairline bg-canvas text-ink min-h-[44px] focus:outline-none focus:ring-2 focus:ring-primary/50"
           >
             <option value="">{t('deposits.noBillLink')}</option>
             {unpaidBills.map((bill) => (
@@ -213,44 +165,24 @@ export function DepositAdjustmentForm({
             maxLength={500}
             placeholder={t('deposits.notePlaceholder')}
             rows={3}
-            style={{
-              display: 'block',
-              width: '100%',
-              padding: '0.625rem 0.75rem',
-              fontSize: '1rem',
-              lineHeight: '1.5',
-              borderRadius: '0.375rem',
-              border: `1px solid ${errors.note ? '#dc2626' : '#d1d5db'}`,
-              backgroundColor: 'var(--background)',
-              color: 'var(--foreground)',
-              resize: 'vertical',
-              minHeight: '80px',
-            }}
+            className={cn(
+              'block w-full px-3 py-2.5 text-base leading-normal rounded-md border border-hairline bg-canvas text-ink resize-vertical min-h-section-lg focus:outline-none focus:ring-2 focus:ring-primary/50',
+              errors.note && 'border-error-text bg-error-bg',
+            )}
             aria-invalid={!!errors.note || undefined}
           />
         </FormField>
 
-        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-          <button
+        <div className="flex justify-end">
+          <Button
             type="submit"
             disabled={adjustMutation.isPending}
-            style={{
-              minWidth: '44px',
-              minHeight: '44px',
-              padding: '0.625rem 1.5rem',
-              fontSize: '1rem',
-              fontWeight: 500,
-              borderRadius: '0.375rem',
-              border: 'none',
-              backgroundColor: adjustMutation.isPending ? '#9ca3af' : '#2563eb',
-              color: '#ffffff',
-              cursor: adjustMutation.isPending ? 'not-allowed' : 'pointer',
-            }}
+            className="rounded-full min-h-[44px] px-6"
           >
             {adjustMutation.isPending
               ? t('common.loading')
               : t('deposits.applyAdjustment')}
-          </button>
+          </Button>
         </div>
       </form>
     </div>

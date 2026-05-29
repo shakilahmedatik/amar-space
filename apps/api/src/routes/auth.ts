@@ -1,4 +1,6 @@
 import type { FastifyInstance, FastifyRequest } from 'fastify'
+import { z } from 'zod'
+import { dateTimeResponseSchema, errorResponseSchema } from '../app'
 
 /**
  * Auth routes plugin.
@@ -207,6 +209,213 @@ function extractLoginUser(body: string): { id: string; email: string } | null {
 async function authRoutes(fastify: FastifyInstance) {
   const { auth } = fastify
 
+  // ─── Explicit OpenAPI schema stubs ───────────────────────────────────────
+  // Fastify's schema system does not process catch-all routes for OpenAPI.
+  // These four explicit route definitions sit BEFORE the catch-all so that
+  // @fastify/swagger picks them up and includes them in the generated spec.
+  // Each handler delegates to the same auth.handler() logic as the catch-all.
+
+  // Sign-up stub for OpenAPI documentation
+  fastify.post(
+    '/sign-up/email',
+    {
+      schema: {
+        tags: ['Authentication'],
+        summary: 'Sign up with email',
+        description:
+          'Creates a new user account via Better Auth. Note: Use POST /api/register to create an Owner account with a session token.',
+        security: [],
+        body: z.object({
+          email: z.string().email(),
+          password: z.string().min(8),
+          name: z.string(),
+        }),
+        response: {
+          200: z.object({
+            user: z.object({ id: z.string(), email: z.string() }),
+            session: z.object({}).nullable(),
+          }),
+          400: errorResponseSchema,
+        },
+      },
+    },
+    async (request, reply) => {
+      const webRequest = toWebRequest(request, fastify.env.AUTH_BASE_URL)
+      const response = await auth.handler(webRequest)
+      const body = await response.text()
+      const sanitized = sanitizeAuthErrorResponse(response.status, body)
+      if (sanitized) {
+        reply.status(sanitized.status as any)
+        reply.header('content-type', 'application/json')
+        return reply.send(sanitized.body)
+      }
+      for (const [key, value] of response.headers.entries()) {
+        reply.header(key, value)
+      }
+      reply.status(response.status as any)
+      return reply.send(body)
+    },
+  )
+
+  // Sign-in stub for OpenAPI documentation
+  fastify.post(
+    '/sign-in/email',
+    {
+      schema: {
+        tags: ['Authentication'],
+        summary: 'Sign in with email',
+        description:
+          'Authenticates a user and returns a session token. The token can be used as a Bearer token in the Authorization header for protected endpoints.',
+        security: [],
+        body: z.object({
+          email: z.string().email(),
+          password: z.string(),
+        }),
+        response: {
+          200: z.object({
+            user: z.object({
+              id: z.string(),
+              email: z.string(),
+              name: z.string().nullable().optional(),
+              role: z.string().optional(),
+            }),
+            session: z.object({
+              token: z
+                .string()
+                .describe(
+                  'Use this as Bearer token for authenticated requests',
+                ),
+              expiresAt: dateTimeResponseSchema,
+            }),
+          }),
+          401: errorResponseSchema,
+          429: errorResponseSchema,
+        },
+      },
+    },
+    async (request, reply) => {
+      const webRequest = toWebRequest(request, fastify.env.AUTH_BASE_URL)
+      const response = await auth.handler(webRequest)
+      const body = await response.text()
+      const sanitized = sanitizeAuthErrorResponse(response.status, body)
+      if (sanitized) {
+        reply.status(sanitized.status as any)
+        reply.header('content-type', 'application/json')
+        return reply.send(sanitized.body)
+      }
+      if (
+        isSignInRequest(request.url) &&
+        response.status >= 200 &&
+        response.status < 300
+      ) {
+        const loginUser = extractLoginUser(body)
+        if (loginUser) {
+          fastify.auditLogger.log({
+            actorId: loginUser.id,
+            action: 'user.login',
+            entityType: 'session',
+            entityId: loginUser.id,
+            ownerAccountId: loginUser.id,
+            metadata: {
+              ip: request.ip,
+              userAgent: request.headers['user-agent'] || '',
+              timestamp: new Date().toISOString(),
+            },
+          })
+        }
+      }
+      for (const [key, value] of response.headers.entries()) {
+        reply.header(key, value)
+      }
+      reply.status(response.status as any)
+      return reply.send(body)
+    },
+  )
+
+  // Sign-out stub for OpenAPI documentation
+  fastify.post(
+    '/sign-out',
+    {
+      schema: {
+        tags: ['Authentication'],
+        summary: 'Sign out',
+        description:
+          'Invalidates the current session. Requires a valid Bearer token or session cookie.',
+        security: [{ BearerAuth: [] }, { CookieAuth: [] }],
+        response: {
+          200: z.object({ success: z.boolean() }),
+          401: errorResponseSchema,
+        },
+      },
+    },
+    async (request, reply) => {
+      const webRequest = toWebRequest(request, fastify.env.AUTH_BASE_URL)
+      const response = await auth.handler(webRequest)
+      const body = await response.text()
+      const sanitized = sanitizeAuthErrorResponse(response.status, body)
+      if (sanitized) {
+        reply.status(sanitized.status as any)
+        reply.header('content-type', 'application/json')
+        return reply.send(sanitized.body)
+      }
+      for (const [key, value] of response.headers.entries()) {
+        reply.header(key, value)
+      }
+      reply.status(response.status as any)
+      return reply.send(body)
+    },
+  )
+
+  // Get session stub for OpenAPI documentation
+  fastify.get(
+    '/get-session',
+    {
+      schema: {
+        tags: ['Authentication'],
+        summary: 'Get current session',
+        description:
+          'Returns the current session and user information if the session is valid.',
+        security: [{ BearerAuth: [] }, { CookieAuth: [] }],
+        response: {
+          200: z.object({
+            user: z
+              .object({
+                id: z.string(),
+                email: z.string(),
+                name: z.string().nullable().optional(),
+                role: z.string().optional(),
+              })
+              .nullable(),
+            session: z
+              .object({
+                token: z.string(),
+                expiresAt: dateTimeResponseSchema,
+              })
+              .nullable(),
+          }),
+          401: errorResponseSchema,
+        },
+      },
+    },
+    async (request, reply) => {
+      const webRequest = toWebRequest(request, fastify.env.AUTH_BASE_URL)
+      const response = await auth.handler(webRequest)
+      const body = await response.text()
+      const sanitized = sanitizeAuthErrorResponse(response.status, body)
+      if (sanitized) {
+        reply.status(sanitized.status as any)
+        reply.header('content-type', 'application/json')
+        return reply.send(sanitized.body)
+      }
+      for (const [key, value] of response.headers.entries()) {
+        reply.header(key, value)
+      }
+      reply.status(response.status as any)
+      return reply.send(body)
+    },
+  )
+
+  // ─── Catch-all ────────────────────────────────────────────────────────────
   // Catch-all route that delegates to Better Auth's handler.
   // Better Auth manages its own routing internally for auth endpoints.
   fastify.all('/*', async (request, reply) => {
@@ -219,7 +428,7 @@ async function authRoutes(fastify: FastifyInstance) {
     const sanitized = sanitizeAuthErrorResponse(response.status, body)
 
     if (sanitized) {
-      reply.status(sanitized.status)
+      reply.status(sanitized.status as any)
       reply.header('content-type', 'application/json')
       return reply.send(sanitized.body)
     }
@@ -280,7 +489,7 @@ async function authRoutes(fastify: FastifyInstance) {
       reply.header(key, value)
     }
 
-    reply.status(response.status)
+    reply.status(response.status as any)
     return reply.send(body)
   })
 }

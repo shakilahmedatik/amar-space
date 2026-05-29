@@ -1,8 +1,10 @@
 'use client'
 
-import { useParams } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import { useCallback, useEffect, useState } from 'react'
 import { DashboardLayout } from '@/components/layout'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { ErrorFeedback } from '@/components/ui/error-feedback'
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton'
@@ -27,6 +29,7 @@ type UserRole = 'owner' | 'manager' | 'renter'
 export default function FlatDetailPage() {
   const { t } = useTranslation()
   const params = useParams()
+  const router = useRouter()
   const flatId = params.id as string
 
   const [role, setRole] = useState<UserRole>('owner')
@@ -46,12 +49,12 @@ export default function FlatDetailPage() {
       try {
         const session = await getSession()
         if (!session) {
-          window.location.href = '/login'
+          router.push('/login')
           return
         }
         setRole(session.role as UserRole)
       } catch {
-        window.location.href = '/login'
+        router.push('/login')
       } finally {
         setIsLoadingSession(false)
       }
@@ -83,7 +86,7 @@ export default function FlatDetailPage() {
       setFeedback({ message: t('flats.deleteSuccess'), type: 'success' })
       setShowDeleteDialog(false)
       setTimeout(() => {
-        window.location.href = '/flats'
+        router.push('/flats')
       }, 1500)
     } catch (err) {
       setFeedback({
@@ -96,7 +99,7 @@ export default function FlatDetailPage() {
 
   if (isLoadingSession || isLoading) {
     return (
-      <div className="flex h-dvh items-center justify-center bg-gray-50">
+      <div className="flex h-dvh items-center justify-center bg-surface">
         <div className="w-full max-w-md px-4">
           <LoadingSkeleton rows={5} showHeader />
         </div>
@@ -114,14 +117,7 @@ export default function FlatDetailPage() {
         />
         <a
           href="/flats"
-          style={{
-            color: '#2563eb',
-            fontSize: '0.875rem',
-            textDecoration: 'none',
-            minHeight: '44px',
-            display: 'inline-flex',
-            alignItems: 'center',
-          }}
+          className="inline-flex items-center min-h-[44px] text-sm text-brand-blue-deep no-underline"
         >
           ← {t('common.back')}
         </a>
@@ -144,194 +140,104 @@ export default function FlatDetailPage() {
         />
       )}
 
-      <div style={{ maxWidth: '40rem', margin: '0 auto' }}>
-        <div style={{ marginBottom: '1.5rem' }}>
+      <div className="max-w-160 mx-auto">
+        <div className="mb-6">
           <a
             href="/flats"
-            style={{
-              color: '#2563eb',
-              fontSize: '0.875rem',
-              textDecoration: 'none',
-              minHeight: '44px',
-              display: 'inline-flex',
-              alignItems: 'center',
-            }}
+            className="inline-flex items-center min-h-[44px] text-sm text-brand-blue-deep no-underline"
           >
             ← {t('common.back')}
           </a>
         </div>
 
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            marginBottom: '1.5rem',
-            flexWrap: 'wrap',
-            gap: '1rem',
-          }}
-        >
-          <h1
-            style={{
-              fontSize: '1.5rem',
-              fontWeight: 700,
-              color: '#111827',
-            }}
-          >
+        <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
+          <h1 className="text-2xl font-bold text-ink">
             {t('flats.flatDetail')}
           </h1>
           <StatusBadge status={flat.status} />
         </div>
 
         {/* Flat Information Card */}
-        <div
-          style={{
-            backgroundColor: '#ffffff',
-            borderRadius: '0.75rem',
-            border: '1px solid #e5e7eb',
-            padding: '1.5rem',
-            marginBottom: '1.5rem',
-          }}
-        >
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-              gap: '1.25rem',
-            }}
-          >
-            <InfoItem label={t('flats.flatNumber')} value={flat.flatNumber} />
-            <InfoItem label={t('flats.floor')} value={String(flat.floor)} />
-            <InfoItem
-              label={t('flats.building')}
-              value={flat.buildingName || '—'}
-            />
-            <InfoItem
-              label={t('flats.createdAt')}
-              value={formatDate(flat.createdAt)}
-            />
-            <InfoItem
-              label={t('flats.updatedAt')}
-              value={formatDate(flat.updatedAt)}
-            />
-          </div>
-        </div>
+        <Card className="bg-canvas rounded-xl border border-hairline mb-6">
+          <CardContent className="p-6">
+            <dl className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              <InfoItem label={t('flats.flatNumber')} value={flat.flatNumber} />
+              <InfoItem label={t('flats.floor')} value={String(flat.floor)} />
+              <InfoItem
+                label={t('flats.building')}
+                value={flat.buildingName || '—'}
+              />
+              <InfoItem
+                label={t('flats.createdAt')}
+                value={formatDate(flat.createdAt)}
+              />
+              <InfoItem
+                label={t('flats.updatedAt')}
+                value={formatDate(flat.updatedAt)}
+              />
+            </dl>
+          </CardContent>
+        </Card>
 
         {/* Status Transition Controls (Owner/Manager) */}
         {canChangeStatus && validTransitions.length > 0 && (
-          <div
-            style={{
-              backgroundColor: '#ffffff',
-              borderRadius: '0.75rem',
-              border: '1px solid #e5e7eb',
-              padding: '1.5rem',
-              marginBottom: '1.5rem',
-            }}
-          >
-            <h2
-              style={{
-                fontSize: '1rem',
-                fontWeight: 600,
-                color: '#374151',
-                marginBottom: '1rem',
-              }}
-            >
-              {t('flats.statusTransition')}
-            </h2>
-            <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-              {validTransitions.map((targetStatus) => (
-                <button
-                  key={targetStatus}
-                  type="button"
-                  onClick={() => handleStatusTransition(targetStatus)}
-                  disabled={updateFlatMutation.isPending}
-                  style={{
-                    minWidth: '44px',
-                    minHeight: '44px',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    padding: '0.625rem 1.25rem',
-                    fontSize: '0.875rem',
-                    fontWeight: 500,
-                    borderRadius: '0.375rem',
-                    border: '1px solid #d1d5db',
-                    backgroundColor:
-                      targetStatus === 'under_maintenance'
-                        ? '#fef3c7'
-                        : '#dcfce7',
-                    color:
-                      targetStatus === 'under_maintenance'
-                        ? '#92400e'
-                        : '#166534',
-                    cursor: updateFlatMutation.isPending
-                      ? 'not-allowed'
-                      : 'pointer',
-                    opacity: updateFlatMutation.isPending ? 0.7 : 1,
-                  }}
-                >
-                  {targetStatus === 'under_maintenance'
-                    ? t('flats.setUnderMaintenance')
-                    : t('flats.setVacant')}
-                </button>
-              ))}
-            </div>
-          </div>
+          <Card className="bg-canvas rounded-xl border border-hairline mb-6">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base font-semibold text-charcoal">
+                {t('flats.statusTransition')}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="px-6 pb-6">
+              <div className="flex gap-3 flex-wrap">
+                {validTransitions.map((targetStatus) => (
+                  <Button
+                    key={targetStatus}
+                    type="button"
+                    variant="outline"
+                    onClick={() => handleStatusTransition(targetStatus)}
+                    disabled={updateFlatMutation.isPending}
+                    className={[
+                      'rounded-full min-h-[44px]',
+                      targetStatus === 'maintenance'
+                        ? 'bg-warning-bg text-warning-text border-warning-text/30'
+                        : 'bg-success-bg text-success-text border-success-text/30',
+                    ].join(' ')}
+                  >
+                    {targetStatus === 'maintenance'
+                      ? t('flats.setUnderMaintenance')
+                      : t('flats.setVacant')}
+                  </Button>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
         )}
 
         {/* Delete Action (Owner only, Vacant flats only) */}
         {role === 'owner' && (
-          <div
-            style={{
-              backgroundColor: '#ffffff',
-              borderRadius: '0.75rem',
-              border: '1px solid #e5e7eb',
-              padding: '1.5rem',
-            }}
-          >
-            <h2
-              style={{
-                fontSize: '1rem',
-                fontWeight: 600,
-                color: '#374151',
-                marginBottom: '1rem',
-              }}
-            >
-              {t('flats.actions')}
-            </h2>
-            {canDelete ? (
-              <button
-                type="button"
-                onClick={() => setShowDeleteDialog(true)}
-                style={{
-                  minWidth: '44px',
-                  minHeight: '44px',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  padding: '0.625rem 1.25rem',
-                  fontSize: '0.875rem',
-                  fontWeight: 500,
-                  borderRadius: '0.375rem',
-                  border: 'none',
-                  backgroundColor: '#dc2626',
-                  color: '#ffffff',
-                  cursor: 'pointer',
-                }}
-              >
-                {t('flats.deleteFlat')}
-              </button>
-            ) : (
-              <p
-                style={{
-                  fontSize: '0.875rem',
-                  color: '#6b7280',
-                }}
-              >
-                {t('flats.deleteNotAllowed')}
-              </p>
-            )}
-          </div>
+          <Card className="bg-canvas rounded-xl border border-hairline">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base font-semibold text-charcoal">
+                {t('flats.actions')}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="px-6 pb-6">
+              {canDelete ? (
+                <Button
+                  type="button"
+                  variant="destructive"
+                  onClick={() => setShowDeleteDialog(true)}
+                  className="rounded-full min-h-[44px] bg-error-text text-on-dark"
+                >
+                  {t('flats.deleteFlat')}
+                </Button>
+              ) : (
+                <p className="text-sm text-steel">
+                  {t('flats.deleteNotAllowed')}
+                </p>
+              )}
+            </CardContent>
+          </Card>
         )}
       </div>
 
@@ -354,27 +260,10 @@ export default function FlatDetailPage() {
 function InfoItem({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <dt
-        style={{
-          fontSize: '0.75rem',
-          fontWeight: 500,
-          color: '#6b7280',
-          textTransform: 'uppercase',
-          letterSpacing: '0.05em',
-          marginBottom: '0.25rem',
-        }}
-      >
+      <dt className="text-xs font-medium text-steel uppercase tracking-wide mb-1">
         {label}
       </dt>
-      <dd
-        style={{
-          fontSize: '1rem',
-          fontWeight: 500,
-          color: '#111827',
-        }}
-      >
-        {value}
-      </dd>
+      <dd className="text-base font-medium text-ink">{value}</dd>
     </div>
   )
 }

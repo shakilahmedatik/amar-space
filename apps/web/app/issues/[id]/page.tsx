@@ -1,8 +1,9 @@
 'use client'
 
-import { useParams } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import { type FormEvent, useEffect, useState } from 'react'
 import { DashboardLayout } from '@/components/layout'
+import { Button } from '@/components/ui/button'
 import { ErrorFeedback } from '@/components/ui/error-feedback'
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton'
 import { StatusBadge } from '@/components/ui/status-badge'
@@ -11,6 +12,7 @@ import {
   useIssue,
   useUpdateIssueStatus,
 } from '@/hooks/use-issues'
+import { BASE_URL } from '@/lib/api'
 import type { IssueStatus } from '@/lib/api-client'
 import { getSession } from '@/lib/auth-client'
 import { useTranslation } from '@/lib/i18n'
@@ -34,6 +36,7 @@ const VALID_TRANSITIONS: Record<IssueStatus, IssueStatus[]> = {
 export default function IssueDetailPage() {
   const { t } = useTranslation()
   const params = useParams()
+  const router = useRouter()
   const issueId = params.id as string
 
   const [user, setUser] = useState<{ id: string; role: string } | null>(null)
@@ -66,12 +69,12 @@ export default function IssueDetailPage() {
       try {
         const session = await getSession()
         if (!session) {
-          window.location.href = '/login'
+          router.push('/login')
           return
         }
         setUser(session)
       } catch {
-        window.location.href = '/login'
+        router.push('/login')
       } finally {
         setIsLoadingSession(false)
       }
@@ -83,10 +86,8 @@ export default function IssueDetailPage() {
   useEffect(() => {
     async function loadManagers() {
       try {
-        const API_URL =
-          process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
         const response = await fetch(
-          `${API_URL}/api/renters?role=manager&pageSize=100`,
+          `${BASE_URL}/api/renters?role=manager&pageSize=100`,
           { credentials: 'include' },
         )
         if (response.ok) {
@@ -171,7 +172,7 @@ export default function IssueDetailPage() {
 
   if (isLoadingSession || !user) {
     return (
-      <div className="flex h-dvh items-center justify-center bg-gray-50">
+      <div className="flex h-dvh items-center justify-center bg-surface">
         <div className="w-full max-w-md px-4">
           <LoadingSkeleton rows={5} showHeader />
         </div>
@@ -203,14 +204,10 @@ export default function IssueDetailPage() {
         />
       )}
 
-      <div style={{ marginBottom: '1.5rem' }}>
+      <div className="mb-6">
         <a
           href="/issues"
-          style={{
-            fontSize: '0.875rem',
-            color: '#6b7280',
-            textDecoration: 'none',
-          }}
+          className="text-sm text-steel no-underline hover:underline"
         >
           ← {t('common.back')}
         </a>
@@ -221,137 +218,57 @@ export default function IssueDetailPage() {
       ) : issue ? (
         <>
           {/* Issue Summary */}
-          <div
-            style={{
-              padding: '1.5rem',
-              borderRadius: '0.5rem',
-              border: '1px solid #e5e7eb',
-              backgroundColor: '#ffffff',
-              marginBottom: '1.5rem',
-            }}
-          >
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                marginBottom: '1.25rem',
-                flexWrap: 'wrap',
-                gap: '0.75rem',
-              }}
-            >
-              <h1
-                style={{
-                  fontSize: '1.5rem',
-                  fontWeight: 700,
-                  color: '#111827',
-                }}
-              >
-                {issue.title}
-              </h1>
+          <div className="p-6 rounded-lg border border-hairline bg-canvas mb-6">
+            <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
+              <h1 className="text-2xl font-bold text-ink">{issue.title}</h1>
               <StatusBadge status={issue.status} />
             </div>
 
-            <div
-              style={{
-                display: 'grid',
-                gap: '1rem',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-                marginBottom: '1.25rem',
-              }}
-            >
+            <div className="grid gap-4 mb-5 grid-cols-[repeat(auto-fit,minmax(180px,1fr))]">
               <div>
-                <p
-                  style={{
-                    fontSize: '0.75rem',
-                    fontWeight: 500,
-                    color: '#6b7280',
-                    marginBottom: '0.25rem',
-                  }}
-                >
+                <p className="text-xs font-medium text-steel mb-1">
                   {t('issues.building')}
                 </p>
-                <p style={{ fontSize: '1rem', color: '#111827' }}>
+                <p className="text-base text-ink">
                   {issue.buildingName || '—'}
                 </p>
               </div>
               <div>
-                <p
-                  style={{
-                    fontSize: '0.75rem',
-                    fontWeight: 500,
-                    color: '#6b7280',
-                    marginBottom: '0.25rem',
-                  }}
-                >
+                <p className="text-xs font-medium text-steel mb-1">
                   {t('issues.category')}
                 </p>
-                <p
-                  style={{
-                    fontSize: '1rem',
-                    color: '#111827',
-                    textTransform: 'capitalize',
-                  }}
-                >
+                <p className="text-base text-ink capitalize">
                   {t(`issues.${issue.category}`)}
                 </p>
               </div>
               <div>
-                <p
-                  style={{
-                    fontSize: '0.75rem',
-                    fontWeight: 500,
-                    color: '#6b7280',
-                    marginBottom: '0.25rem',
-                  }}
-                >
+                <p className="text-xs font-medium text-steel mb-1">
                   {t('issues.priority')}
                 </p>
                 <StatusBadge status={issue.priority} />
               </div>
               <div>
-                <p
-                  style={{
-                    fontSize: '0.75rem',
-                    fontWeight: 500,
-                    color: '#6b7280',
-                    marginBottom: '0.25rem',
-                  }}
-                >
+                <p className="text-xs font-medium text-steel mb-1">
                   {t('issues.assignee')}
                 </p>
-                <p style={{ fontSize: '1rem', color: '#111827' }}>
+                <p className="text-base text-ink">
                   {issue.assigneeName || t('issues.unassigned')}
                 </p>
               </div>
               <div>
-                <p
-                  style={{
-                    fontSize: '0.75rem',
-                    fontWeight: 500,
-                    color: '#6b7280',
-                    marginBottom: '0.25rem',
-                  }}
-                >
+                <p className="text-xs font-medium text-steel mb-1">
                   {t('issues.createdAt')}
                 </p>
-                <p style={{ fontSize: '1rem', color: '#111827' }}>
+                <p className="text-base text-ink">
                   {new Date(issue.createdAt).toLocaleDateString()}
                 </p>
               </div>
               {issue.resolvedAt && (
                 <div>
-                  <p
-                    style={{
-                      fontSize: '0.75rem',
-                      fontWeight: 500,
-                      color: '#6b7280',
-                      marginBottom: '0.25rem',
-                    }}
-                  >
+                  <p className="text-xs font-medium text-steel mb-1">
                     {t('issues.resolvedAt')}
                   </p>
-                  <p style={{ fontSize: '1rem', color: '#111827' }}>
+                  <p className="text-base text-ink">
                     {new Date(issue.resolvedAt).toLocaleDateString()}
                   </p>
                 </div>
@@ -359,57 +276,22 @@ export default function IssueDetailPage() {
             </div>
 
             {/* Description */}
-            <div style={{ marginBottom: '1rem' }}>
-              <p
-                style={{
-                  fontSize: '0.75rem',
-                  fontWeight: 500,
-                  color: '#6b7280',
-                  marginBottom: '0.5rem',
-                }}
-              >
+            <div className="mb-4">
+              <p className="text-xs font-medium text-steel mb-2">
                 {t('issues.description')}
               </p>
-              <p
-                style={{
-                  fontSize: '0.9375rem',
-                  color: '#374151',
-                  lineHeight: 1.6,
-                  whiteSpace: 'pre-wrap',
-                }}
-              >
+              <p className="text-[0.9375rem] text-charcoal leading-relaxed whitespace-pre-wrap">
                 {issue.description}
               </p>
             </div>
 
             {/* Resolution Notes */}
             {issue.resolutionNotes && (
-              <div
-                style={{
-                  padding: '1rem',
-                  borderRadius: '0.375rem',
-                  backgroundColor: '#f0fdf4',
-                  border: '1px solid #bbf7d0',
-                }}
-              >
-                <p
-                  style={{
-                    fontSize: '0.75rem',
-                    fontWeight: 600,
-                    color: '#166534',
-                    marginBottom: '0.5rem',
-                  }}
-                >
+              <div className="p-4 rounded-md bg-success-bg border border-success-text/30">
+                <p className="text-xs font-semibold text-success-text mb-2">
                   {t('issues.resolutionNotes')}
                 </p>
-                <p
-                  style={{
-                    fontSize: '0.875rem',
-                    color: '#166534',
-                    lineHeight: 1.5,
-                    whiteSpace: 'pre-wrap',
-                  }}
-                >
+                <p className="text-sm text-success-text leading-relaxed whitespace-pre-wrap">
                   {issue.resolutionNotes}
                 </p>
               </div>
@@ -418,128 +300,56 @@ export default function IssueDetailPage() {
 
           {/* Action Controls */}
           {canManage && (
-            <div
-              style={{
-                padding: '1.5rem',
-                borderRadius: '0.5rem',
-                border: '1px solid #e5e7eb',
-                backgroundColor: '#ffffff',
-                marginBottom: '1.5rem',
-              }}
-            >
-              <h2
-                style={{
-                  fontSize: '1.125rem',
-                  fontWeight: 600,
-                  color: '#111827',
-                  marginBottom: '1rem',
-                }}
-              >
+            <div className="p-6 rounded-lg border border-hairline bg-canvas mb-6">
+              <h2 className="text-lg font-semibold text-ink mb-4">
                 {t('issues.actions')}
               </h2>
 
-              <div
-                style={{
-                  display: 'flex',
-                  gap: '0.75rem',
-                  flexWrap: 'wrap',
-                  marginBottom: '1rem',
-                }}
-              >
+              <div className="flex gap-3 flex-wrap mb-4">
                 {/* Status Update Button */}
                 {availableTransitions.length > 0 && (
-                  <button
+                  <Button
                     type="button"
+                    variant="outline"
                     onClick={() => {
                       setShowStatusForm(!showStatusForm)
                       setShowAssignForm(false)
                     }}
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      minWidth: '44px',
-                      minHeight: '44px',
-                      padding: '0.5rem 1rem',
-                      fontSize: '0.875rem',
-                      fontWeight: 500,
-                      borderRadius: '0.375rem',
-                      backgroundColor: showStatusForm
-                        ? '#e5e7eb'
-                        : 'transparent',
-                      color: '#2563eb',
-                      border: '1px solid #2563eb',
-                      cursor: 'pointer',
-                    }}
+                    className={`min-h-[44px] rounded-full border-brand-blue-deep text-brand-blue-deep hover:bg-brand-blue-200/30 ${showStatusForm ? 'bg-surface' : 'bg-transparent'}`}
                   >
                     {t('issues.updateStatus')}
-                  </button>
+                  </Button>
                 )}
 
                 {/* Assign Button */}
                 {issue.status !== 'closed' && (
-                  <button
+                  <Button
                     type="button"
+                    variant="outline"
                     onClick={() => {
                       setShowAssignForm(!showAssignForm)
                       setShowStatusForm(false)
                     }}
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      minWidth: '44px',
-                      minHeight: '44px',
-                      padding: '0.5rem 1rem',
-                      fontSize: '0.875rem',
-                      fontWeight: 500,
-                      borderRadius: '0.375rem',
-                      backgroundColor: showAssignForm
-                        ? '#e5e7eb'
-                        : 'transparent',
-                      color: '#7c3aed',
-                      border: '1px solid #7c3aed',
-                      cursor: 'pointer',
-                    }}
+                    className={`min-h-[44px] rounded-full border-brand-blue text-brand-blue hover:bg-brand-blue-200/30 ${showAssignForm ? 'bg-surface' : 'bg-transparent'}`}
                   >
                     {t('issues.assignIssue')}
-                  </button>
+                  </Button>
                 )}
               </div>
 
               {/* Status Update Form */}
               {showStatusForm && (
-                <div
-                  style={{
-                    padding: '1rem',
-                    borderRadius: '0.5rem',
-                    border: '1px solid #e5e7eb',
-                    backgroundColor: '#f9fafb',
-                    marginBottom: '1rem',
-                  }}
-                >
+                <div className="p-4 rounded-lg border border-hairline bg-surface mb-4">
                   {statusErrors.form && (
-                    <p
-                      style={{
-                        fontSize: '0.75rem',
-                        color: '#dc2626',
-                        marginBottom: '0.75rem',
-                      }}
-                    >
+                    <p className="text-xs text-error-text mb-3">
                       {statusErrors.form}
                     </p>
                   )}
                   <form onSubmit={handleStatusUpdate}>
-                    <div style={{ marginBottom: '1rem' }}>
+                    <div className="mb-4">
                       <label
                         htmlFor="new-status"
-                        style={{
-                          display: 'block',
-                          fontSize: '0.875rem',
-                          fontWeight: 500,
-                          color: '#374151',
-                          marginBottom: '0.375rem',
-                        }}
+                        className="block text-sm font-medium text-charcoal mb-1.5"
                       >
                         {t('issues.newStatus')}
                       </label>
@@ -549,15 +359,7 @@ export default function IssueDetailPage() {
                         onChange={(e) =>
                           setNewStatus(e.target.value as IssueStatus | '')
                         }
-                        style={{
-                          width: '100%',
-                          padding: '0.5rem 0.75rem',
-                          fontSize: '0.875rem',
-                          borderRadius: '0.375rem',
-                          border: `1px solid ${statusErrors.status ? '#dc2626' : '#d1d5db'}`,
-                          minHeight: '44px',
-                          backgroundColor: '#ffffff',
-                        }}
+                        className={`w-full px-3 py-2 text-sm rounded-md border min-h-[44px] bg-canvas text-ink ${statusErrors.status ? 'border-error-text' : 'border-hairline'}`}
                       >
                         <option value="">{t('issues.selectStatus')}</option>
                         {availableTransitions.map((s) => {
@@ -575,13 +377,7 @@ export default function IssueDetailPage() {
                         })}
                       </select>
                       {statusErrors.status && (
-                        <p
-                          style={{
-                            fontSize: '0.75rem',
-                            color: '#dc2626',
-                            marginTop: '0.25rem',
-                          }}
-                        >
+                        <p className="text-xs text-error-text mt-1">
                           {statusErrors.status}
                         </p>
                       )}
@@ -589,19 +385,13 @@ export default function IssueDetailPage() {
 
                     {/* Resolution Notes (required when resolving) */}
                     {newStatus === 'resolved' && (
-                      <div style={{ marginBottom: '1rem' }}>
+                      <div className="mb-4">
                         <label
                           htmlFor="resolution-notes"
-                          style={{
-                            display: 'block',
-                            fontSize: '0.875rem',
-                            fontWeight: 500,
-                            color: '#374151',
-                            marginBottom: '0.375rem',
-                          }}
+                          className="block text-sm font-medium text-charcoal mb-1.5"
                         >
                           {t('issues.resolutionNotes')}{' '}
-                          <span style={{ color: '#dc2626' }}>*</span>
+                          <span className="text-error-text">*</span>
                         </label>
                         <textarea
                           id="resolution-notes"
@@ -610,94 +400,42 @@ export default function IssueDetailPage() {
                           maxLength={2000}
                           rows={4}
                           placeholder={t('issues.resolutionNotesPlaceholder')}
-                          style={{
-                            width: '100%',
-                            padding: '0.5rem 0.75rem',
-                            fontSize: '0.875rem',
-                            borderRadius: '0.375rem',
-                            border: `1px solid ${statusErrors.resolutionNotes ? '#dc2626' : '#d1d5db'}`,
-                            minHeight: '100px',
-                            resize: 'vertical',
-                            fontFamily: 'inherit',
-                          }}
+                          className={`w-full px-3 py-2 text-sm rounded-md border min-h-[100px] resize-y font-sans ${statusErrors.resolutionNotes ? 'border-error-text' : 'border-hairline'}`}
                         />
                         {statusErrors.resolutionNotes && (
-                          <p
-                            style={{
-                              fontSize: '0.75rem',
-                              color: '#dc2626',
-                              marginTop: '0.25rem',
-                            }}
-                          >
+                          <p className="text-xs text-error-text mt-1">
                             {statusErrors.resolutionNotes}
                           </p>
                         )}
-                        <p
-                          style={{
-                            fontSize: '0.75rem',
-                            color: '#6b7280',
-                            marginTop: '0.25rem',
-                          }}
-                        >
+                        <p className="text-xs text-steel mt-1">
                           {resolutionNotes.length}/2000
                         </p>
                       </div>
                     )}
 
-                    <div
-                      style={{
-                        display: 'flex',
-                        gap: '0.5rem',
-                        justifyContent: 'flex-end',
-                      }}
-                    >
-                      <button
+                    <div className="flex gap-2 justify-end">
+                      <Button
                         type="button"
+                        variant="outline"
                         onClick={() => {
                           setShowStatusForm(false)
                           setNewStatus('')
                           setResolutionNotes('')
                           setStatusErrors({})
                         }}
-                        style={{
-                          minWidth: '44px',
-                          minHeight: '44px',
-                          padding: '0.5rem 1rem',
-                          fontSize: '0.875rem',
-                          fontWeight: 500,
-                          borderRadius: '0.375rem',
-                          backgroundColor: 'transparent',
-                          color: '#374151',
-                          border: '1px solid #d1d5db',
-                          cursor: 'pointer',
-                        }}
+                        className="min-h-[44px] rounded-full border-hairline text-charcoal"
                       >
                         {t('common.cancel')}
-                      </button>
-                      <button
+                      </Button>
+                      <Button
                         type="submit"
                         disabled={statusMutation.isPending}
-                        style={{
-                          minWidth: '44px',
-                          minHeight: '44px',
-                          padding: '0.5rem 1rem',
-                          fontSize: '0.875rem',
-                          fontWeight: 600,
-                          borderRadius: '0.375rem',
-                          backgroundColor: statusMutation.isPending
-                            ? '#93c5fd'
-                            : '#2563eb',
-                          color: '#ffffff',
-                          border: 'none',
-                          cursor: statusMutation.isPending
-                            ? 'not-allowed'
-                            : 'pointer',
-                        }}
+                        className="min-h-[44px] rounded-full bg-primary text-on-primary font-semibold disabled:opacity-60"
                       >
                         {statusMutation.isPending
                           ? t('common.loading')
                           : t('issues.updateStatus')}
-                      </button>
+                      </Button>
                     </div>
                   </form>
                 </div>
@@ -705,36 +443,17 @@ export default function IssueDetailPage() {
 
               {/* Assignment Form */}
               {showAssignForm && (
-                <div
-                  style={{
-                    padding: '1rem',
-                    borderRadius: '0.5rem',
-                    border: '1px solid #e5e7eb',
-                    backgroundColor: '#f9fafb',
-                  }}
-                >
+                <div className="p-4 rounded-lg border border-hairline bg-surface">
                   {assignErrors.form && (
-                    <p
-                      style={{
-                        fontSize: '0.75rem',
-                        color: '#dc2626',
-                        marginBottom: '0.75rem',
-                      }}
-                    >
+                    <p className="text-xs text-error-text mb-3">
                       {assignErrors.form}
                     </p>
                   )}
                   <form onSubmit={handleAssign}>
-                    <div style={{ marginBottom: '1rem' }}>
+                    <div className="mb-4">
                       <label
                         htmlFor="assignee-select"
-                        style={{
-                          display: 'block',
-                          fontSize: '0.875rem',
-                          fontWeight: 500,
-                          color: '#374151',
-                          marginBottom: '0.375rem',
-                        }}
+                        className="block text-sm font-medium text-charcoal mb-1.5"
                       >
                         {t('issues.selectAssignee')}
                       </label>
@@ -742,15 +461,7 @@ export default function IssueDetailPage() {
                         id="assignee-select"
                         value={assigneeId}
                         onChange={(e) => setAssigneeId(e.target.value)}
-                        style={{
-                          width: '100%',
-                          padding: '0.5rem 0.75rem',
-                          fontSize: '0.875rem',
-                          borderRadius: '0.375rem',
-                          border: `1px solid ${assignErrors.assigneeId ? '#dc2626' : '#d1d5db'}`,
-                          minHeight: '44px',
-                          backgroundColor: '#ffffff',
-                        }}
+                        className={`w-full px-3 py-2 text-sm rounded-md border min-h-[44px] bg-canvas text-ink ${assignErrors.assigneeId ? 'border-error-text' : 'border-hairline'}`}
                       >
                         <option value="">{t('issues.selectAssignee')}</option>
                         {managers.map((m) => (
@@ -760,71 +471,34 @@ export default function IssueDetailPage() {
                         ))}
                       </select>
                       {assignErrors.assigneeId && (
-                        <p
-                          style={{
-                            fontSize: '0.75rem',
-                            color: '#dc2626',
-                            marginTop: '0.25rem',
-                          }}
-                        >
+                        <p className="text-xs text-error-text mt-1">
                           {assignErrors.assigneeId}
                         </p>
                       )}
                     </div>
 
-                    <div
-                      style={{
-                        display: 'flex',
-                        gap: '0.5rem',
-                        justifyContent: 'flex-end',
-                      }}
-                    >
-                      <button
+                    <div className="flex gap-2 justify-end">
+                      <Button
                         type="button"
+                        variant="outline"
                         onClick={() => {
                           setShowAssignForm(false)
                           setAssigneeId('')
                           setAssignErrors({})
                         }}
-                        style={{
-                          minWidth: '44px',
-                          minHeight: '44px',
-                          padding: '0.5rem 1rem',
-                          fontSize: '0.875rem',
-                          fontWeight: 500,
-                          borderRadius: '0.375rem',
-                          backgroundColor: 'transparent',
-                          color: '#374151',
-                          border: '1px solid #d1d5db',
-                          cursor: 'pointer',
-                        }}
+                        className="min-h-[44px] rounded-full border-hairline text-charcoal"
                       >
                         {t('common.cancel')}
-                      </button>
-                      <button
+                      </Button>
+                      <Button
                         type="submit"
                         disabled={assignMutation.isPending}
-                        style={{
-                          minWidth: '44px',
-                          minHeight: '44px',
-                          padding: '0.5rem 1rem',
-                          fontSize: '0.875rem',
-                          fontWeight: 600,
-                          borderRadius: '0.375rem',
-                          backgroundColor: assignMutation.isPending
-                            ? '#a78bfa'
-                            : '#7c3aed',
-                          color: '#ffffff',
-                          border: 'none',
-                          cursor: assignMutation.isPending
-                            ? 'not-allowed'
-                            : 'pointer',
-                        }}
+                        className="min-h-[44px] rounded-full bg-brand-blue text-on-dark font-semibold disabled:opacity-60"
                       >
                         {assignMutation.isPending
                           ? t('common.loading')
                           : t('issues.assignIssue')}
-                      </button>
+                      </Button>
                     </div>
                   </form>
                 </div>

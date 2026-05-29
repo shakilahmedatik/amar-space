@@ -1,7 +1,10 @@
 'use client'
 
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { useCallback, useEffect, useState } from 'react'
 import { DashboardLayout } from '@/components/layout'
+import { Button } from '@/components/ui/button'
 import {
   DataTable,
   type DataTableColumn,
@@ -24,6 +27,7 @@ type UserRole = 'owner' | 'manager' | 'renter'
  */
 export default function FlatsPage() {
   const { t } = useTranslation()
+  const router = useRouter()
   const [role, setRole] = useState<UserRole>('owner')
   const [isLoadingSession, setIsLoadingSession] = useState(true)
   const [page, setPage] = useState(1)
@@ -35,12 +39,12 @@ export default function FlatsPage() {
       try {
         const session = await getSession()
         if (!session) {
-          window.location.href = '/login'
+          router.push('/login')
           return
         }
         setRole(session.role as UserRole)
       } catch {
-        window.location.href = '/login'
+        router.push('/login')
       } finally {
         setIsLoadingSession(false)
       }
@@ -72,7 +76,7 @@ export default function FlatsPage() {
 
   if (isLoadingSession) {
     return (
-      <div className="flex h-dvh items-center justify-center bg-gray-50">
+      <div className="flex h-dvh items-center justify-center bg-surface">
         <div className="w-full max-w-md px-4">
           <LoadingSkeleton rows={5} showHeader />
         </div>
@@ -84,9 +88,7 @@ export default function FlatsPage() {
     {
       key: 'flatNumber',
       header: t('flats.flatNumber'),
-      render: (row) => (
-        <span style={{ fontWeight: 500 }}>{row.flatNumber}</span>
-      ),
+      render: (row) => <span className="font-medium">{row.flatNumber}</span>,
     },
     {
       key: 'floor',
@@ -107,21 +109,12 @@ export default function FlatsPage() {
       key: 'actions',
       header: t('flats.actions'),
       render: (row) => (
-        <a
+        <Link
           href={`/flats/${row.id}`}
-          style={{
-            color: '#2563eb',
-            fontWeight: 500,
-            fontSize: '0.875rem',
-            textDecoration: 'none',
-            minWidth: '44px',
-            minHeight: '44px',
-            display: 'inline-flex',
-            alignItems: 'center',
-          }}
+          className="inline-flex items-center min-w-[44px] min-h-[44px] text-sm font-medium text-brand-blue-deep no-underline"
         >
           {t('flats.viewDetail')}
-        </a>
+        </Link>
       ),
     },
   ]
@@ -135,7 +128,7 @@ export default function FlatsPage() {
       options: [
         { value: 'vacant', label: t('flats.vacant') },
         { value: 'occupied', label: t('flats.occupied') },
-        { value: 'under_maintenance', label: t('flats.underMaintenance') },
+        { value: 'maintenance', label: t('flats.underMaintenance') },
       ],
     },
     {
@@ -160,48 +153,13 @@ export default function FlatsPage() {
         />
       )}
 
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          marginBottom: '1.5rem',
-          flexWrap: 'wrap',
-          gap: '1rem',
-        }}
-      >
-        <h1
-          style={{
-            fontSize: '1.5rem',
-            fontWeight: 700,
-            color: '#111827',
-          }}
-        >
-          {t('flats.title')}
-        </h1>
+      <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
+        <h1 className="text-2xl font-bold text-ink">{t('flats.title')}</h1>
 
         {role === 'owner' && (
-          <a
-            href="/flats/new"
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              minWidth: '44px',
-              minHeight: '44px',
-              padding: '0.625rem 1.25rem',
-              fontSize: '0.875rem',
-              fontWeight: 500,
-              borderRadius: '0.375rem',
-              border: 'none',
-              backgroundColor: '#2563eb',
-              color: '#ffffff',
-              textDecoration: 'none',
-              cursor: 'pointer',
-            }}
-          >
-            {t('flats.createFlat')}
-          </a>
+          <Button asChild className="rounded-full min-h-[44px]">
+            <Link href="/flats/new">{t('flats.createFlat')}</Link>
+          </Button>
         )}
       </div>
 
@@ -216,7 +174,7 @@ export default function FlatsPage() {
             ? {
                 page: data.page,
                 pageSize: data.pageSize,
-                totalItems: data.total,
+                total: data.total,
               }
             : undefined
         }

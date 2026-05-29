@@ -27,22 +27,7 @@ export function LanguageToggle({
       type="button"
       onClick={handleToggle}
       aria-label={t('common.language')}
-      style={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        gap: '0.5rem',
-        borderRadius: '0.375rem',
-        border: '1px solid #d1d5db',
-        padding: '0.5rem 0.75rem',
-        fontSize: '0.875rem',
-        fontWeight: 500,
-        cursor: 'pointer',
-        background: 'transparent',
-        color: 'inherit',
-        minWidth: '44px',
-        minHeight: '44px',
-        transition: 'background-color 0.15s',
-      }}
+      className="inline-flex items-center gap-2 rounded-md border border-hairline px-3 py-2 text-sm font-medium cursor-pointer bg-transparent text-inherit min-w-[44px] min-h-[44px] transition-colors hover:bg-surface"
     >
       <span aria-hidden="true">🌐</span>
       <span>{locale === 'bn' ? t('common.english') : t('common.bangla')}</span>

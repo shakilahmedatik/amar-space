@@ -546,6 +546,105 @@ const en: TranslationDictionary = {
       'Please enter a valid phone number (starts with 01, 11 digits)',
     invalidNid: 'NID number must be 10-17 digits',
   },
+  landing: {
+    nav: {
+      features: 'Features',
+      howItWorks: 'How It Works',
+      pricing: 'Pricing',
+      getStarted: 'Get Started',
+    },
+    hero: {
+      badge: 'Built for Bangladesh',
+      headline1: 'Manage your',
+      headlineAccent: 'properties',
+      headline2: 'with ease',
+      subheadline:
+        'Tenants, bills, maintenance — all in one place. The complete solution for Bangladeshi apartment owners and managers.',
+      ctaPrimary: 'Start for Free',
+      ctaSecondary: 'See How It Works',
+      trustLine: 'No credit card required • Free to start',
+      stat1Label: 'Average monthly savings',
+      stat2Label: 'Quick setup',
+      stat3Label: 'Data secured',
+      stat4Label: 'Support available',
+    },
+    features: {
+      eyebrow: 'Features',
+      heading: 'Everything for property management',
+      subheading:
+        'All the tools you need to manage your properties in one platform.',
+      f1Title: 'Building & Flat Management',
+      f1Desc: 'Easily track multiple buildings, flats, and occupancy status.',
+      f2Title: 'Bill & Payment Tracking',
+      f2Desc:
+        'Generate monthly bills, record payments, and track outstanding balances.',
+      f3Title: 'Renter Registration',
+      f3Desc:
+        'Complete profiles with NID verification, family info, and emergency contacts.',
+      f4Title: 'Audit Log',
+      f4Desc:
+        'Full history of all actions — ensure accountability across your team.',
+      f5Title: 'Notices & Communication',
+      f5Desc:
+        'Send notices to tenants, pin important announcements, and manage communications.',
+      f6Title: 'Mobile-First Design',
+      f6Desc: 'Use from any device with ease — available in Bangla.',
+    },
+    how: {
+      eyebrow: 'Process',
+      heading: 'Get started in three steps',
+      s1Title: 'Create your account',
+      s1Desc: 'Register for free and add your buildings and flat information.',
+      s2Title: 'Add your tenants',
+      s2Desc:
+        'Register tenants, create contracts, and record advance deposits.',
+      s3Title: 'Start managing',
+      s3Desc:
+        'Generate bills, track payments, and manage maintenance requests.',
+    },
+    pricing: {
+      eyebrow: 'Pricing',
+      heading: 'Simple, transparent pricing',
+      subheading: 'No hidden fees. Upgrade or downgrade at any time.',
+      freeName: 'Free',
+      freePrice: '৳0',
+      freeDesc: 'For small owners — up to 1 building.',
+      freeF1: '1 building',
+      freeF2: 'Up to 10 flats',
+      freeF3: 'Bill & payment tracking',
+      freeF4: 'Mobile app access',
+      freeCta: 'Start for Free',
+      proName: 'Pro',
+      proPrice: '৳999',
+      proPeriod: '/month',
+      proDesc: 'For larger owners and managers — unlimited everything.',
+      proF1: 'Unlimited buildings & flats',
+      proF2: 'Multiple managers',
+      proF3: 'Audit logs & reports',
+      proF4: 'Advance deposit management',
+      proF5: 'Priority support',
+      proCta: 'Start Pro',
+    },
+    cta: {
+      heading: 'Simplify your property management today',
+      subheading:
+        'Thousands of Bangladeshi owners use AmarSpace to save time and money.',
+      primary: 'Start for Free',
+      secondary: 'Log In',
+      note: 'No credit card required',
+    },
+    footer: {
+      tagline:
+        'The complete property management platform for Bangladeshi apartment owners and managers.',
+      product: 'Product',
+      account: 'Account',
+      legal: 'Legal',
+      privacy: 'Privacy Policy',
+      terms: 'Terms of Service',
+      copyright: '© {{year}} AmarSpace. All rights reserved.',
+      madeIn: 'Made in Bangladesh 🇧🇩',
+    },
+  },
 }
 
 export default en

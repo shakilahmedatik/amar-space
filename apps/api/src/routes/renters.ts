@@ -1,6 +1,7 @@
 import type { RequestContext } from '@repo/shared/types'
 import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
+import { dateTimeResponseSchema, errorResponseSchema } from '../app'
 import { authGuard } from '../middleware/auth-guard'
 import { roleGuard } from '../middleware/role-guard'
 import { tenantScope } from '../middleware/tenant-scope'
@@ -68,10 +69,37 @@ async function renterRoutes(fastify: FastifyInstance) {
     {
       preHandler: [authGuard, roleGuard(['owner', 'manager']), tenantScope],
       schema: {
+        tags: ['Renters'],
+        summary: 'List renters',
+        description:
+          'Returns a paginated list of renters within the tenant scope.\n\n**Roles: owner, manager**',
+        security: [{ BearerAuth: [] }, { CookieAuth: [] }],
         querystring: z.object({
           page: z.coerce.number().int().min(1).default(1),
-          pageSize: z.coerce.number().int().min(1).max(50).default(20),
+          pageSize: z.coerce.number().int().min(1).max(100).default(20),
         }),
+        response: {
+          200: z.object({
+            data: z.array(
+              z.object({
+                id: z.string(),
+                fullName: z.string(),
+                phone: z.string(),
+                nidNumber: z.string(),
+                occupation: z.string(),
+                bloodGroup: z.string(),
+                flatId: z.string().nullable(),
+                ownerAccountId: z.string(),
+                createdAt: dateTimeResponseSchema,
+              }),
+            ),
+            total: z.number(),
+            page: z.number(),
+            pageSize: z.number(),
+          }),
+          401: errorResponseSchema,
+          403: errorResponseSchema,
+        },
       },
     },
     async (request, reply) => {
@@ -96,6 +124,76 @@ async function renterRoutes(fastify: FastifyInstance) {
     '/',
     {
       preHandler: [authGuard, roleGuard(['owner', 'manager']), tenantScope],
+      schema: {
+        tags: ['Renters'],
+        summary: 'Register a new renter',
+        description:
+          'Registers a renter with profile data and optional file uploads (NID photo, digital signature). Accepts multipart/form-data.\n\n**Roles: owner, manager**',
+        security: [{ BearerAuth: [] }, { CookieAuth: [] }],
+        consumes: ['multipart/form-data'],
+        body: z.object({
+          fullName: z.string().describe('Full name of the renter'),
+          phone: z.string().describe('Phone number'),
+          nidNumber: z.string().describe('National ID number'),
+          occupation: z.string().describe('Occupation'),
+          bloodGroup: z.enum([
+            'A+',
+            'A-',
+            'B+',
+            'B-',
+            'AB+',
+            'AB-',
+            'O+',
+            'O-',
+          ]),
+          totalFamilyMembers: z
+            .string()
+            .describe('Total family members (numeric string)'),
+          emergencyContactName: z.string(),
+          emergencyContactNumber: z.string(),
+          emergencyContactRelationship: z.string(),
+          flatId: z.string().describe('UUID of the flat to assign'),
+          monthlyRent: z
+            .string()
+            .describe('Monthly rent amount (numeric string)'),
+          startDate: z.string().describe('Contract start date (YYYY-MM-DD)'),
+          advanceAmount: z
+            .string()
+            .describe('Advance/deposit amount (numeric string)'),
+          dateOfBirth: z
+            .string()
+            .describe('Date of birth (YYYY-MM-DD)')
+            .nullable()
+            .optional(),
+          familyMemberNames: z
+            .string()
+            .describe('JSON array of family member names')
+            .nullable()
+            .optional(),
+          nidPhoto: z
+            .string()
+            .describe('NID photo file (JPEG/PNG, max 5MB)')
+            .optional(),
+          digitalSignature: z
+            .string()
+            .describe('Digital signature file (JPEG/PNG, max 5MB)')
+            .optional(),
+        }),
+        response: {
+          201: z.object({
+            id: z.string(),
+            fullName: z.string(),
+            phone: z.string(),
+            nidNumber: z.string(),
+            flatId: z.string().nullable(),
+            ownerAccountId: z.string(),
+            createdAt: dateTimeResponseSchema,
+          }),
+          400: errorResponseSchema,
+          401: errorResponseSchema,
+          403: errorResponseSchema,
+        },
+      },
     },
     async (request, reply) => {
       const ctx = buildRequestContext(request as never)
@@ -174,9 +272,32 @@ async function renterRoutes(fastify: FastifyInstance) {
     {
       preHandler: [authGuard, roleGuard(['owner', 'manager']), tenantScope],
       schema: {
+        tags: ['Renters'],
+        summary: 'Get a renter',
+        description:
+          'Returns a renter by ID with their profile and contract information.\n\n**Roles: owner, manager**',
+        security: [{ BearerAuth: [] }, { CookieAuth: [] }],
         params: z.object({
           id: z.string().uuid('Invalid renter ID format'),
         }),
+        response: {
+          200: z.object({
+            id: z.string(),
+            fullName: z.string(),
+            phone: z.string(),
+            nidNumber: z.string(),
+            occupation: z.string(),
+            bloodGroup: z.string(),
+            flatId: z.string().nullable(),
+            nidPhotoUrl: z.string().nullable(),
+            digitalSignatureUrl: z.string().nullable(),
+            ownerAccountId: z.string(),
+            createdAt: dateTimeResponseSchema,
+          }),
+          401: errorResponseSchema,
+          403: errorResponseSchema,
+          404: errorResponseSchema,
+        },
       },
     },
     async (request, reply) => {

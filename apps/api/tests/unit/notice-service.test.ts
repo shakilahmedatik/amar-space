@@ -1,3 +1,4 @@
+import type { Database } from '@repo/db'
 import {
   ForbiddenError,
   NotFoundError,
@@ -5,6 +6,7 @@ import {
 } from '@repo/shared/errors'
 import type { RequestContext } from '@repo/shared/types'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import type { AuditLogger } from '../../src/plugins/audit-logger'
 import { NoticeService } from '../../src/services/notice.service'
 
 /**
@@ -245,12 +247,16 @@ describe('NoticeService', () => {
   describe('createNotice', () => {
     it('should create a notice successfully with valid input for all_renters', async () => {
       const db = createMockDb()
-      const service = new NoticeService(db as any, auditLogger as any)
+      const service = new NoticeService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       const result = await service.createNotice(ctx, {
         title: 'Important Notice',
         body: 'This is an important notice for all renters.',
         targetAudience: 'all_renters',
+        isPinned: false,
       })
 
       expect(result.id).toBe(NOTICE_ID)
@@ -260,98 +266,129 @@ describe('NoticeService', () => {
 
     it('should reject title longer than 200 characters', async () => {
       const db = createMockDb()
-      const service = new NoticeService(db as any, auditLogger as any)
+      const service = new NoticeService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       await expect(
         service.createNotice(ctx, {
           title: 'A'.repeat(201),
           body: 'Valid body',
           targetAudience: 'all_renters',
+          isPinned: false,
         }),
       ).rejects.toThrow(ValidationError)
     })
 
     it('should reject body longer than 5000 characters', async () => {
       const db = createMockDb()
-      const service = new NoticeService(db as any, auditLogger as any)
+      const service = new NoticeService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       await expect(
         service.createNotice(ctx, {
           title: 'Valid title',
           body: 'A'.repeat(5001),
           targetAudience: 'all_renters',
+          isPinned: false,
         }),
       ).rejects.toThrow(ValidationError)
     })
 
     it('should reject empty title', async () => {
       const db = createMockDb()
-      const service = new NoticeService(db as any, auditLogger as any)
+      const service = new NoticeService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       await expect(
         service.createNotice(ctx, {
           title: '',
           body: 'Valid body',
           targetAudience: 'all_renters',
+          isPinned: false,
         }),
       ).rejects.toThrow(ValidationError)
     })
 
     it('should reject empty body', async () => {
       const db = createMockDb()
-      const service = new NoticeService(db as any, auditLogger as any)
+      const service = new NoticeService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       await expect(
         service.createNotice(ctx, {
           title: 'Valid title',
           body: '',
           targetAudience: 'all_renters',
+          isPinned: false,
         }),
       ).rejects.toThrow(ValidationError)
     })
 
     it('should reject invalid target audience', async () => {
       const db = createMockDb()
-      const service = new NoticeService(db as any, auditLogger as any)
+      const service = new NoticeService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       await expect(
         service.createNotice(ctx, {
           title: 'Valid title',
           body: 'Valid body',
-          targetAudience: 'invalid_target' as any,
+          targetAudience: 'invalid_target' as never,
+          isPinned: false,
         }),
       ).rejects.toThrow(ValidationError)
     })
 
     it('should require buildingId for specific_building target', async () => {
       const db = createMockDb()
-      const service = new NoticeService(db as any, auditLogger as any)
+      const service = new NoticeService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       await expect(
         service.createNotice(ctx, {
           title: 'Building Notice',
           body: 'Notice for specific building',
           targetAudience: 'specific_building',
+          isPinned: false,
         }),
       ).rejects.toThrow(ValidationError)
     })
 
     it('should require flatId for specific_flat target', async () => {
       const db = createMockDb()
-      const service = new NoticeService(db as any, auditLogger as any)
+      const service = new NoticeService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       await expect(
         service.createNotice(ctx, {
           title: 'Flat Notice',
           body: 'Notice for specific flat',
           targetAudience: 'specific_flat',
+          isPinned: false,
         }),
       ).rejects.toThrow(ValidationError)
     })
 
     it('should reject when referenced building does not exist', async () => {
       const db = createMockDb({ findFirstBuilding: null })
-      const service = new NoticeService(db as any, auditLogger as any)
+      const service = new NoticeService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       await expect(
         service.createNotice(ctx, {
@@ -359,13 +396,17 @@ describe('NoticeService', () => {
           body: 'Notice for specific building',
           targetAudience: 'specific_building',
           targetBuildingId: '550e8400-e29b-41d4-a716-446655440099',
+          isPinned: false,
         }),
       ).rejects.toThrow(ValidationError)
     })
 
     it('should reject when referenced flat does not exist', async () => {
       const db = createMockDb({ findFirstFlat: null })
-      const service = new NoticeService(db as any, auditLogger as any)
+      const service = new NoticeService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       await expect(
         service.createNotice(ctx, {
@@ -373,6 +414,7 @@ describe('NoticeService', () => {
           body: 'Notice for specific flat',
           targetAudience: 'specific_flat',
           targetFlatId: '550e8400-e29b-41d4-a716-446655440099',
+          isPinned: false,
         }),
       ).rejects.toThrow(ValidationError)
     })
@@ -380,7 +422,10 @@ describe('NoticeService', () => {
     it('should reject when manager targets unassigned building', async () => {
       const managerCtx = createManagerContext()
       const db = createMockDb({ findFirstManagerAssignment: null })
-      const service = new NoticeService(db as any, auditLogger as any)
+      const service = new NoticeService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       await expect(
         service.createNotice(managerCtx, {
@@ -388,6 +433,7 @@ describe('NoticeService', () => {
           body: 'Notice for specific building',
           targetAudience: 'specific_building',
           targetBuildingId: BUILDING_ID,
+          isPinned: false,
         }),
       ).rejects.toThrow(ForbiddenError)
     })
@@ -400,13 +446,17 @@ describe('NoticeService', () => {
         targetBuildingId: BUILDING_ID,
       })
       const db = createMockDb({ insertResult })
-      const service = new NoticeService(db as any, auditLogger as any)
+      const service = new NoticeService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       const result = await service.createNotice(managerCtx, {
         title: 'Building Notice',
         body: 'Notice for specific building',
         targetAudience: 'specific_building',
         targetBuildingId: BUILDING_ID,
+        isPinned: false,
       })
 
       expect(result.targetAudience).toBe('specific_building')
@@ -415,12 +465,16 @@ describe('NoticeService', () => {
 
     it('should record audit event on creation', async () => {
       const db = createMockDb()
-      const service = new NoticeService(db as any, auditLogger as any)
+      const service = new NoticeService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       await service.createNotice(ctx, {
         title: 'Important Notice',
         body: 'This is an important notice.',
         targetAudience: 'all_renters',
+        isPinned: false,
       })
 
       expect(auditLogger.log).toHaveBeenCalledWith(
@@ -447,7 +501,10 @@ describe('NoticeService', () => {
         findFirstNotice: existing,
         updateResult: updated,
       })
-      const service = new NoticeService(db as any, auditLogger as any)
+      const service = new NoticeService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       const result = await service.updateNotice(ctx, NOTICE_ID, {
         title: 'Updated Title',
@@ -468,7 +525,10 @@ describe('NoticeService', () => {
         findFirstNotice: existing,
         updateResult: updated,
       })
-      const service = new NoticeService(db as any, auditLogger as any)
+      const service = new NoticeService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       const result = await service.updateNotice(managerCtx, NOTICE_ID, {
         title: 'Updated Title',
@@ -481,7 +541,10 @@ describe('NoticeService', () => {
       const managerCtx = createManagerContext()
       const existing = createDefaultNotice({ authorId: OWNER_ID })
       const db = createMockDb({ findFirstNotice: existing })
-      const service = new NoticeService(db as any, auditLogger as any)
+      const service = new NoticeService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       await expect(
         service.updateNotice(managerCtx, NOTICE_ID, { title: 'New Title' }),
@@ -490,7 +553,10 @@ describe('NoticeService', () => {
 
     it('should reject when notice does not exist', async () => {
       const db = createMockDb({ findFirstNotice: null })
-      const service = new NoticeService(db as any, auditLogger as any)
+      const service = new NoticeService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       await expect(
         service.updateNotice(ctx, '550e8400-e29b-41d4-a716-446655440099', {
@@ -506,7 +572,10 @@ describe('NoticeService', () => {
         findFirstNotice: existing,
         updateResult: updated,
       })
-      const service = new NoticeService(db as any, auditLogger as any)
+      const service = new NoticeService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       await service.updateNotice(ctx, NOTICE_ID, { title: 'Updated' })
 
@@ -525,7 +594,10 @@ describe('NoticeService', () => {
     it('should allow owner to delete any notice', async () => {
       const existing = createDefaultNotice({ authorId: MANAGER_ID })
       const db = createMockDb({ findFirstNotice: existing })
-      const service = new NoticeService(db as any, auditLogger as any)
+      const service = new NoticeService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       await expect(
         service.deleteNotice(ctx, NOTICE_ID),
@@ -536,7 +608,10 @@ describe('NoticeService', () => {
       const managerCtx = createManagerContext()
       const existing = createDefaultNotice({ authorId: MANAGER_ID })
       const db = createMockDb({ findFirstNotice: existing })
-      const service = new NoticeService(db as any, auditLogger as any)
+      const service = new NoticeService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       await expect(
         service.deleteNotice(managerCtx, NOTICE_ID),
@@ -547,7 +622,10 @@ describe('NoticeService', () => {
       const managerCtx = createManagerContext()
       const existing = createDefaultNotice({ authorId: OWNER_ID })
       const db = createMockDb({ findFirstNotice: existing })
-      const service = new NoticeService(db as any, auditLogger as any)
+      const service = new NoticeService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       await expect(service.deleteNotice(managerCtx, NOTICE_ID)).rejects.toThrow(
         ForbiddenError,
@@ -556,7 +634,10 @@ describe('NoticeService', () => {
 
     it('should reject when notice does not exist', async () => {
       const db = createMockDb({ findFirstNotice: null })
-      const service = new NoticeService(db as any, auditLogger as any)
+      const service = new NoticeService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       await expect(
         service.deleteNotice(ctx, '550e8400-e29b-41d4-a716-446655440099'),
@@ -566,7 +647,10 @@ describe('NoticeService', () => {
     it('should record audit event on deletion', async () => {
       const existing = createDefaultNotice()
       const db = createMockDb({ findFirstNotice: existing })
-      const service = new NoticeService(db as any, auditLogger as any)
+      const service = new NoticeService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       await service.deleteNotice(ctx, NOTICE_ID)
 
@@ -590,7 +674,10 @@ describe('NoticeService', () => {
         updateResult: updated,
         pinnedCountResult: 3,
       })
-      const service = new NoticeService(db as any, auditLogger as any)
+      const service = new NoticeService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       const result = await service.togglePin(ctx, NOTICE_ID)
 
@@ -607,7 +694,10 @@ describe('NoticeService', () => {
         findFirstNotice: existing,
         updateResult: updated,
       })
-      const service = new NoticeService(db as any, auditLogger as any)
+      const service = new NoticeService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       const result = await service.togglePin(ctx, NOTICE_ID)
 
@@ -620,7 +710,10 @@ describe('NoticeService', () => {
         findFirstNotice: existing,
         pinnedCountResult: 5,
       })
-      const service = new NoticeService(db as any, auditLogger as any)
+      const service = new NoticeService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       await expect(service.togglePin(ctx, NOTICE_ID)).rejects.toThrow(
         ValidationError,
@@ -629,7 +722,10 @@ describe('NoticeService', () => {
 
     it('should reject when notice does not exist', async () => {
       const db = createMockDb({ findFirstNotice: null })
-      const service = new NoticeService(db as any, auditLogger as any)
+      const service = new NoticeService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       await expect(
         service.togglePin(ctx, '550e8400-e29b-41d4-a716-446655440099'),
@@ -644,7 +740,10 @@ describe('NoticeService', () => {
         updateResult: updated,
         pinnedCountResult: 2,
       })
-      const service = new NoticeService(db as any, auditLogger as any)
+      const service = new NoticeService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       await service.togglePin(ctx, NOTICE_ID)
 
@@ -664,7 +763,10 @@ describe('NoticeService', () => {
   describe('listNotices', () => {
     it('should cap page size at 50', async () => {
       const db = createMockDb({ selectResult: [], countResult: 0 })
-      const service = new NoticeService(db as any, auditLogger as any)
+      const service = new NoticeService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       const result = await service.listNotices(ctx, {
         page: 1,
@@ -676,7 +778,10 @@ describe('NoticeService', () => {
 
     it('should default page to 1 when less than 1', async () => {
       const db = createMockDb({ selectResult: [], countResult: 0 })
-      const service = new NoticeService(db as any, auditLogger as any)
+      const service = new NoticeService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       const result = await service.listNotices(ctx, {
         page: 0,
@@ -689,7 +794,10 @@ describe('NoticeService', () => {
     it('should return paginated results', async () => {
       const noticeData = [createDefaultNotice()]
       const db = createMockDb({ selectResult: noticeData, countResult: 1 })
-      const service = new NoticeService(db as any, auditLogger as any)
+      const service = new NoticeService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       const result = await service.listNotices(ctx, {
         page: 1,
@@ -706,7 +814,10 @@ describe('NoticeService', () => {
     it('should return a notice for owner', async () => {
       const existing = createDefaultNotice()
       const db = createMockDb({ findFirstNotice: existing })
-      const service = new NoticeService(db as any, auditLogger as any)
+      const service = new NoticeService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       const result = await service.getNotice(ctx, NOTICE_ID)
 
@@ -716,7 +827,10 @@ describe('NoticeService', () => {
 
     it('should reject when notice does not exist', async () => {
       const db = createMockDb({ findFirstNotice: null })
-      const service = new NoticeService(db as any, auditLogger as any)
+      const service = new NoticeService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       await expect(
         service.getNotice(ctx, '550e8400-e29b-41d4-a716-446655440099'),
@@ -727,7 +841,10 @@ describe('NoticeService', () => {
       const renterCtx = createRenterContext()
       const existing = createDefaultNotice({ targetAudience: 'managers_only' })
       const db = createMockDb({ findFirstNotice: existing })
-      const service = new NoticeService(db as any, auditLogger as any)
+      const service = new NoticeService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       await expect(service.getNotice(renterCtx, NOTICE_ID)).rejects.toThrow(
         NotFoundError,
@@ -738,7 +855,10 @@ describe('NoticeService', () => {
       const renterCtx = createRenterContext()
       const existing = createDefaultNotice({ targetAudience: 'all_renters' })
       const db = createMockDb({ findFirstNotice: existing })
-      const service = new NoticeService(db as any, auditLogger as any)
+      const service = new NoticeService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       const result = await service.getNotice(renterCtx, NOTICE_ID)
 
@@ -752,7 +872,10 @@ describe('NoticeService', () => {
         targetBuildingId: BUILDING_ID,
       })
       const db = createMockDb({ findFirstNotice: existing })
-      const service = new NoticeService(db as any, auditLogger as any)
+      const service = new NoticeService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       const result = await service.getNotice(renterCtx, NOTICE_ID)
 
@@ -766,7 +889,10 @@ describe('NoticeService', () => {
         targetFlatId: FLAT_ID,
       })
       const db = createMockDb({ findFirstNotice: existing })
-      const service = new NoticeService(db as any, auditLogger as any)
+      const service = new NoticeService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       const result = await service.getNotice(renterCtx, NOTICE_ID)
 
@@ -780,7 +906,10 @@ describe('NoticeService', () => {
         targetFlatId: '550e8400-e29b-41d4-a716-446655440099',
       })
       const db = createMockDb({ findFirstNotice: existing })
-      const service = new NoticeService(db as any, auditLogger as any)
+      const service = new NoticeService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       await expect(service.getNotice(renterCtx, NOTICE_ID)).rejects.toThrow(
         NotFoundError,
@@ -791,7 +920,10 @@ describe('NoticeService', () => {
       const managerCtx = createManagerContext()
       const existing = createDefaultNotice({ targetAudience: 'managers_only' })
       const db = createMockDb({ findFirstNotice: existing })
-      const service = new NoticeService(db as any, auditLogger as any)
+      const service = new NoticeService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       const result = await service.getNotice(managerCtx, NOTICE_ID)
 
@@ -805,7 +937,10 @@ describe('NoticeService', () => {
         targetBuildingId: BUILDING_ID,
       })
       const db = createMockDb({ findFirstNotice: existing })
-      const service = new NoticeService(db as any, auditLogger as any)
+      const service = new NoticeService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       const result = await service.getNotice(managerCtx, NOTICE_ID)
 
@@ -819,7 +954,10 @@ describe('NoticeService', () => {
         targetBuildingId: '550e8400-e29b-41d4-a716-446655440099',
       })
       const db = createMockDb({ findFirstNotice: existing })
-      const service = new NoticeService(db as any, auditLogger as any)
+      const service = new NoticeService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       await expect(service.getNotice(managerCtx, NOTICE_ID)).rejects.toThrow(
         NotFoundError,

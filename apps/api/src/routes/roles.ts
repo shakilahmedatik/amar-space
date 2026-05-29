@@ -1,5 +1,6 @@
 import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
+import { errorResponseSchema } from '../app'
 import { authGuard } from '../middleware/auth-guard'
 import { roleGuard } from '../middleware/role-guard'
 import { assignRole } from '../services/role-assignment'
@@ -30,6 +31,11 @@ async function roleRoutes(fastify: FastifyInstance) {
     {
       preHandler: [authGuard, roleGuard(['owner'])],
       schema: {
+        tags: ['Users'],
+        summary: 'Assign user role',
+        description:
+          "Assigns or changes a user's role. When assigning the manager role, buildingIds must be provided to specify which buildings the manager can access.\n\n**Roles: owner**",
+        security: [{ BearerAuth: [] }, { CookieAuth: [] }],
         params: z.object({
           id: z.string().uuid('Invalid user ID format'),
         }),
@@ -39,6 +45,18 @@ async function roleRoutes(fastify: FastifyInstance) {
             .array(z.string().uuid('Invalid building ID format'))
             .optional(),
         }),
+        response: {
+          200: z.object({
+            id: z.string(),
+            email: z.string(),
+            role: z.enum(['owner', 'manager', 'renter']),
+            ownerAccountId: z.string(),
+            buildingIds: z.array(z.string()).nullable(),
+          }),
+          400: errorResponseSchema,
+          401: errorResponseSchema,
+          403: errorResponseSchema,
+        },
       },
     },
     async (request, reply) => {

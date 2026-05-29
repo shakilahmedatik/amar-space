@@ -1,20 +1,23 @@
 # Development overrides - automatically merged with docker-compose.yml
-# Use: docker compose up (no -f flag needed)
+# Use: docker compose up db  (starts only Postgres)
+#
+# In local dev, run the API and web app directly on your machine:
+#   bun run dev
+#
+# The api and web services are disabled here so they don't start when
+# running `docker compose up` without specifying a service name.
 services:
+  db:
+    # Keep the db service as-is from docker-compose.yml — just Postgres in Docker
+    ports:
+      - "5432:5432"
+
   api:
-    build: !reset null
-    image: node:22-alpine
-    working_dir: /app
-    command: bun run dev --filter=api
-    volumes:
-      - .:/app
-      - /app/node_modules
+    # Disabled in local dev — run with: bun run dev (from repo root)
+    profiles:
+      - production-only
 
   web:
-    build: !reset null
-    image: node:22-alpine
-    working_dir: /app
-    command: bun run dev --filter=web
-    volumes:
-      - .:/app
-      - /app/node_modules
+    # Disabled in local dev — run with: bun run dev (from repo root)
+    profiles:
+      - production-only

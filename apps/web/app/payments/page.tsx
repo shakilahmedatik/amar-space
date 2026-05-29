@@ -1,7 +1,10 @@
 'use client'
 
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { useCallback, useEffect, useState } from 'react'
 import { DashboardLayout } from '@/components/layout'
+import { Button } from '@/components/ui/button'
 import {
   DataTable,
   type DataTableColumn,
@@ -23,6 +26,7 @@ type UserRole = 'owner' | 'manager' | 'renter'
  */
 export default function PaymentsPage() {
   const { t } = useTranslation()
+  const router = useRouter()
   const [role, setRole] = useState<UserRole>('owner')
   const [isLoadingSession, setIsLoadingSession] = useState(true)
   const [page, setPage] = useState(1)
@@ -36,12 +40,12 @@ export default function PaymentsPage() {
       try {
         const session = await getSession()
         if (!session) {
-          window.location.href = '/login'
+          router.push('/login')
           return
         }
         setRole(session.role as UserRole)
       } catch {
-        window.location.href = '/login'
+        router.push('/login')
       } finally {
         setIsLoadingSession(false)
       }
@@ -79,7 +83,7 @@ export default function PaymentsPage() {
 
   if (isLoadingSession) {
     return (
-      <div className="flex h-dvh items-center justify-center bg-gray-50">
+      <div className="flex h-dvh items-center justify-center bg-surface">
         <div className="w-full max-w-md px-4">
           <LoadingSkeleton rows={5} showHeader />
         </div>
@@ -107,24 +111,19 @@ export default function PaymentsPage() {
       key: 'receiptReference',
       header: t('payments.receipt'),
       render: (row) => (
-        <a
+        <Link
           href={`/payments/${row.id}`}
-          style={{
-            color: '#2563eb',
-            fontWeight: 500,
-            textDecoration: 'none',
-            fontSize: '0.875rem',
-          }}
+          className="text-brand-blue-deep font-medium no-underline text-sm"
         >
           {row.receiptReference}
-        </a>
+        </Link>
       ),
     },
     {
       key: 'amount',
       header: t('payments.amount'),
       render: (row) => (
-        <span style={{ fontWeight: 500 }}>
+        <span className="font-medium">
           ৳
           {Number(row.amount).toLocaleString('en-BD', {
             minimumFractionDigits: 2,
@@ -193,73 +192,25 @@ export default function PaymentsPage() {
         />
       )}
 
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          marginBottom: '1.5rem',
-          flexWrap: 'wrap',
-          gap: '1rem',
-        }}
-      >
-        <h1
-          style={{
-            fontSize: '1.5rem',
-            fontWeight: 700,
-            color: '#111827',
-          }}
-        >
-          {t('payments.title')}
-        </h1>
+      <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
+        <h1 className="text-2xl font-bold text-ink">{t('payments.title')}</h1>
 
         {canRecord && (
-          <a
-            href="/payments/new"
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              minWidth: '44px',
-              minHeight: '44px',
-              padding: '0.625rem 1.25rem',
-              fontSize: '0.875rem',
-              fontWeight: 600,
-              borderRadius: '0.5rem',
-              backgroundColor: '#2563eb',
-              color: '#ffffff',
-              textDecoration: 'none',
-              border: 'none',
-              cursor: 'pointer',
-            }}
+          <Button
+            asChild
+            className="rounded-full min-h-[44px] bg-primary text-on-primary font-semibold"
           >
-            {t('payments.recordPayment')}
-          </a>
+            <Link href="/payments/new">{t('payments.recordPayment')}</Link>
+          </Button>
         )}
       </div>
 
       {/* Date range filters */}
-      <div
-        style={{
-          display: 'flex',
-          flexWrap: 'wrap',
-          gap: '0.75rem',
-          marginBottom: '1rem',
-          padding: '0.75rem',
-          borderRadius: '0.5rem',
-          border: '1px solid #e5e7eb',
-        }}
-      >
-        <div style={{ minWidth: '150px', flex: '1 1 auto' }}>
+      <div className="flex flex-wrap gap-3 mb-4 p-3 rounded-md border border-hairline">
+        <div className="min-w-[150px] flex-1">
           <label
             htmlFor="filter-startDate"
-            style={{
-              display: 'block',
-              fontSize: '0.75rem',
-              fontWeight: 500,
-              color: '#6b7280',
-              marginBottom: '0.25rem',
-            }}
+            className="block text-xs font-medium text-steel mb-1"
           >
             {t('payments.startDate')}
           </label>
@@ -268,28 +219,13 @@ export default function PaymentsPage() {
             type="date"
             value={startDate}
             onChange={(e) => handleFilterChange('startDate', e.target.value)}
-            style={{
-              width: '100%',
-              padding: '0.5rem 0.75rem',
-              fontSize: '0.875rem',
-              borderRadius: '0.375rem',
-              border: '1px solid #d1d5db',
-              backgroundColor: 'var(--background)',
-              color: 'var(--foreground)',
-              minHeight: '44px',
-            }}
+            className="w-full px-3 py-2 text-sm rounded-md border border-hairline bg-canvas text-ink min-h-[44px]"
           />
         </div>
-        <div style={{ minWidth: '150px', flex: '1 1 auto' }}>
+        <div className="min-w-[150px] flex-1">
           <label
             htmlFor="filter-endDate"
-            style={{
-              display: 'block',
-              fontSize: '0.75rem',
-              fontWeight: 500,
-              color: '#6b7280',
-              marginBottom: '0.25rem',
-            }}
+            className="block text-xs font-medium text-steel mb-1"
           >
             {t('payments.endDate')}
           </label>
@@ -298,16 +234,7 @@ export default function PaymentsPage() {
             type="date"
             value={endDate}
             onChange={(e) => handleFilterChange('endDate', e.target.value)}
-            style={{
-              width: '100%',
-              padding: '0.5rem 0.75rem',
-              fontSize: '0.875rem',
-              borderRadius: '0.375rem',
-              border: '1px solid #d1d5db',
-              backgroundColor: 'var(--background)',
-              color: 'var(--foreground)',
-              minHeight: '44px',
-            }}
+            className="w-full px-3 py-2 text-sm rounded-md border border-hairline bg-canvas text-ink min-h-[44px]"
           />
         </div>
       </div>
@@ -318,7 +245,11 @@ export default function PaymentsPage() {
         getRowKey={(row) => row.id}
         loading={isLoading}
         emptyMessage={t('payments.noPayments')}
-        pagination={data?.pagination}
+        pagination={
+          data
+            ? { total: data.total, page: data.page, pageSize: data.pageSize }
+            : undefined
+        }
         onPageChange={handlePageChange}
         filters={filters}
         filterValues={{ method: methodFilter, renter: renterFilter }}

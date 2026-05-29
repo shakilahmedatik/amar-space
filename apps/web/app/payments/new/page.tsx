@@ -1,7 +1,10 @@
 'use client'
 
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { DashboardLayout } from '@/components/layout'
+import { Button } from '@/components/ui/button'
 import { ErrorFeedback } from '@/components/ui/error-feedback'
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton'
 import { useRecordPayment, useUnpaidBills } from '@/hooks/use-payments'
@@ -26,6 +29,7 @@ interface FormErrors {
  */
 export default function RecordPaymentPage() {
   const { t } = useTranslation()
+  const router = useRouter()
   const [role, setRole] = useState<UserRole>('owner')
   const [isLoadingSession, setIsLoadingSession] = useState(true)
 
@@ -46,17 +50,17 @@ export default function RecordPaymentPage() {
       try {
         const session = await getSession()
         if (!session) {
-          window.location.href = '/login'
+          router.push('/login')
           return
         }
         const userRole = session.role as UserRole
         if (userRole === 'renter') {
-          window.location.href = '/payments'
+          router.push('/payments')
           return
         }
         setRole(userRole)
       } catch {
-        window.location.href = '/login'
+        router.push('/login')
       } finally {
         setIsLoadingSession(false)
       }
@@ -144,7 +148,7 @@ export default function RecordPaymentPage() {
 
   if (isLoadingSession) {
     return (
-      <div className="flex h-dvh items-center justify-center bg-gray-50">
+      <div className="flex h-dvh items-center justify-center bg-surface">
         <div className="w-full max-w-md px-4">
           <LoadingSkeleton rows={5} showHeader />
         </div>
@@ -170,52 +174,27 @@ export default function RecordPaymentPage() {
         />
       )}
 
-      <div style={{ marginBottom: '1.5rem' }}>
-        <a
+      <div className="mb-6">
+        <Link
           href="/payments"
-          style={{
-            color: '#6b7280',
-            fontSize: '0.875rem',
-            textDecoration: 'none',
-            display: 'inline-flex',
-            alignItems: 'center',
-            minHeight: '44px',
-          }}
+          className="text-steel text-sm no-underline inline-flex items-center min-h-[44px]"
         >
           ← {t('common.back')}
-        </a>
-        <h1
-          style={{
-            fontSize: '1.5rem',
-            fontWeight: 700,
-            color: '#111827',
-            marginTop: '0.5rem',
-          }}
-        >
+        </Link>
+        <h1 className="text-2xl font-bold text-ink mt-2">
           {t('payments.recordPayment')}
         </h1>
       </div>
 
       <form
         onSubmit={handleSubmit}
-        style={{
-          maxWidth: '600px',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '1.25rem',
-        }}
+        className="max-w-[600px] flex flex-col gap-5"
       >
         {/* Bill Selection */}
         <div>
           <label
             htmlFor="billId"
-            style={{
-              display: 'block',
-              fontSize: '0.875rem',
-              fontWeight: 500,
-              color: '#374151',
-              marginBottom: '0.375rem',
-            }}
+            className="block text-sm font-medium text-charcoal mb-1.5"
           >
             {t('payments.selectBill')} *
           </label>
@@ -224,16 +203,9 @@ export default function RecordPaymentPage() {
             value={billId}
             onChange={(e) => setBillId(e.target.value)}
             disabled={billsLoading}
-            style={{
-              width: '100%',
-              padding: '0.625rem 0.75rem',
-              fontSize: '1rem',
-              borderRadius: '0.375rem',
-              border: `1px solid ${errors.billId ? '#ef4444' : '#d1d5db'}`,
-              backgroundColor: 'var(--background)',
-              color: 'var(--foreground)',
-              minHeight: '44px',
-            }}
+            className={`w-full px-3 py-2.5 text-base rounded-md border bg-canvas text-ink min-h-[44px] ${
+              errors.billId ? 'border-error-text' : 'border-hairline'
+            }`}
           >
             <option value="">{t('payments.selectBillPlaceholder')}</option>
             {(billsData?.data || []).map((bill) => (
@@ -247,24 +219,10 @@ export default function RecordPaymentPage() {
             ))}
           </select>
           {errors.billId && (
-            <p
-              style={{
-                color: '#ef4444',
-                fontSize: '0.75rem',
-                marginTop: '0.25rem',
-              }}
-            >
-              {errors.billId}
-            </p>
+            <p className="text-error-text text-xs mt-1">{errors.billId}</p>
           )}
           {remainingBalance !== null && (
-            <p
-              style={{
-                color: '#6b7280',
-                fontSize: '0.75rem',
-                marginTop: '0.25rem',
-              }}
-            >
+            <p className="text-steel text-xs mt-1">
               {t('payments.maxPayable')}: ৳{remainingBalance.toFixed(2)}
             </p>
           )}
@@ -274,13 +232,7 @@ export default function RecordPaymentPage() {
         <div>
           <label
             htmlFor="amount"
-            style={{
-              display: 'block',
-              fontSize: '0.875rem',
-              fontWeight: 500,
-              color: '#374151',
-              marginBottom: '0.375rem',
-            }}
+            className="block text-sm font-medium text-charcoal mb-1.5"
           >
             {t('payments.amount')} (৳) *
           </label>
@@ -293,27 +245,12 @@ export default function RecordPaymentPage() {
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
             placeholder="0.00"
-            style={{
-              width: '100%',
-              padding: '0.625rem 0.75rem',
-              fontSize: '1rem',
-              borderRadius: '0.375rem',
-              border: `1px solid ${errors.amount ? '#ef4444' : '#d1d5db'}`,
-              backgroundColor: 'var(--background)',
-              color: 'var(--foreground)',
-              minHeight: '44px',
-            }}
+            className={`w-full px-3 py-2.5 text-base rounded-md border bg-canvas text-ink min-h-[44px] ${
+              errors.amount ? 'border-error-text' : 'border-hairline'
+            }`}
           />
           {errors.amount && (
-            <p
-              style={{
-                color: '#ef4444',
-                fontSize: '0.75rem',
-                marginTop: '0.25rem',
-              }}
-            >
-              {errors.amount}
-            </p>
+            <p className="text-error-text text-xs mt-1">{errors.amount}</p>
           )}
         </div>
 
@@ -321,13 +258,7 @@ export default function RecordPaymentPage() {
         <div>
           <label
             htmlFor="paymentDate"
-            style={{
-              display: 'block',
-              fontSize: '0.875rem',
-              fontWeight: 500,
-              color: '#374151',
-              marginBottom: '0.375rem',
-            }}
+            className="block text-sm font-medium text-charcoal mb-1.5"
           >
             {t('payments.date')} *
           </label>
@@ -337,27 +268,12 @@ export default function RecordPaymentPage() {
             value={paymentDate}
             onChange={(e) => setPaymentDate(e.target.value)}
             max={new Date().toISOString().split('T')[0]}
-            style={{
-              width: '100%',
-              padding: '0.625rem 0.75rem',
-              fontSize: '1rem',
-              borderRadius: '0.375rem',
-              border: `1px solid ${errors.paymentDate ? '#ef4444' : '#d1d5db'}`,
-              backgroundColor: 'var(--background)',
-              color: 'var(--foreground)',
-              minHeight: '44px',
-            }}
+            className={`w-full px-3 py-2.5 text-base rounded-md border bg-canvas text-ink min-h-[44px] ${
+              errors.paymentDate ? 'border-error-text' : 'border-hairline'
+            }`}
           />
           {errors.paymentDate && (
-            <p
-              style={{
-                color: '#ef4444',
-                fontSize: '0.75rem',
-                marginTop: '0.25rem',
-              }}
-            >
-              {errors.paymentDate}
-            </p>
+            <p className="text-error-text text-xs mt-1">{errors.paymentDate}</p>
           )}
         </div>
 
@@ -365,13 +281,7 @@ export default function RecordPaymentPage() {
         <div>
           <label
             htmlFor="paymentMethod"
-            style={{
-              display: 'block',
-              fontSize: '0.875rem',
-              fontWeight: 500,
-              color: '#374151',
-              marginBottom: '0.375rem',
-            }}
+            className="block text-sm font-medium text-charcoal mb-1.5"
           >
             {t('payments.method')} *
           </label>
@@ -381,16 +291,9 @@ export default function RecordPaymentPage() {
             onChange={(e) =>
               setPaymentMethod(e.target.value as PaymentMethod | '')
             }
-            style={{
-              width: '100%',
-              padding: '0.625rem 0.75rem',
-              fontSize: '1rem',
-              borderRadius: '0.375rem',
-              border: `1px solid ${errors.paymentMethod ? '#ef4444' : '#d1d5db'}`,
-              backgroundColor: 'var(--background)',
-              color: 'var(--foreground)',
-              minHeight: '44px',
-            }}
+            className={`w-full px-3 py-2.5 text-base rounded-md border bg-canvas text-ink min-h-[44px] ${
+              errors.paymentMethod ? 'border-error-text' : 'border-hairline'
+            }`}
           >
             <option value="">{t('payments.selectMethod')}</option>
             <option value="cash">{t('payments.cash')}</option>
@@ -400,13 +303,7 @@ export default function RecordPaymentPage() {
             </option>
           </select>
           {errors.paymentMethod && (
-            <p
-              style={{
-                color: '#ef4444',
-                fontSize: '0.75rem',
-                marginTop: '0.25rem',
-              }}
-            >
+            <p className="text-error-text text-xs mt-1">
               {errors.paymentMethod}
             </p>
           )}
@@ -416,13 +313,7 @@ export default function RecordPaymentPage() {
         <div>
           <label
             htmlFor="note"
-            style={{
-              display: 'block',
-              fontSize: '0.875rem',
-              fontWeight: 500,
-              color: '#374151',
-              marginBottom: '0.375rem',
-            }}
+            className="block text-sm font-medium text-charcoal mb-1.5"
           >
             {t('payments.note')} ({t('payments.optional')})
           </label>
@@ -433,86 +324,34 @@ export default function RecordPaymentPage() {
             maxLength={500}
             rows={3}
             placeholder={t('payments.notePlaceholder')}
-            style={{
-              width: '100%',
-              padding: '0.625rem 0.75rem',
-              fontSize: '1rem',
-              borderRadius: '0.375rem',
-              border: `1px solid ${errors.note ? '#ef4444' : '#d1d5db'}`,
-              backgroundColor: 'var(--background)',
-              color: 'var(--foreground)',
-              resize: 'vertical',
-              minHeight: '80px',
-            }}
+            className={`w-full px-3 py-2.5 text-base rounded-md border bg-canvas text-ink resize-y min-h-section-lg ${
+              errors.note ? 'border-error-text' : 'border-hairline'
+            }`}
           />
-          <p
-            style={{
-              color: '#6b7280',
-              fontSize: '0.75rem',
-              marginTop: '0.25rem',
-            }}
-          >
-            {note.length}/500
-          </p>
+          <p className="text-steel text-xs mt-1">{note.length}/500</p>
           {errors.note && (
-            <p
-              style={{
-                color: '#ef4444',
-                fontSize: '0.75rem',
-                marginTop: '0.25rem',
-              }}
-            >
-              {errors.note}
-            </p>
+            <p className="text-error-text text-xs mt-1">{errors.note}</p>
           )}
         </div>
 
         {/* Submit Button */}
-        <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.5rem' }}>
-          <button
+        <div className="flex gap-3 mt-2">
+          <Button
             type="submit"
             disabled={recordMutation.isPending}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              minWidth: '44px',
-              minHeight: '44px',
-              padding: '0.625rem 1.5rem',
-              fontSize: '1rem',
-              fontWeight: 600,
-              borderRadius: '0.5rem',
-              backgroundColor: recordMutation.isPending ? '#93c5fd' : '#2563eb',
-              color: '#ffffff',
-              border: 'none',
-              cursor: recordMutation.isPending ? 'not-allowed' : 'pointer',
-            }}
+            className="rounded-full min-h-[44px] bg-primary text-on-primary font-semibold disabled:opacity-60"
           >
             {recordMutation.isPending
               ? t('common.loading')
               : t('payments.recordPayment')}
-          </button>
-          <a
-            href="/payments"
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              minWidth: '44px',
-              minHeight: '44px',
-              padding: '0.625rem 1.5rem',
-              fontSize: '1rem',
-              fontWeight: 500,
-              borderRadius: '0.5rem',
-              backgroundColor: 'transparent',
-              color: '#374151',
-              border: '1px solid #d1d5db',
-              textDecoration: 'none',
-              cursor: 'pointer',
-            }}
+          </Button>
+          <Button
+            asChild
+            variant="outline"
+            className="rounded-full min-h-[44px] text-charcoal border-hairline"
           >
-            {t('common.cancel')}
-          </a>
+            <Link href="/payments">{t('common.cancel')}</Link>
+          </Button>
         </div>
       </form>
     </DashboardLayout>

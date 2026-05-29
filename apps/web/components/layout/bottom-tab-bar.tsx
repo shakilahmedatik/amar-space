@@ -67,14 +67,14 @@ export function BottomTabBar({
 
   return (
     <nav
-      className="fixed bottom-0 inset-x-0 z-50 md:hidden border-t border-gray-200 bg-white safe-area-bottom"
+      className="fixed bottom-0 inset-x-0 z-50 md:hidden bg-canvas border-t border-hairline-soft h-16 safe-area-bottom"
       aria-label={t('nav.dashboard')}
     >
       {/* Overflow "More" menu popup */}
       {moreMenuOpen && hasOverflow && (
         <div
           ref={menuRef}
-          className="absolute bottom-full right-2 mb-2 bg-white border border-gray-200 rounded-xl shadow-lg py-2 min-w-[180px] z-50"
+          className="absolute bottom-full right-2 mb-2 bg-canvas border border-hairline rounded-xl shadow-lg py-2 min-w-[180px] z-50"
           role="menu"
           aria-label={t('common.more')}
         >
@@ -97,8 +97,8 @@ export function BottomTabBar({
                   text-sm font-medium transition-colors duration-150
                   ${
                     isActive
-                      ? 'text-blue-700 bg-blue-50'
-                      : 'text-gray-700 hover:bg-gray-100'
+                      ? 'text-brand-green bg-surface'
+                      : 'text-stone hover:bg-surface'
                   }
                 `}
                 aria-current={isActive ? 'page' : undefined}
@@ -127,14 +127,12 @@ export function BottomTabBar({
                 }}
                 className={`
                   flex flex-col items-center justify-center gap-0.5
-                  min-h-[56px] min-w-[44px] w-full
+                  min-h-[44px] min-w-[44px] w-full
                   py-2 px-1
                   text-xs leading-tight font-medium
                   transition-colors duration-150
                   ${
-                    isActive
-                      ? 'text-blue-700'
-                      : 'text-gray-500 active:text-gray-700'
+                    isActive ? 'text-brand-green' : 'text-stone active:text-ink'
                   }
                 `}
                 aria-current={isActive ? 'page' : undefined}
@@ -156,14 +154,14 @@ export function BottomTabBar({
               onClick={() => setMoreMenuOpen((prev) => !prev)}
               className={`
                 flex flex-col items-center justify-center gap-0.5
-                min-h-[56px] min-w-[44px] w-full
+                min-h-[44px] min-w-[44px] w-full
                 py-2 px-1
                 text-xs leading-tight font-medium
                 transition-colors duration-150
                 ${
                   isOverflowActive || moreMenuOpen
-                    ? 'text-blue-700'
-                    : 'text-gray-500 active:text-gray-700'
+                    ? 'text-brand-green'
+                    : 'text-stone active:text-ink'
                 }
               `}
               aria-expanded={moreMenuOpen}

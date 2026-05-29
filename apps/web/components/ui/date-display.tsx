@@ -25,9 +25,10 @@ export function DateDisplay({ date, className = '' }: DateDisplayProps) {
 
   return (
     <time
-      className={className}
+      className={['text-steel text-sm tabular-nums', className]
+        .filter(Boolean)
+        .join(' ')}
       dateTime={dateObj.toISOString()}
-      style={{ fontVariantNumeric: 'tabular-nums' }}
     >
       {formatted}
     </time>

@@ -23,30 +23,34 @@ import { users } from './schema'
 export async function seed(db: Database): Promise<void> {
   console.log('[seed] Seeding database with development data...')
 
-  // Placeholder password hashes — replace with real bcrypt hashes in production.
-  // These follow the bcrypt format ($2b$rounds$hash) but are NOT real hashes.
-  const PLACEHOLDER_HASH = '$2b$10$placeholder_hash_replace_in_production'
+  const now = new Date()
 
   await db
     .insert(users)
     .values([
       {
+        id: crypto.randomUUID(),
         email: 'admin@amarspace.local',
         name: 'Admin User',
-        hashedPassword: PLACEHOLDER_HASH,
         emailVerified: true,
+        createdAt: now,
+        updatedAt: now,
       },
       {
+        id: crypto.randomUUID(),
         email: 'manager@amarspace.local',
         name: 'Property Manager',
-        hashedPassword: PLACEHOLDER_HASH,
         emailVerified: true,
+        createdAt: now,
+        updatedAt: now,
       },
       {
+        id: crypto.randomUUID(),
         email: 'tenant@amarspace.local',
         name: 'Tenant User',
-        hashedPassword: PLACEHOLDER_HASH,
         emailVerified: true,
+        createdAt: now,
+        updatedAt: now,
       },
     ])
     .onConflictDoNothing({ target: users.email })

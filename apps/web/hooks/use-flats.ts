@@ -100,21 +100,21 @@ export function useDeleteFlat() {
  *
  * Valid transitions:
  * - Vacant → Occupied (via renter assignment, not manual)
- * - Vacant → Under_Maintenance
- * - Under_Maintenance → Vacant
+ * - Vacant → Maintenance
+ * - Maintenance → Vacant
  * - Occupied → Vacant (via contract end, not manual)
  *
  * For manual status controls (Owner/Manager):
- * - Vacant → Under_Maintenance
- * - Under_Maintenance → Vacant
+ * - Vacant → Maintenance
+ * - Maintenance → Vacant
  */
 export function getValidStatusTransitions(
   currentStatus: FlatStatus,
 ): FlatStatus[] {
   switch (currentStatus) {
     case 'vacant':
-      return ['under_maintenance']
-    case 'under_maintenance':
+      return ['maintenance']
+    case 'maintenance':
       return ['vacant']
     case 'occupied':
       return [] // Status changes from Occupied happen via contract management

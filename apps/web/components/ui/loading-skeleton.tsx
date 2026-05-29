@@ -1,11 +1,38 @@
 /** biome-ignore-all lint/suspicious/noArrayIndexKey: intentionally done */
 'use client'
 
+import { Skeleton } from '@/components/ui/skeleton'
+import { cn } from '@/lib/utils'
+
 interface LoadingSkeletonProps {
   rows?: number
   rowHeight?: number
   showHeader?: boolean
   className?: string
+}
+
+/** Maps common row heights to Tailwind arbitrary-value height classes */
+const rowHeightClass: Record<number, string> = {
+  12: 'h-3',
+  14: 'h-3.5',
+  16: 'h-4',
+  20: 'h-5',
+  24: 'h-6',
+  32: 'h-8',
+  40: 'h-10',
+  48: 'h-12',
+}
+
+/** Maps common column counts to Tailwind grid-cols classes */
+const gridColsClass: Record<number, string> = {
+  1: 'grid-cols-1',
+  2: 'grid-cols-2',
+  3: 'grid-cols-3',
+  4: 'grid-cols-4',
+  5: 'grid-cols-5',
+  6: 'grid-cols-6',
+  7: 'grid-cols-7',
+  8: 'grid-cols-8',
 }
 
 /**
@@ -18,40 +45,27 @@ export function LoadingSkeleton({
   showHeader = true,
   className = '',
 }: LoadingSkeletonProps) {
+  const heightCls = rowHeightClass[rowHeight] ?? 'h-5'
+
   return (
     <div
-      className={className}
+      className={cn('min-h-section-sm', className)}
       role="status"
       aria-label="Loading"
-      style={{ minHeight: '48px' }}
     >
       {showHeader && (
-        <div
-          style={{
-            height: '1.5rem',
-            width: '40%',
-            backgroundColor: '#e5e7eb',
-            borderRadius: '0.25rem',
-            marginBottom: '1rem',
-            animation: 'skeletonPulse 1.5s ease-in-out infinite',
-          }}
-        />
+        <Skeleton className="h-6 w-2/5 bg-surface rounded-sm mb-4" />
       )}
       {Array.from({ length: rows }, (_, i) => `row-${i}`).map((id, i) => (
-        <div
+        <Skeleton
           key={id}
-          style={{
-            height: `${rowHeight}px`,
-            width: i === rows - 1 ? '60%' : '100%',
-            backgroundColor: '#e5e7eb',
-            borderRadius: '0.25rem',
-            marginBottom: '0.75rem',
-            animation: 'skeletonPulse 1.5s ease-in-out infinite',
-            animationDelay: `${i * 0.1}s`,
-          }}
+          className={cn(
+            'bg-surface rounded-sm mb-3',
+            heightCls,
+            i === rows - 1 ? 'w-3/5' : 'w-full',
+          )}
         />
       ))}
-      <style>{`@keyframes skeletonPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }`}</style>
     </div>
   )
 }
@@ -70,61 +84,42 @@ export function SkeletonTable({
   rows = 5,
   className = '',
 }: SkeletonTableProps) {
+  const colsCls = gridColsClass[columns] ?? 'grid-cols-4'
+
   return (
     <div
-      className={className}
+      className={cn('min-h-section-sm', className)}
       role="status"
       aria-label="Loading table"
-      style={{ minHeight: '48px' }}
     >
+      {/* Header row */}
       <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: `repeat(${columns}, 1fr)`,
-          gap: '1rem',
-          padding: '0.75rem 1rem',
-          borderBottom: '1px solid #e5e7eb',
-        }}
+        className={cn('grid gap-4 px-4 py-3 border-b border-hairline', colsCls)}
       >
         {Array.from({ length: columns }).map((_, i) => (
-          <div
-            key={`h-${i}`}
-            style={{
-              height: '1rem',
-              backgroundColor: '#d1d5db',
-              borderRadius: '0.25rem',
-              animation: 'skeletonPulse 1.5s ease-in-out infinite',
-            }}
-          />
+          <Skeleton key={`h-${i}`} className="h-4 bg-surface rounded-sm" />
         ))}
       </div>
+      {/* Body rows */}
       {Array.from({ length: rows }).map((_, rowIdx) => (
         <div
           key={`r-${rowIdx}`}
-          style={{
-            display: 'grid',
-            gridTemplateColumns: `repeat(${columns}, 1fr)`,
-            gap: '1rem',
-            padding: '0.75rem 1rem',
-            borderBottom: '1px solid #f3f4f6',
-          }}
+          className={cn(
+            'grid gap-4 px-4 py-3 border-b border-hairline-soft',
+            colsCls,
+          )}
         >
           {Array.from({ length: columns }).map((_, colIdx) => (
-            <div
+            <Skeleton
               key={`c-${rowIdx}-${colIdx}`}
-              style={{
-                height: '0.875rem',
-                width: colIdx === 0 ? '80%' : '60%',
-                backgroundColor: '#e5e7eb',
-                borderRadius: '0.25rem',
-                animation: 'skeletonPulse 1.5s ease-in-out infinite',
-                animationDelay: `${(rowIdx * columns + colIdx) * 0.05}s`,
-              }}
+              className={cn(
+                'h-3.5 bg-surface rounded-sm',
+                colIdx === 0 ? 'w-4/5' : 'w-3/5',
+              )}
             />
           ))}
         </div>
       ))}
-      <style>{`@keyframes skeletonPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }`}</style>
     </div>
   )
 }

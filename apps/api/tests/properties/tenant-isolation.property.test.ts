@@ -1,7 +1,10 @@
+import type { Database } from '@repo/db'
 import fc from 'fast-check'
 import type { FastifyInstance } from 'fastify'
 import Fastify from 'fastify'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import type { AuthUser } from '../../src/middleware/auth-guard'
+import type { TenantScope } from '../../src/middleware/tenant-scope'
 import { tenantScope } from '../../src/middleware/tenant-scope'
 
 /**
@@ -97,9 +100,9 @@ describe('Feature: amarspace-full-implementation, Property 17: Tenant data isola
   ) {
     const mockDb = createSequentialMockDb(querySequence)
 
-    app.decorateRequest('user', null)
-    app.decorateRequest('tenantScope', null)
-    app.decorate('db', mockDb)
+    app.decorateRequest('user', null as unknown as AuthUser)
+    app.decorateRequest('tenantScope', null as unknown as TenantScope)
+    app.decorate('db', mockDb as unknown as Database)
 
     const fakeAuthGuard = async (request: { user: typeof user }) => {
       request.user = user

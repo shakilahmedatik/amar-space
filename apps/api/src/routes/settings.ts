@@ -2,6 +2,7 @@ import { users } from '@repo/db'
 import { eq } from 'drizzle-orm'
 import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
+import { dateTimeResponseSchema, errorResponseSchema } from '../app'
 import { authGuard } from '../middleware/auth-guard'
 
 /**
@@ -27,9 +28,21 @@ async function settingsRoutes(fastify: FastifyInstance) {
     {
       preHandler: [authGuard],
       schema: {
+        tags: ['Settings'],
+        summary: 'Update language preference',
+        description:
+          "Updates the authenticated user's language preference. Persists the preference server-side for use across sessions.\n\n**All authenticated users**",
+        security: [{ BearerAuth: [] }, { CookieAuth: [] }],
         body: z.object({
           language: z.enum(['bn', 'en']),
         }),
+        response: {
+          200: z.object({
+            success: z.boolean(),
+            language: z.enum(['bn', 'en']),
+          }),
+          401: errorResponseSchema,
+        },
       },
     },
     async (request, reply) => {
@@ -59,6 +72,26 @@ async function settingsRoutes(fastify: FastifyInstance) {
     '/profile',
     {
       preHandler: [authGuard],
+      schema: {
+        tags: ['Settings'],
+        summary: 'Get user profile',
+        description:
+          "Returns the current authenticated user's profile information including role, contact details, and language preference.\n\n**All authenticated users**",
+        security: [{ BearerAuth: [] }, { CookieAuth: [] }],
+        response: {
+          200: z.object({
+            id: z.string(),
+            email: z.string(),
+            name: z.string(),
+            role: z.string(),
+            phone: z.string().nullable(),
+            languagePreference: z.enum(['bn', 'en']),
+            createdAt: dateTimeResponseSchema,
+          }),
+          401: errorResponseSchema,
+          404: errorResponseSchema,
+        },
+      },
     },
     async (request, reply) => {
       const userId = request.user.id

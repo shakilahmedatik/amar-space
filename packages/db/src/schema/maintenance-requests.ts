@@ -1,4 +1,4 @@
-import { pgTable, timestamp, uuid, varchar } from 'drizzle-orm/pg-core'
+import { pgTable, text, timestamp, uuid, varchar } from 'drizzle-orm/pg-core'
 import { buildings } from './buildings'
 import { flats } from './flats'
 import { renters } from './renters'
@@ -6,7 +6,7 @@ import { users } from './users'
 
 export const maintenanceRequests = pgTable('maintenance_requests', {
   id: uuid('id').primaryKey().defaultRandom(),
-  ownerAccountId: uuid('owner_account_id')
+  ownerAccountId: text('owner_account_id')
     .notNull()
     .references(() => users.id),
   flatId: uuid('flat_id')

@@ -1,6 +1,6 @@
 'use client'
 
-import { useParams } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import {
   DepositAdjustmentForm,
@@ -8,6 +8,7 @@ import {
   DepositBalanceCard,
 } from '@/components/deposits'
 import { DashboardLayout } from '@/components/layout'
+import { Card, CardContent } from '@/components/ui/card'
 import { CurrencyDisplay } from '@/components/ui/currency-display'
 import { DateDisplay } from '@/components/ui/date-display'
 import { ErrorFeedback } from '@/components/ui/error-feedback'
@@ -26,6 +27,7 @@ type UserRole = 'owner' | 'manager' | 'renter'
 export default function RenterDetailPage() {
   const { t } = useTranslation()
   const params = useParams()
+  const router = useRouter()
   const renterId = params.id as string
 
   const [user, setUser] = useState<{ id: string; role: string } | null>(null)
@@ -38,12 +40,12 @@ export default function RenterDetailPage() {
       try {
         const session = await getSession()
         if (!session) {
-          window.location.href = '/login'
+          router.push('/login')
           return
         }
         setUser(session)
       } catch {
-        window.location.href = '/login'
+        router.push('/login')
       } finally {
         setIsLoadingSession(false)
       }
@@ -53,7 +55,7 @@ export default function RenterDetailPage() {
 
   if (isLoadingSession || !user) {
     return (
-      <div className="flex h-dvh items-center justify-center bg-gray-50">
+      <div className="flex h-dvh items-center justify-center bg-surface">
         <div className="w-full max-w-md px-4">
           <LoadingSkeleton rows={5} showHeader />
         </div>
@@ -73,14 +75,10 @@ export default function RenterDetailPage() {
         />
       )}
 
-      <div style={{ marginBottom: '1.5rem' }}>
+      <div className="mb-6">
         <a
           href="/renters"
-          style={{
-            fontSize: '0.875rem',
-            color: '#6b7280',
-            textDecoration: 'none',
-          }}
+          className="text-sm text-steel no-underline hover:underline"
         >
           ← {t('common.back')}
         </a>
@@ -90,14 +88,7 @@ export default function RenterDetailPage() {
         <LoadingSkeleton rows={8} showHeader />
       ) : renter ? (
         <>
-          <h1
-            style={{
-              fontSize: '1.5rem',
-              fontWeight: 700,
-              color: '#111827',
-              marginBottom: '1.5rem',
-            }}
-          >
+          <h1 className="text-2xl font-bold text-ink mb-6">
             {t('renters.renterDetail')}
           </h1>
 
@@ -108,222 +99,124 @@ export default function RenterDetailPage() {
           />
 
           {/* Personal Information */}
-          <div
-            style={{
-              padding: '1.5rem',
-              borderRadius: '0.5rem',
-              border: '1px solid #e5e7eb',
-              backgroundColor: '#ffffff',
-              marginBottom: '1.5rem',
-            }}
-          >
-            <h2
-              style={{
-                fontSize: '1.125rem',
-                fontWeight: 600,
-                color: '#111827',
-                marginBottom: '1rem',
-                paddingBottom: '0.5rem',
-                borderBottom: '1px solid #e5e7eb',
-              }}
-            >
-              {t('renters.personalInfo')}
-            </h2>
+          <Card className="bg-canvas rounded-xl border border-hairline mb-6">
+            <CardContent className="p-6">
+              <h2 className="text-lg font-semibold text-ink mb-4 pb-2 border-b border-hairline">
+                {t('renters.personalInfo')}
+              </h2>
 
-            <div
-              style={{
-                display: 'grid',
-                gap: '1rem',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-              }}
-            >
-              <InfoField
-                label={t('renters.fullName')}
-                value={renter.fullName}
-              />
-              <InfoField label={t('renters.phone')} value={renter.phone} />
-              <InfoField
-                label={t('renters.nidNumber')}
-                value={renter.nidNumber}
-              />
-              <InfoField
-                label={t('renters.occupation')}
-                value={renter.occupation}
-              />
-              <InfoField
-                label={t('renters.bloodGroup')}
-                value={renter.bloodGroup}
-              />
-              <InfoField
-                label={t('renters.familyMembers')}
-                value={String(renter.totalFamilyMembers)}
-              />
-              {renter.dateOfBirth && (
-                <div>
-                  <p
-                    style={{
-                      fontSize: '0.75rem',
-                      fontWeight: 500,
-                      color: '#6b7280',
-                      marginBottom: '0.25rem',
-                    }}
-                  >
-                    {t('renters.dateOfBirth')}
-                  </p>
-                  <DateDisplay date={renter.dateOfBirth} />
-                </div>
-              )}
-            </div>
-
-            {/* Family Member Names */}
-            {renter.familyMemberNames &&
-              renter.familyMemberNames.length > 0 && (
-                <div style={{ marginTop: '1rem' }}>
-                  <p
-                    style={{
-                      fontSize: '0.75rem',
-                      fontWeight: 500,
-                      color: '#6b7280',
-                      marginBottom: '0.5rem',
-                    }}
-                  >
-                    {t('renters.familyMemberNames')}
-                  </p>
-                  <div
-                    style={{
-                      display: 'flex',
-                      flexWrap: 'wrap',
-                      gap: '0.5rem',
-                    }}
-                  >
-                    {renter.familyMemberNames.map((name) => (
-                      <span
-                        key={`member-${name}`}
-                        style={{
-                          padding: '0.25rem 0.5rem',
-                          borderRadius: '0.25rem',
-                          backgroundColor: '#f3f4f6',
-                          fontSize: '0.8125rem',
-                        }}
-                      >
-                        {name}
-                      </span>
-                    ))}
+              <div className="grid gap-4 grid-cols-[repeat(auto-fit,minmax(200px,1fr))]">
+                <InfoField
+                  label={t('renters.fullName')}
+                  value={renter.fullName}
+                />
+                <InfoField label={t('renters.phone')} value={renter.phone} />
+                <InfoField
+                  label={t('renters.nidNumber')}
+                  value={renter.nidNumber}
+                />
+                <InfoField
+                  label={t('renters.occupation')}
+                  value={renter.occupation}
+                />
+                <InfoField
+                  label={t('renters.bloodGroup')}
+                  value={renter.bloodGroup}
+                />
+                <InfoField
+                  label={t('renters.familyMembers')}
+                  value={String(renter.totalFamilyMembers)}
+                />
+                {renter.dateOfBirth && (
+                  <div>
+                    <p className="text-xs font-medium text-steel mb-1">
+                      {t('renters.dateOfBirth')}
+                    </p>
+                    <DateDisplay date={renter.dateOfBirth} />
                   </div>
-                </div>
-              )}
-
-            {/* Emergency Contact */}
-            <div style={{ marginTop: '1.5rem' }}>
-              <h3
-                style={{
-                  fontSize: '0.875rem',
-                  fontWeight: 600,
-                  color: '#374151',
-                  marginBottom: '0.75rem',
-                }}
-              >
-                {t('renters.emergencyContact')}
-              </h3>
-              <div
-                style={{
-                  display: 'grid',
-                  gap: '1rem',
-                  gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-                }}
-              >
-                <InfoField
-                  label={t('renters.emergencyContactName')}
-                  value={renter.emergencyContactName}
-                />
-                <InfoField
-                  label={t('renters.emergencyContactNumber')}
-                  value={renter.emergencyContactNumber}
-                />
-                <InfoField
-                  label={t('renters.emergencyContactRelationship')}
-                  value={renter.emergencyContactRelationship}
-                />
+                )}
               </div>
-            </div>
-          </div>
+
+              {/* Family Member Names */}
+              {renter.familyMemberNames &&
+                renter.familyMemberNames.length > 0 && (
+                  <div className="mt-4">
+                    <p className="text-xs font-medium text-steel mb-2">
+                      {t('renters.familyMemberNames')}
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {renter.familyMemberNames.map((name) => (
+                        <span
+                          key={`member-${name}`}
+                          className="px-2 py-1 rounded bg-surface text-sm text-ink"
+                        >
+                          {name}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+              {/* Emergency Contact */}
+              <div className="mt-6">
+                <h3 className="text-sm font-semibold text-charcoal mb-3">
+                  {t('renters.emergencyContact')}
+                </h3>
+                <div className="grid gap-4 grid-cols-[repeat(auto-fit,minmax(200px,1fr))]">
+                  <InfoField
+                    label={t('renters.emergencyContactName')}
+                    value={renter.emergencyContactName}
+                  />
+                  <InfoField
+                    label={t('renters.emergencyContactNumber')}
+                    value={renter.emergencyContactNumber}
+                  />
+                  <InfoField
+                    label={t('renters.emergencyContactRelationship')}
+                    value={renter.emergencyContactRelationship}
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Contract Information */}
-          <div
-            style={{
-              padding: '1.5rem',
-              borderRadius: '0.5rem',
-              border: '1px solid #e5e7eb',
-              backgroundColor: '#ffffff',
-              marginBottom: '1.5rem',
-            }}
-          >
-            <h2
-              style={{
-                fontSize: '1.125rem',
-                fontWeight: 600,
-                color: '#111827',
-                marginBottom: '1rem',
-                paddingBottom: '0.5rem',
-                borderBottom: '1px solid #e5e7eb',
-              }}
-            >
-              {t('renters.contractInfo')}
-            </h2>
+          <Card className="bg-canvas rounded-xl border border-hairline mb-6">
+            <CardContent className="p-6">
+              <h2 className="text-lg font-semibold text-ink mb-4 pb-2 border-b border-hairline">
+                {t('renters.contractInfo')}
+              </h2>
 
-            <div
-              style={{
-                display: 'grid',
-                gap: '1rem',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-              }}
-            >
-              <InfoField label={t('renters.flat')} value={renter.flatNumber} />
-              <InfoField
-                label={t('renters.building')}
-                value={renter.buildingName}
-              />
-              <div>
-                <p
-                  style={{
-                    fontSize: '0.75rem',
-                    fontWeight: 500,
-                    color: '#6b7280',
-                    marginBottom: '0.25rem',
-                  }}
-                >
-                  {t('renters.monthlyRent')}
-                </p>
-                <CurrencyDisplay amount={renter.monthlyRent} />
+              <div className="grid gap-4 grid-cols-[repeat(auto-fit,minmax(200px,1fr))]">
+                <InfoField
+                  label={t('renters.flat')}
+                  value={renter.flatNumber}
+                />
+                <InfoField
+                  label={t('renters.building')}
+                  value={renter.buildingName}
+                />
+                <div>
+                  <p className="text-xs font-medium text-steel mb-1">
+                    {t('renters.monthlyRent')}
+                  </p>
+                  <CurrencyDisplay amount={renter.monthlyRent} />
+                </div>
+                <div>
+                  <p className="text-xs font-medium text-steel mb-1">
+                    {t('renters.rentalStartDate')}
+                  </p>
+                  <DateDisplay date={renter.startDate} />
+                </div>
+                <div>
+                  <p className="text-xs font-medium text-steel mb-1">
+                    {t('renters.depositBalance')}
+                  </p>
+                  <CurrencyDisplay amount={renter.depositBalance} />
+                </div>
               </div>
-              <div>
-                <p
-                  style={{
-                    fontSize: '0.75rem',
-                    fontWeight: 500,
-                    color: '#6b7280',
-                    marginBottom: '0.25rem',
-                  }}
-                >
-                  {t('renters.rentalStartDate')}
-                </p>
-                <DateDisplay date={renter.startDate} />
-              </div>
-              <div>
-                <p
-                  style={{
-                    fontSize: '0.75rem',
-                    fontWeight: 500,
-                    color: '#6b7280',
-                    marginBottom: '0.25rem',
-                  }}
-                >
-                  {t('renters.depositBalance')}
-                </p>
-                <CurrencyDisplay amount={renter.depositBalance} />
-              </div>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
 
           {/* Deposit Adjustment Form - Owner only (Requirement 9.7, 9.8, 9.9) */}
           {role === 'owner' && renter.contractId && (
@@ -339,33 +232,16 @@ export default function RenterDetailPage() {
           )}
 
           {/* Registration Date */}
-          <div
-            style={{
-              padding: '1rem 1.5rem',
-              borderRadius: '0.5rem',
-              border: '1px solid #e5e7eb',
-              backgroundColor: '#ffffff',
-            }}
-          >
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-              }}
-            >
-              <span
-                style={{
-                  fontSize: '0.75rem',
-                  fontWeight: 500,
-                  color: '#6b7280',
-                }}
-              >
-                {t('renters.createdAt')}:
-              </span>
-              <DateDisplay date={renter.createdAt} />
-            </div>
-          </div>
+          <Card className="bg-canvas rounded-xl border border-hairline">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-medium text-steel">
+                  {t('renters.createdAt')}:
+                </span>
+                <DateDisplay date={renter.createdAt} />
+              </div>
+            </CardContent>
+          </Card>
         </>
       ) : null}
     </DashboardLayout>
@@ -376,24 +252,8 @@ export default function RenterDetailPage() {
 function InfoField({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <p
-        style={{
-          fontSize: '0.75rem',
-          fontWeight: 500,
-          color: '#6b7280',
-          marginBottom: '0.25rem',
-        }}
-      >
-        {label}
-      </p>
-      <p
-        style={{
-          fontSize: '1rem',
-          color: '#111827',
-        }}
-      >
-        {value}
-      </p>
+      <p className="text-xs font-medium text-steel mb-1">{label}</p>
+      <p className="text-base text-ink">{value}</p>
     </div>
   )
 }

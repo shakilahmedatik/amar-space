@@ -1,10 +1,20 @@
 'use client'
 
+import { useRouter } from 'next/navigation'
 import { useCallback, useEffect, useState } from 'react'
 import { DashboardLayout } from '@/components/layout'
+import { Button } from '@/components/ui/button'
 import type { DataTableFilter } from '@/components/ui/data-table'
 import { ErrorFeedback } from '@/components/ui/error-feedback'
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
 import { useAuditLogs } from '@/hooks/use-audit'
 import type { AuditLogEntry } from '@/lib/api-client'
 import { getSession } from '@/lib/auth-client'
@@ -20,6 +30,7 @@ type UserRole = 'owner' | 'manager' | 'renter'
  */
 export default function AuditPage() {
   const { t } = useTranslation()
+  const router = useRouter()
   const [user, setUser] = useState<{ id: string; role: string } | null>(null)
   const [isLoadingSession, setIsLoadingSession] = useState(true)
   const [page, setPage] = useState(1)
@@ -38,12 +49,12 @@ export default function AuditPage() {
       try {
         const session = await getSession()
         if (!session) {
-          window.location.href = '/login'
+          router.push('/login')
           return
         }
         setUser(session)
       } catch {
-        window.location.href = '/login'
+        router.push('/login')
       } finally {
         setIsLoadingSession(false)
       }
@@ -100,7 +111,7 @@ export default function AuditPage() {
 
   if (isLoadingSession || !user) {
     return (
-      <div className="flex h-dvh items-center justify-center bg-gray-50">
+      <div className="flex h-dvh items-center justify-center bg-surface">
         <div className="w-full max-w-md px-4">
           <LoadingSkeleton rows={5} showHeader />
         </div>
@@ -114,30 +125,11 @@ export default function AuditPage() {
   if (role !== 'owner') {
     return (
       <DashboardLayout role={role} activePath="/audit">
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            minHeight: '300px',
-            textAlign: 'center',
-            padding: '2rem',
-          }}
-        >
-          <h1
-            style={{
-              fontSize: '1.5rem',
-              fontWeight: 700,
-              color: '#dc2626',
-              marginBottom: '0.75rem',
-            }}
-          >
+        <div className="flex flex-col items-center justify-center min-h-[300px] text-center p-8">
+          <h1 className="text-2xl font-bold text-error-text mb-3">
             {t('audit.forbidden')}
           </h1>
-          <p style={{ fontSize: '1rem', color: '#6b7280' }}>
-            {t('audit.forbiddenMessage')}
-          </p>
+          <p className="text-base text-steel">{t('audit.forbiddenMessage')}</p>
         </div>
       </DashboardLayout>
     )
@@ -191,9 +183,7 @@ export default function AuditPage() {
     endDate: endDateFilter,
   }
 
-  const totalPages = data?.pagination
-    ? Math.ceil(data.pagination.totalItems / data.pagination.pageSize)
-    : 1
+  const totalPages = data ? Math.ceil(data.total / data.pageSize) : 1
 
   const entries = data?.data ?? []
 
@@ -207,25 +197,8 @@ export default function AuditPage() {
         />
       )}
 
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          marginBottom: '1.5rem',
-          flexWrap: 'wrap',
-          gap: '1rem',
-        }}
-      >
-        <h1
-          style={{
-            fontSize: '1.5rem',
-            fontWeight: 700,
-            color: '#111827',
-          }}
-        >
-          {t('audit.title')}
-        </h1>
+      <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
+        <h1 className="text-2xl font-bold text-ink">{t('audit.title')}</h1>
       </div>
 
       {isLoading ? (
@@ -233,31 +206,12 @@ export default function AuditPage() {
       ) : (
         <>
           {/* Filters */}
-          <div
-            style={{
-              display: 'flex',
-              flexWrap: 'wrap',
-              gap: '0.75rem',
-              marginBottom: '1rem',
-              padding: '0.75rem',
-              borderRadius: '0.5rem',
-              border: '1px solid #e5e7eb',
-            }}
-          >
+          <div className="flex flex-wrap gap-3 mb-4 p-3 rounded-lg border border-hairline">
             {filters.map((filter) => (
-              <div
-                key={filter.key}
-                style={{ minWidth: '150px', flex: '1 1 auto' }}
-              >
+              <div key={filter.key} className="min-w-[150px] flex-1">
                 <label
                   htmlFor={`filter-${filter.key}`}
-                  style={{
-                    display: 'block',
-                    fontSize: '0.75rem',
-                    fontWeight: 500,
-                    color: '#6b7280',
-                    marginBottom: '0.25rem',
-                  }}
+                  className="block text-xs font-medium text-steel mb-1"
                 >
                   {filter.label}
                 </label>
@@ -269,141 +223,47 @@ export default function AuditPage() {
                     handleFilterChange(filter.key, e.target.value)
                   }
                   placeholder={filter.placeholder}
-                  style={{
-                    width: '100%',
-                    padding: '0.5rem 0.75rem',
-                    fontSize: '0.875rem',
-                    borderRadius: '0.375rem',
-                    border: '1px solid #d1d5db',
-                    backgroundColor: 'var(--background)',
-                    color: 'var(--foreground)',
-                    minHeight: '44px',
-                  }}
+                  className="w-full px-3 py-2 text-sm rounded-md border border-hairline bg-canvas text-ink min-h-[44px]"
                 />
               </div>
             ))}
           </div>
 
           {/* Table with expandable rows */}
-          <div
-            style={{
-              overflowX: 'auto',
-              borderRadius: '0.5rem',
-              border: '1px solid #e5e7eb',
-            }}
-          >
-            <table
-              style={{
-                width: '100%',
-                borderCollapse: 'collapse',
-                fontSize: '0.875rem',
-              }}
-            >
-              <thead>
-                <tr style={{ borderBottom: '1px solid #e5e7eb' }}>
-                  <th
-                    style={{
-                      padding: '0.75rem 0.5rem',
-                      textAlign: 'left',
-                      fontWeight: 600,
-                      fontSize: '0.75rem',
-                      color: '#6b7280',
-                      backgroundColor: '#f9fafb',
-                      width: '50px',
-                    }}
-                  >
+          <div className="overflow-x-auto rounded-lg border border-hairline">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-surface min-h-section-sm">
+                  <TableHead className="w-[50px] text-steel font-semibold text-xs">
                     {''}
-                  </th>
-                  <th
-                    style={{
-                      padding: '0.75rem 1rem',
-                      textAlign: 'left',
-                      fontWeight: 600,
-                      fontSize: '0.75rem',
-                      color: '#6b7280',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.05em',
-                      backgroundColor: '#f9fafb',
-                    }}
-                  >
+                  </TableHead>
+                  <TableHead className="text-steel font-semibold text-xs uppercase tracking-wide">
                     {t('audit.action')}
-                  </th>
-                  <th
-                    style={{
-                      padding: '0.75rem 1rem',
-                      textAlign: 'left',
-                      fontWeight: 600,
-                      fontSize: '0.75rem',
-                      color: '#6b7280',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.05em',
-                      backgroundColor: '#f9fafb',
-                      width: '130px',
-                    }}
-                  >
+                  </TableHead>
+                  <TableHead className="w-[130px] text-steel font-semibold text-xs uppercase tracking-wide">
                     {t('audit.entityType')}
-                  </th>
-                  <th
-                    style={{
-                      padding: '0.75rem 1rem',
-                      textAlign: 'left',
-                      fontWeight: 600,
-                      fontSize: '0.75rem',
-                      color: '#6b7280',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.05em',
-                      backgroundColor: '#f9fafb',
-                      width: '130px',
-                    }}
-                  >
+                  </TableHead>
+                  <TableHead className="w-[130px] text-steel font-semibold text-xs uppercase tracking-wide">
                     {t('audit.entityId')}
-                  </th>
-                  <th
-                    style={{
-                      padding: '0.75rem 1rem',
-                      textAlign: 'left',
-                      fontWeight: 600,
-                      fontSize: '0.75rem',
-                      color: '#6b7280',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.05em',
-                      backgroundColor: '#f9fafb',
-                      width: '140px',
-                    }}
-                  >
+                  </TableHead>
+                  <TableHead className="w-[140px] text-steel font-semibold text-xs uppercase tracking-wide">
                     {t('audit.actor')}
-                  </th>
-                  <th
-                    style={{
-                      padding: '0.75rem 1rem',
-                      textAlign: 'left',
-                      fontWeight: 600,
-                      fontSize: '0.75rem',
-                      color: '#6b7280',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.05em',
-                      backgroundColor: '#f9fafb',
-                      width: '160px',
-                    }}
-                  >
+                  </TableHead>
+                  <TableHead className="w-[160px] text-steel font-semibold text-xs uppercase tracking-wide">
                     {t('audit.timestamp')}
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {entries.length === 0 ? (
-                  <tr>
-                    <td
+                  <TableRow className="bg-canvas min-h-section-sm">
+                    <TableCell
                       colSpan={6}
-                      style={{
-                        padding: '2rem',
-                        textAlign: 'center',
-                        color: '#6b7280',
-                      }}
+                      className="py-8 text-center text-steel"
                     >
                       {t('audit.noLogs')}
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 ) : (
                   entries.map((entry) => (
                     <AuditRow
@@ -415,74 +275,37 @@ export default function AuditPage() {
                     />
                   ))
                 )}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           </div>
 
           {/* Pagination */}
-          {data?.pagination && totalPages > 1 && (
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                marginTop: '1rem',
-                fontSize: '0.875rem',
-                color: '#6b7280',
-              }}
-            >
+          {data && totalPages > 1 && (
+            <div className="flex items-center justify-between mt-4 text-sm text-steel">
               <span>
-                {data.pagination.page} / {totalPages}
+                {data.page} / {totalPages}
               </span>
-              <div style={{ display: 'flex', gap: '0.5rem' }}>
-                <button
+              <div className="flex gap-2">
+                <Button
                   type="button"
+                  variant="outline"
+                  className="rounded-full min-w-[44px] min-h-[44px]"
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
                   disabled={page <= 1}
                   aria-label={t('common.previous')}
-                  style={{
-                    minWidth: '44px',
-                    minHeight: '44px',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    padding: '0.5rem 0.75rem',
-                    fontSize: '0.875rem',
-                    fontWeight: 500,
-                    borderRadius: '0.375rem',
-                    border: '1px solid #d1d5db',
-                    backgroundColor: 'transparent',
-                    color: page <= 1 ? '#9ca3af' : 'var(--foreground)',
-                    cursor: page <= 1 ? 'not-allowed' : 'pointer',
-                    opacity: page <= 1 ? 0.5 : 1,
-                  }}
                 >
                   {t('common.previous')}
-                </button>
-                <button
+                </Button>
+                <Button
                   type="button"
+                  variant="outline"
+                  className="rounded-full min-w-[44px] min-h-[44px]"
                   onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                   disabled={page >= totalPages}
                   aria-label={t('common.next')}
-                  style={{
-                    minWidth: '44px',
-                    minHeight: '44px',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    padding: '0.5rem 0.75rem',
-                    fontSize: '0.875rem',
-                    fontWeight: 500,
-                    borderRadius: '0.375rem',
-                    border: '1px solid #d1d5db',
-                    backgroundColor: 'transparent',
-                    color: page >= totalPages ? '#9ca3af' : 'var(--foreground)',
-                    cursor: page >= totalPages ? 'not-allowed' : 'pointer',
-                    opacity: page >= totalPages ? 0.5 : 1,
-                  }}
                 >
                   {t('common.next')}
-                </button>
+                </Button>
               </div>
             </div>
           )}
@@ -508,8 +331,8 @@ function AuditRow({
 }) {
   return (
     <>
-      <tr style={{ borderBottom: '1px solid #f3f4f6' }}>
-        <td style={{ padding: '0.75rem 0.5rem', verticalAlign: 'middle' }}>
+      <TableRow className="bg-canvas text-ink border-b border-hairline-soft min-h-section-sm">
+        <TableCell className="align-middle py-3 px-2">
           <button
             type="button"
             onClick={() => onToggle(entry.id)}
@@ -517,158 +340,68 @@ function AuditRow({
               isExpanded ? t('audit.collapseRow') : t('audit.expandRow')
             }
             aria-expanded={isExpanded}
-            style={{
-              minWidth: '44px',
-              minHeight: '44px',
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              fontSize: '1rem',
-              color: '#6b7280',
-              transition: 'transform 0.15s ease',
-              transform: isExpanded ? 'rotate(90deg)' : 'rotate(0deg)',
-            }}
+            className={`min-w-[44px] min-h-[44px] inline-flex items-center justify-center bg-transparent border-none cursor-pointer text-base text-steel transition-transform duration-150 ${isExpanded ? 'rotate-90' : 'rotate-0'}`}
           >
             ▶
           </button>
-        </td>
-        <td style={{ padding: '0.75rem 1rem', verticalAlign: 'middle' }}>
-          <span style={{ fontWeight: 500, color: '#111827' }}>
-            {entry.action}
-          </span>
-        </td>
-        <td style={{ padding: '0.75rem 1rem', verticalAlign: 'middle' }}>
-          <span style={{ textTransform: 'capitalize' }}>
-            {entry.entityType}
-          </span>
-        </td>
-        <td style={{ padding: '0.75rem 1rem', verticalAlign: 'middle' }}>
-          <span
-            style={{
-              fontSize: '0.75rem',
-              fontFamily: 'monospace',
-              color: '#6b7280',
-            }}
-            title={entry.entityId}
-          >
+        </TableCell>
+        <TableCell className="align-middle py-3 px-4">
+          <span className="font-medium text-ink-strong">{entry.action}</span>
+        </TableCell>
+        <TableCell className="align-middle py-3 px-4">
+          <span className="capitalize">{entry.entityType}</span>
+        </TableCell>
+        <TableCell className="align-middle py-3 px-4">
+          <span className="text-xs font-mono text-steel" title={entry.entityId}>
             {entry.entityId.length > 12
               ? `${entry.entityId.slice(0, 12)}...`
               : entry.entityId}
           </span>
-        </td>
-        <td style={{ padding: '0.75rem 1rem', verticalAlign: 'middle' }}>
+        </TableCell>
+        <TableCell className="align-middle py-3 px-4">
           <span>{entry.actorName}</span>
-        </td>
-        <td style={{ padding: '0.75rem 1rem', verticalAlign: 'middle' }}>
-          <span style={{ fontSize: '0.8rem', color: '#6b7280' }}>
+        </TableCell>
+        <TableCell className="align-middle py-3 px-4">
+          <span className="text-[0.8rem] text-steel">
             {new Date(entry.createdAt).toLocaleString()}
           </span>
-        </td>
-      </tr>
+        </TableCell>
+      </TableRow>
       {isExpanded && (
-        <tr style={{ borderBottom: '1px solid #f3f4f6' }}>
-          <td
-            colSpan={6}
-            style={{
-              padding: '1rem 1.5rem',
-              backgroundColor: '#f9fafb',
-            }}
-          >
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: '1fr 1fr',
-                gap: '1rem',
-              }}
-            >
+        <TableRow className="border-b border-hairline-soft">
+          <TableCell colSpan={6} className="p-4 bg-surface">
+            <div className="grid grid-cols-2 gap-4">
               <div>
-                <h4
-                  style={{
-                    fontSize: '0.8125rem',
-                    fontWeight: 600,
-                    color: '#374151',
-                    marginBottom: '0.5rem',
-                  }}
-                >
+                <h4 className="text-[0.8125rem] font-semibold text-charcoal mb-2">
                   {t('audit.oldValues')}
                 </h4>
                 {entry.oldValues && Object.keys(entry.oldValues).length > 0 ? (
-                  <pre
-                    style={{
-                      fontSize: '0.75rem',
-                      backgroundColor: '#fff',
-                      padding: '0.75rem',
-                      borderRadius: '0.375rem',
-                      border: '1px solid #e5e7eb',
-                      overflow: 'auto',
-                      maxHeight: '200px',
-                      whiteSpace: 'pre-wrap',
-                      wordBreak: 'break-word',
-                      margin: 0,
-                    }}
-                  >
+                  <pre className="text-xs bg-canvas p-3 rounded-md border border-hairline overflow-auto max-h-[200px] whitespace-pre-wrap wrap-break-word m-0">
                     {JSON.stringify(entry.oldValues, null, 2)}
                   </pre>
                 ) : (
-                  <p
-                    style={{
-                      fontSize: '0.8125rem',
-                      color: '#9ca3af',
-                      fontStyle: 'italic',
-                      margin: 0,
-                    }}
-                  >
+                  <p className="text-[0.8125rem] text-muted italic m-0">
                     {t('audit.noChanges')}
                   </p>
                 )}
               </div>
               <div>
-                <h4
-                  style={{
-                    fontSize: '0.8125rem',
-                    fontWeight: 600,
-                    color: '#374151',
-                    marginBottom: '0.5rem',
-                  }}
-                >
+                <h4 className="text-[0.8125rem] font-semibold text-charcoal mb-2">
                   {t('audit.newValues')}
                 </h4>
                 {entry.newValues && Object.keys(entry.newValues).length > 0 ? (
-                  <pre
-                    style={{
-                      fontSize: '0.75rem',
-                      backgroundColor: '#fff',
-                      padding: '0.75rem',
-                      borderRadius: '0.375rem',
-                      border: '1px solid #e5e7eb',
-                      overflow: 'auto',
-                      maxHeight: '200px',
-                      whiteSpace: 'pre-wrap',
-                      wordBreak: 'break-word',
-                      margin: 0,
-                    }}
-                  >
+                  <pre className="text-xs bg-canvas p-3 rounded-md border border-hairline overflow-auto max-h-[200px] whitespace-pre-wrap wrap-break-word m-0">
                     {JSON.stringify(entry.newValues, null, 2)}
                   </pre>
                 ) : (
-                  <p
-                    style={{
-                      fontSize: '0.8125rem',
-                      color: '#9ca3af',
-                      fontStyle: 'italic',
-                      margin: 0,
-                    }}
-                  >
+                  <p className="text-[0.8125rem] text-muted italic m-0">
                     {t('audit.noChanges')}
                   </p>
                 )}
               </div>
             </div>
-          </td>
-        </tr>
+          </TableCell>
+        </TableRow>
       )}
     </>
   )

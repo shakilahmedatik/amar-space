@@ -1,7 +1,11 @@
 'use client'
 
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { type FormEvent, useCallback, useEffect, useState } from 'react'
 import { DashboardLayout } from '@/components/layout'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
 import { ErrorFeedback } from '@/components/ui/error-feedback'
 import { FormField, FormInput } from '@/components/ui/form-field'
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton'
@@ -16,6 +20,7 @@ import { useTranslation } from '@/lib/i18n'
  */
 export default function CreateFlatPage() {
   const { t } = useTranslation()
+  const router = useRouter()
   const [isLoadingSession, setIsLoadingSession] = useState(true)
   const [flatNumber, setFlatNumber] = useState('')
   const [floor, setFloor] = useState('')
@@ -31,16 +36,16 @@ export default function CreateFlatPage() {
       try {
         const session = await getSession()
         if (!session) {
-          window.location.href = '/login'
+          router.push('/login')
           return
         }
         // Only owners can create flats
         if (session.role !== 'owner') {
-          window.location.href = '/flats'
+          router.push('/flats')
           return
         }
       } catch {
-        window.location.href = '/login'
+        router.push('/login')
       } finally {
         setIsLoadingSession(false)
       }
@@ -91,7 +96,7 @@ export default function CreateFlatPage() {
         setErrors({})
         // Redirect after short delay
         setTimeout(() => {
-          window.location.href = '/flats'
+          router.push('/flats')
         }, 1500)
       } catch (err) {
         setErrors({
@@ -106,7 +111,7 @@ export default function CreateFlatPage() {
 
   if (isLoadingSession) {
     return (
-      <div className="flex h-dvh items-center justify-center bg-gray-50">
+      <div className="flex h-dvh items-center justify-center bg-surface">
         <div className="w-full max-w-md px-4">
           <LoadingSkeleton rows={5} showHeader />
         </div>
@@ -133,162 +138,109 @@ export default function CreateFlatPage() {
         />
       )}
 
-      <div style={{ maxWidth: '32rem', margin: '0 auto' }}>
-        <div style={{ marginBottom: '1.5rem' }}>
-          <a
+      <div className="max-w-128 mx-auto">
+        <div className="mb-6">
+          <Link
             href="/flats"
-            style={{
-              color: '#2563eb',
-              fontSize: '0.875rem',
-              textDecoration: 'none',
-              minHeight: '44px',
-              display: 'inline-flex',
-              alignItems: 'center',
-            }}
+            className="inline-flex items-center min-h-[44px] text-sm text-brand-blue-deep no-underline"
           >
             ← {t('common.back')}
-          </a>
+          </Link>
         </div>
 
-        <h1
-          style={{
-            fontSize: '1.5rem',
-            fontWeight: 700,
-            color: '#111827',
-            marginBottom: '1.5rem',
-          }}
-        >
+        <h1 className="text-2xl font-bold text-ink mb-6">
           {t('flats.createFlat')}
         </h1>
 
-        <form onSubmit={handleSubmit}>
-          <FormField
-            label={t('flats.flatNumber')}
-            required
-            error={errors.flatNumber}
-            htmlFor="flatNumber"
-          >
-            <FormInput
-              id="flatNumber"
-              type="text"
-              value={flatNumber}
-              onChange={(e) => setFlatNumber(e.target.value)}
-              maxLength={20}
-              hasError={!!errors.flatNumber}
-              aria-describedby={
-                errors.flatNumber ? 'flatNumber-error' : undefined
-              }
-            />
-          </FormField>
+        <Card className="bg-canvas rounded-xl border border-hairline">
+          <CardContent className="p-6">
+            <form onSubmit={handleSubmit}>
+              <FormField
+                label={t('flats.flatNumber')}
+                required
+                error={errors.flatNumber}
+                htmlFor="flatNumber"
+              >
+                <FormInput
+                  id="flatNumber"
+                  type="text"
+                  value={flatNumber}
+                  onChange={(e) => setFlatNumber(e.target.value)}
+                  maxLength={20}
+                  hasError={!!errors.flatNumber}
+                  aria-describedby={
+                    errors.flatNumber ? 'flatNumber-error' : undefined
+                  }
+                />
+              </FormField>
 
-          <FormField
-            label={t('flats.floor')}
-            required
-            error={errors.floor}
-            htmlFor="floor"
-          >
-            <FormInput
-              id="floor"
-              type="number"
-              value={floor}
-              onChange={(e) => setFloor(e.target.value)}
-              min={1}
-              max={200}
-              hasError={!!errors.floor}
-              aria-describedby={errors.floor ? 'floor-error' : undefined}
-            />
-          </FormField>
+              <FormField
+                label={t('flats.floor')}
+                required
+                error={errors.floor}
+                htmlFor="floor"
+              >
+                <FormInput
+                  id="floor"
+                  type="number"
+                  value={floor}
+                  onChange={(e) => setFloor(e.target.value)}
+                  min={1}
+                  max={200}
+                  hasError={!!errors.floor}
+                  aria-describedby={errors.floor ? 'floor-error' : undefined}
+                />
+              </FormField>
 
-          <FormField
-            label={t('flats.building')}
-            required
-            error={errors.buildingId}
-            htmlFor="buildingId"
-          >
-            <select
-              id="buildingId"
-              value={buildingId}
-              onChange={(e) => setBuildingId(e.target.value)}
-              disabled={buildingsLoading}
-              aria-invalid={!!errors.buildingId || undefined}
-              style={{
-                display: 'block',
-                width: '100%',
-                padding: '0.625rem 0.75rem',
-                fontSize: '1rem',
-                lineHeight: '1.5',
-                borderRadius: '0.375rem',
-                border: `1px solid ${errors.buildingId ? '#dc2626' : '#d1d5db'}`,
-                backgroundColor: 'var(--background)',
-                color: 'var(--foreground)',
-                minHeight: '44px',
-              }}
-            >
-              <option value="">{t('flats.allBuildings')}</option>
-              {(buildingsData?.data || []).map((building) => (
-                <option key={building.id} value={building.id}>
-                  {building.name}
-                </option>
-              ))}
-            </select>
-          </FormField>
+              <FormField
+                label={t('flats.building')}
+                required
+                error={errors.buildingId}
+                htmlFor="buildingId"
+              >
+                <select
+                  id="buildingId"
+                  value={buildingId}
+                  onChange={(e) => setBuildingId(e.target.value)}
+                  disabled={buildingsLoading}
+                  aria-invalid={!!errors.buildingId || undefined}
+                  className={[
+                    'block w-full px-3 py-2.5 text-base leading-normal rounded-md border min-h-[44px] bg-background text-foreground',
+                    errors.buildingId
+                      ? 'border-error-text bg-error-bg'
+                      : 'border-hairline',
+                  ].join(' ')}
+                >
+                  <option value="">{t('flats.allBuildings')}</option>
+                  {(buildingsData?.data || []).map((building) => (
+                    <option key={building.id} value={building.id}>
+                      {building.name}
+                    </option>
+                  ))}
+                </select>
+              </FormField>
 
-          <div
-            style={{
-              display: 'flex',
-              gap: '0.75rem',
-              marginTop: '1.5rem',
-            }}
-          >
-            <a
-              href="/flats"
-              style={{
-                minWidth: '44px',
-                minHeight: '44px',
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                padding: '0.625rem 1rem',
-                fontSize: '0.875rem',
-                fontWeight: 500,
-                borderRadius: '0.375rem',
-                border: '1px solid #d1d5db',
-                backgroundColor: 'transparent',
-                color: 'var(--foreground)',
-                textDecoration: 'none',
-                cursor: 'pointer',
-              }}
-            >
-              {t('common.cancel')}
-            </a>
-            <button
-              type="submit"
-              disabled={createFlatMutation.isPending}
-              style={{
-                minWidth: '44px',
-                minHeight: '44px',
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                padding: '0.625rem 1.25rem',
-                fontSize: '0.875rem',
-                fontWeight: 500,
-                borderRadius: '0.375rem',
-                border: 'none',
-                backgroundColor: '#2563eb',
-                color: '#ffffff',
-                cursor: createFlatMutation.isPending
-                  ? 'not-allowed'
-                  : 'pointer',
-                opacity: createFlatMutation.isPending ? 0.7 : 1,
-              }}
-            >
-              {createFlatMutation.isPending
-                ? t('common.loading')
-                : t('common.create')}
-            </button>
-          </div>
-        </form>
+              <div className="flex gap-3 mt-6">
+                <Button
+                  asChild
+                  variant="outline"
+                  className="rounded-full min-h-[44px]"
+                >
+                  <Link href="/flats">{t('common.cancel')}</Link>
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={createFlatMutation.isPending}
+                  className="rounded-full min-h-[44px]"
+                >
+                  {createFlatMutation.isPending
+                    ? t('common.loading')
+                    : t('common.create')}
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
       </div>
     </DashboardLayout>
   )

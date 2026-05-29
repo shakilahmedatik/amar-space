@@ -150,7 +150,7 @@ function buildDbMock(
   billMock: ReturnType<typeof createBillMock> | null,
   adjustmentMock: ReturnType<typeof createAdjustmentMock>,
 ) {
-  const setCalls: Array<Record<string, unknown>> = []
+  const setCalls: Record<string, unknown>[] = []
 
   const updateFn = vi.fn().mockImplementation(() => {
     const whereFn = vi.fn().mockResolvedValue(undefined)

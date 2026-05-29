@@ -2,20 +2,20 @@
 
 import {
   createContext,
+  type ReactNode,
   useCallback,
   useContext,
   useEffect,
   useState,
-  type ReactNode,
 } from 'react'
 import bn from './translations/bn'
 import en from './translations/en'
 import {
   DEFAULT_LOCALE,
-  LOCALE_STORAGE_KEY,
-  SUPPORTED_LOCALES,
   type FlatTranslations,
+  LOCALE_STORAGE_KEY,
   type Locale,
+  SUPPORTED_LOCALES,
   type TranslationDictionary,
 } from './types'
 

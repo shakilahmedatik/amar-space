@@ -17,59 +17,21 @@ export function AuthLayout({ children }: AuthLayoutProps) {
   const { t } = useTranslation()
 
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '1rem',
-        backgroundColor: 'var(--background)',
-      }}
-    >
+    <div className="bg-surface min-h-dvh flex flex-col items-center justify-center p-4">
       {/* Language toggle - top right */}
-      <div
-        style={{
-          position: 'fixed',
-          top: '1rem',
-          right: '1rem',
-          zIndex: 10,
-        }}
-      >
+      <div className="fixed top-4 right-4 z-10">
         <LanguageToggle />
       </div>
 
       {/* App branding */}
-      <div
-        style={{
-          textAlign: 'center',
-          marginBottom: '2rem',
-        }}
-      >
-        <h1
-          style={{
-            fontSize: '1.75rem',
-            fontWeight: 700,
-            color: 'var(--foreground)',
-          }}
-        >
+      <div className="text-center mb-8">
+        <h1 className="text-[1.75rem] font-bold text-ink">
           {t('common.appName')}
         </h1>
       </div>
 
       {/* Auth form container */}
-      <div
-        style={{
-          width: '100%',
-          maxWidth: '400px',
-          padding: '1.5rem',
-          borderRadius: '0.75rem',
-          border: '1px solid #e5e7eb',
-          backgroundColor: 'var(--background)',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-        }}
-      >
+      <div className="w-full max-w-[400px] bg-canvas rounded-xl border border-hairline p-6 shadow-sm">
         {children}
       </div>
     </div>

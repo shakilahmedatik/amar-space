@@ -1,5 +1,5 @@
 import fc from 'fast-check'
-import type { FastifyInstance } from 'fastify'
+import type { FastifyError, FastifyInstance } from 'fastify'
 import Fastify from 'fastify'
 import {
   serializerCompiler,
@@ -7,7 +7,8 @@ import {
   type ZodTypeProvider,
 } from 'fastify-type-provider-zod'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import type { ApiError } from '../../src/app'
+
+type ApiError = { statusCode: number; error: string; message: string }
 
 /**
  * Feature: amarspace-infrastructure-setup
@@ -140,7 +141,7 @@ function buildTestApp(): {
   app.setSerializerCompiler(serializerCompiler)
 
   // Use the same global error handler as the real app (from src/app.ts)
-  app.setErrorHandler((error, _request, reply) => {
+  app.setErrorHandler((error: FastifyError, _request, reply) => {
     // Known operational errors (4xx)
     if (error.statusCode && error.statusCode >= 400 && error.statusCode < 500) {
       return reply.status(error.statusCode).send({

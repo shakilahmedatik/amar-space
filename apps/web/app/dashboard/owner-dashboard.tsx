@@ -1,5 +1,7 @@
 'use client'
 
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
 import { CurrencyDisplay } from '@/components/ui/currency-display'
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton'
 import { StatusBadge } from '@/components/ui/status-badge'
@@ -24,33 +26,16 @@ export function OwnerDashboard() {
     return (
       <div
         role="alert"
-        style={{
-          padding: '1.5rem',
-          backgroundColor: '#fef2f2',
-          borderRadius: '0.5rem',
-          border: '1px solid #fecaca',
-          textAlign: 'center',
-        }}
+        className="p-6 bg-error-bg rounded-lg border border-error-text text-center"
       >
-        <p style={{ color: '#991b1b', marginBottom: '1rem' }}>
-          {t('dashboard.loadError')}
-        </p>
-        <button
+        <p className="text-error-text mb-4">{t('dashboard.loadError')}</p>
+        <Button
           type="button"
           onClick={() => refetch()}
-          style={{
-            minHeight: '44px',
-            padding: '0.5rem 1.5rem',
-            backgroundColor: '#2563eb',
-            color: '#ffffff',
-            border: 'none',
-            borderRadius: '0.375rem',
-            fontWeight: 600,
-            cursor: 'pointer',
-          }}
+          className="min-h-[44px] rounded-full bg-primary text-on-primary font-semibold"
         >
           {t('dashboard.retry')}
-        </button>
+        </Button>
       </div>
     )
   }
@@ -58,15 +43,9 @@ export function OwnerDashboard() {
   const occupancyRatio = `${data.occupiedFlats}/${data.totalFlats}`
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+    <div className="flex flex-col gap-6">
       {/* Stats Cards */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-          gap: '1rem',
-        }}
-      >
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-4">
         <StatCard
           label={t('dashboard.totalBuildings')}
           value={String(data.totalBuildings)}
@@ -88,70 +67,33 @@ export function OwnerDashboard() {
 
       {/* Recent Maintenance Requests */}
       <section>
-        <h2
-          style={{
-            fontSize: '1.125rem',
-            fontWeight: 600,
-            marginBottom: '0.75rem',
-            color: '#374151',
-          }}
-        >
+        <h2 className="text-lg font-semibold mb-3 text-charcoal">
           {t('dashboard.recentMaintenance')}
         </h2>
         {data.recentMaintenance.length === 0 ? (
-          <p style={{ color: '#6b7280', fontSize: '0.875rem' }}>
-            {t('maintenance.noRequests')}
-          </p>
+          <p className="text-steel text-sm">{t('maintenance.noRequests')}</p>
         ) : (
-          <div
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '0.5rem',
-            }}
-          >
+          <div className="flex flex-col gap-2">
             {data.recentMaintenance.map((req) => (
-              <div
+              <Card
                 key={req.id}
-                style={{
-                  padding: '0.75rem 1rem',
-                  backgroundColor: '#ffffff',
-                  borderRadius: '0.5rem',
-                  border: '1px solid #e5e7eb',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  gap: '0.75rem',
-                  flexWrap: 'wrap',
-                }}
+                className="bg-canvas rounded-xl border border-hairline p-6"
               >
-                <div style={{ flex: 1, minWidth: '150px' }}>
-                  <p
-                    style={{
-                      fontWeight: 500,
-                      color: '#111827',
-                      marginBottom: '0.25rem',
-                    }}
-                  >
-                    {req.title}
-                  </p>
-                  <p style={{ fontSize: '0.75rem', color: '#6b7280' }}>
-                    {req.buildingName && `${req.buildingName} • `}
-                    {req.flatNumber &&
-                      `${t('flats.flatNumber')}: ${req.flatNumber}`}
-                  </p>
-                </div>
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.5rem',
-                  }}
-                >
-                  <StatusBadge status={req.priority} />
-                  <StatusBadge status={req.status} />
-                </div>
-              </div>
+                <CardContent className="p-0 flex items-center justify-between gap-3 flex-wrap">
+                  <div className="flex-1 min-w-[150px]">
+                    <p className="font-medium text-ink mb-1">{req.title}</p>
+                    <p className="text-xs text-steel">
+                      {req.buildingName && `${req.buildingName} • `}
+                      {req.flatNumber &&
+                        `${t('flats.flatNumber')}: ${req.flatNumber}`}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <StatusBadge status={req.priority} />
+                    <StatusBadge status={req.status} />
+                  </div>
+                </CardContent>
+              </Card>
             ))}
           </div>
         )}
@@ -159,61 +101,32 @@ export function OwnerDashboard() {
 
       {/* Recent Audit Entries */}
       <section>
-        <h2
-          style={{
-            fontSize: '1.125rem',
-            fontWeight: 600,
-            marginBottom: '0.75rem',
-            color: '#374151',
-          }}
-        >
+        <h2 className="text-lg font-semibold mb-3 text-charcoal">
           {t('dashboard.recentAudit')}
         </h2>
         {data.recentAudit.length === 0 ? (
-          <p style={{ color: '#6b7280', fontSize: '0.875rem' }}>
-            {t('dashboard.noAuditEntries')}
-          </p>
+          <p className="text-steel text-sm">{t('dashboard.noAuditEntries')}</p>
         ) : (
-          <div
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '0.5rem',
-            }}
-          >
+          <div className="flex flex-col gap-2">
             {data.recentAudit.map((entry) => (
-              <div
+              <Card
                 key={entry.id}
-                style={{
-                  padding: '0.75rem 1rem',
-                  backgroundColor: '#ffffff',
-                  borderRadius: '0.5rem',
-                  border: '1px solid #e5e7eb',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  gap: '0.75rem',
-                  flexWrap: 'wrap',
-                }}
+                className="bg-canvas rounded-xl border border-hairline p-6"
               >
-                <div style={{ flex: 1, minWidth: '150px' }}>
-                  <p
-                    style={{
-                      fontWeight: 500,
-                      color: '#111827',
-                      marginBottom: '0.25rem',
-                    }}
-                  >
-                    {entry.action}
-                  </p>
-                  <p style={{ fontSize: '0.75rem', color: '#6b7280' }}>
-                    {entry.actorName} • {entry.entityType}
-                  </p>
-                </div>
-                <span style={{ fontSize: '0.75rem', color: '#9ca3af' }}>
-                  {new Date(entry.createdAt).toLocaleDateString('bn-BD')}
-                </span>
-              </div>
+                <CardContent className="p-0 flex items-center justify-between gap-3 flex-wrap">
+                  <div className="flex-1 min-w-[150px]">
+                    <p className="font-medium text-ink mb-1">
+                      {entry.action}
+                    </p>
+                    <p className="text-xs text-steel">
+                      {entry.actorName} • {entry.entityType}
+                    </p>
+                  </div>
+                  <span className="text-xs text-muted">
+                    {new Date(entry.createdAt).toLocaleDateString('bn-BD')}
+                  </span>
+                </CardContent>
+              </Card>
             ))}
           </div>
         )}
@@ -232,39 +145,13 @@ interface StatCardProps {
 
 function StatCard({ label, value, subtitle }: StatCardProps) {
   return (
-    <div
-      style={{
-        padding: '1.25rem',
-        backgroundColor: '#ffffff',
-        borderRadius: '0.75rem',
-        border: '1px solid #e5e7eb',
-        boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
-      }}
-    >
-      <p
-        style={{
-          fontSize: '0.875rem',
-          color: '#6b7280',
-          marginBottom: '0.5rem',
-        }}
-      >
-        {label}
-      </p>
-      <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#111827' }}>
-        {value}
-      </div>
-      {subtitle && (
-        <p
-          style={{
-            fontSize: '0.75rem',
-            color: '#9ca3af',
-            marginTop: '0.25rem',
-          }}
-        >
-          {subtitle}
-        </p>
-      )}
-    </div>
+    <Card className="bg-surface rounded-lg border border-hairline">
+      <CardContent className="p-5">
+        <p className="text-sm text-steel mb-2">{label}</p>
+        <div className="text-2xl font-bold text-ink">{value}</div>
+        {subtitle && <p className="text-xs text-muted mt-1">{subtitle}</p>}
+      </CardContent>
+    </Card>
   )
 }
 
@@ -272,26 +159,17 @@ function StatCard({ label, value, subtitle }: StatCardProps) {
 
 function DashboardSkeleton() {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-          gap: '1rem',
-        }}
-      >
+    <div className="flex flex-col gap-6">
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-4">
         {['buildings', 'flats', 'occupancy', 'bills'].map((id) => (
-          <div
+          <Card
             key={id}
-            style={{
-              padding: '1.25rem',
-              backgroundColor: '#ffffff',
-              borderRadius: '0.75rem',
-              border: '1px solid #e5e7eb',
-            }}
+            className="bg-surface rounded-lg border border-hairline"
           >
-            <LoadingSkeleton rows={2} rowHeight={16} showHeader={false} />
-          </div>
+            <CardContent className="p-5">
+              <LoadingSkeleton rows={2} rowHeight={16} showHeader={false} />
+            </CardContent>
+          </Card>
         ))}
       </div>
       <LoadingSkeleton rows={5} showHeader />

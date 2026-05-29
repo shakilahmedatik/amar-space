@@ -3,30 +3,9 @@
  * All fetch calls include credentials for session cookie.
  */
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
+import { apiFetch, BASE_URL } from './api'
 
-/**
- * Generic fetch wrapper with error handling.
- */
-async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
-  const response = await fetch(`${API_URL}${path}`, {
-    ...options,
-    credentials: 'include',
-    headers: {
-      'Content-Type': 'application/json',
-      ...options?.headers,
-    },
-  })
-
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({
-      message: 'Request failed',
-    }))
-    throw new Error(error.message || `HTTP ${response.status}`)
-  }
-
-  return response.json()
-}
+export { apiFetch }
 
 // --- Building API Types ---
 
@@ -41,11 +20,9 @@ export interface Building {
 
 export interface BuildingPaginatedResponse {
   data: Building[]
-  pagination: {
-    page: number
-    pageSize: number
-    totalItems: number
-  }
+  total: number
+  page: number
+  pageSize: number
 }
 
 export interface CreateBuildingInput {
@@ -64,16 +41,14 @@ export interface FlatSummary {
   id: string
   flatNumber: string
   floor: number
-  status: 'vacant' | 'occupied' | 'under_maintenance'
+  status: 'vacant' | 'occupied' | 'maintenance'
 }
 
 export interface FlatPaginatedResponse {
   data: FlatSummary[]
-  pagination: {
-    page: number
-    pageSize: number
-    totalItems: number
-  }
+  total: number
+  page: number
+  pageSize: number
 }
 
 // --- Building API Functions ---
@@ -120,7 +95,7 @@ export function fetchFlatsForBuilding(
 
 // --- Flat API Types ---
 
-export type FlatStatus = 'vacant' | 'occupied' | 'under_maintenance'
+export type FlatStatus = 'vacant' | 'occupied' | 'maintenance'
 
 export interface Flat {
   id: string
@@ -212,7 +187,7 @@ export interface BuildingListResponse {
 }
 
 export function fetchBuildingsList(): Promise<BuildingListResponse> {
-  return apiFetch<BuildingListResponse>('/api/buildings?pageSize=100')
+  return apiFetch<BuildingListResponse>('/api/buildings?pageSize=50')
 }
 
 // --- Renter API Types ---
@@ -255,11 +230,9 @@ export interface RenterListItem {
 
 export interface RenterListResponse {
   data: RenterListItem[]
-  pagination: {
-    page: number
-    pageSize: number
-    totalItems: number
-  }
+  total: number
+  page: number
+  pageSize: number
 }
 
 export interface CreateRenterInput {
@@ -329,10 +302,10 @@ export async function createRenter(data: CreateRenterInput): Promise<Renter> {
     'emergencyContactRelationship',
     data.emergencyContactRelationship,
   )
-  formData.append('rentalStartDate', data.rentalStartDate)
-  formData.append('advanceAmountPaid', String(data.advanceAmountPaid))
+  formData.append('startDate', data.rentalStartDate)
+  formData.append('advanceAmount', String(data.advanceAmountPaid))
   formData.append('flatId', data.flatId)
-  formData.append('monthlyRentAmount', String(data.monthlyRentAmount))
+  formData.append('monthlyRent', String(data.monthlyRentAmount))
 
   // Optional fields
   if (data.dateOfBirth) formData.append('dateOfBirth', data.dateOfBirth)
@@ -343,8 +316,7 @@ export async function createRenter(data: CreateRenterInput): Promise<Renter> {
   if (data.digitalSignature)
     formData.append('digitalSignature', data.digitalSignature)
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
-  const response = await fetch(`${API_URL}/api/renters`, {
+  const response = await fetch(`${BASE_URL}/api/renters`, {
     method: 'POST',
     credentials: 'include',
     body: formData,
@@ -383,11 +355,9 @@ export interface AdvanceAdjustment {
 
 export interface AdjustmentListResponse {
   data: AdvanceAdjustment[]
-  pagination: {
-    page: number
-    pageSize: number
-    totalItems: number
-  }
+  total: number
+  page: number
+  pageSize: number
 }
 
 export interface ApplyAdjustmentInput {
@@ -497,11 +467,9 @@ export interface BillDetail {
 
 export interface BillListResponse {
   data: BillListItem[]
-  pagination: {
-    page: number
-    pageSize: number
-    totalItems: number
-  }
+  total: number
+  page: number
+  pageSize: number
 }
 
 export interface BillListParams {
@@ -590,11 +558,9 @@ export interface Payment {
 
 export interface PaymentListResponse {
   data: Payment[]
-  pagination: {
-    page: number
-    pageSize: number
-    totalItems: number
-  }
+  total: number
+  page: number
+  pageSize: number
 }
 
 export interface PaymentListParams {
@@ -678,11 +644,9 @@ export interface RenterOption {
 
 export interface RenterOptionsResponse {
   data: RenterOption[]
-  pagination: {
-    page: number
-    pageSize: number
-    totalItems: number
-  }
+  total: number
+  page: number
+  pageSize: number
 }
 
 export function fetchRenterOptions(): Promise<RenterOptionsResponse> {
@@ -733,11 +697,9 @@ export interface IssueListItem {
 
 export interface IssueListResponse {
   data: IssueListItem[]
-  pagination: {
-    page: number
-    pageSize: number
-    totalItems: number
-  }
+  total: number
+  page: number
+  pageSize: number
 }
 
 export interface IssueListParams {
@@ -775,6 +737,9 @@ export interface ManagerOption {
 
 export interface ManagerOptionsResponse {
   data: ManagerOption[]
+  total: number
+  page: number
+  pageSize: number
 }
 
 // --- Issue API Functions ---
@@ -825,10 +790,16 @@ export function assignIssue(
   })
 }
 
-export function fetchManagerOptions(): Promise<ManagerOptionsResponse> {
-  return apiFetch<ManagerOptionsResponse>(
-    '/api/renters?role=manager&pageSize=100',
-  )
+// TODO: Backend needs a GET /api/users?role=manager endpoint to list managers
+// Currently no backend endpoint supports filtering users by role
+export async function fetchManagerOptions(): Promise<ManagerOptionsResponse> {
+  try {
+    return await apiFetch<ManagerOptionsResponse>(
+      '/api/users?role=manager&pageSize=100',
+    )
+  } catch {
+    return { data: [], total: 0, page: 1, pageSize: 100 }
+  }
 }
 
 // --- Maintenance API Types ---
@@ -884,11 +855,9 @@ export interface MaintenanceRequestDetail {
 
 export interface MaintenanceListResponse {
   data: MaintenanceRequestListItem[]
-  pagination: {
-    page: number
-    pageSize: number
-    totalItems: number
-  }
+  total: number
+  page: number
+  pageSize: number
 }
 
 export interface MaintenanceListParams {
@@ -953,7 +922,7 @@ export async function createMaintenanceRequest(
     }
   }
 
-  const response = await fetch(`${API_URL}/api/maintenance`, {
+  const response = await fetch(`${BASE_URL}/api/maintenance`, {
     method: 'POST',
     credentials: 'include',
     body: formData,
@@ -1007,11 +976,9 @@ export interface AuditLogEntry {
 
 export interface AuditLogListResponse {
   data: AuditLogEntry[]
-  pagination: {
-    page: number
-    pageSize: number
-    totalItems: number
-  }
+  total: number
+  page: number
+  pageSize: number
 }
 
 export interface AuditLogListParams {
@@ -1081,11 +1048,9 @@ export interface NoticeListItem {
 
 export interface NoticeListResponse {
   data: NoticeListItem[]
-  pagination: {
-    page: number
-    pageSize: number
-    totalItems: number
-  }
+  total: number
+  page: number
+  pageSize: number
 }
 
 export interface NoticeListParams {
@@ -1198,7 +1163,7 @@ export interface FlatWithOccupancy {
   flatNumber: string
   floor: number
   buildingName: string
-  status: 'vacant' | 'occupied' | 'under_maintenance'
+  status: 'vacant' | 'occupied' | 'maintenance'
 }
 
 export interface MaintenanceRequestSummary {

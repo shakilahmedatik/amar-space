@@ -58,11 +58,14 @@ function centsToDecimal(cents: number): string {
 
 /**
  * Computes remaining balance the same way the service does:
- * Number.parseFloat(totalStr) - Number.parseFloat(paidStr)
- * This ensures our test payment amounts match the service's internal computation.
+ * Number((total - paid).toFixed(2))
+ * This ensures our test payment amounts match the service's internal computation,
+ * including the rounding to 2 decimal places that the service applies.
  */
 function computeRemainingBalance(totalStr: string, paidStr: string): number {
-  return Number.parseFloat(totalStr) - Number.parseFloat(paidStr)
+  return Number(
+    (Number.parseFloat(totalStr) - Number.parseFloat(paidStr)).toFixed(2),
+  )
 }
 
 // Fixed UUIDs for test data (valid UUID format required by Zod schema)

@@ -1,5 +1,5 @@
 import fc from 'fast-check'
-import type { FastifyInstance } from 'fastify'
+import type { FastifyError, FastifyInstance } from 'fastify'
 import Fastify from 'fastify'
 import {
   serializerCompiler,
@@ -8,7 +8,8 @@ import {
 } from 'fastify-type-provider-zod'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { z } from 'zod'
-import type { FieldError } from '../../src/app'
+
+type FieldError = { field: string; rule: string; message: string }
 
 /**
  * Feature: amarspace-infrastructure-setup
@@ -188,7 +189,7 @@ function buildTestApp(): {
   app.setSerializerCompiler(serializerCompiler)
 
   // Use the same error handler as the real app
-  app.setErrorHandler((error, _request, reply) => {
+  app.setErrorHandler((error: FastifyError, _request, reply) => {
     // Check for Zod validation errors from fastify-type-provider-zod
     if (error.validation) {
       const details: FieldError[] = error.validation.map((v) => {

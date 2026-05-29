@@ -2,6 +2,7 @@ import {
   date,
   numeric,
   pgTable,
+  text,
   timestamp,
   uuid,
   varchar,
@@ -12,7 +13,7 @@ import { users } from './users'
 
 export const rentalContracts = pgTable('rental_contracts', {
   id: uuid('id').primaryKey().defaultRandom(),
-  ownerAccountId: uuid('owner_account_id')
+  ownerAccountId: text('owner_account_id')
     .notNull()
     .references(() => users.id),
   renterId: uuid('renter_id')

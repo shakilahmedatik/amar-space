@@ -1,39 +1,25 @@
-import { neon } from '@neondatabase/serverless'
-import { drizzle } from 'drizzle-orm/neon-http'
+import { drizzle } from 'drizzle-orm/postgres-js'
+import postgres from 'postgres'
 import * as schema from './schema'
 
 /**
  * Database connection configuration options.
- *
- * Since Neon serverless uses HTTP-based connections, traditional TCP pooling
- * doesn't apply directly. These parameters configure the client behavior
- * and are read from environment variables with sensible defaults.
  */
 export interface DbClientConfig {
-  /** Maximum number of connections per serverless instance (default: 10) */
+  /** Maximum number of connections in the pool (default: 10) */
   poolSize?: number
-  /** Idle connection timeout in milliseconds (default: 30000 = 30s) */
+  /** Idle connection timeout in seconds (default: 30) */
   idleTimeout?: number
-  /** Connection timeout in milliseconds (default: 10000 = 10s) */
+  /** Connection timeout in seconds (default: 10) */
   connectionTimeout?: number
 }
 
-/**
- * Default configuration values matching requirements:
- * - Max 10 connections per serverless instance
- * - 30s idle timeout
- * - 10s connection timeout
- */
 const DEFAULT_CONFIG: Required<DbClientConfig> = {
   poolSize: 10,
-  idleTimeout: 30_000,
-  connectionTimeout: 10_000,
+  idleTimeout: 30,
+  connectionTimeout: 10,
 }
 
-/**
- * Reads database client configuration from environment variables,
- * falling back to provided options or defaults.
- */
 function resolveConfig(options?: DbClientConfig): Required<DbClientConfig> {
   return {
     poolSize:
@@ -44,31 +30,30 @@ function resolveConfig(options?: DbClientConfig): Required<DbClientConfig> {
     idleTimeout:
       options?.idleTimeout ??
       (process.env.DB_IDLE_TIMEOUT
-        ? parseInt(process.env.DB_IDLE_TIMEOUT, 10)
+        ? parseInt(process.env.DB_IDLE_TIMEOUT, 10) / 1000
         : DEFAULT_CONFIG.idleTimeout),
     connectionTimeout:
       options?.connectionTimeout ??
       (process.env.DB_CONNECTION_TIMEOUT
-        ? parseInt(process.env.DB_CONNECTION_TIMEOUT, 10)
+        ? parseInt(process.env.DB_CONNECTION_TIMEOUT, 10) / 1000
         : DEFAULT_CONFIG.connectionTimeout),
   }
 }
 
 /**
- * Creates a database client using the Neon serverless HTTP driver.
+ * Creates a Drizzle ORM database client backed by postgres.js.
  *
- * The client uses HTTP-based connections optimized for serverless environments.
- * Connection timeout is enforced via AbortSignal on fetch requests.
+ * Works with any standard PostgreSQL instance — local Docker, managed cloud
+ * (Supabase, Railway, Render, etc.), or self-hosted. No platform-specific
+ * drivers or SDKs required.
  *
- * @param databaseUrl - PostgreSQL connection URL (or reads from DATABASE_URL env var)
- * @param options - Optional configuration for pool size, idle timeout, and connection timeout
- * @returns Configured Drizzle ORM database instance
+ * SSL is enabled automatically when the connection URL contains `sslmode=require`.
+ *
+ * @param databaseUrl - PostgreSQL connection URL (falls back to DATABASE_URL env var)
+ * @param options - Optional pool/timeout configuration
  *
  * @example
- * ```ts
- * const db = createDbClient(process.env.DATABASE_URL!);
- * const users = await db.query.users.findMany();
- * ```
+ * const db = createDbClient('postgresql://postgres:postgres@localhost:5432/amarspace')
  */
 export function createDbClient(databaseUrl?: string, options?: DbClientConfig) {
   const url = databaseUrl ?? process.env.DATABASE_URL
@@ -80,34 +65,25 @@ export function createDbClient(databaseUrl?: string, options?: DbClientConfig) {
 
   const config = resolveConfig(options)
 
-  const sql = neon(url, {
-    fetchOptions: {
-      signal: AbortSignal.timeout(config.connectionTimeout),
-    },
+  const sql = postgres(url, {
+    max: config.poolSize,
+    idle_timeout: config.idleTimeout,
+    connect_timeout: config.connectionTimeout,
+    ssl: url.includes('sslmode=require') ? 'require' : false,
   })
 
-  const db = drizzle(sql, { schema })
-
-  return db
+  return drizzle(sql, { schema })
 }
 
 /**
  * Validates that the database connection is working by executing a simple query.
- * Returns within the configured connection timeout without crashing.
  *
  * @param db - Database instance to validate
- * @param timeoutMs - Timeout in milliseconds (default: 10000)
  * @returns true if connection is valid, throws an error otherwise
  */
-export async function validateConnection(
-  db: Database,
-  timeoutMs: number = DEFAULT_CONFIG.connectionTimeout,
-): Promise<boolean> {
-  const controller = new AbortController()
-  const timeout = setTimeout(() => controller.abort(), timeoutMs)
-
+export async function validateConnection(db: Database): Promise<boolean> {
   try {
-    await db.execute('SELECT 1')
+    await db.execute('SELECT 1' as never)
     return true
   } catch (error) {
     const message =
@@ -115,8 +91,6 @@ export async function validateConnection(
         ? error.message
         : 'Unknown database connection error'
     throw new Error(`Database connection validation failed: ${message}`)
-  } finally {
-    clearTimeout(timeout)
   }
 }
 

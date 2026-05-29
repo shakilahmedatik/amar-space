@@ -1,11 +1,13 @@
 'use client'
 
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { useCallback, useEffect, useState } from 'react'
 import { DashboardLayout } from '@/components/layout'
+import { Button } from '@/components/ui/button'
 import { DataTable, type DataTableColumn } from '@/components/ui/data-table'
 import { ErrorFeedback } from '@/components/ui/error-feedback'
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton'
-import { StatusBadge } from '@/components/ui/status-badge'
 import { useNotices } from '@/hooks/use-notices'
 import type { NoticeListItem, NoticeTargetAudience } from '@/lib/api-client'
 import { getSession } from '@/lib/auth-client'
@@ -21,6 +23,7 @@ type UserRole = 'owner' | 'manager' | 'renter'
  */
 export default function NoticesPage() {
   const { t } = useTranslation()
+  const router = useRouter()
   const [user, setUser] = useState<{ id: string; role: string } | null>(null)
   const [isLoadingSession, setIsLoadingSession] = useState(true)
   const [page, setPage] = useState(1)
@@ -36,12 +39,12 @@ export default function NoticesPage() {
       try {
         const session = await getSession()
         if (!session) {
-          window.location.href = '/login'
+          router.push('/login')
           return
         }
         setUser(session)
       } catch {
-        window.location.href = '/login'
+        router.push('/login')
       } finally {
         setIsLoadingSession(false)
       }
@@ -72,7 +75,7 @@ export default function NoticesPage() {
 
   if (isLoadingSession || !user) {
     return (
-      <div className="flex h-dvh items-center justify-center bg-gray-50">
+      <div className="flex h-dvh items-center justify-center bg-surface">
         <div className="w-full max-w-md px-4">
           <LoadingSkeleton rows={5} showHeader />
         </div>
@@ -125,33 +128,21 @@ export default function NoticesPage() {
       key: 'title',
       header: t('notices.noticeTitle'),
       render: (row) => (
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+        <div className="flex items-center gap-2">
           {row.isPinned && (
             <span
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                width: '20px',
-                height: '20px',
-                fontSize: '0.75rem',
-                color: '#f59e0b',
-              }}
+              className="inline-flex items-center justify-center w-5 h-5 text-xs text-brand-orange"
               title={t('notices.pinned')}
             >
               📌
             </span>
           )}
-          <a
+          <Link
             href={`/notices/${row.id}`}
-            style={{
-              color: '#2563eb',
-              fontWeight: 500,
-              textDecoration: 'none',
-            }}
+            className="text-brand-blue-deep font-medium no-underline hover:underline"
           >
             {row.title}
-          </a>
+          </Link>
         </div>
       ),
     },
@@ -159,7 +150,7 @@ export default function NoticesPage() {
       key: 'targetAudience',
       header: t('notices.targetAudience'),
       render: (row) => (
-        <span style={{ fontSize: '0.8125rem' }}>
+        <span className="text-[0.8125rem] text-ink">
           {audienceLabels[row.targetAudience]}
           {row.targetBuildingName && ` — ${row.targetBuildingName}`}
           {row.targetFlatNumber && ` — ${row.targetFlatNumber}`}
@@ -169,14 +160,14 @@ export default function NoticesPage() {
     {
       key: 'authorName',
       header: t('notices.author'),
-      render: (row) => <span>{row.authorName}</span>,
+      render: (row) => <span className="text-ink">{row.authorName}</span>,
       width: '140px',
     },
     {
       key: 'createdAt',
       header: t('notices.createdAt'),
       render: (row) => (
-        <span style={{ fontSize: '0.8125rem', color: '#6b7280' }}>
+        <span className="text-[0.8125rem] text-steel">
           {new Date(row.createdAt).toLocaleDateString()}
         </span>
       ),
@@ -194,48 +185,18 @@ export default function NoticesPage() {
         />
       )}
 
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          marginBottom: '1.5rem',
-          flexWrap: 'wrap',
-          gap: '1rem',
-        }}
-      >
-        <h1
-          style={{
-            fontSize: '1.5rem',
-            fontWeight: 700,
-            color: '#111827',
-          }}
-        >
+      <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
+        <h1 className="text-2xl font-bold text-ink-strong">
           {t('notices.title')}
         </h1>
 
         {canCreate && (
-          <a
-            href="/notices/new"
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              minWidth: '44px',
-              minHeight: '44px',
-              padding: '0.625rem 1.25rem',
-              fontSize: '0.875rem',
-              fontWeight: 600,
-              borderRadius: '0.5rem',
-              backgroundColor: '#2563eb',
-              color: '#ffffff',
-              textDecoration: 'none',
-              border: 'none',
-              cursor: 'pointer',
-            }}
+          <Button
+            asChild
+            className="min-h-[44px] rounded-full bg-primary text-on-primary font-semibold"
           >
-            {t('notices.createNotice')}
-          </a>
+            <Link href="/notices/new">{t('notices.createNotice')}</Link>
+          </Button>
         )}
       </div>
 
@@ -246,7 +207,11 @@ export default function NoticesPage() {
           columns={columns}
           data={data?.data ?? []}
           getRowKey={(row) => row.id}
-          pagination={data?.pagination}
+          pagination={
+            data
+              ? { total: data.total, page: data.page, pageSize: data.pageSize }
+              : undefined
+          }
           onPageChange={setPage}
           filters={filters}
           filterValues={filterValues}

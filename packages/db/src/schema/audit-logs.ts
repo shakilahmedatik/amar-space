@@ -2,6 +2,7 @@ import {
   index,
   jsonb,
   pgTable,
+  text,
   timestamp,
   uuid,
   varchar,
@@ -12,10 +13,10 @@ export const auditLogs = pgTable(
   'audit_logs',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    ownerAccountId: uuid('owner_account_id')
+    ownerAccountId: text('owner_account_id')
       .notNull()
       .references(() => users.id),
-    actorId: uuid('actor_id')
+    actorId: text('actor_id')
       .notNull()
       .references(() => users.id),
     action: varchar('action', { length: 100 }).notNull(),

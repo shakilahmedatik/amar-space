@@ -21,12 +21,13 @@ export function CurrencyDisplay({
 
   return (
     <span
-      className={className}
-      style={{
-        fontVariantNumeric: 'tabular-nums',
-        fontSize: large ? '1.25rem' : 'inherit',
-        fontWeight: large ? 600 : 'inherit',
-      }}
+      className={[
+        'text-ink font-semibold tabular-nums',
+        large ? 'text-xl' : '',
+        className,
+      ]
+        .filter(Boolean)
+        .join(' ')}
     >
       {formatted}
     </span>

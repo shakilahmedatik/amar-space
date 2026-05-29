@@ -1,11 +1,13 @@
 'use client'
 
+import { Badge } from '@/components/ui/badge'
 import { useTranslation } from '@/lib/i18n'
+import { cn } from '@/lib/utils'
 
 type StatusVariant =
   | 'vacant'
   | 'occupied'
-  | 'under_maintenance'
+  | 'maintenance'
   | 'unpaid'
   | 'partially_paid'
   | 'paid'
@@ -25,95 +27,70 @@ interface StatusBadgeProps {
 }
 
 /**
- * Color-coded status indicator badge.
- * Validates: Requirement 16.5
+ * Color-coded status indicator badge built on shadcn Badge.
+ * Validates: Requirement 6.1, 6.2, 6.4
  */
-export function StatusBadge({
-  status,
-  label,
-  className = '',
-}: StatusBadgeProps) {
+export function StatusBadge({ status, label, className }: StatusBadgeProps) {
   const { t } = useTranslation()
-  const config = getStatusConfig(status)
+  const { colorClasses, dotClass } = getStatusConfig(status)
   const displayLabel = label || getStatusLabel(status, t)
 
   return (
-    <span
-      className={className}
+    <Badge
+      className={cn(
+        'rounded-full px-[10px] py-1 border-transparent font-semibold text-xs gap-1.5',
+        colorClasses,
+        className,
+      )}
       role="status"
-      style={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        gap: '0.375rem',
-        padding: '0.25rem 0.625rem',
-        borderRadius: '9999px',
-        fontSize: '0.75rem',
-        fontWeight: 600,
-        lineHeight: '1rem',
-        backgroundColor: config.bg,
-        color: config.text,
-        border: `1px solid ${config.border}`,
-      }}
     >
       <span
         aria-hidden="true"
-        style={{
-          width: '0.5rem',
-          height: '0.5rem',
-          borderRadius: '50%',
-          backgroundColor: config.dot,
-        }}
+        className={cn('w-2 h-2 rounded-full shrink-0', dotClass)}
       />
       {displayLabel}
-    </span>
+    </Badge>
   )
 }
 
-function getStatusConfig(status: string) {
+function getStatusConfig(status: string): {
+  colorClasses: string
+  dotClass: string
+} {
   switch (status) {
     case 'vacant':
     case 'paid':
     case 'resolved':
     case 'active':
       return {
-        bg: '#dcfce7',
-        text: '#166534',
-        border: '#bbf7d0',
-        dot: '#16a34a',
+        colorClasses: 'bg-success-bg text-success-text',
+        dotClass: 'bg-success-text',
       }
     case 'occupied':
     case 'in_progress':
       return {
-        bg: '#dbeafe',
-        text: '#1e40af',
-        border: '#bfdbfe',
-        dot: '#2563eb',
+        colorClasses: 'bg-brand-blue-200 text-brand-blue-deep',
+        dotClass: 'bg-brand-blue-deep',
       }
-    case 'under_maintenance':
+    case 'maintenance':
     case 'partially_paid':
     case 'open':
       return {
-        bg: '#fef3c7',
-        text: '#92400e',
-        border: '#fde68a',
-        dot: '#d97706',
+        colorClasses: 'bg-warning-bg text-warning-text',
+        dotClass: 'bg-warning-text',
       }
     case 'overdue':
     case 'unpaid':
     case 'terminated':
     case 'expired':
       return {
-        bg: '#fee2e2',
-        text: '#991b1b',
-        border: '#fecaca',
-        dot: '#dc2626',
+        colorClasses: 'bg-error-bg text-error-text',
+        dotClass: 'bg-error-text',
       }
     default:
       return {
-        bg: '#f3f4f6',
-        text: '#374151',
-        border: '#e5e7eb',
-        dot: '#6b7280',
+        colorClasses: 'bg-surface text-steel',
+        dotClass: 'bg-steel',
       }
   }
 }
@@ -122,7 +99,7 @@ function getStatusLabel(status: string, t: (key: string) => string): string {
   const labelMap: Record<string, string> = {
     vacant: t('flats.vacant'),
     occupied: t('flats.occupied'),
-    under_maintenance: t('flats.underMaintenance'),
+    maintenance: t('flats.underMaintenance'),
     unpaid: t('bills.unpaid'),
     partially_paid: t('bills.partiallyPaid'),
     paid: t('bills.paid'),

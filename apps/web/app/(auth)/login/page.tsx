@@ -1,7 +1,10 @@
 'use client'
 
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { useCallback, useRef, useState } from 'react'
 import { AuthLayout } from '@/components/layout/auth-layout'
+import { Button } from '@/components/ui/button'
 import { ErrorFeedback } from '@/components/ui/error-feedback'
 import { FormField, FormInput } from '@/components/ui/form-field'
 import { signIn } from '@/lib/auth-client'
@@ -20,6 +23,7 @@ import { useTranslation } from '@/lib/i18n'
  */
 export default function LoginPage() {
   const { t } = useTranslation()
+  const router = useRouter()
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -93,7 +97,7 @@ export default function LoginPage() {
           emailRef.current?.focus()
         } else {
           // Requirement 2.1: redirect to dashboard on success
-          window.location.href = '/dashboard'
+          router.push('/dashboard')
         }
       } catch {
         setFeedbackMessage(t('common.error'))
@@ -115,15 +119,7 @@ export default function LoginPage() {
         onDismiss={() => setShowFeedback(false)}
       />
 
-      <h2
-        style={{
-          fontSize: '1.25rem',
-          fontWeight: 600,
-          marginBottom: '1.5rem',
-          textAlign: 'center',
-          color: 'var(--foreground)',
-        }}
-      >
+      <h2 className="text-xl font-semibold mb-6 text-center text-ink">
         {t('auth.loginTitle')}
       </h2>
 
@@ -183,49 +179,24 @@ export default function LoginPage() {
           />
         </FormField>
 
-        <button
+        <Button
           type="submit"
           disabled={isSubmitting}
-          style={{
-            display: 'block',
-            width: '100%',
-            minHeight: '44px',
-            padding: '0.75rem 1rem',
-            marginTop: '1.5rem',
-            fontSize: '1rem',
-            fontWeight: 600,
-            color: '#ffffff',
-            backgroundColor: isSubmitting ? '#9ca3af' : '#2563eb',
-            border: 'none',
-            borderRadius: '0.375rem',
-            cursor: isSubmitting ? 'not-allowed' : 'pointer',
-            transition: 'background-color 0.15s',
-          }}
+          className="w-full min-h-[44px] rounded-full bg-primary text-on-primary font-semibold mt-6"
           aria-busy={isSubmitting}
         >
           {isSubmitting ? t('common.loading') : t('auth.login')}
-        </button>
+        </Button>
       </form>
 
-      <p
-        style={{
-          marginTop: '1.5rem',
-          textAlign: 'center',
-          fontSize: '0.875rem',
-          color: '#6b7280',
-        }}
-      >
+      <p className="mt-6 text-center text-sm text-steel">
         {t('auth.noAccount')}{' '}
-        <a
+        <Link
           href="/register"
-          style={{
-            color: '#2563eb',
-            fontWeight: 500,
-            textDecoration: 'underline',
-          }}
+          className="text-brand-blue-deep font-medium underline"
         >
           {t('auth.register')}
-        </a>
+        </Link>
       </p>
     </AuthLayout>
   )

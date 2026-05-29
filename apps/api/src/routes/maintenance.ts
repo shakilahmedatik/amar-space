@@ -6,6 +6,7 @@ import {
 } from '@repo/shared/validation'
 import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
+import { dateTimeResponseSchema, errorResponseSchema } from '../app'
 import { authGuard } from '../middleware/auth-guard'
 import { roleGuard } from '../middleware/role-guard'
 import { tenantScope } from '../middleware/tenant-scope'
@@ -78,9 +79,14 @@ async function maintenanceRoutes(fastify: FastifyInstance) {
         tenantScope,
       ],
       schema: {
+        tags: ['Maintenance'],
+        summary: 'List maintenance requests',
+        description:
+          'Returns paginated maintenance requests with optional filters by building, flat, status, and priority.\n\n**Roles: owner, manager, renter**',
+        security: [{ BearerAuth: [] }, { CookieAuth: [] }],
         querystring: z.object({
           page: z.coerce.number().int().min(1).default(1),
-          pageSize: z.coerce.number().int().min(1).max(50).default(20),
+          pageSize: z.coerce.number().int().min(1).max(100).default(20),
           buildingId: z.string().uuid().optional(),
           flatId: z.string().uuid().optional(),
           status: z
@@ -88,6 +94,28 @@ async function maintenanceRoutes(fastify: FastifyInstance) {
             .optional(),
           priority: z.enum(['low', 'medium', 'high', 'urgent']).optional(),
         }),
+        response: {
+          200: z.object({
+            data: z.array(
+              z.object({
+                id: z.string(),
+                title: z.string(),
+                description: z.string(),
+                priority: z.enum(['low', 'medium', 'high', 'urgent']),
+                status: z.enum(['open', 'in_progress', 'resolved', 'closed']),
+                flatId: z.string(),
+                buildingId: z.string(),
+                ownerAccountId: z.string(),
+                createdAt: dateTimeResponseSchema,
+              }),
+            ),
+            total: z.number(),
+            page: z.number(),
+            pageSize: z.number(),
+          }),
+          401: errorResponseSchema,
+          403: errorResponseSchema,
+        },
       },
     },
     async (request, reply) => {
@@ -123,7 +151,28 @@ async function maintenanceRoutes(fastify: FastifyInstance) {
     {
       preHandler: [authGuard, roleGuard(['renter']), tenantScope],
       schema: {
+        tags: ['Maintenance'],
+        summary: 'Create maintenance request',
+        description:
+          "Creates a new maintenance request for the renter's assigned flat.\n\n**Roles: renter**",
+        security: [{ BearerAuth: [] }, { CookieAuth: [] }],
         body: createMaintenanceRequestSchema,
+        response: {
+          201: z.object({
+            id: z.string(),
+            title: z.string(),
+            description: z.string(),
+            priority: z.enum(['low', 'medium', 'high', 'urgent']),
+            status: z.enum(['open', 'in_progress', 'resolved', 'closed']),
+            flatId: z.string(),
+            buildingId: z.string(),
+            ownerAccountId: z.string(),
+            createdAt: dateTimeResponseSchema,
+          }),
+          400: errorResponseSchema,
+          401: errorResponseSchema,
+          403: errorResponseSchema,
+        },
       },
     },
     async (request, reply) => {
@@ -156,9 +205,38 @@ async function maintenanceRoutes(fastify: FastifyInstance) {
         tenantScope,
       ],
       schema: {
+        tags: ['Maintenance'],
+        summary: 'Get a maintenance request',
+        description:
+          'Returns a maintenance request by ID with its comments.\n\n**Roles: owner, manager, renter**',
+        security: [{ BearerAuth: [] }, { CookieAuth: [] }],
         params: z.object({
           id: z.string().uuid('Invalid maintenance request ID format'),
         }),
+        response: {
+          200: z.object({
+            id: z.string(),
+            title: z.string(),
+            description: z.string(),
+            priority: z.enum(['low', 'medium', 'high', 'urgent']),
+            status: z.enum(['open', 'in_progress', 'resolved', 'closed']),
+            flatId: z.string(),
+            buildingId: z.string(),
+            ownerAccountId: z.string(),
+            createdAt: dateTimeResponseSchema,
+            comments: z.array(
+              z.object({
+                id: z.string(),
+                content: z.string(),
+                userId: z.string(),
+                createdAt: dateTimeResponseSchema,
+              }),
+            ),
+          }),
+          401: errorResponseSchema,
+          403: errorResponseSchema,
+          404: errorResponseSchema,
+        },
       },
     },
     async (request, reply) => {
@@ -182,10 +260,32 @@ async function maintenanceRoutes(fastify: FastifyInstance) {
     {
       preHandler: [authGuard, roleGuard(['owner', 'manager']), tenantScope],
       schema: {
+        tags: ['Maintenance'],
+        summary: 'Update maintenance status',
+        description:
+          'Updates the status of a maintenance request (open → in_progress → resolved → closed).\n\n**Roles: owner, manager**',
+        security: [{ BearerAuth: [] }, { CookieAuth: [] }],
         params: z.object({
           id: z.string().uuid('Invalid maintenance request ID format'),
         }),
         body: updateMaintenanceStatusSchema,
+        response: {
+          200: z.object({
+            id: z.string(),
+            title: z.string(),
+            description: z.string(),
+            priority: z.enum(['low', 'medium', 'high', 'urgent']),
+            status: z.enum(['open', 'in_progress', 'resolved', 'closed']),
+            flatId: z.string(),
+            buildingId: z.string(),
+            ownerAccountId: z.string(),
+            createdAt: dateTimeResponseSchema,
+          }),
+          400: errorResponseSchema,
+          401: errorResponseSchema,
+          403: errorResponseSchema,
+          404: errorResponseSchema,
+        },
       },
     },
     async (request, reply) => {
@@ -219,10 +319,28 @@ async function maintenanceRoutes(fastify: FastifyInstance) {
         tenantScope,
       ],
       schema: {
+        tags: ['Maintenance'],
+        summary: 'Add comment',
+        description:
+          'Adds a comment to a maintenance request. All authenticated users can comment on requests they can access.\n\n**Roles: owner, manager, renter**',
+        security: [{ BearerAuth: [] }, { CookieAuth: [] }],
         params: z.object({
           id: z.string().uuid('Invalid maintenance request ID format'),
         }),
         body: addMaintenanceCommentSchema,
+        response: {
+          201: z.object({
+            id: z.string(),
+            content: z.string(),
+            userId: z.string(),
+            maintenanceRequestId: z.string(),
+            createdAt: dateTimeResponseSchema,
+          }),
+          400: errorResponseSchema,
+          401: errorResponseSchema,
+          403: errorResponseSchema,
+          404: errorResponseSchema,
+        },
       },
     },
     async (request, reply) => {

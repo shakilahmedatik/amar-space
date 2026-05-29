@@ -485,11 +485,15 @@ describe('Feature: amarspace-full-implementation, Property 6: Flat assignment re
                     phone: renterInput.phone,
                     nidNumber: renterInput.nidNumber,
                     nidPhotoUrl: null,
-                    dateOfBirth: renterInput.dateOfBirth ?? null,
+                    dateOfBirth:
+                      ((renterInput as Record<string, unknown>)
+                        .dateOfBirth as string) ?? null,
                     occupation: renterInput.occupation,
                     bloodGroup: renterInput.bloodGroup,
                     totalFamilyMembers: renterInput.totalFamilyMembers,
-                    familyMemberNames: renterInput.familyMemberNames ?? null,
+                    familyMemberNames:
+                      ((renterInput as Record<string, unknown>)
+                        .familyMemberNames as string) ?? null,
                     emergencyContactName: renterInput.emergencyContactName,
                     emergencyContactNumber: renterInput.emergencyContactNumber,
                     emergencyContactRelationship:

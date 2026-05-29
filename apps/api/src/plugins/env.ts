@@ -6,6 +6,15 @@ export const envSchema = z.object({
   DATABASE_URL: z.string().url(),
   AUTH_SECRET: z.string().min(32),
   AUTH_BASE_URL: z.string().url(),
+  AUTH_TRUSTED_ORIGINS: z
+    .string()
+    .default('http://localhost:3000')
+    .transform((val) =>
+      val
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean),
+    ),
   DB_POOL_SIZE: z.coerce.number().int().min(1).max(20).default(10),
   DB_IDLE_TIMEOUT: z.coerce.number().int().min(1000).max(60000).default(30000),
   DB_CONNECTION_TIMEOUT: z.coerce

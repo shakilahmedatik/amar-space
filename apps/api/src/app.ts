@@ -2,16 +2,87 @@ import { randomUUID } from 'node:crypto'
 import fastifyCookie from '@fastify/cookie'
 import fastifyCors from '@fastify/cors'
 import fastifyMultipart from '@fastify/multipart'
+import fastifySwagger from '@fastify/swagger'
 import { AppError, RateLimitError } from '@repo/shared/errors'
 import type { ApiErrorResponse } from '@repo/shared/types'
+import apiReference from '@scalar/fastify-api-reference'
 import type { FastifyError } from 'fastify'
 import Fastify from 'fastify'
 import {
   hasZodFastifySchemaValidationErrors,
+  jsonSchemaTransform,
   serializerCompiler,
   validatorCompiler,
   type ZodTypeProvider,
 } from 'fastify-type-provider-zod'
+import { z } from 'zod'
+
+/**
+ * Shared schema for datetime fields in response objects.
+ * Accepts both ISO string (from manual construction) and Date objects (from Drizzle ORM).
+ * Outputs ISO 8601 string in both cases.
+ */
+export const dateTimeResponseSchema = z
+  .string()
+  .or(z.date().transform((d) => d.toISOString()))
+
+/**
+ * Shared OpenAPI error response schema.
+ * Used across all route files to document 400/401/403/404/429/500 responses.
+ */
+export const errorResponseSchema = z.object({
+  requestId: z.string(),
+  statusCode: z.number(),
+  error: z.string(),
+  message: z.string(),
+  errors: z
+    .array(
+      z.object({
+        field: z.string(),
+        message: z.string(),
+      }),
+    )
+    .optional(),
+})
+
+/**
+ * Pure CORS origin resolver function — extracted for testability.
+ *
+ * Determines whether an incoming request origin is allowed based on the
+ * current NODE_ENV and configured ALLOWED_ORIGIN.
+ *
+ * - In development: allows http://localhost:3000 and http://127.0.0.1:3000
+ * - In production: allows only the value of process.env.ALLOWED_ORIGIN
+ * - No origin header (same-origin / server-to-server): always allowed
+ *
+ * @param origin - The Origin header value from the incoming request, or undefined
+ * @param cb - The @fastify/cors callback: cb(error, allow)
+ * @param env - Optional env override for testing (defaults to process.env)
+ */
+export function resolveCorsOrigin(
+  origin: string | undefined,
+  cb: (err: Error | null, origin: string | boolean | RegExp) => void,
+  env: { NODE_ENV?: string; ALLOWED_ORIGIN?: string } = process.env as {
+    NODE_ENV?: string
+    ALLOWED_ORIGIN?: string
+  },
+): void {
+  const allowedOrigins =
+    env.NODE_ENV === 'development'
+      ? [
+          'http://localhost:3000',
+          'http://127.0.0.1:3000',
+          'http://localhost:3001',
+          'http://127.0.0.1:3001',
+        ]
+      : [env.ALLOWED_ORIGIN ?? '']
+
+  if (!origin || allowedOrigins.includes(origin)) {
+    cb(null, true)
+  } else {
+    cb(new Error('Not allowed by CORS'), false)
+  }
+}
 
 /**
  * Builds and configures the Fastify application instance.
@@ -24,17 +95,17 @@ import {
  */
 export function buildApp(opts: Record<string, unknown> = {}) {
   const app = Fastify({
-    ...opts,
     bodyLimit: 1_048_576, // 1MB
     genReqId: () => randomUUID(),
+    ...opts,
   }).withTypeProvider<ZodTypeProvider>()
 
   app.setValidatorCompiler(validatorCompiler)
   app.setSerializerCompiler(serializerCompiler)
 
-  // Register CORS plugin
+  // Register CORS plugin with environment-aware origin callback
   app.register(fastifyCors, {
-    origin: true,
+    origin: (origin, cb) => resolveCorsOrigin(origin, cb),
     credentials: true,
   })
 
@@ -160,6 +231,104 @@ export function buildApp(opts: Record<string, unknown> = {}) {
   app.register(import('./plugins/audit-logger'))
   app.register(import('./plugins/r2'))
 
+  // Register OpenAPI spec generation (must be before routes)
+  app.register(fastifySwagger, {
+    openapi: {
+      openapi: '3.1.0',
+      info: {
+        title: 'AmarSpace API',
+        version: '1.0.0',
+        description:
+          'Property management API for AmarSpace — handles buildings, flats, renters, billing, payments, deposits, maintenance, issues, notices, and audit logs.',
+      },
+      components: {
+        securitySchemes: {
+          BearerAuth: {
+            type: 'http',
+            scheme: 'bearer',
+            description:
+              'Bearer token obtained from POST /api/auth/sign-in/email or POST /api/register.',
+          },
+          CookieAuth: {
+            type: 'apiKey',
+            in: 'cookie',
+            name: 'better-auth.session_token',
+            description:
+              'Session cookie set automatically by Better Auth on sign-in.',
+          },
+        },
+      },
+      tags: [
+        { name: 'Health', description: 'Service health and readiness checks' },
+        {
+          name: 'Authentication',
+          description:
+            'User registration, sign-in, sign-out, and session management',
+        },
+        { name: 'Users', description: 'User role assignment' },
+        {
+          name: 'Buildings',
+          description: 'Building management (create, list, update)',
+        },
+        {
+          name: 'Flats',
+          description: 'Flat management including status transitions',
+        },
+        {
+          name: 'Renters',
+          description: 'Renter registration and profile management',
+        },
+        {
+          name: 'Bills',
+          description:
+            'Monthly bill generation, line items, and status tracking',
+        },
+        {
+          name: 'Payments',
+          description: 'Payment recording and receipt retrieval',
+        },
+        {
+          name: 'Deposits',
+          description: 'Advance deposit balance and adjustment history',
+        },
+        {
+          name: 'Maintenance',
+          description: 'Maintenance request lifecycle and comments',
+        },
+        {
+          name: 'Issues',
+          description: 'Building-level issue tracking and assignment',
+        },
+        {
+          name: 'Notices',
+          description: 'Notice board with pinning and audience targeting',
+        },
+        {
+          name: 'Settings',
+          description: 'User profile and language preference settings',
+        },
+        { name: 'Audit', description: 'Immutable audit log query interface' },
+        { name: 'Dashboard', description: 'Role-specific summary dashboards' },
+      ],
+    },
+    transform: jsonSchemaTransform,
+  })
+
+  // Expose OpenAPI spec at /api/openapi.json for convenience (redirects to /api/openapi/json)
+  app.get('/api/openapi.json', async (_request, reply) => {
+    const spec = app.swagger()
+    return reply.send(spec)
+  })
+
+  // Register Scalar interactive UI at /api/docs
+  app.register(apiReference, {
+    routePrefix: '/api/docs',
+    configuration: {
+      spec: { url: '/api/openapi.json' },
+      title: 'AmarSpace API Reference',
+    },
+  })
+
   // Register routes
   app.register(import('./routes/health'), { prefix: '/api/health' })
   app.register(import('./routes/auth'), { prefix: '/api/auth' })
@@ -176,6 +345,7 @@ export function buildApp(opts: Record<string, unknown> = {}) {
   app.register(import('./routes/issues'), { prefix: '/api/issues' })
   app.register(import('./routes/notices'), { prefix: '/api/notices' })
   app.register(import('./routes/settings'), { prefix: '/api/settings' })
+  app.register(import('./routes/dashboard'), { prefix: '/api/dashboard' })
 
   return app
 }

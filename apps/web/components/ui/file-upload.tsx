@@ -130,21 +130,19 @@ export function FileUpload({
         onDrop={handleDrop}
         disabled={disabled}
         aria-label="Upload files"
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: '2rem 1rem',
-          borderRadius: '0.5rem',
-          border: `2px dashed ${isDragOver ? '#2563eb' : displayError ? '#dc2626' : '#d1d5db'}`,
-          backgroundColor: isDragOver ? '#eff6ff' : 'transparent',
-          cursor: disabled ? 'not-allowed' : 'pointer',
-          opacity: disabled ? 0.5 : 1,
-          transition: 'border-color 0.15s, background-color 0.15s',
-          minHeight: '120px',
-          width: '100%',
-        }}
+        className={[
+          'flex flex-col items-center justify-center',
+          'w-full min-h-[120px] px-4 py-8',
+          'rounded-md bg-surface',
+          'border-2 border-dashed',
+          isDragOver
+            ? 'border-brand-blue bg-brand-blue-200/20'
+            : displayError
+              ? 'border-error-text'
+              : 'border-hairline',
+          disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer',
+          'transition-[border-color,background-color] duration-150',
+        ].join(' ')}
       >
         <svg
           width="40"
@@ -155,29 +153,20 @@ export function FileUpload({
           strokeWidth="1.5"
           strokeLinecap="round"
           strokeLinejoin="round"
-          style={{ color: '#9ca3af', marginBottom: '0.75rem' }}
+          className="text-muted mb-3"
           aria-hidden="true"
         >
           <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
           <polyline points="17 8 12 3 7 8" />
           <line x1="12" y1="3" x2="12" y2="15" />
         </svg>
-        <p
-          style={{
-            fontSize: '0.875rem',
-            color: '#6b7280',
-            textAlign: 'center',
-          }}
-        >
-          Drag & drop files here, or click to browse
+        <p className="text-sm text-steel text-center">
+          Drag &amp; drop files here, or{' '}
+          <span className="text-brand-blue-deep font-medium">
+            click to browse
+          </span>
         </p>
-        <p
-          style={{
-            fontSize: '0.75rem',
-            color: '#9ca3af',
-            marginTop: '0.25rem',
-          }}
-        >
+        <p className="text-xs text-stone mt-1">
           JPEG, PNG, WebP • Max {Math.round(maxSize / (1024 * 1024))}MB • Up to{' '}
           {maxFiles} files
         </p>
@@ -190,61 +179,28 @@ export function FileUpload({
         multiple={maxFiles > 1}
         onChange={handleInputChange}
         disabled={disabled}
-        style={{ display: 'none' }}
+        className="hidden"
         tabIndex={-1}
       />
 
       {displayError && (
-        <p
-          role="alert"
-          style={{
-            marginTop: '0.5rem',
-            fontSize: '0.75rem',
-            color: '#dc2626',
-            fontWeight: 500,
-          }}
-        >
+        <p role="alert" className="mt-2 text-xs text-error-text font-medium">
           {displayError}
         </p>
       )}
 
       {selectedFiles.length > 0 && (
-        <ul
-          style={{
-            marginTop: '0.75rem',
-            listStyle: 'none',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '0.5rem',
-          }}
-        >
+        <ul className="mt-3 flex flex-col gap-2 list-none">
           {selectedFiles.map((file, index) => (
             <li
               key={`${file.name}-${file.size}`}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: '0.5rem 0.75rem',
-                borderRadius: '0.375rem',
-                border: '1px solid #e5e7eb',
-                fontSize: '0.8125rem',
-              }}
+              className="flex items-center justify-between px-3 py-2 rounded-md border border-hairline text-[0.8125rem]"
             >
-              <span
-                style={{
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
-                  maxWidth: '70%',
-                }}
-              >
+              <span className="overflow-hidden text-ellipsis whitespace-nowrap max-w-[70%]">
                 {file.name}
               </span>
-              <span
-                style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
-              >
-                <span style={{ color: '#9ca3af', fontSize: '0.75rem' }}>
+              <span className="flex items-center gap-2">
+                <span className="text-stone text-xs">
                   {(file.size / 1024).toFixed(0)}KB
                 </span>
                 <button
@@ -254,19 +210,7 @@ export function FileUpload({
                     removeFile(index)
                   }}
                   aria-label={`Remove ${file.name}`}
-                  style={{
-                    minWidth: '44px',
-                    minHeight: '44px',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    border: 'none',
-                    background: 'transparent',
-                    color: '#dc2626',
-                    cursor: 'pointer',
-                    fontSize: '1.25rem',
-                    fontWeight: 700,
-                  }}
+                  className="min-w-[44px] min-h-[44px] inline-flex items-center justify-center border-none bg-transparent text-error-text cursor-pointer text-xl font-bold"
                 >
                   ×
                 </button>

@@ -1,9 +1,16 @@
-import { integer, pgTable, timestamp, uuid, varchar } from 'drizzle-orm/pg-core'
+import {
+  integer,
+  pgTable,
+  text,
+  timestamp,
+  uuid,
+  varchar,
+} from 'drizzle-orm/pg-core'
 import { users } from './users'
 
 export const fileReferences = pgTable('file_references', {
   id: uuid('id').primaryKey().defaultRandom(),
-  ownerAccountId: uuid('owner_account_id')
+  ownerAccountId: text('owner_account_id')
     .notNull()
     .references(() => users.id),
   entityType: varchar('entity_type', { length: 50 }).notNull(),

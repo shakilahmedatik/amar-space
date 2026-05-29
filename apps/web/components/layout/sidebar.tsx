@@ -38,11 +38,11 @@ export function Sidebar({ role, activePath, onNavigate }: SidebarProps) {
 
   return (
     <aside
-      className="hidden md:flex md:flex-col md:w-64 md:shrink-0 border-r border-gray-200 bg-white h-full"
+      className="hidden md:flex md:flex-col md:w-64 md:shrink-0 border-r border-hairline bg-canvas h-full"
       aria-label={t('nav.dashboard')}
     >
-      <div className="flex items-center gap-3 px-4 py-5 border-b border-gray-200">
-        <span className="text-xl font-bold text-gray-900">
+      <div className="flex items-center gap-3 px-4 py-5 border-b border-hairline">
+        <span className="text-xl font-bold text-ink-strong">
           {t('common.appName')}
         </span>
       </div>
@@ -63,8 +63,8 @@ export function Sidebar({ role, activePath, onNavigate }: SidebarProps) {
                   className={[
                     'flex items-center gap-3 px-3 rounded-lg min-h-11 min-w-11 text-base leading-relaxed font-medium transition-colors duration-150',
                     isActive
-                      ? 'bg-blue-50 text-blue-700'
-                      : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900',
+                      ? 'bg-surface text-ink'
+                      : 'text-charcoal hover:bg-surface hover:text-ink',
                   ].join(' ')}
                   aria-current={isActive ? 'page' : undefined}
                 >
@@ -77,7 +77,7 @@ export function Sidebar({ role, activePath, onNavigate }: SidebarProps) {
         </ul>
       </nav>
       {settingsItem && (
-        <div className="border-t border-gray-200 px-3 py-3">
+        <div className="border-t border-hairline px-3 py-3">
           <a
             href={settingsItem.href}
             onClick={(e) => {
@@ -89,8 +89,8 @@ export function Sidebar({ role, activePath, onNavigate }: SidebarProps) {
             className={[
               'flex items-center gap-3 px-3 rounded-lg min-h-11 min-w-11 text-base leading-relaxed font-medium transition-colors duration-150',
               isNavItemActive(settingsItem.href, activePath)
-                ? 'bg-blue-50 text-blue-700'
-                : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900',
+                ? 'bg-surface text-ink'
+                : 'text-charcoal hover:bg-surface hover:text-ink',
             ].join(' ')}
             aria-current={
               isNavItemActive(settingsItem.href, activePath)

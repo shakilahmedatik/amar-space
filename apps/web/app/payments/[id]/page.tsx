@@ -1,6 +1,6 @@
 'use client'
 
-import { useParams } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { DashboardLayout } from '@/components/layout'
 import { ErrorFeedback } from '@/components/ui/error-feedback'
@@ -20,6 +20,7 @@ type UserRole = 'owner' | 'manager' | 'renter'
 export default function PaymentReceiptPage() {
   const { t } = useTranslation()
   const params = useParams()
+  const router = useRouter()
   const paymentId = params.id as string
   const [role, setRole] = useState<UserRole>('owner')
   const [isLoadingSession, setIsLoadingSession] = useState(true)
@@ -29,12 +30,12 @@ export default function PaymentReceiptPage() {
       try {
         const session = await getSession()
         if (!session) {
-          window.location.href = '/login'
+          router.push('/login')
           return
         }
         setRole(session.role as UserRole)
       } catch {
-        window.location.href = '/login'
+        router.push('/login')
       } finally {
         setIsLoadingSession(false)
       }
@@ -46,7 +47,7 @@ export default function PaymentReceiptPage() {
 
   if (isLoadingSession || isLoading) {
     return (
-      <div className="flex h-dvh items-center justify-center bg-gray-50">
+      <div className="flex h-dvh items-center justify-center bg-surface">
         <div className="w-full max-w-md px-4">
           <LoadingSkeleton rows={8} showHeader />
         </div>
@@ -77,108 +78,40 @@ export default function PaymentReceiptPage() {
         />
       )}
 
-      <div style={{ marginBottom: '1.5rem' }}>
+      <div className="mb-6">
         <a
           href="/payments"
-          style={{
-            color: '#6b7280',
-            fontSize: '0.875rem',
-            textDecoration: 'none',
-            display: 'inline-flex',
-            alignItems: 'center',
-            minHeight: '44px',
-          }}
+          className="text-steel text-sm no-underline inline-flex items-center min-h-[44px]"
         >
           ← {t('common.back')}
         </a>
-        <h1
-          style={{
-            fontSize: '1.5rem',
-            fontWeight: 700,
-            color: '#111827',
-            marginTop: '0.5rem',
-          }}
-        >
+        <h1 className="text-2xl font-bold text-ink mt-2">
           {t('payments.receiptTitle')}
         </h1>
       </div>
 
       {receipt && (
-        <div
-          style={{
-            maxWidth: '600px',
-            border: '1px solid #e5e7eb',
-            borderRadius: '0.75rem',
-            padding: '1.5rem',
-            backgroundColor: '#ffffff',
-          }}
-        >
+        <div className="max-w-[600px] border border-hairline rounded-xl p-6 bg-canvas">
           {/* Receipt Header */}
-          <div
-            style={{
-              textAlign: 'center',
-              borderBottom: '2px dashed #e5e7eb',
-              paddingBottom: '1rem',
-              marginBottom: '1.25rem',
-            }}
-          >
-            <h2
-              style={{
-                fontSize: '1.125rem',
-                fontWeight: 700,
-                color: '#111827',
-                marginBottom: '0.25rem',
-              }}
-            >
+          <div className="text-center border-b-2 border-dashed border-hairline pb-4 mb-5">
+            <h2 className="text-lg font-bold text-ink mb-1">
               {t('payments.paymentReceipt')}
             </h2>
-            <p
-              style={{
-                fontSize: '0.875rem',
-                color: '#6b7280',
-              }}
-            >
-              {t('common.appName')}
-            </p>
+            <p className="text-sm text-steel">{t('common.appName')}</p>
           </div>
 
           {/* Receipt Reference */}
-          <div
-            style={{
-              textAlign: 'center',
-              marginBottom: '1.25rem',
-              padding: '0.75rem',
-              backgroundColor: '#f0fdf4',
-              borderRadius: '0.5rem',
-              border: '1px solid #bbf7d0',
-            }}
-          >
-            <p
-              style={{
-                fontSize: '0.75rem',
-                color: '#6b7280',
-                marginBottom: '0.25rem',
-                textTransform: 'uppercase',
-                letterSpacing: '0.05em',
-              }}
-            >
+          <div className="text-center mb-5 p-3 bg-success-bg rounded-md border border-success-text/30">
+            <p className="text-xs text-steel mb-1 uppercase tracking-wide">
               {t('payments.referenceNumber')}
             </p>
-            <p
-              style={{
-                fontSize: '1.25rem',
-                fontWeight: 700,
-                color: '#166534',
-                fontFamily: 'monospace',
-                letterSpacing: '0.1em',
-              }}
-            >
+            <p className="text-xl font-bold text-success-text font-mono tracking-widest">
               {receipt.receiptReference}
             </p>
           </div>
 
           {/* Receipt Details */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+          <div className="flex flex-col gap-3">
             <ReceiptRow
               label={t('payments.amount')}
               value={`৳${Number(receipt.amount).toLocaleString('en-BD', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
@@ -205,13 +138,7 @@ export default function PaymentReceiptPage() {
               value={receipt.billingMonth}
             />
 
-            <div
-              style={{
-                borderTop: '1px solid #e5e7eb',
-                paddingTop: '0.75rem',
-                marginTop: '0.25rem',
-              }}
-            >
+            <div className="border-t border-hairline pt-3 mt-1">
               <ReceiptRow
                 label={t('payments.totalBill')}
                 value={`৳${Number(receipt.totalBillAmount).toLocaleString('en-BD', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
@@ -227,29 +154,17 @@ export default function PaymentReceiptPage() {
             </div>
 
             {receipt.note && (
-              <div
-                style={{
-                  borderTop: '1px solid #e5e7eb',
-                  paddingTop: '0.75rem',
-                  marginTop: '0.25rem',
-                }}
-              >
+              <div className="border-t border-hairline pt-3 mt-1">
                 <ReceiptRow label={t('payments.note')} value={receipt.note} />
               </div>
             )}
           </div>
 
           {/* Receipt Footer */}
-          <div
-            style={{
-              textAlign: 'center',
-              borderTop: '2px dashed #e5e7eb',
-              paddingTop: '1rem',
-              marginTop: '1.25rem',
-            }}
-          >
-            <p style={{ fontSize: '0.75rem', color: '#9ca3af' }}>
-              {t('payments.receiptGenerated')}: {new Date(receipt.createdAt).toLocaleString()}
+          <div className="text-center border-t-2 border-dashed border-hairline pt-4 mt-5">
+            <p className="text-xs text-muted">
+              {t('payments.receiptGenerated')}:{' '}
+              {new Date(receipt.createdAt).toLocaleString()}
             </p>
           </div>
         </div>
@@ -268,21 +183,14 @@ function ReceiptRow({
   highlight?: boolean
 }) {
   return (
-    <div
-      style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        padding: '0.25rem 0',
-      }}
-    >
-      <span style={{ fontSize: '0.875rem', color: '#6b7280' }}>{label}</span>
+    <div className="flex justify-between items-center py-1">
+      <span className="text-sm text-steel">{label}</span>
       <span
-        style={{
-          fontSize: highlight ? '1.125rem' : '0.875rem',
-          fontWeight: highlight ? 700 : 500,
-          color: highlight ? '#111827' : '#374151',
-        }}
+        className={
+          highlight
+            ? 'text-lg font-bold text-ink'
+            : 'text-sm font-medium text-charcoal'
+        }
       >
         {value}
       </span>

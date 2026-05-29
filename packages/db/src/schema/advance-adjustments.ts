@@ -1,12 +1,19 @@
 import { relations } from 'drizzle-orm'
-import { numeric, pgTable, timestamp, uuid, varchar } from 'drizzle-orm/pg-core'
+import {
+  numeric,
+  pgTable,
+  text,
+  timestamp,
+  uuid,
+  varchar,
+} from 'drizzle-orm/pg-core'
 import { bills } from './bills'
 import { rentalContracts } from './rental-contracts'
 import { users } from './users'
 
 export const advanceAdjustments = pgTable('advance_adjustments', {
   id: uuid('id').primaryKey().defaultRandom(),
-  ownerAccountId: uuid('owner_account_id')
+  ownerAccountId: text('owner_account_id')
     .notNull()
     .references(() => users.id),
   contractId: uuid('contract_id')
@@ -15,7 +22,7 @@ export const advanceAdjustments = pgTable('advance_adjustments', {
   amount: numeric('amount', { precision: 12, scale: 2 }).notNull(),
   billId: uuid('bill_id').references(() => bills.id), // optional link to bill
   note: varchar('note', { length: 500 }),
-  adjustedBy: uuid('adjusted_by')
+  adjustedBy: text('adjusted_by')
     .notNull()
     .references(() => users.id),
   createdAt: timestamp('created_at', { withTimezone: true })

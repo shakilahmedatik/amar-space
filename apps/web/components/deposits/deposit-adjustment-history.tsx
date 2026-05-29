@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useCallback, useState } from 'react'
 import { CurrencyDisplay } from '@/components/ui/currency-display'
 import { DataTable, type DataTableColumn } from '@/components/ui/data-table'
@@ -52,14 +53,14 @@ export function DepositAdjustmentHistory({
       header: t('deposits.billLink'),
       render: (row) =>
         row.billId ? (
-          <a
+          <Link
             href={`/bills/${row.billId}`}
-            style={{ color: '#2563eb', textDecoration: 'underline' }}
+            className="text-brand-blue-deep underline"
           >
             {t('bills.title')}
-          </a>
+          </Link>
         ) : (
-          <span style={{ color: '#9ca3af' }}>—</span>
+          <span className="text-muted">—</span>
         ),
       width: '120px',
     },
@@ -68,13 +69,7 @@ export function DepositAdjustmentHistory({
       header: t('deposits.note'),
       render: (row) => (
         <span
-          style={{
-            maxWidth: '200px',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            whiteSpace: 'nowrap',
-            display: 'inline-block',
-          }}
+          className="max-w-[200px] overflow-hidden text-ellipsis whitespace-nowrap inline-block"
           title={row.note || ''}
         >
           {row.note || '—'}
@@ -91,38 +86,15 @@ export function DepositAdjustmentHistory({
 
   if (isError) {
     return (
-      <div
-        style={{
-          padding: '1rem',
-          color: '#dc2626',
-          fontSize: '0.875rem',
-        }}
-      >
+      <div className="p-4 text-error-text text-sm">
         {t('deposits.loadError')}
       </div>
     )
   }
 
   return (
-    <div
-      style={{
-        padding: '1.5rem',
-        borderRadius: '0.5rem',
-        border: '1px solid #e5e7eb',
-        backgroundColor: '#ffffff',
-        marginBottom: '1.5rem',
-      }}
-    >
-      <h2
-        style={{
-          fontSize: '1.125rem',
-          fontWeight: 600,
-          color: '#111827',
-          marginBottom: '1rem',
-          paddingBottom: '0.5rem',
-          borderBottom: '1px solid #e5e7eb',
-        }}
-      >
+    <div className="p-6 rounded-lg border border-hairline bg-canvas mb-6">
+      <h2 className="text-lg font-semibold text-ink-strong mb-4 pb-2 border-b border-hairline">
         {t('deposits.adjustmentHistory')}
       </h2>
 
@@ -134,11 +106,11 @@ export function DepositAdjustmentHistory({
           data={data?.data || []}
           getRowKey={(row) => row.id}
           pagination={
-            data?.pagination
+            data
               ? {
-                  page: data.pagination.page,
-                  pageSize: data.pagination.pageSize,
-                  totalItems: data.pagination.totalItems,
+                  page: data.page,
+                  pageSize: data.pageSize,
+                  total: data.total,
                 }
               : undefined
           }

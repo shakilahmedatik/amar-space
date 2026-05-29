@@ -1,6 +1,8 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { cn } from '@/lib/utils'
 
 type FeedbackType = 'error' | 'success' | 'warning' | 'info'
 
@@ -47,79 +49,66 @@ export function ErrorFeedback({
   }, [onDismiss])
 
   if (!isShowing) return null
+
   const config = getTypeConfig(type)
 
   return (
-    <div
-      role="alert"
-      aria-live="assertive"
-      className={className}
-      style={{
-        position: 'fixed',
-        top: '1rem',
-        left: '50%',
-        transform: 'translateX(-50%)',
-        zIndex: 9999,
-        display: 'flex',
-        alignItems: 'center',
-        gap: '0.75rem',
-        minHeight: '48px',
-        padding: '0.75rem 1rem',
-        borderRadius: '0.5rem',
-        border: `1px solid ${config.border}`,
-        backgroundColor: config.bg,
-        color: config.text,
-        fontSize: '0.875rem',
-        fontWeight: 500,
-        boxShadow:
-          '0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1)',
-        maxWidth: 'calc(100vw - 2rem)',
-        width: 'auto',
-        minWidth: '280px',
-        animation: 'feedbackSlideDown 0.2s ease-out',
-      }}
-    >
-      <span aria-hidden="true" style={{ fontSize: '1.125rem' }}>
-        {config.icon}
-      </span>
-      <span style={{ flex: 1 }}>{message}</span>
-      {onDismiss && (
-        <button
-          type="button"
-          onClick={handleDismiss}
-          aria-label="Dismiss"
-          style={{
-            minWidth: '44px',
-            minHeight: '44px',
-            display: 'inline-flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            border: 'none',
-            background: 'transparent',
-            color: config.text,
-            cursor: 'pointer',
-            fontSize: '1.25rem',
-            fontWeight: 700,
-            borderRadius: '0.25rem',
-          }}
-        >
-          ×
-        </button>
-      )}
+    <>
       <style>{`@keyframes feedbackSlideDown { from { transform: translateX(-50%) translateY(-100%); opacity: 0; } to { transform: translateX(-50%) translateY(0); opacity: 1; } }`}</style>
-    </div>
+      <Alert
+        aria-live="assertive"
+        className={cn(
+          'fixed top-4 left-1/2 z-9999 flex min-h-section-sm min-w-[280px] max-w-[calc(100vw-2rem)] w-auto -translate-x-1/2 items-center gap-3 px-4 py-3 text-sm font-medium shadow-md',
+          'animate-[feedbackSlideDown_0.2s_ease-out]',
+          config.classes,
+          className,
+        )}
+      >
+        <span aria-hidden="true" className="text-lg shrink-0">
+          {config.icon}
+        </span>
+        <AlertDescription className="flex-1 text-inherit">
+          {message}
+        </AlertDescription>
+        {onDismiss && (
+          <button
+            type="button"
+            onClick={handleDismiss}
+            aria-label="Dismiss"
+            className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded border-none bg-transparent text-xl font-bold text-inherit cursor-pointer"
+          >
+            ×
+          </button>
+        )}
+      </Alert>
+    </>
   )
 }
 
-function getTypeConfig(type: FeedbackType) {
+function getTypeConfig(type: FeedbackType): { classes: string; icon: string } {
   switch (type) {
     case 'error':
-      return { bg: '#fef2f2', text: '#991b1b', border: '#fecaca', icon: '⚠' }
+      return {
+        classes: 'bg-error-bg text-error-text border-error-text/30 rounded-lg',
+        icon: '⚠',
+      }
     case 'success':
-      return { bg: '#f0fdf4', text: '#166534', border: '#bbf7d0', icon: '✓' }
+      return {
+        classes:
+          'bg-success-bg text-success-text border-success-text/30 rounded-lg',
+        icon: '✓',
+      }
     case 'warning':
-      return { bg: '#fffbeb', text: '#92400e', border: '#fde68a', icon: '⚡' }
+      return {
+        classes:
+          'bg-warning-bg text-warning-text border-warning-text/30 rounded-lg',
+        icon: '⚡',
+      }
     case 'info':
-      return { bg: '#eff6ff', text: '#1e40af', border: '#bfdbfe', icon: 'ℹ' }
+      return {
+        classes:
+          'bg-brand-blue-200 text-brand-blue-deep border-brand-blue-deep/30 rounded-lg',
+        icon: 'ℹ',
+      }
   }
 }

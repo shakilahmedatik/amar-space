@@ -7,6 +7,7 @@ import {
 } from '@repo/shared/validation'
 import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
+import { dateTimeResponseSchema, errorResponseSchema } from '../app'
 import { authGuard } from '../middleware/auth-guard'
 import { roleGuard } from '../middleware/role-guard'
 import { tenantScope } from '../middleware/tenant-scope'
@@ -76,9 +77,14 @@ async function noticeRoutes(fastify: FastifyInstance) {
         tenantScope,
       ],
       schema: {
+        tags: ['Notices'],
+        summary: 'List notices',
+        description:
+          'Returns a paginated list of notices with optional filters for audience and pin status. Visibility is scoped by role in the service layer.\n\n**Roles: owner, manager, renter**',
+        security: [{ BearerAuth: [] }, { CookieAuth: [] }],
         querystring: z.object({
           page: z.coerce.number().int().min(1).default(1),
-          pageSize: z.coerce.number().int().min(1).max(50).default(20),
+          pageSize: z.coerce.number().int().min(1).max(100).default(20),
           targetAudience: z
             .enum([
               'all_renters',
@@ -92,6 +98,26 @@ async function noticeRoutes(fastify: FastifyInstance) {
             .transform((v) => v === 'true')
             .optional(),
         }),
+        response: {
+          200: z.object({
+            data: z.array(
+              z.object({
+                id: z.string(),
+                title: z.string(),
+                content: z.string(),
+                targetAudience: z.string(),
+                isPinned: z.boolean(),
+                createdAt: dateTimeResponseSchema,
+                updatedAt: dateTimeResponseSchema,
+              }),
+            ),
+            total: z.number(),
+            page: z.number(),
+            pageSize: z.number(),
+          }),
+          401: errorResponseSchema,
+          403: errorResponseSchema,
+        },
       },
     },
     async (request, reply) => {
@@ -125,7 +151,27 @@ async function noticeRoutes(fastify: FastifyInstance) {
     {
       preHandler: [authGuard, roleGuard(['owner', 'manager']), tenantScope],
       schema: {
+        tags: ['Notices'],
+        summary: 'Create a notice',
+        description:
+          'Creates a new notice with audience targeting. Supports targeting all renters, a specific building, a specific flat, or managers only.\n\n**Roles: owner, manager**',
+        security: [{ BearerAuth: [] }, { CookieAuth: [] }],
         body: createNoticeSchema,
+        response: {
+          201: z.object({
+            id: z.string(),
+            title: z.string(),
+            content: z.string(),
+            targetAudience: z.string(),
+            buildingId: z.string().nullable(),
+            flatId: z.string().nullable(),
+            isPinned: z.boolean(),
+            createdAt: dateTimeResponseSchema,
+          }),
+          400: errorResponseSchema,
+          401: errorResponseSchema,
+          403: errorResponseSchema,
+        },
       },
     },
     async (request, reply) => {
@@ -154,9 +200,31 @@ async function noticeRoutes(fastify: FastifyInstance) {
         tenantScope,
       ],
       schema: {
+        tags: ['Notices'],
+        summary: 'Get notice by ID',
+        description:
+          'Returns a single notice by its ID. Visibility is enforced by the service layer based on role.\n\n**Roles: owner, manager, renter**',
+        security: [{ BearerAuth: [] }, { CookieAuth: [] }],
         params: z.object({
           id: z.string().uuid('Invalid notice ID format'),
         }),
+        response: {
+          200: z.object({
+            id: z.string(),
+            title: z.string(),
+            content: z.string(),
+            targetAudience: z.string(),
+            buildingId: z.string().nullable(),
+            flatId: z.string().nullable(),
+            isPinned: z.boolean(),
+            authorId: z.string(),
+            createdAt: dateTimeResponseSchema,
+            updatedAt: dateTimeResponseSchema,
+          }),
+          401: errorResponseSchema,
+          403: errorResponseSchema,
+          404: errorResponseSchema,
+        },
       },
     },
     async (request, reply) => {
@@ -181,10 +249,31 @@ async function noticeRoutes(fastify: FastifyInstance) {
     {
       preHandler: [authGuard, roleGuard(['owner', 'manager']), tenantScope],
       schema: {
+        tags: ['Notices'],
+        summary: 'Update a notice',
+        description:
+          'Updates an existing notice. Only the author or an owner can edit a notice.\n\n**Roles: owner, manager**',
+        security: [{ BearerAuth: [] }, { CookieAuth: [] }],
         params: z.object({
           id: z.string().uuid('Invalid notice ID format'),
         }),
         body: updateNoticeSchema,
+        response: {
+          200: z.object({
+            id: z.string(),
+            title: z.string(),
+            content: z.string(),
+            targetAudience: z.string(),
+            buildingId: z.string().nullable(),
+            flatId: z.string().nullable(),
+            isPinned: z.boolean(),
+            updatedAt: dateTimeResponseSchema,
+          }),
+          400: errorResponseSchema,
+          401: errorResponseSchema,
+          403: errorResponseSchema,
+          404: errorResponseSchema,
+        },
       },
     },
     async (request, reply) => {
@@ -210,9 +299,20 @@ async function noticeRoutes(fastify: FastifyInstance) {
     {
       preHandler: [authGuard, roleGuard(['owner', 'manager']), tenantScope],
       schema: {
+        tags: ['Notices'],
+        summary: 'Delete a notice',
+        description:
+          'Deletes a notice by ID. Only the author or an owner can delete a notice.\n\n**Roles: owner, manager**',
+        security: [{ BearerAuth: [] }, { CookieAuth: [] }],
         params: z.object({
           id: z.string().uuid('Invalid notice ID format'),
         }),
+        response: {
+          204: z.null(),
+          401: errorResponseSchema,
+          403: errorResponseSchema,
+          404: errorResponseSchema,
+        },
       },
     },
     async (request, reply) => {
@@ -237,9 +337,25 @@ async function noticeRoutes(fastify: FastifyInstance) {
     {
       preHandler: [authGuard, roleGuard(['owner', 'manager']), tenantScope],
       schema: {
+        tags: ['Notices'],
+        summary: 'Toggle notice pin status',
+        description:
+          'Toggles the pinned status of a notice. Enforces a maximum of 5 pinned notices per target audience scope.\n\n**Roles: owner, manager**',
+        security: [{ BearerAuth: [] }, { CookieAuth: [] }],
         params: z.object({
           id: z.string().uuid('Invalid notice ID format'),
         }),
+        response: {
+          200: z.object({
+            id: z.string(),
+            isPinned: z.boolean(),
+            updatedAt: dateTimeResponseSchema,
+          }),
+          400: errorResponseSchema,
+          401: errorResponseSchema,
+          403: errorResponseSchema,
+          404: errorResponseSchema,
+        },
       },
     },
     async (request, reply) => {

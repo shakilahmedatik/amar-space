@@ -5,6 +5,7 @@ import {
 } from '@repo/shared/validation'
 import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
+import { dateTimeResponseSchema, errorResponseSchema } from '../app'
 import { authGuard } from '../middleware/auth-guard'
 import { roleGuard } from '../middleware/role-guard'
 import { tenantScope } from '../middleware/tenant-scope'
@@ -60,10 +61,34 @@ async function buildingRoutes(fastify: FastifyInstance) {
     {
       preHandler: [authGuard, roleGuard(['owner', 'manager']), tenantScope],
       schema: {
+        tags: ['Buildings'],
+        summary: 'List buildings',
+        description:
+          'Returns a paginated list of buildings within the tenant scope.\n\n**Roles: owner, manager**',
+        security: [{ BearerAuth: [] }, { CookieAuth: [] }],
         querystring: z.object({
           page: z.coerce.number().int().min(1).default(1),
-          pageSize: z.coerce.number().int().min(1).max(50).default(20),
+          pageSize: z.coerce.number().int().min(1).max(100).default(20),
         }),
+        response: {
+          200: z.object({
+            data: z.array(
+              z.object({
+                id: z.string(),
+                name: z.string(),
+                address: z.string(),
+                totalFloors: z.number().nullable(),
+                ownerAccountId: z.string(),
+                createdAt: dateTimeResponseSchema,
+              }),
+            ),
+            total: z.number(),
+            page: z.number(),
+            pageSize: z.number(),
+          }),
+          401: errorResponseSchema,
+          403: errorResponseSchema,
+        },
       },
     },
     async (request, reply) => {
@@ -91,7 +116,25 @@ async function buildingRoutes(fastify: FastifyInstance) {
     {
       preHandler: [authGuard, roleGuard(['owner']), tenantScope],
       schema: {
+        tags: ['Buildings'],
+        summary: 'Create a building',
+        description:
+          "Creates a new building within the owner's tenant.\n\n**Roles: owner**",
+        security: [{ BearerAuth: [] }, { CookieAuth: [] }],
         body: createBuildingSchema,
+        response: {
+          201: z.object({
+            id: z.string(),
+            name: z.string(),
+            address: z.string(),
+            totalFloors: z.number().nullable(),
+            ownerAccountId: z.string(),
+            createdAt: dateTimeResponseSchema,
+          }),
+          400: errorResponseSchema,
+          401: errorResponseSchema,
+          403: errorResponseSchema,
+        },
       },
     },
     async (request, reply) => {
@@ -117,9 +160,26 @@ async function buildingRoutes(fastify: FastifyInstance) {
     {
       preHandler: [authGuard, roleGuard(['owner', 'manager']), tenantScope],
       schema: {
+        tags: ['Buildings'],
+        summary: 'Get a building',
+        description: 'Returns a building by ID.\n\n**Roles: owner, manager**',
+        security: [{ BearerAuth: [] }, { CookieAuth: [] }],
         params: z.object({
           id: z.string().uuid('Invalid building ID format'),
         }),
+        response: {
+          200: z.object({
+            id: z.string(),
+            name: z.string(),
+            address: z.string(),
+            totalFloors: z.number().nullable(),
+            ownerAccountId: z.string(),
+            createdAt: dateTimeResponseSchema,
+          }),
+          401: errorResponseSchema,
+          403: errorResponseSchema,
+          404: errorResponseSchema,
+        },
       },
     },
     async (request, reply) => {
@@ -141,10 +201,29 @@ async function buildingRoutes(fastify: FastifyInstance) {
     {
       preHandler: [authGuard, roleGuard(['owner']), tenantScope],
       schema: {
+        tags: ['Buildings'],
+        summary: 'Update a building',
+        description:
+          "Updates a building's name, address, or total floors.\n\n**Roles: owner**",
+        security: [{ BearerAuth: [] }, { CookieAuth: [] }],
         params: z.object({
           id: z.string().uuid('Invalid building ID format'),
         }),
         body: updateBuildingSchema,
+        response: {
+          200: z.object({
+            id: z.string(),
+            name: z.string(),
+            address: z.string(),
+            totalFloors: z.number().nullable(),
+            ownerAccountId: z.string(),
+            updatedAt: dateTimeResponseSchema,
+          }),
+          400: errorResponseSchema,
+          401: errorResponseSchema,
+          403: errorResponseSchema,
+          404: errorResponseSchema,
+        },
       },
     },
     async (request, reply) => {

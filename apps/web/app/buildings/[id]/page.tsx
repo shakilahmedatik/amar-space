@@ -1,8 +1,11 @@
 'use client'
 
-import { useParams } from 'next/navigation'
+import Link from 'next/link'
+import { useParams, useRouter } from 'next/navigation'
 import { type FormEvent, useEffect, useState } from 'react'
 import { DashboardLayout } from '@/components/layout'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
 import { DataTable, type DataTableColumn } from '@/components/ui/data-table'
 import { ErrorFeedback } from '@/components/ui/error-feedback'
 import { FormField, FormInput } from '@/components/ui/form-field'
@@ -28,6 +31,7 @@ type UserRole = 'owner' | 'manager' | 'renter'
 export default function BuildingDetailPage() {
   const { t } = useTranslation()
   const params = useParams()
+  const router = useRouter()
   const buildingId = params.id as string
 
   const [user, setUser] = useState<{ id: string; role: string } | null>(null)
@@ -55,12 +59,12 @@ export default function BuildingDetailPage() {
       try {
         const session = await getSession()
         if (!session) {
-          window.location.href = '/login'
+          router.push('/login')
           return
         }
         setUser(session)
       } catch {
-        window.location.href = '/login'
+        router.push('/login')
       } finally {
         setIsLoadingSession(false)
       }
@@ -124,7 +128,7 @@ export default function BuildingDetailPage() {
 
   if (isLoadingSession || !user) {
     return (
-      <div className="flex h-dvh items-center justify-center bg-gray-50">
+      <div className="flex h-dvh items-center justify-center bg-surface">
         <div className="w-full max-w-md px-4">
           <LoadingSkeleton rows={5} showHeader />
         </div>
@@ -140,16 +144,12 @@ export default function BuildingDetailPage() {
       key: 'flatNumber',
       header: t('flats.flatNumber'),
       render: (row) => (
-        <a
+        <Link
           href={`/flats/${row.id}`}
-          style={{
-            color: '#2563eb',
-            fontWeight: 500,
-            textDecoration: 'none',
-          }}
+          className="text-brand-blue-deep font-medium no-underline hover:underline"
         >
           {row.flatNumber}
-        </a>
+        </Link>
       ),
     },
     {
@@ -192,14 +192,10 @@ export default function BuildingDetailPage() {
         />
       )}
 
-      <div style={{ marginBottom: '1.5rem' }}>
+      <div className="mb-6">
         <a
           href="/buildings"
-          style={{
-            fontSize: '0.875rem',
-            color: '#6b7280',
-            textDecoration: 'none',
-          }}
+          className="text-sm text-steel no-underline hover:underline"
         >
           ← {t('common.back')}
         </a>
@@ -210,262 +206,139 @@ export default function BuildingDetailPage() {
       ) : building ? (
         <>
           {/* Building Info Section */}
-          <div
-            style={{
-              padding: '1.5rem',
-              borderRadius: '0.5rem',
-              border: '1px solid #e5e7eb',
-              backgroundColor: '#ffffff',
-              marginBottom: '2rem',
-            }}
-          >
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                marginBottom: '1rem',
-                flexWrap: 'wrap',
-                gap: '0.75rem',
-              }}
-            >
-              <h1
-                style={{
-                  fontSize: '1.5rem',
-                  fontWeight: 700,
-                  color: '#111827',
-                }}
-              >
-                {isEditing
-                  ? t('buildings.editBuilding')
-                  : t('buildings.buildingDetail')}
-              </h1>
+          <Card className="bg-canvas border-hairline mb-8">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
+                <h1 className="text-2xl font-bold text-ink">
+                  {isEditing
+                    ? t('buildings.editBuilding')
+                    : t('buildings.buildingDetail')}
+                </h1>
 
-              {isOwner && !isEditing && (
-                <button
-                  type="button"
-                  onClick={() => setIsEditing(true)}
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    minWidth: '44px',
-                    minHeight: '44px',
-                    padding: '0.5rem 1rem',
-                    fontSize: '0.875rem',
-                    fontWeight: 500,
-                    borderRadius: '0.375rem',
-                    backgroundColor: 'transparent',
-                    color: '#2563eb',
-                    border: '1px solid #2563eb',
-                    cursor: 'pointer',
-                  }}
-                >
-                  {t('common.edit')}
-                </button>
-              )}
-            </div>
-
-            {isEditing ? (
-              <form onSubmit={handleUpdate} style={{ maxWidth: '32rem' }}>
-                <FormField
-                  label={t('buildings.buildingName')}
-                  required
-                  error={errors.name}
-                  htmlFor="edit-building-name"
-                >
-                  <FormInput
-                    id="edit-building-name"
-                    type="text"
-                    value={editName}
-                    onChange={(e) => setEditName(e.target.value)}
-                    hasError={!!errors.name}
-                    maxLength={200}
-                  />
-                </FormField>
-
-                <FormField
-                  label={t('buildings.address')}
-                  required
-                  error={errors.address}
-                  htmlFor="edit-building-address"
-                >
-                  <FormInput
-                    id="edit-building-address"
-                    type="text"
-                    value={editAddress}
-                    onChange={(e) => setEditAddress(e.target.value)}
-                    hasError={!!errors.address}
-                    maxLength={500}
-                  />
-                </FormField>
-
-                <FormField
-                  label={t('buildings.totalFloors')}
-                  error={errors.totalFloors}
-                  htmlFor="edit-building-floors"
-                >
-                  <FormInput
-                    id="edit-building-floors"
-                    type="number"
-                    value={editFloors}
-                    onChange={(e) => setEditFloors(e.target.value)}
-                    hasError={!!errors.totalFloors}
-                    min={1}
-                    max={200}
-                  />
-                </FormField>
-
-                <div
-                  style={{
-                    display: 'flex',
-                    gap: '0.75rem',
-                    marginTop: '1.5rem',
-                  }}
-                >
-                  <button
-                    type="submit"
-                    disabled={updateMutation.isPending}
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      minWidth: '44px',
-                      minHeight: '44px',
-                      padding: '0.625rem 1.5rem',
-                      fontSize: '0.875rem',
-                      fontWeight: 600,
-                      borderRadius: '0.5rem',
-                      backgroundColor: updateMutation.isPending
-                        ? '#93c5fd'
-                        : '#2563eb',
-                      color: '#ffffff',
-                      border: 'none',
-                      cursor: updateMutation.isPending
-                        ? 'not-allowed'
-                        : 'pointer',
-                    }}
-                  >
-                    {updateMutation.isPending
-                      ? t('common.loading')
-                      : t('common.save')}
-                  </button>
-
-                  <button
+                {isOwner && !isEditing && (
+                  <Button
                     type="button"
-                    onClick={() => {
-                      setIsEditing(false)
-                      setErrors({})
-                      // Reset to original values
-                      if (building) {
-                        setEditName(building.name)
-                        setEditAddress(building.address)
-                        setEditFloors(building.totalFloors?.toString() ?? '')
-                      }
-                    }}
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      minWidth: '44px',
-                      minHeight: '44px',
-                      padding: '0.625rem 1.5rem',
-                      fontSize: '0.875rem',
-                      fontWeight: 500,
-                      borderRadius: '0.5rem',
-                      backgroundColor: 'transparent',
-                      color: '#374151',
-                      border: '1px solid #d1d5db',
-                      cursor: 'pointer',
-                    }}
+                    variant="outline"
+                    onClick={() => setIsEditing(true)}
+                    className="rounded-full min-h-[44px] text-brand-blue-deep border-brand-blue-deep"
                   >
-                    {t('common.cancel')}
-                  </button>
-                </div>
-              </form>
-            ) : (
-              <div
-                style={{
-                  display: 'grid',
-                  gap: '1rem',
-                  gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-                }}
-              >
-                <div>
-                  <p
-                    style={{
-                      fontSize: '0.75rem',
-                      fontWeight: 500,
-                      color: '#6b7280',
-                      marginBottom: '0.25rem',
-                    }}
-                  >
-                    {t('buildings.buildingName')}
-                  </p>
-                  <p
-                    style={{
-                      fontSize: '1rem',
-                      fontWeight: 600,
-                      color: '#111827',
-                    }}
-                  >
-                    {building.name}
-                  </p>
-                </div>
-                <div>
-                  <p
-                    style={{
-                      fontSize: '0.75rem',
-                      fontWeight: 500,
-                      color: '#6b7280',
-                      marginBottom: '0.25rem',
-                    }}
-                  >
-                    {t('buildings.address')}
-                  </p>
-                  <p
-                    style={{
-                      fontSize: '1rem',
-                      color: '#111827',
-                    }}
-                  >
-                    {building.address}
-                  </p>
-                </div>
-                <div>
-                  <p
-                    style={{
-                      fontSize: '0.75rem',
-                      fontWeight: 500,
-                      color: '#6b7280',
-                      marginBottom: '0.25rem',
-                    }}
-                  >
-                    {t('buildings.totalFloors')}
-                  </p>
-                  <p
-                    style={{
-                      fontSize: '1rem',
-                      color: '#111827',
-                    }}
-                  >
-                    {building.totalFloors ?? '—'}
-                  </p>
-                </div>
+                    {t('common.edit')}
+                  </Button>
+                )}
               </div>
-            )}
-          </div>
+
+              {isEditing ? (
+                <form onSubmit={handleUpdate} className="max-w-lg">
+                  <FormField
+                    label={t('buildings.buildingName')}
+                    required
+                    error={errors.name}
+                    htmlFor="edit-building-name"
+                  >
+                    <FormInput
+                      id="edit-building-name"
+                      type="text"
+                      value={editName}
+                      onChange={(e) => setEditName(e.target.value)}
+                      hasError={!!errors.name}
+                      maxLength={200}
+                    />
+                  </FormField>
+
+                  <FormField
+                    label={t('buildings.address')}
+                    required
+                    error={errors.address}
+                    htmlFor="edit-building-address"
+                  >
+                    <FormInput
+                      id="edit-building-address"
+                      type="text"
+                      value={editAddress}
+                      onChange={(e) => setEditAddress(e.target.value)}
+                      hasError={!!errors.address}
+                      maxLength={500}
+                    />
+                  </FormField>
+
+                  <FormField
+                    label={t('buildings.totalFloors')}
+                    error={errors.totalFloors}
+                    htmlFor="edit-building-floors"
+                  >
+                    <FormInput
+                      id="edit-building-floors"
+                      type="number"
+                      value={editFloors}
+                      onChange={(e) => setEditFloors(e.target.value)}
+                      hasError={!!errors.totalFloors}
+                      min={1}
+                      max={200}
+                    />
+                  </FormField>
+
+                  <div className="flex gap-3 mt-6">
+                    <Button
+                      type="submit"
+                      disabled={updateMutation.isPending}
+                      className="rounded-full min-h-[44px] bg-primary text-on-primary font-semibold"
+                    >
+                      {updateMutation.isPending
+                        ? t('common.loading')
+                        : t('common.save')}
+                    </Button>
+
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => {
+                        setIsEditing(false)
+                        setErrors({})
+                        // Reset to original values
+                        if (building) {
+                          setEditName(building.name)
+                          setEditAddress(building.address)
+                          setEditFloors(building.totalFloors?.toString() ?? '')
+                        }
+                      }}
+                      className="rounded-full min-h-[44px] text-charcoal border-hairline"
+                    >
+                      {t('common.cancel')}
+                    </Button>
+                  </div>
+                </form>
+              ) : (
+                <div className="grid gap-4 grid-cols-[repeat(auto-fit,minmax(200px,1fr))]">
+                  <div>
+                    <p className="text-xs font-medium text-steel mb-1">
+                      {t('buildings.buildingName')}
+                    </p>
+                    <p className="text-base font-semibold text-ink">
+                      {building.name}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs font-medium text-steel mb-1">
+                      {t('buildings.address')}
+                    </p>
+                    <p className="text-base text-ink">{building.address}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs font-medium text-steel mb-1">
+                      {t('buildings.totalFloors')}
+                    </p>
+                    <p className="text-base text-ink">
+                      {building.totalFloors ?? '—'}
+                    </p>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
 
           {/* Flats Section */}
           <div>
-            <h2
-              style={{
-                fontSize: '1.25rem',
-                fontWeight: 600,
-                color: '#111827',
-                marginBottom: '1rem',
-              }}
-            >
+            <h2 className="text-xl font-semibold text-ink mb-4">
               {t('buildings.flatsInBuilding')}
             </h2>
 
@@ -476,7 +349,15 @@ export default function BuildingDetailPage() {
                 columns={flatColumns}
                 data={flatsData?.data ?? []}
                 getRowKey={(row) => row.id}
-                pagination={flatsData?.pagination}
+                pagination={
+                  flatsData
+                    ? {
+                        total: flatsData.total,
+                        page: flatsData.page,
+                        pageSize: flatsData.pageSize,
+                      }
+                    : undefined
+                }
                 onPageChange={setFlatPage}
                 loading={isLoadingFlats}
                 emptyMessage={t('flats.noFlats')}

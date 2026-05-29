@@ -3,6 +3,7 @@ import {
   date,
   numeric,
   pgTable,
+  text,
   timestamp,
   unique,
   uuid,
@@ -17,7 +18,7 @@ export const bills = pgTable(
   'bills',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    ownerAccountId: uuid('owner_account_id')
+    ownerAccountId: text('owner_account_id')
       .notNull()
       .references(() => users.id),
     contractId: uuid('contract_id')
@@ -65,7 +66,7 @@ export const billLineItems = pgTable('bill_line_items', {
 
 export const payments = pgTable('payments', {
   id: uuid('id').primaryKey().defaultRandom(),
-  ownerAccountId: uuid('owner_account_id')
+  ownerAccountId: text('owner_account_id')
     .notNull()
     .references(() => users.id),
   billId: uuid('bill_id')

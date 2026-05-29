@@ -1,6 +1,9 @@
 'use client'
 
 import { type InputHTMLAttributes, type ReactNode, useId } from 'react'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { cn } from '@/lib/utils'
 
 interface FormFieldProps {
   label: string
@@ -31,27 +34,15 @@ export function FormField({
   const helpId = `${fieldId}-help`
 
   return (
-    <div className={className} style={{ marginBottom: '1rem' }}>
-      <label
-        htmlFor={fieldId}
-        style={{
-          display: 'block',
-          marginBottom: '0.375rem',
-          fontSize: '0.875rem',
-          fontWeight: 500,
-          color: 'var(--foreground)',
-        }}
-      >
+    <div className={cn('mb-4', className)}>
+      <Label htmlFor={fieldId} className="block mb-1.5">
         {label}
         {required && (
-          <span
-            aria-hidden="true"
-            style={{ color: '#dc2626', marginLeft: '0.25rem' }}
-          >
+          <span aria-hidden="true" className="text-error-text ml-1">
             *
           </span>
         )}
-      </label>
+      </Label>
       <div
         data-field-id={fieldId}
         data-error-id={error ? errorId : undefined}
@@ -60,14 +51,7 @@ export function FormField({
         {children}
       </div>
       {helpText && !error && (
-        <p
-          id={helpId}
-          style={{
-            marginTop: '0.25rem',
-            fontSize: '0.75rem',
-            color: '#6b7280',
-          }}
-        >
+        <p id={helpId} className="mt-1 text-xs text-stone">
           {helpText}
         </p>
       )}
@@ -75,12 +59,7 @@ export function FormField({
         <p
           id={errorId}
           role="alert"
-          style={{
-            marginTop: '0.25rem',
-            fontSize: '0.75rem',
-            color: '#dc2626',
-            fontWeight: 500,
-          }}
+          className="mt-1 text-xs text-error-text font-medium"
         >
           {error}
         </p>
@@ -97,27 +76,22 @@ interface FormInputProps extends InputHTMLAttributes<HTMLInputElement> {
 /**
  * Styled input component that integrates with FormField.
  */
-export function FormInput({ hasError, style, ref, ...props }: FormInputProps) {
+export function FormInput({
+  hasError,
+  className,
+  ref,
+  ...props
+}: FormInputProps) {
   return (
-    <input
+    <Input
       ref={ref}
-      {...props}
-      style={{
-        display: 'block',
-        width: '100%',
-        padding: '0.625rem 0.75rem',
-        fontSize: '1rem',
-        lineHeight: '1.5',
-        borderRadius: '0.375rem',
-        border: `1px solid ${hasError ? '#dc2626' : '#d1d5db'}`,
-        backgroundColor: 'var(--background)',
-        color: 'var(--foreground)',
-        outline: 'none',
-        transition: 'border-color 0.15s, box-shadow 0.15s',
-        minHeight: '44px',
-        ...style,
-      }}
       aria-invalid={hasError || undefined}
+      className={cn(
+        'rounded-md border-hairline min-h-[44px]',
+        hasError && 'border-error-text bg-error-bg',
+        className,
+      )}
+      {...props}
     />
   )
 }

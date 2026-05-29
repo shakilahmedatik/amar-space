@@ -1,6 +1,7 @@
 import type { FastifyInstance } from 'fastify'
 import Fastify from 'fastify'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import type { AuthUser } from '../../src/middleware/auth-guard'
 import { authGuard } from '../../src/middleware/auth-guard'
 
 /**
@@ -67,7 +68,7 @@ describe('Auth Guard Middleware', () => {
     })
 
     // Decorate request with user placeholder
-    app.decorateRequest('user', null)
+    app.decorateRequest('user', null as unknown as AuthUser)
 
     // Register a protected test route
     app.get('/protected', { preHandler: [authGuard] }, async (request) => {

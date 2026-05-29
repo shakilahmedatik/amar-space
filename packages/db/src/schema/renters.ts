@@ -3,6 +3,7 @@ import {
   integer,
   jsonb,
   pgTable,
+  text,
   timestamp,
   uuid,
   varchar,
@@ -11,10 +12,10 @@ import { users } from './users'
 
 export const renters = pgTable('renters', {
   id: uuid('id').primaryKey().defaultRandom(),
-  ownerAccountId: uuid('owner_account_id')
+  ownerAccountId: text('owner_account_id')
     .notNull()
     .references(() => users.id),
-  userId: uuid('user_id')
+  userId: text('user_id')
     .notNull()
     .references(() => users.id),
   fullName: varchar('full_name', { length: 255 }).notNull(),

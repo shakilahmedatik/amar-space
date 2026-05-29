@@ -153,23 +153,24 @@ describe('Registration Endpoint', () => {
       await app.ready()
 
       // Mock auth to avoid actual DB calls
-      const originalSignUp = app.auth.api.signUpEmail
-      app.auth.api.signUpEmail = (async () => {
+      const authApi = app.auth.api as Record<string, unknown>
+      const originalSignUp = authApi.signUpEmail
+      authApi.signUpEmail = async () => {
         return {
           token: 'test-token',
           user: { id: 'test-id', email: 'test@example.com', name: 'test' },
         }
-      }) as unknown as typeof app.auth.api.signUpEmail
+      }
 
       // Mock signInEmail
-      const originalSignIn = app.auth.api.signInEmail
-      app.auth.api.signInEmail = (async () => {
+      const originalSignIn = authApi.signInEmail
+      authApi.signInEmail = async () => {
         return {
           redirect: false,
           token: 'session-token',
           user: { id: 'test-id', email: 'test@example.com' },
         }
-      }) as unknown as typeof app.auth.api.signInEmail
+      }
 
       // Mock db query to simulate no existing user
       const originalFindFirst = app.db.query.users.findFirst
@@ -211,8 +212,8 @@ describe('Registration Endpoint', () => {
 
       expect(response.statusCode).toBe(429)
 
-      app.auth.api.signUpEmail = originalSignUp
-      app.auth.api.signInEmail = originalSignIn
+      authApi.signUpEmail = originalSignUp
+      authApi.signInEmail = originalSignIn
       app.db.query.users.findFirst = originalFindFirst
       app.db.update = originalUpdate
       await app.close()
@@ -223,22 +224,23 @@ describe('Registration Endpoint', () => {
       await app.ready()
 
       // Mock auth
-      const originalSignUp = app.auth.api.signUpEmail
-      app.auth.api.signUpEmail = (async () => {
+      const authApi = app.auth.api as Record<string, unknown>
+      const originalSignUp = authApi.signUpEmail
+      authApi.signUpEmail = async () => {
         return {
           token: 'test-token',
           user: { id: 'test-id', email: 'test@example.com', name: 'test' },
         }
-      }) as unknown as typeof app.auth.api.signUpEmail
+      }
 
-      const originalSignIn = app.auth.api.signInEmail
-      app.auth.api.signInEmail = (async () => {
+      const originalSignIn = authApi.signInEmail
+      authApi.signInEmail = async () => {
         return {
           redirect: false,
           token: 'session-token',
           user: { id: 'test-id', email: 'test@example.com' },
         }
-      }) as unknown as typeof app.auth.api.signInEmail
+      }
 
       const originalFindFirst = app.db.query.users.findFirst
       app.db.query.users.findFirst = (async () =>
@@ -277,8 +279,8 @@ describe('Registration Endpoint', () => {
 
       expect(response.statusCode).not.toBe(429)
 
-      app.auth.api.signUpEmail = originalSignUp
-      app.auth.api.signInEmail = originalSignIn
+      authApi.signUpEmail = originalSignUp
+      authApi.signInEmail = originalSignIn
       app.db.query.users.findFirst = originalFindFirst
       app.db.update = originalUpdate
       await app.close()
@@ -375,23 +377,24 @@ describe('Registration Endpoint', () => {
         undefined) as unknown as typeof app.db.query.users.findFirst
 
       // Mock Better Auth signUpEmail
-      const originalSignUp = app.auth.api.signUpEmail
-      app.auth.api.signUpEmail = (async () => {
+      const authApi = app.auth.api as Record<string, unknown>
+      const originalSignUp = authApi.signUpEmail
+      authApi.signUpEmail = async () => {
         return {
           token: 'signup-token',
           user: { id: 'new-user-id', email: 'new@example.com', name: 'new' },
         }
-      }) as unknown as typeof app.auth.api.signUpEmail
+      }
 
       // Mock Better Auth signInEmail for session creation
-      const originalSignIn = app.auth.api.signInEmail
-      app.auth.api.signInEmail = (async () => {
+      const originalSignIn = authApi.signInEmail
+      authApi.signInEmail = async () => {
         return {
           redirect: false,
           token: 'session-token-123',
           user: { id: 'new-user-id', email: 'new@example.com' },
         }
-      }) as unknown as typeof app.auth.api.signInEmail
+      }
 
       // Mock db update for role assignment
       const originalUpdate = app.db.update
@@ -420,8 +423,8 @@ describe('Registration Endpoint', () => {
       expect(body.session.token).toBe('session-token-123')
 
       app.db.query.users.findFirst = originalFindFirst
-      app.auth.api.signUpEmail = originalSignUp
-      app.auth.api.signInEmail = originalSignIn
+      authApi.signUpEmail = originalSignUp
+      authApi.signInEmail = originalSignIn
       app.db.update = originalUpdate
       await app.close()
     })
@@ -436,19 +439,20 @@ describe('Registration Endpoint', () => {
         undefined) as unknown as typeof app.db.query.users.findFirst
 
       // Mock Better Auth signUpEmail - success
-      const originalSignUp = app.auth.api.signUpEmail
-      app.auth.api.signUpEmail = (async () => {
+      const authApi = app.auth.api as Record<string, unknown>
+      const originalSignUp = authApi.signUpEmail
+      authApi.signUpEmail = async () => {
         return {
           token: null,
           user: { id: 'new-user-id', email: 'new@example.com', name: 'new' },
         }
-      }) as unknown as typeof app.auth.api.signUpEmail
+      }
 
       // Mock Better Auth signInEmail - fails
-      const originalSignIn = app.auth.api.signInEmail
-      app.auth.api.signInEmail = (async () => {
+      const originalSignIn = authApi.signInEmail
+      authApi.signInEmail = async () => {
         throw new Error('Session creation failed')
-      }) as unknown as typeof app.auth.api.signInEmail
+      }
 
       // Mock db update
       const originalUpdate = app.db.update
@@ -474,8 +478,8 @@ describe('Registration Endpoint', () => {
       expect(body.message).toContain('sign in manually')
 
       app.db.query.users.findFirst = originalFindFirst
-      app.auth.api.signUpEmail = originalSignUp
-      app.auth.api.signInEmail = originalSignIn
+      authApi.signUpEmail = originalSignUp
+      authApi.signInEmail = originalSignIn
       app.db.update = originalUpdate
       await app.close()
     })

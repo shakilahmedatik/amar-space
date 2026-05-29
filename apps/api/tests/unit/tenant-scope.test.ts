@@ -1,6 +1,9 @@
+import type { Database } from '@repo/db'
 import type { FastifyInstance } from 'fastify'
 import Fastify from 'fastify'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import type { AuthUser } from '../../src/middleware/auth-guard'
+import type { TenantScope } from '../../src/middleware/tenant-scope'
 import { tenantScope } from '../../src/middleware/tenant-scope'
 
 /**
@@ -61,9 +64,9 @@ describe('Tenant Scope Middleware', () => {
   ) {
     const mockDb = createSequentialMockDb(querySequence)
 
-    app.decorateRequest('user', null)
-    app.decorateRequest('tenantScope', null)
-    app.decorate('db', mockDb)
+    app.decorateRequest('user', null as unknown as AuthUser)
+    app.decorateRequest('tenantScope', null as unknown as TenantScope)
+    app.decorate('db', mockDb as unknown as Database)
 
     // Pre-handler that simulates authGuard by setting request.user
     const fakeAuthGuard = async (request: { user: typeof userOverride }) => {

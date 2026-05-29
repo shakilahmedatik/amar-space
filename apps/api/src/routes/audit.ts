@@ -1,6 +1,7 @@
 import type { RequestContext } from '@repo/shared/types'
 import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
+import { dateTimeResponseSchema, errorResponseSchema } from '../app'
 import { authGuard } from '../middleware/auth-guard'
 import { roleGuard } from '../middleware/role-guard'
 import { tenantScope } from '../middleware/tenant-scope'
@@ -72,6 +73,11 @@ async function auditRoutes(fastify: FastifyInstance) {
     {
       preHandler: [authGuard, roleGuard(['owner', 'manager']), tenantScope],
       schema: {
+        tags: ['Audit'],
+        summary: 'Query audit logs',
+        description:
+          'Returns a paginated list of audit logs with optional filtering by entity type, entity ID, actor, action name, and date range. Immutable audit log query interface.\n\n**Roles: owner, manager**',
+        security: [{ BearerAuth: [] }, { CookieAuth: [] }],
         querystring: z.object({
           entityType: z.string().optional(),
           entityId: z.string().uuid().optional(),
@@ -82,6 +88,30 @@ async function auditRoutes(fastify: FastifyInstance) {
           page: z.coerce.number().int().min(1).default(1),
           pageSize: z.coerce.number().int().min(1).max(100).default(20),
         }),
+        response: {
+          200: z.object({
+            data: z.array(
+              z.object({
+                id: z.string(),
+                entityType: z.string(),
+                entityId: z.string(),
+                action: z.string(),
+                actorId: z.string(),
+                ownerAccountId: z.string(),
+                oldValues: z.unknown().nullable(),
+                newValues: z.unknown().nullable(),
+                metadata: z.unknown().nullable(),
+                createdAt: dateTimeResponseSchema,
+              }),
+            ),
+            total: z.number(),
+            page: z.number(),
+            pageSize: z.number(),
+            totalPages: z.number(),
+          }),
+          401: errorResponseSchema,
+          403: errorResponseSchema,
+        },
       },
     },
     async (request, reply) => {

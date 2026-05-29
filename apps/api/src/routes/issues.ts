@@ -6,6 +6,7 @@ import {
 } from '@repo/shared/validation'
 import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
+import { dateTimeResponseSchema, errorResponseSchema } from '../app'
 import { authGuard } from '../middleware/auth-guard'
 import { roleGuard } from '../middleware/role-guard'
 import { tenantScope } from '../middleware/tenant-scope'
@@ -70,9 +71,14 @@ async function issueRoutes(fastify: FastifyInstance) {
     {
       preHandler: [authGuard, roleGuard(['owner', 'manager']), tenantScope],
       schema: {
+        tags: ['Issues'],
+        summary: 'List issues',
+        description:
+          'Returns paginated building-level issues with optional filters by building, category, status, priority, and assignee.\n\n**Roles: owner, manager**',
+        security: [{ BearerAuth: [] }, { CookieAuth: [] }],
         querystring: z.object({
           page: z.coerce.number().int().min(1).default(1),
-          pageSize: z.coerce.number().int().min(1).max(50).default(20),
+          pageSize: z.coerce.number().int().min(1).max(100).default(20),
           buildingId: z.string().uuid().optional(),
           category: z
             .enum([
@@ -90,6 +96,36 @@ async function issueRoutes(fastify: FastifyInstance) {
           priority: z.enum(['low', 'medium', 'high', 'urgent']).optional(),
           assigneeId: z.string().uuid().optional(),
         }),
+        response: {
+          200: z.object({
+            data: z.array(
+              z.object({
+                id: z.string(),
+                title: z.string(),
+                description: z.string(),
+                category: z.enum([
+                  'plumbing',
+                  'electrical',
+                  'structural',
+                  'cleaning',
+                  'security',
+                  'other',
+                ]),
+                priority: z.enum(['low', 'medium', 'high', 'urgent']),
+                status: z.enum(['open', 'in_progress', 'resolved', 'closed']),
+                buildingId: z.string(),
+                assigneeId: z.string().nullable(),
+                ownerAccountId: z.string(),
+                createdAt: dateTimeResponseSchema,
+              }),
+            ),
+            total: z.number(),
+            page: z.number(),
+            pageSize: z.number(),
+          }),
+          401: errorResponseSchema,
+          403: errorResponseSchema,
+        },
       },
     },
     async (request, reply) => {
@@ -137,7 +173,36 @@ async function issueRoutes(fastify: FastifyInstance) {
     {
       preHandler: [authGuard, roleGuard(['owner', 'manager']), tenantScope],
       schema: {
+        tags: ['Issues'],
+        summary: 'Create issue',
+        description:
+          'Creates a new building-level issue with category and priority.\n\n**Roles: owner, manager**',
+        security: [{ BearerAuth: [] }, { CookieAuth: [] }],
         body: createIssueSchema,
+        response: {
+          201: z.object({
+            id: z.string(),
+            title: z.string(),
+            description: z.string(),
+            category: z.enum([
+              'plumbing',
+              'electrical',
+              'structural',
+              'cleaning',
+              'security',
+              'other',
+            ]),
+            priority: z.enum(['low', 'medium', 'high', 'urgent']),
+            status: z.enum(['open', 'in_progress', 'resolved', 'closed']),
+            buildingId: z.string(),
+            assigneeId: z.string().nullable(),
+            ownerAccountId: z.string(),
+            createdAt: dateTimeResponseSchema,
+          }),
+          400: errorResponseSchema,
+          401: errorResponseSchema,
+          403: errorResponseSchema,
+        },
       },
     },
     async (request, reply) => {
@@ -173,9 +238,38 @@ async function issueRoutes(fastify: FastifyInstance) {
     {
       preHandler: [authGuard, roleGuard(['owner', 'manager']), tenantScope],
       schema: {
+        tags: ['Issues'],
+        summary: 'Get an issue',
+        description:
+          'Returns a building-level issue by ID.\n\n**Roles: owner, manager**',
+        security: [{ BearerAuth: [] }, { CookieAuth: [] }],
         params: z.object({
           id: z.string().uuid('Invalid issue ID format'),
         }),
+        response: {
+          200: z.object({
+            id: z.string(),
+            title: z.string(),
+            description: z.string(),
+            category: z.enum([
+              'plumbing',
+              'electrical',
+              'structural',
+              'cleaning',
+              'security',
+              'other',
+            ]),
+            priority: z.enum(['low', 'medium', 'high', 'urgent']),
+            status: z.enum(['open', 'in_progress', 'resolved', 'closed']),
+            buildingId: z.string(),
+            assigneeId: z.string().nullable(),
+            ownerAccountId: z.string(),
+            createdAt: dateTimeResponseSchema,
+          }),
+          401: errorResponseSchema,
+          403: errorResponseSchema,
+          404: errorResponseSchema,
+        },
       },
     },
     async (request, reply) => {
@@ -199,10 +293,40 @@ async function issueRoutes(fastify: FastifyInstance) {
     {
       preHandler: [authGuard, roleGuard(['owner', 'manager']), tenantScope],
       schema: {
+        tags: ['Issues'],
+        summary: 'Update issue status',
+        description:
+          'Updates the status of a building-level issue (open → in_progress → resolved → closed).\n\n**Roles: owner, manager**',
+        security: [{ BearerAuth: [] }, { CookieAuth: [] }],
         params: z.object({
           id: z.string().uuid('Invalid issue ID format'),
         }),
         body: updateIssueStatusSchema,
+        response: {
+          200: z.object({
+            id: z.string(),
+            title: z.string(),
+            description: z.string(),
+            category: z.enum([
+              'plumbing',
+              'electrical',
+              'structural',
+              'cleaning',
+              'security',
+              'other',
+            ]),
+            priority: z.enum(['low', 'medium', 'high', 'urgent']),
+            status: z.enum(['open', 'in_progress', 'resolved', 'closed']),
+            buildingId: z.string(),
+            assigneeId: z.string().nullable(),
+            ownerAccountId: z.string(),
+            createdAt: dateTimeResponseSchema,
+          }),
+          400: errorResponseSchema,
+          401: errorResponseSchema,
+          403: errorResponseSchema,
+          404: errorResponseSchema,
+        },
       },
     },
     async (request, reply) => {
@@ -230,10 +354,40 @@ async function issueRoutes(fastify: FastifyInstance) {
     {
       preHandler: [authGuard, roleGuard(['owner', 'manager']), tenantScope],
       schema: {
+        tags: ['Issues'],
+        summary: 'Assign issue',
+        description:
+          'Assigns a building-level issue to a manager.\n\n**Roles: owner, manager**',
+        security: [{ BearerAuth: [] }, { CookieAuth: [] }],
         params: z.object({
           id: z.string().uuid('Invalid issue ID format'),
         }),
         body: assignIssueSchema,
+        response: {
+          200: z.object({
+            id: z.string(),
+            title: z.string(),
+            description: z.string(),
+            category: z.enum([
+              'plumbing',
+              'electrical',
+              'structural',
+              'cleaning',
+              'security',
+              'other',
+            ]),
+            priority: z.enum(['low', 'medium', 'high', 'urgent']),
+            status: z.enum(['open', 'in_progress', 'resolved', 'closed']),
+            buildingId: z.string(),
+            assigneeId: z.string().nullable(),
+            ownerAccountId: z.string(),
+            createdAt: dateTimeResponseSchema,
+          }),
+          400: errorResponseSchema,
+          401: errorResponseSchema,
+          403: errorResponseSchema,
+          404: errorResponseSchema,
+        },
       },
     },
     async (request, reply) => {

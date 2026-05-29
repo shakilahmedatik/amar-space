@@ -3,7 +3,9 @@
  * Handles sign-in, sign-up, sign-out, and session retrieval.
  */
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
+import { BASE_URL } from './api'
+
+const API_URL = BASE_URL
 
 interface SignInResponse {
   user?: {

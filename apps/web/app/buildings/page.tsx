@@ -1,7 +1,10 @@
 'use client'
 
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { DashboardLayout } from '@/components/layout'
+import { Button } from '@/components/ui/button'
 import { DataTable, type DataTableColumn } from '@/components/ui/data-table'
 import { ErrorFeedback } from '@/components/ui/error-feedback'
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton'
@@ -20,6 +23,7 @@ type UserRole = 'owner' | 'manager' | 'renter'
  */
 export default function BuildingsPage() {
   const { t } = useTranslation()
+  const router = useRouter()
   const [user, setUser] = useState<{ id: string; role: string } | null>(null)
   const [isLoadingSession, setIsLoadingSession] = useState(true)
   const [page, setPage] = useState(1)
@@ -29,12 +33,12 @@ export default function BuildingsPage() {
       try {
         const session = await getSession()
         if (!session) {
-          window.location.href = '/login'
+          router.push('/login')
           return
         }
         setUser(session)
       } catch {
-        window.location.href = '/login'
+        router.push('/login')
       } finally {
         setIsLoadingSession(false)
       }
@@ -46,7 +50,7 @@ export default function BuildingsPage() {
 
   if (isLoadingSession || !user) {
     return (
-      <div className="flex h-dvh items-center justify-center bg-gray-50">
+      <div className="flex h-dvh items-center justify-center bg-surface">
         <div className="w-full max-w-md px-4">
           <LoadingSkeleton rows={5} showHeader />
         </div>
@@ -62,16 +66,12 @@ export default function BuildingsPage() {
       key: 'name',
       header: t('buildings.buildingName'),
       render: (row) => (
-        <a
+        <Link
           href={`/buildings/${row.id}`}
-          style={{
-            color: '#2563eb',
-            fontWeight: 500,
-            textDecoration: 'none',
-          }}
+          className="text-brand-blue-deep font-medium no-underline hover:underline"
         >
           {row.name}
-        </a>
+        </Link>
       ),
     },
     {
@@ -97,48 +97,16 @@ export default function BuildingsPage() {
         />
       )}
 
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          marginBottom: '1.5rem',
-          flexWrap: 'wrap',
-          gap: '1rem',
-        }}
-      >
-        <h1
-          style={{
-            fontSize: '1.5rem',
-            fontWeight: 700,
-            color: '#111827',
-          }}
-        >
-          {t('buildings.title')}
-        </h1>
+      <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
+        <h1 className="text-2xl font-bold text-ink">{t('buildings.title')}</h1>
 
         {isOwner && (
-          <a
-            href="/buildings/new"
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              minWidth: '44px',
-              minHeight: '44px',
-              padding: '0.625rem 1.25rem',
-              fontSize: '0.875rem',
-              fontWeight: 600,
-              borderRadius: '0.5rem',
-              backgroundColor: '#2563eb',
-              color: '#ffffff',
-              textDecoration: 'none',
-              border: 'none',
-              cursor: 'pointer',
-            }}
+          <Button
+            asChild
+            className="rounded-full min-h-[44px] bg-primary text-on-primary font-semibold"
           >
-            {t('buildings.createBuilding')}
-          </a>
+            <Link href="/buildings/new">{t('buildings.createBuilding')}</Link>
+          </Button>
         )}
       </div>
 
@@ -149,7 +117,11 @@ export default function BuildingsPage() {
           columns={columns}
           data={data?.data ?? []}
           getRowKey={(row) => row.id}
-          pagination={data?.pagination}
+          pagination={
+            data
+              ? { total: data.total, page: data.page, pageSize: data.pageSize }
+              : undefined
+          }
           onPageChange={setPage}
           loading={isLoading}
           emptyMessage={t('buildings.noBuildings')}

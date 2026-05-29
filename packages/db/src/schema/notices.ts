@@ -1,14 +1,21 @@
-import { boolean, pgTable, timestamp, uuid, varchar } from 'drizzle-orm/pg-core'
+import {
+  boolean,
+  pgTable,
+  text,
+  timestamp,
+  uuid,
+  varchar,
+} from 'drizzle-orm/pg-core'
 import { buildings } from './buildings'
 import { flats } from './flats'
 import { users } from './users'
 
 export const notices = pgTable('notices', {
   id: uuid('id').primaryKey().defaultRandom(),
-  ownerAccountId: uuid('owner_account_id')
+  ownerAccountId: text('owner_account_id')
     .notNull()
     .references(() => users.id),
-  authorId: uuid('author_id')
+  authorId: text('author_id')
     .notNull()
     .references(() => users.id),
   title: varchar('title', { length: 200 }).notNull(),

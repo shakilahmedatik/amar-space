@@ -1,3 +1,4 @@
+import type { Database } from '@repo/db'
 import {
   ForbiddenError,
   NotFoundError,
@@ -5,6 +6,7 @@ import {
 } from '@repo/shared/errors'
 import type { RequestContext } from '@repo/shared/types'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import type { AuditLogger } from '../../src/plugins/audit-logger'
 import { PaymentService } from '../../src/services/payment'
 
 /**
@@ -176,7 +178,10 @@ describe('PaymentService', () => {
       }
 
       const ctx = createOwnerContext()
-      const service = new PaymentService(db as any, auditLogger as any)
+      const service = new PaymentService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       const result = await service.recordPayment(ctx, {
         billId: BILL_ID,
@@ -217,7 +222,10 @@ describe('PaymentService', () => {
       }
 
       const ctx = createOwnerContext()
-      const service = new PaymentService(db as any, auditLogger as any)
+      const service = new PaymentService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       const result = await service.recordPayment(ctx, {
         billId: BILL_ID,
@@ -255,7 +263,10 @@ describe('PaymentService', () => {
       }
 
       const ctx = createOwnerContext()
-      const service = new PaymentService(db as any, auditLogger as any)
+      const service = new PaymentService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       await expect(
         service.recordPayment(ctx, {
@@ -291,7 +302,10 @@ describe('PaymentService', () => {
       }
 
       const ctx = createOwnerContext()
-      const service = new PaymentService(db as any, auditLogger as any)
+      const service = new PaymentService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       await expect(
         service.recordPayment(ctx, {
@@ -306,7 +320,10 @@ describe('PaymentService', () => {
     it('should reject renter from recording payments (Requirement 8.6)', async () => {
       const db = { query: {}, insert: vi.fn(), update: vi.fn() }
       const ctx = createRenterContext()
-      const service = new PaymentService(db as any, auditLogger as any)
+      const service = new PaymentService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       await expect(
         service.recordPayment(ctx, {
@@ -336,7 +353,10 @@ describe('PaymentService', () => {
       }
 
       const ctx = createOwnerContext()
-      const service = new PaymentService(db as any, auditLogger as any)
+      const service = new PaymentService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       const futureDate = new Date()
       futureDate.setDate(futureDate.getDate() + 10)
@@ -370,7 +390,10 @@ describe('PaymentService', () => {
       }
 
       const ctx = createOwnerContext()
-      const service = new PaymentService(db as any, auditLogger as any)
+      const service = new PaymentService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       const oldDate = new Date()
       oldDate.setDate(oldDate.getDate() - 400)
@@ -389,14 +412,17 @@ describe('PaymentService', () => {
     it('should reject invalid payment method', async () => {
       const db = { query: {}, insert: vi.fn(), update: vi.fn() }
       const ctx = createOwnerContext()
-      const service = new PaymentService(db as any, auditLogger as any)
+      const service = new PaymentService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       await expect(
         service.recordPayment(ctx, {
           billId: BILL_ID,
           amount: 5000,
           paymentDate: getYesterdayStr(),
-          paymentMethod: 'credit_card' as any,
+          paymentMethod: 'credit_card' as never,
         }),
       ).rejects.toThrow(ValidationError)
     })
@@ -419,7 +445,10 @@ describe('PaymentService', () => {
       }
 
       const ctx = createOwnerContext()
-      const service = new PaymentService(db as any, auditLogger as any)
+      const service = new PaymentService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       await expect(
         service.recordPayment(ctx, {
@@ -434,7 +463,10 @@ describe('PaymentService', () => {
     it('should reject amount less than 0.01 (Requirement 8.11)', async () => {
       const db = { query: {}, insert: vi.fn(), update: vi.fn() }
       const ctx = createOwnerContext()
-      const service = new PaymentService(db as any, auditLogger as any)
+      const service = new PaymentService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       await expect(
         service.recordPayment(ctx, {
@@ -472,7 +504,10 @@ describe('PaymentService', () => {
       }
 
       const ctx = createOwnerContext()
-      const service = new PaymentService(db as any, auditLogger as any)
+      const service = new PaymentService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       await service.recordPayment(ctx, {
         billId: BILL_ID,
@@ -516,7 +551,10 @@ describe('PaymentService', () => {
       }
 
       const ctx = createManagerContext()
-      const service = new PaymentService(db as any, auditLogger as any)
+      const service = new PaymentService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       const result = await service.recordPayment(ctx, {
         billId: BILL_ID,
@@ -551,7 +589,10 @@ describe('PaymentService', () => {
       }
 
       const ctx = createManagerContext({ assignedBuildingIds: [BUILDING_ID] })
-      const service = new PaymentService(db as any, auditLogger as any)
+      const service = new PaymentService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       await expect(
         service.recordPayment(ctx, {
@@ -589,7 +630,10 @@ describe('PaymentService', () => {
       }
 
       const ctx = createOwnerContext()
-      const service = new PaymentService(db as any, auditLogger as any)
+      const service = new PaymentService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       await service.recordPayment(ctx, {
         billId: BILL_ID,
@@ -644,7 +688,10 @@ describe('PaymentService', () => {
       }
 
       const ctx = createOwnerContext()
-      const service = new PaymentService(db as any, auditLogger as any)
+      const service = new PaymentService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       const result = await service.recordPayment(ctx, {
         billId: BILL_ID,
@@ -682,7 +729,10 @@ describe('PaymentService', () => {
       }
 
       const ctx = createOwnerContext()
-      const service = new PaymentService(db as any, auditLogger as any)
+      const service = new PaymentService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       await expect(
         service.recordPayment(ctx, {
@@ -715,7 +765,10 @@ describe('PaymentService', () => {
       }
 
       const ctx = createOwnerContext()
-      const service = new PaymentService(db as any, auditLogger as any)
+      const service = new PaymentService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       const result = await service.getPayment(ctx, PAYMENT_ID)
 
@@ -734,7 +787,10 @@ describe('PaymentService', () => {
       }
 
       const ctx = createOwnerContext()
-      const service = new PaymentService(db as any, auditLogger as any)
+      const service = new PaymentService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       await expect(
         service.getPayment(ctx, '00000000-0000-4000-8000-ffffffffffff'),
@@ -762,7 +818,10 @@ describe('PaymentService', () => {
       const ctx = createRenterContext({
         userId: '00000000-0000-4000-8000-eeeeeeeeeeee',
       })
-      const service = new PaymentService(db as any, auditLogger as any)
+      const service = new PaymentService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       await expect(service.getPayment(ctx, PAYMENT_ID)).rejects.toThrow(
         NotFoundError,
@@ -793,7 +852,10 @@ describe('PaymentService', () => {
       }
 
       const ctx = createManagerContext({ assignedBuildingIds: [BUILDING_ID] })
-      const service = new PaymentService(db as any, auditLogger as any)
+      const service = new PaymentService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       await expect(service.getPayment(ctx, PAYMENT_ID)).rejects.toThrow(
         NotFoundError,
@@ -834,7 +896,10 @@ describe('PaymentService', () => {
       }
 
       const ctx = createOwnerContext()
-      const service = new PaymentService(db as any, auditLogger as any)
+      const service = new PaymentService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       const result = await service.listPayments(
         ctx,
@@ -880,7 +945,10 @@ describe('PaymentService', () => {
       }
 
       const ctx = createOwnerContext()
-      const service = new PaymentService(db as any, auditLogger as any)
+      const service = new PaymentService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       const result = await service.listPayments(
         ctx,
@@ -902,7 +970,10 @@ describe('PaymentService', () => {
       }
 
       const ctx = createOwnerContext()
-      const service = new PaymentService(db as any, auditLogger as any)
+      const service = new PaymentService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       await expect(
         service.listPayments(
@@ -924,7 +995,10 @@ describe('PaymentService', () => {
       }
 
       const ctx = createOwnerContext()
-      const service = new PaymentService(db as any, auditLogger as any)
+      const service = new PaymentService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       await expect(
         service.listPayments(
@@ -946,7 +1020,10 @@ describe('PaymentService', () => {
       }
 
       const ctx = createRenterContext()
-      const service = new PaymentService(db as any, auditLogger as any)
+      const service = new PaymentService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       const result = await service.listPayments(
         ctx,
@@ -975,7 +1052,10 @@ describe('PaymentService', () => {
       const ctx = createManagerContext({
         assignedBuildingIds: [UNASSIGNED_BUILDING_ID],
       })
-      const service = new PaymentService(db as any, auditLogger as any)
+      const service = new PaymentService(
+        db as unknown as Database,
+        auditLogger as unknown as AuditLogger,
+      )
 
       const result = await service.listPayments(
         ctx,
