@@ -14,7 +14,7 @@ export const flatSlugs = pgTable(
     flatId: uuid('flat_id')
       .notNull()
       .unique()
-      .references(() => flats.id),
+      .references(() => flats.id, { onDelete: 'cascade' }),
     slug: varchar('slug', { length: 100 }).notNull().unique(),
     createdAt: timestamp('created_at', { withTimezone: true })
       .notNull()

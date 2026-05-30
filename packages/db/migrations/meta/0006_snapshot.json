@@ -1,6 +1,6 @@
 {
-  "id": "5db6bd2f-ffda-4151-bee4-03f1e3e6a138",
-  "prevId": "8db6bd2f-ffda-4151-bee4-03f1e3e6a138",
+  "id": "13d5543b-35f0-4162-aee2-7f7cecf55487",
+  "prevId": "5db6bd2f-ffda-4151-bee4-03f1e3e6a138",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -1110,7 +1110,7 @@
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
+          "onDelete": "cascade",
           "onUpdate": "no action"
         }
       },
@@ -1980,7 +1980,7 @@
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
+          "onDelete": "cascade",
           "onUpdate": "no action"
         },
         "portal_sessions_renter_id_renters_id_fk": {
@@ -2149,7 +2149,7 @@
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
+          "onDelete": "cascade",
           "onUpdate": "no action"
         },
         "registration_requests_owner_account_id_users_id_fk": {
@@ -2370,7 +2370,7 @@
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
+          "onDelete": "cascade",
           "onUpdate": "no action"
         },
         "renter_access_codes_renter_id_renters_id_fk": {

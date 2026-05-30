@@ -1,4 +1,4 @@
-import { buildings, type Database, flats } from '@repo/db'
+import { buildings, type Database, flatSlugs, flats } from '@repo/db'
 import {
   FLAT_STATUS,
   FLAT_STATUS_TRANSITIONS,
@@ -271,7 +271,12 @@ export class FlatService {
       ])
     }
 
-    await this.db.delete(flats).where(eq(flats.id, flatId))
+    // Use a transaction to ensure atomicity of delete + audit
+    await this.db.transaction(async (tx) => {
+      // Delete related flat_slugs record (also handled by CASCADE after migration)
+      await tx.delete(flatSlugs).where(eq(flatSlugs.flatId, flatId))
+      await tx.delete(flats).where(eq(flats.id, flatId))
+    })
 
     // Record audit event
     this.auditLogger.log({

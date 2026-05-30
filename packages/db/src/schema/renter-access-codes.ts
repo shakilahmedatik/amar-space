@@ -6,7 +6,7 @@ export const renterAccessCodes = pgTable('renter_access_codes', {
   id: uuid('id').primaryKey().defaultRandom(),
   flatId: uuid('flat_id')
     .notNull()
-    .references(() => flats.id),
+    .references(() => flats.id, { onDelete: 'cascade' }),
   renterId: uuid('renter_id')
     .notNull()
     .references(() => renters.id),

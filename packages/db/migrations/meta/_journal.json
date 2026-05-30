@@ -36,6 +36,13 @@
       "when": 1780162196964,
       "tag": "0005_emergency_contacts",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1780173638792,
+      "tag": "0006_cascade_fks",
+      "breakpoints": true
     }
   ]
 }

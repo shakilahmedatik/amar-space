@@ -19,7 +19,7 @@ export const registrationRequests = pgTable(
     id: uuid('id').primaryKey().defaultRandom(),
     flatId: uuid('flat_id')
       .notNull()
-      .references(() => flats.id),
+      .references(() => flats.id, { onDelete: 'cascade' }),
     ownerAccountId: text('owner_account_id')
       .notNull()
       .references(() => users.id),

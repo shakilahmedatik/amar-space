@@ -56,6 +56,8 @@ if (process.env.NODE_ENV !== 'production') {
       logger.error('Failed to start server: {error}', { error: err })
       process.exit(1)
     }
-    logger.info(`API listening on http://localhost:${port}`)
+    logger.info(`🚀URL: http://localhost:${port}`)
+    logger.info(`⚡️Heath: http://localhost:${port}/api/health`)
+    logger.info(`📍Doc: http://localhost:${port}/api/docs`)
   })
 }
