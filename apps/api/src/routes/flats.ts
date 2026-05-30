@@ -10,6 +10,7 @@ import { and, eq } from 'drizzle-orm'
 import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
 import { dateTimeResponseSchema, errorResponseSchema } from '../app'
+import { approvalGuard } from '../middleware/approval-guard'
 import { authGuard } from '../middleware/auth-guard'
 import { roleGuard } from '../middleware/role-guard'
 import { tenantScope } from '../middleware/tenant-scope'
@@ -84,7 +85,12 @@ async function flatRoutes(fastify: FastifyInstance) {
   fastify.get(
     '/',
     {
-      preHandler: [authGuard, roleGuard(['owner', 'manager']), tenantScope],
+      preHandler: [
+        authGuard,
+        roleGuard(['owner', 'manager']),
+        approvalGuard,
+        tenantScope,
+      ],
       schema: {
         tags: ['Flats'],
         summary: 'List flats',
@@ -140,7 +146,7 @@ async function flatRoutes(fastify: FastifyInstance) {
   fastify.post(
     '/',
     {
-      preHandler: [authGuard, roleGuard(['owner']), tenantScope],
+      preHandler: [authGuard, roleGuard(['owner']), approvalGuard, tenantScope],
       schema: {
         tags: ['Flats'],
         summary: 'Create a flat',
@@ -176,7 +182,12 @@ async function flatRoutes(fastify: FastifyInstance) {
   fastify.get(
     '/:id',
     {
-      preHandler: [authGuard, roleGuard(['owner', 'manager']), tenantScope],
+      preHandler: [
+        authGuard,
+        roleGuard(['owner', 'manager']),
+        approvalGuard,
+        tenantScope,
+      ],
       schema: {
         tags: ['Flats'],
         summary: 'Get a flat',
@@ -235,7 +246,7 @@ async function flatRoutes(fastify: FastifyInstance) {
   fastify.put(
     '/:id',
     {
-      preHandler: [authGuard, roleGuard(['owner']), tenantScope],
+      preHandler: [authGuard, roleGuard(['owner']), approvalGuard, tenantScope],
       schema: {
         tags: ['Flats'],
         summary: 'Update a flat',
@@ -277,7 +288,7 @@ async function flatRoutes(fastify: FastifyInstance) {
   fastify.delete(
     '/:id',
     {
-      preHandler: [authGuard, roleGuard(['owner']), tenantScope],
+      preHandler: [authGuard, roleGuard(['owner']), approvalGuard, tenantScope],
       schema: {
         tags: ['Flats'],
         summary: 'Delete a flat',
@@ -313,7 +324,12 @@ async function flatRoutes(fastify: FastifyInstance) {
   fastify.put(
     '/:id/status',
     {
-      preHandler: [authGuard, roleGuard(['owner', 'manager']), tenantScope],
+      preHandler: [
+        authGuard,
+        roleGuard(['owner', 'manager']),
+        approvalGuard,
+        tenantScope,
+      ],
       schema: {
         tags: ['Flats'],
         summary: 'Transition flat status',

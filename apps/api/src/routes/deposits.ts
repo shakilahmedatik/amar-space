@@ -3,6 +3,7 @@ import { applyAdjustmentSchema } from '@repo/shared/validation'
 import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
 import { dateTimeResponseSchema, errorResponseSchema } from '../app'
+import { approvalGuard } from '../middleware/approval-guard'
 import { authGuard } from '../middleware/auth-guard'
 import { roleGuard } from '../middleware/role-guard'
 import { tenantScope } from '../middleware/tenant-scope'
@@ -67,6 +68,7 @@ async function depositRoutes(fastify: FastifyInstance) {
       preHandler: [
         authGuard,
         roleGuard(['owner', 'manager', 'renter']),
+        approvalGuard,
         tenantScope,
       ],
       schema: {
@@ -111,7 +113,7 @@ async function depositRoutes(fastify: FastifyInstance) {
   fastify.post(
     '/:contractId/adjust',
     {
-      preHandler: [authGuard, roleGuard(['owner']), tenantScope],
+      preHandler: [authGuard, roleGuard(['owner']), approvalGuard, tenantScope],
       schema: {
         tags: ['Deposits'],
         summary: 'Apply deposit adjustment',
@@ -170,6 +172,7 @@ async function depositRoutes(fastify: FastifyInstance) {
       preHandler: [
         authGuard,
         roleGuard(['owner', 'manager', 'renter']),
+        approvalGuard,
         tenantScope,
       ],
       schema: {

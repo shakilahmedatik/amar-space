@@ -134,10 +134,10 @@ export async function registerUser(
     throw error
   }
 
-  // Step 4: Update user role to 'owner' (Requirement 1.1)
+  // Step 4: Update user role to 'owner' and set approval status to pending (Requirements 1.1, 2.1)
   await fastify.db
     .update(users)
-    .set({ role: 'owner' })
+    .set({ role: 'owner', approvalStatus: 'pending' })
     .where(eq(users.id, createdUser.id))
 
   // Step 5: Create session (Requirement 1.4)

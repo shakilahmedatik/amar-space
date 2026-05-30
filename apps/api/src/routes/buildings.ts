@@ -6,6 +6,7 @@ import {
 import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
 import { dateTimeResponseSchema, errorResponseSchema } from '../app'
+import { approvalGuard } from '../middleware/approval-guard'
 import { authGuard } from '../middleware/auth-guard'
 import { roleGuard } from '../middleware/role-guard'
 import { tenantScope } from '../middleware/tenant-scope'
@@ -59,7 +60,12 @@ async function buildingRoutes(fastify: FastifyInstance) {
   fastify.get(
     '/',
     {
-      preHandler: [authGuard, roleGuard(['owner', 'manager']), tenantScope],
+      preHandler: [
+        authGuard,
+        roleGuard(['owner', 'manager']),
+        approvalGuard,
+        tenantScope,
+      ],
       schema: {
         tags: ['Buildings'],
         summary: 'List buildings',
@@ -114,7 +120,7 @@ async function buildingRoutes(fastify: FastifyInstance) {
   fastify.post(
     '/',
     {
-      preHandler: [authGuard, roleGuard(['owner']), tenantScope],
+      preHandler: [authGuard, roleGuard(['owner']), approvalGuard, tenantScope],
       schema: {
         tags: ['Buildings'],
         summary: 'Create a building',
@@ -158,7 +164,12 @@ async function buildingRoutes(fastify: FastifyInstance) {
   fastify.get(
     '/:id',
     {
-      preHandler: [authGuard, roleGuard(['owner', 'manager']), tenantScope],
+      preHandler: [
+        authGuard,
+        roleGuard(['owner', 'manager']),
+        approvalGuard,
+        tenantScope,
+      ],
       schema: {
         tags: ['Buildings'],
         summary: 'Get a building',
@@ -199,7 +210,7 @@ async function buildingRoutes(fastify: FastifyInstance) {
   fastify.put(
     '/:id',
     {
-      preHandler: [authGuard, roleGuard(['owner']), tenantScope],
+      preHandler: [authGuard, roleGuard(['owner']), approvalGuard, tenantScope],
       schema: {
         tags: ['Buildings'],
         summary: 'Update a building',

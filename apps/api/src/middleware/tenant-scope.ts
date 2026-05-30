@@ -51,6 +51,13 @@ export async function tenantScope(
   _reply: FastifyReply,
 ): Promise<void> {
   const { user } = request
+
+  // Superadmin bypasses tenant scoping — access resources across all owner accounts
+  if (user.role === 'superadmin') {
+    request.tenantScope = { ownerAccountId: '__all__' }
+    return
+  }
+
   const db = request.server.db
 
   const scope: TenantScope = {

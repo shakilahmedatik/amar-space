@@ -1,21 +1,25 @@
 import { describe, expect, it } from 'vitest'
 import {
   addUtilityChargeSchema,
+  adminUserListQuerySchema,
   bdPhoneSchema,
   bloodGroupEnum,
   createBuildingSchema,
   createFlatSchema,
   createIssueSchema,
   createMaintenanceRequestSchema,
+  createManagerSchema,
   createNoticeSchema,
   emailSchema,
   fileUploadSchema,
   generateBillsSchema,
   nidSchema,
+  ownerListQuerySchema,
   passwordSchema,
   recordPaymentSchema,
   registerRenterSchema,
   registerSchema,
+  updateApprovalStatusSchema,
 } from './index'
 
 describe('emailSchema', () => {
@@ -442,6 +446,179 @@ describe('fileUploadSchema', () => {
       mimeType: 'text/plain',
       fileSize: 1024,
     })
+    expect(result.success).toBe(false)
+  })
+})
+
+describe('createManagerSchema', () => {
+  const validUuid = '550e8400-e29b-41d4-a716-446655440000'
+
+  it('accepts valid manager creation input', () => {
+    const result = createManagerSchema.safeParse({
+      email: 'manager@example.com',
+      name: 'John Manager',
+      buildingIds: [validUuid],
+    })
+    expect(result.success).toBe(true)
+  })
+
+  it('normalizes email to lowercase', () => {
+    const result = createManagerSchema.safeParse({
+      email: 'Manager@Example.COM',
+      name: 'John Manager',
+      buildingIds: [validUuid],
+    })
+    expect(result.success).toBe(true)
+    if (result.success) {
+      expect(result.data.email).toBe('manager@example.com')
+    }
+  })
+
+  it('rejects email exceeding 254 characters', () => {
+    const longEmail = `${'a'.repeat(250)}@b.co`
+    const result = createManagerSchema.safeParse({
+      email: longEmail,
+      name: 'John',
+      buildingIds: [validUuid],
+    })
+    expect(result.success).toBe(false)
+  })
+
+  it('rejects empty name', () => {
+    const result = createManagerSchema.safeParse({
+      email: 'manager@example.com',
+      name: '',
+      buildingIds: [validUuid],
+    })
+    expect(result.success).toBe(false)
+  })
+
+  it('rejects name exceeding 200 characters', () => {
+    const result = createManagerSchema.safeParse({
+      email: 'manager@example.com',
+      name: 'a'.repeat(201),
+      buildingIds: [validUuid],
+    })
+    expect(result.success).toBe(false)
+  })
+
+  it('rejects empty buildingIds array', () => {
+    const result = createManagerSchema.safeParse({
+      email: 'manager@example.com',
+      name: 'John',
+      buildingIds: [],
+    })
+    expect(result.success).toBe(false)
+  })
+
+  it('rejects more than 20 buildingIds', () => {
+    const result = createManagerSchema.safeParse({
+      email: 'manager@example.com',
+      name: 'John',
+      buildingIds: Array.from({ length: 21 }, () => validUuid),
+    })
+    expect(result.success).toBe(false)
+  })
+
+  it('accepts exactly 20 buildingIds', () => {
+    const result = createManagerSchema.safeParse({
+      email: 'manager@example.com',
+      name: 'John',
+      buildingIds: Array.from({ length: 20 }, () => validUuid),
+    })
+    expect(result.success).toBe(true)
+  })
+
+  it('rejects invalid UUID in buildingIds', () => {
+    const result = createManagerSchema.safeParse({
+      email: 'manager@example.com',
+      name: 'John',
+      buildingIds: ['not-a-uuid'],
+    })
+    expect(result.success).toBe(false)
+  })
+})
+
+describe('updateApprovalStatusSchema', () => {
+  it('accepts valid approval statuses', () => {
+    for (const status of ['pending', 'approved', 'rejected']) {
+      const result = updateApprovalStatusSchema.safeParse({ newStatus: status })
+      expect(result.success).toBe(true)
+    }
+  })
+
+  it('rejects invalid status values', () => {
+    expect(
+      updateApprovalStatusSchema.safeParse({ newStatus: 'active' }).success,
+    ).toBe(false)
+    expect(
+      updateApprovalStatusSchema.safeParse({ newStatus: '' }).success,
+    ).toBe(false)
+  })
+
+  it('rejects missing newStatus', () => {
+    expect(updateApprovalStatusSchema.safeParse({}).success).toBe(false)
+  })
+})
+
+describe('adminUserListQuerySchema', () => {
+  it('accepts valid query with defaults', () => {
+    const result = adminUserListQuerySchema.safeParse({})
+    expect(result.success).toBe(true)
+    if (result.success) {
+      expect(result.data.page).toBe(1)
+      expect(result.data.pageSize).toBe(50)
+    }
+  })
+
+  it('accepts valid role filter', () => {
+    const result = adminUserListQuerySchema.safeParse({ role: 'owner' })
+    expect(result.success).toBe(true)
+  })
+
+  it('rejects pageSize exceeding 50', () => {
+    const result = adminUserListQuerySchema.safeParse({ pageSize: 51 })
+    expect(result.success).toBe(false)
+  })
+
+  it('rejects invalid role', () => {
+    const result = adminUserListQuerySchema.safeParse({ role: 'admin' })
+    expect(result.success).toBe(false)
+  })
+
+  it('rejects page less than 1', () => {
+    const result = adminUserListQuerySchema.safeParse({ page: 0 })
+    expect(result.success).toBe(false)
+  })
+})
+
+describe('ownerListQuerySchema', () => {
+  it('accepts valid query with defaults', () => {
+    const result = ownerListQuerySchema.safeParse({})
+    expect(result.success).toBe(true)
+    if (result.success) {
+      expect(result.data.page).toBe(1)
+      expect(result.data.pageSize).toBe(20)
+    }
+  })
+
+  it('accepts valid status filter', () => {
+    const result = ownerListQuerySchema.safeParse({ status: 'pending' })
+    expect(result.success).toBe(true)
+  })
+
+  it('rejects pageSize exceeding 100', () => {
+    const result = ownerListQuerySchema.safeParse({ pageSize: 101 })
+    expect(result.success).toBe(false)
+  })
+
+  it('accepts pageSize up to 100', () => {
+    const result = ownerListQuerySchema.safeParse({ pageSize: 100 })
+    expect(result.success).toBe(true)
+  })
+
+  it('rejects invalid status', () => {
+    const result = ownerListQuerySchema.safeParse({ status: 'active' })
     expect(result.success).toBe(false)
   })
 })

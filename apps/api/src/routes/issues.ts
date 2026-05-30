@@ -7,6 +7,7 @@ import {
 import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
 import { dateTimeResponseSchema, errorResponseSchema } from '../app'
+import { approvalGuard } from '../middleware/approval-guard'
 import { authGuard } from '../middleware/auth-guard'
 import { roleGuard } from '../middleware/role-guard'
 import { tenantScope } from '../middleware/tenant-scope'
@@ -69,7 +70,12 @@ async function issueRoutes(fastify: FastifyInstance) {
   fastify.get(
     '/',
     {
-      preHandler: [authGuard, roleGuard(['owner', 'manager']), tenantScope],
+      preHandler: [
+        authGuard,
+        roleGuard(['owner', 'manager']),
+        approvalGuard,
+        tenantScope,
+      ],
       schema: {
         tags: ['Issues'],
         summary: 'List issues',
@@ -171,7 +177,12 @@ async function issueRoutes(fastify: FastifyInstance) {
   fastify.post(
     '/',
     {
-      preHandler: [authGuard, roleGuard(['owner', 'manager']), tenantScope],
+      preHandler: [
+        authGuard,
+        roleGuard(['owner', 'manager']),
+        approvalGuard,
+        tenantScope,
+      ],
       schema: {
         tags: ['Issues'],
         summary: 'Create issue',
@@ -236,7 +247,12 @@ async function issueRoutes(fastify: FastifyInstance) {
   fastify.get(
     '/:id',
     {
-      preHandler: [authGuard, roleGuard(['owner', 'manager']), tenantScope],
+      preHandler: [
+        authGuard,
+        roleGuard(['owner', 'manager']),
+        approvalGuard,
+        tenantScope,
+      ],
       schema: {
         tags: ['Issues'],
         summary: 'Get an issue',
@@ -291,7 +307,12 @@ async function issueRoutes(fastify: FastifyInstance) {
   fastify.put(
     '/:id/status',
     {
-      preHandler: [authGuard, roleGuard(['owner', 'manager']), tenantScope],
+      preHandler: [
+        authGuard,
+        roleGuard(['owner', 'manager']),
+        approvalGuard,
+        tenantScope,
+      ],
       schema: {
         tags: ['Issues'],
         summary: 'Update issue status',
@@ -352,7 +373,12 @@ async function issueRoutes(fastify: FastifyInstance) {
   fastify.put(
     '/:id/assign',
     {
-      preHandler: [authGuard, roleGuard(['owner', 'manager']), tenantScope],
+      preHandler: [
+        authGuard,
+        roleGuard(['owner', 'manager']),
+        approvalGuard,
+        tenantScope,
+      ],
       schema: {
         tags: ['Issues'],
         summary: 'Assign issue',

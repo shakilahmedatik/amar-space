@@ -309,6 +309,16 @@ export function buildApp(opts: Record<string, unknown> = {}) {
         },
         { name: 'Audit', description: 'Immutable audit log query interface' },
         { name: 'Dashboard', description: 'Role-specific summary dashboards' },
+        {
+          name: 'Admin',
+          description:
+            'Superadmin platform management — owner approvals, user management, and platform dashboard',
+        },
+        {
+          name: 'Managers',
+          description:
+            'Manager creation and building assignment management by owners',
+        },
       ],
     },
     transform: jsonSchemaTransform,
@@ -346,6 +356,12 @@ export function buildApp(opts: Record<string, unknown> = {}) {
   app.register(import('./routes/notices'), { prefix: '/api/notices' })
   app.register(import('./routes/settings'), { prefix: '/api/settings' })
   app.register(import('./routes/dashboard'), { prefix: '/api/dashboard' })
+  app.register(import('./routes/admin/owners'), { prefix: '/api/admin/owners' })
+  app.register(import('./routes/admin/users'), { prefix: '/api/admin/users' })
+  app.register(import('./routes/admin/dashboard'), {
+    prefix: '/api/admin/dashboard',
+  })
+  app.register(import('./routes/managers'), { prefix: '/api/managers' })
 
   return app
 }

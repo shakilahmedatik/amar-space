@@ -7,6 +7,7 @@ import {
 import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
 import { dateTimeResponseSchema, errorResponseSchema } from '../app'
+import { approvalGuard } from '../middleware/approval-guard'
 import { authGuard } from '../middleware/auth-guard'
 import { roleGuard } from '../middleware/role-guard'
 import { tenantScope } from '../middleware/tenant-scope'
@@ -76,6 +77,7 @@ async function maintenanceRoutes(fastify: FastifyInstance) {
       preHandler: [
         authGuard,
         roleGuard(['owner', 'manager', 'renter']),
+        approvalGuard,
         tenantScope,
       ],
       schema: {
@@ -149,7 +151,12 @@ async function maintenanceRoutes(fastify: FastifyInstance) {
   fastify.post(
     '/',
     {
-      preHandler: [authGuard, roleGuard(['renter']), tenantScope],
+      preHandler: [
+        authGuard,
+        roleGuard(['renter']),
+        approvalGuard,
+        tenantScope,
+      ],
       schema: {
         tags: ['Maintenance'],
         summary: 'Create maintenance request',
@@ -202,6 +209,7 @@ async function maintenanceRoutes(fastify: FastifyInstance) {
       preHandler: [
         authGuard,
         roleGuard(['owner', 'manager', 'renter']),
+        approvalGuard,
         tenantScope,
       ],
       schema: {
@@ -258,7 +266,12 @@ async function maintenanceRoutes(fastify: FastifyInstance) {
   fastify.put(
     '/:id/status',
     {
-      preHandler: [authGuard, roleGuard(['owner', 'manager']), tenantScope],
+      preHandler: [
+        authGuard,
+        roleGuard(['owner', 'manager']),
+        approvalGuard,
+        tenantScope,
+      ],
       schema: {
         tags: ['Maintenance'],
         summary: 'Update maintenance status',
@@ -316,6 +329,7 @@ async function maintenanceRoutes(fastify: FastifyInstance) {
       preHandler: [
         authGuard,
         roleGuard(['owner', 'manager', 'renter']),
+        approvalGuard,
         tenantScope,
       ],
       schema: {

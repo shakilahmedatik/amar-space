@@ -3,7 +3,7 @@ import { z } from 'zod'
 import { errorResponseSchema } from '../app'
 import { authGuard } from '../middleware/auth-guard'
 import { roleGuard } from '../middleware/role-guard'
-import { assignRole } from '../services/role-assignment'
+import { assignRole, type Role } from '../services/role-assignment'
 
 /**
  * Role assignment routes plugin.
@@ -71,7 +71,7 @@ async function roleRoutes(fastify: FastifyInstance) {
         fastify.auditLogger,
         {
           userId: request.user.id,
-          role: request.user.role,
+          role: request.user.role as Role,
           ownerAccountId: request.user.ownerAccountId,
         },
         {

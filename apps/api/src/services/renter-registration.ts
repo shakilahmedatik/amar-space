@@ -184,6 +184,7 @@ export class RenterRegistrationService {
         role: 'renter',
         ownerAccountId: ctx.ownerAccountId,
         phone: validated.phone,
+        approvalStatus: null,
         createdAt: new Date(),
         updatedAt: new Date(),
       })

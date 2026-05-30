@@ -56,7 +56,7 @@ describe('Tenant Scope Middleware', () => {
   function setupApp(
     userOverride: {
       id: string
-      role: 'owner' | 'manager' | 'renter'
+      role: 'superadmin' | 'owner' | 'manager' | 'renter'
       ownerAccountId: string
       email: string
     },
@@ -91,6 +91,36 @@ describe('Tenant Scope Middleware', () => {
   afterEach(async () => {
     await app.close()
     vi.restoreAllMocks()
+  })
+
+  describe('superadmin role', () => {
+    it('should bypass tenant scoping and set ownerAccountId to __all__', async () => {
+      // Superadmin should not trigger any DB queries
+      setupApp(
+        {
+          id: '110e8400-e29b-41d4-a716-446655440099',
+          role: 'superadmin',
+          ownerAccountId: ownerId,
+          email: 'superadmin@example.com',
+        },
+        [],
+      )
+
+      await app.ready()
+
+      const response = await app.inject({
+        method: 'GET',
+        url: '/test',
+      })
+
+      expect(response.statusCode).toBe(200)
+      const body = response.json()
+      expect(body.tenantScope).toEqual({
+        ownerAccountId: '__all__',
+      })
+      expect(body.tenantScope.assignedBuildingIds).toBeUndefined()
+      expect(body.tenantScope.assignedFlatId).toBeUndefined()
+    })
   })
 
   describe('owner role', () => {

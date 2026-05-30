@@ -22,4 +22,8 @@ export const users = pgTable('users', {
   languagePreference: varchar('language_preference', { length: 5 }).default(
     'bn',
   ),
+  // Role-based user management fields
+  approvalStatus: varchar('approval_status', { length: 20 }).default('pending'),
+  isActive: boolean('is_active').notNull().default(true),
+  deactivatedAt: timestamp('deactivated_at', { withTimezone: true }),
 })

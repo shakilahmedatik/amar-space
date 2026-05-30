@@ -8,6 +8,7 @@ import {
 import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
 import { dateTimeResponseSchema, errorResponseSchema } from '../app'
+import { approvalGuard } from '../middleware/approval-guard'
 import { authGuard } from '../middleware/auth-guard'
 import { roleGuard } from '../middleware/role-guard'
 import { tenantScope } from '../middleware/tenant-scope'
@@ -74,6 +75,7 @@ async function noticeRoutes(fastify: FastifyInstance) {
       preHandler: [
         authGuard,
         roleGuard(['owner', 'manager', 'renter']),
+        approvalGuard,
         tenantScope,
       ],
       schema: {
@@ -149,7 +151,12 @@ async function noticeRoutes(fastify: FastifyInstance) {
   fastify.post(
     '/',
     {
-      preHandler: [authGuard, roleGuard(['owner', 'manager']), tenantScope],
+      preHandler: [
+        authGuard,
+        roleGuard(['owner', 'manager']),
+        approvalGuard,
+        tenantScope,
+      ],
       schema: {
         tags: ['Notices'],
         summary: 'Create a notice',
@@ -197,6 +204,7 @@ async function noticeRoutes(fastify: FastifyInstance) {
       preHandler: [
         authGuard,
         roleGuard(['owner', 'manager', 'renter']),
+        approvalGuard,
         tenantScope,
       ],
       schema: {
@@ -247,7 +255,12 @@ async function noticeRoutes(fastify: FastifyInstance) {
   fastify.put(
     '/:id',
     {
-      preHandler: [authGuard, roleGuard(['owner', 'manager']), tenantScope],
+      preHandler: [
+        authGuard,
+        roleGuard(['owner', 'manager']),
+        approvalGuard,
+        tenantScope,
+      ],
       schema: {
         tags: ['Notices'],
         summary: 'Update a notice',
@@ -297,7 +310,12 @@ async function noticeRoutes(fastify: FastifyInstance) {
   fastify.delete(
     '/:id',
     {
-      preHandler: [authGuard, roleGuard(['owner', 'manager']), tenantScope],
+      preHandler: [
+        authGuard,
+        roleGuard(['owner', 'manager']),
+        approvalGuard,
+        tenantScope,
+      ],
       schema: {
         tags: ['Notices'],
         summary: 'Delete a notice',
@@ -335,7 +353,12 @@ async function noticeRoutes(fastify: FastifyInstance) {
   fastify.put(
     '/:id/pin',
     {
-      preHandler: [authGuard, roleGuard(['owner', 'manager']), tenantScope],
+      preHandler: [
+        authGuard,
+        roleGuard(['owner', 'manager']),
+        approvalGuard,
+        tenantScope,
+      ],
       schema: {
         tags: ['Notices'],
         summary: 'Toggle notice pin status',

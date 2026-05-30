@@ -330,6 +330,34 @@ export const auditLogQuerySchema = z.object({
   pageSize: z.number().int().min(1).max(100).default(100),
 })
 
+// ─── Admin & Manager Schemas ────────────────────────────────────────────────
+
+export const approvalStatusEnum = z.enum(['pending', 'approved', 'rejected'])
+
+export const userRoleEnum = z.enum(['superadmin', 'owner', 'manager', 'renter'])
+
+export const createManagerSchema = z.object({
+  email: emailSchema,
+  name: z.string().min(1).max(200),
+  buildingIds: z.array(uuidSchema).min(1).max(20),
+})
+
+export const updateApprovalStatusSchema = z.object({
+  newStatus: approvalStatusEnum,
+})
+
+export const adminUserListQuerySchema = z.object({
+  page: z.number().int().min(1).default(1),
+  pageSize: z.number().int().min(1).max(50).default(50),
+  role: userRoleEnum.optional(),
+})
+
+export const ownerListQuerySchema = z.object({
+  page: z.number().int().min(1).default(1),
+  pageSize: z.number().int().min(1).max(100).default(20),
+  status: approvalStatusEnum.optional(),
+})
+
 // ─── Type Exports ───────────────────────────────────────────────────────────
 
 export type PaginationInput = z.infer<typeof paginationSchema>
@@ -360,3 +388,9 @@ export type CreateNoticeInput = z.infer<typeof createNoticeSchema>
 export type UpdateNoticeInput = z.infer<typeof updateNoticeSchema>
 export type FileUploadInput = z.infer<typeof fileUploadSchema>
 export type AuditLogQueryInput = z.infer<typeof auditLogQuerySchema>
+export type CreateManagerInput = z.infer<typeof createManagerSchema>
+export type UpdateApprovalStatusInput = z.infer<
+  typeof updateApprovalStatusSchema
+>
+export type AdminUserListQueryInput = z.infer<typeof adminUserListQuerySchema>
+export type OwnerListQueryInput = z.infer<typeof ownerListQuerySchema>

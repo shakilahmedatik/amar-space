@@ -9,7 +9,8 @@
     "./constants": "./src/constants/index.ts",
     "./validation": "./src/validation/index.ts",
     "./errors": "./src/errors/index.ts",
-    "./formatters": "./src/formatters/index.ts"
+    "./formatters": "./src/formatters/index.ts",
+    "./roles": "./src/roles.ts"
   },
   "scripts": {
     "lint": "biome lint .",

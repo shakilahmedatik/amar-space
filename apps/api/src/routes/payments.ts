@@ -4,6 +4,7 @@ import { paymentMethodEnum, recordPaymentSchema } from '@repo/shared/validation'
 import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
 import { dateTimeResponseSchema, errorResponseSchema } from '../app'
+import { approvalGuard } from '../middleware/approval-guard'
 import { authGuard } from '../middleware/auth-guard'
 import { roleGuard } from '../middleware/role-guard'
 import { tenantScope } from '../middleware/tenant-scope'
@@ -68,6 +69,7 @@ async function paymentRoutes(fastify: FastifyInstance) {
       preHandler: [
         authGuard,
         roleGuard(['owner', 'manager', 'renter']),
+        approvalGuard,
         tenantScope,
       ],
       schema: {
@@ -159,7 +161,12 @@ async function paymentRoutes(fastify: FastifyInstance) {
   fastify.post(
     '/',
     {
-      preHandler: [authGuard, roleGuard(['owner', 'manager']), tenantScope],
+      preHandler: [
+        authGuard,
+        roleGuard(['owner', 'manager']),
+        approvalGuard,
+        tenantScope,
+      ],
       schema: {
         tags: ['Payments'],
         summary: 'Record a payment',
@@ -219,6 +226,7 @@ async function paymentRoutes(fastify: FastifyInstance) {
       preHandler: [
         authGuard,
         roleGuard(['owner', 'manager', 'renter']),
+        approvalGuard,
         tenantScope,
       ],
       schema: {

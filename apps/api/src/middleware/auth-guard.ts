@@ -6,9 +6,11 @@ import type { FastifyReply, FastifyRequest } from 'fastify'
  */
 export interface AuthUser {
   id: string
-  role: 'owner' | 'manager' | 'renter'
+  role: 'superadmin' | 'owner' | 'manager' | 'renter'
   ownerAccountId: string
   email: string
+  approvalStatus?: 'pending' | 'approved' | 'rejected'
+  isActive?: boolean
 }
 
 declare module 'fastify' {
@@ -93,6 +95,32 @@ export async function authGuard(
 
     const user = session.user as Record<string, unknown>
 
+    // Check if the user account is deactivated
+    if (user.isActive === false) {
+      // Invalidate the current session via better-auth API
+      const sessionToken = (session.session as Record<string, unknown>)
+        ?.token as string | undefined
+      if (sessionToken) {
+        try {
+          await auth.api.revokeSession({
+            headers,
+            body: { token: sessionToken },
+          })
+        } catch {
+          // Best-effort session invalidation — continue with 401 regardless
+        }
+      }
+
+      const response: ApiErrorResponse = {
+        requestId: request.id,
+        statusCode: 401,
+        error: 'Unauthorized',
+        message: 'Account is deactivated',
+      }
+      reply.status(401).send(response)
+      return
+    }
+
     // For owners, ownerAccountId is their own ID (they ARE the owner account)
     const role = (user.role as string) || 'owner'
     const ownerAccountId =
@@ -102,9 +130,15 @@ export async function authGuard(
 
     request.user = {
       id: user.id as string,
-      role: role as 'owner' | 'manager' | 'renter',
+      role: role as AuthUser['role'],
       ownerAccountId,
       email: user.email as string,
+      approvalStatus: user.approvalStatus as
+        | 'pending'
+        | 'approved'
+        | 'rejected'
+        | undefined,
+      isActive: user.isActive as boolean | undefined,
     }
   } catch {
     const response: ApiErrorResponse = {
