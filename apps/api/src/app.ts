@@ -319,6 +319,10 @@ export function buildApp(opts: Record<string, unknown> = {}) {
           description:
             'Manager creation and building assignment management by owners',
         },
+        {
+          name: 'QR Codes',
+          description: 'QR code generation for flats and buildings',
+        },
       ],
     },
     transform: jsonSchemaTransform,
@@ -362,6 +366,10 @@ export function buildApp(opts: Record<string, unknown> = {}) {
     prefix: '/api/admin/dashboard',
   })
   app.register(import('./routes/managers'), { prefix: '/api/managers' })
+  app.register(import('./routes/flat-qr-code'), { prefix: '/api/flats' })
+  app.register(import('./routes/building-qr-codes'), {
+    prefix: '/api/buildings',
+  })
 
   return app
 }
