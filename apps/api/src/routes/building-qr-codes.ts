@@ -1,4 +1,4 @@
-import { buildings, flats } from '@repo/db'
+import { buildings, flatSlugs, flats } from '@repo/db'
 import type { ApiErrorResponse } from '@repo/shared/types'
 import { and, eq } from 'drizzle-orm'
 import type { FastifyInstance } from 'fastify'
@@ -23,7 +23,7 @@ import { QrCodeService } from '../services/qr-code'
  * Requirements: 5.1, 5.2, 5.3, 5.4, 5.5, 2.1, 2.2, 2.3
  */
 async function buildingQrCodeRoutes(fastify: FastifyInstance) {
-  const qrCodeService = new QrCodeService(fastify.env.AUTH_BASE_URL)
+  const qrCodeService = new QrCodeService(fastify.env.FRONTEND_URL)
 
   /**
    * GET /api/buildings/:id/qr-codes
@@ -63,6 +63,7 @@ async function buildingQrCodeRoutes(fastify: FastifyInstance) {
           401: errorResponseSchema,
           403: errorResponseSchema,
           404: errorResponseSchema,
+          500: errorResponseSchema,
         },
       },
     },
@@ -124,9 +125,65 @@ async function buildingQrCodeRoutes(fastify: FastifyInstance) {
         return reply.status(400).send(response)
       }
 
+      // Ensure all flats have slugs — look up existing or create new ones
+      const flatsWithSlugs: Array<{
+        id: string
+        flatNumber: string
+        slug: string
+      }> = []
+
+      for (const flat of buildingFlats) {
+        let slugRecord = await fastify.db.query.flatSlugs.findFirst({
+          where: eq(flatSlugs.flatId, flat.id),
+          columns: { slug: true },
+        })
+
+        if (!slugRecord) {
+          const rawSlug = `${building.name}-flat-${flat.flatNumber}`
+            .toLowerCase()
+            .replace(/[^a-z0-9-]/g, '-')
+            .replace(/-+/g, '-')
+            .replace(/^-|-$/g, '')
+            .slice(0, 100)
+
+          const [created] = await fastify.db
+            .insert(flatSlugs)
+            .values({ flatId: flat.id, slug: rawSlug })
+            .onConflictDoNothing()
+            .returning({ slug: flatSlugs.slug })
+
+          if (created) {
+            slugRecord = created
+          } else {
+            slugRecord = await fastify.db.query.flatSlugs.findFirst({
+              where: eq(flatSlugs.flatId, flat.id),
+              columns: { slug: true },
+            })
+          }
+        }
+
+        if (slugRecord) {
+          flatsWithSlugs.push({
+            id: flat.id,
+            flatNumber: flat.flatNumber,
+            slug: slugRecord.slug,
+          })
+        }
+      }
+
+      if (flatsWithSlugs.length === 0) {
+        const response: ApiErrorResponse = {
+          requestId: request.id,
+          statusCode: 500,
+          error: 'Internal Server Error',
+          message: 'Failed to generate slugs for flats',
+        }
+        return reply.status(500).send(response)
+      }
+
       // Generate ZIP archive stream
       const zipStream = await qrCodeService.generateBulkZipStream(
-        buildingFlats,
+        flatsWithSlugs,
         building.name,
         { size },
       )

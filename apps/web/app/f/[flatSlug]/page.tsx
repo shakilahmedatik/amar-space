@@ -2,9 +2,11 @@ import { isValidFlatSlug } from '@repo/shared'
 import { AlertCircle } from 'lucide-react'
 import { Suspense } from 'react'
 import { BASE_URL } from '@/lib/api'
+import { AccessCodeInput } from './components/access-code-input'
 import { BuildingInfo } from './components/building-info'
 import { PortalHeader } from './components/portal-header'
 import { QuickActionsGrid } from './components/quick-actions-grid'
+import { RegistrationForm } from './components/registration-form'
 import { SessionExpiredBanner } from './components/session-expired-banner'
 
 /**
@@ -129,6 +131,23 @@ export default async function PortalPage({ params }: PortalPageProps) {
       <section id="emergency-contacts" aria-label="জরুরি যোগাযোগ">
         {/* Emergency contacts — Task 7.3 */}
       </section>
+
+      {/* Registration form — shown when flat is AVAILABLE */}
+      {data.flat.status === 'AVAILABLE' && (
+        <RegistrationForm
+          flatSlug={data.flat.slug}
+          flatStatus={data.flat.status}
+          hasPendingRegistration={data.hasPendingRegistration}
+        />
+      )}
+
+      {/* Access code input — shown when flat is OCCUPIED */}
+      {data.flat.status === 'OCCUPIED' && (
+        <AccessCodeInput
+          flatSlug={data.flat.slug}
+          flatStatus={data.flat.status}
+        />
+      )}
 
       {/* Building info — renders only if rules are configured */}
       <BuildingInfo rules={data.building.rules} />

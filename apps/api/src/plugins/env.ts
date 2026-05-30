@@ -6,6 +6,7 @@ export const envSchema = z.object({
   DATABASE_URL: z.string().url(),
   AUTH_SECRET: z.string().min(32),
   AUTH_BASE_URL: z.string().url(),
+  FRONTEND_URL: z.string().url().default('http://localhost:3000'),
   AUTH_TRUSTED_ORIGINS: z
     .string()
     .default('http://localhost:3000')

@@ -29,6 +29,13 @@
       "when": 1780145960000,
       "tag": "0004_analytics_events",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1780162196964,
+      "tag": "0005_emergency_contacts",
+      "breakpoints": true
     }
   ]
 }

@@ -29,22 +29,25 @@ export interface BulkQrCodeEntry {
 
 /**
  * QrCodeService handles QR code generation for flats.
- * Generates PNG images encoding flat URLs, supports metadata responses,
+ * Generates PNG images encoding flat portal URLs (/f/{slug}), supports metadata responses,
  * and bulk ZIP archive streaming for entire buildings.
+ *
+ * The QR code encodes the public portal URL using the flat's slug,
+ * pointing to the frontend application (not the API server).
  *
  * Requirements: 1.1, 1.2, 1.3, 3.1, 3.2, 3.3, 4.1, 4.2, 4.3, 4.4, 5.1, 5.2, 5.3, 6.1, 6.3
  */
 export class QrCodeService {
-  constructor(private baseUrl: string) {}
+  constructor(private frontendUrl: string) {}
 
   /**
-   * Builds the URL to encode in the QR code for a given flat.
-   * Format: {baseUrl}/flats/{flatId}
+   * Builds the portal URL to encode in the QR code for a given flat slug.
+   * Format: {frontendUrl}/f/{slug}
    *
    * Requirements: 3.1, 3.2
    */
-  buildFlatUrl(flatId: string): string {
-    return `${this.baseUrl}/flats/${flatId}`
+  buildFlatUrl(slug: string): string {
+    return `${this.frontendUrl}/f/${slug}`
   }
 
   /**
@@ -78,12 +81,9 @@ export class QrCodeService {
    *
    * Requirements: 1.1, 1.2, 1.3, 3.1, 3.3
    */
-  async generateQrCode(
-    flatId: string,
-    options?: QrCodeOptions,
-  ): Promise<Buffer> {
+  async generateQrCode(slug: string, options?: QrCodeOptions): Promise<Buffer> {
     const size = this.validateSize(options?.size)
-    const url = this.buildFlatUrl(flatId)
+    const url = this.buildFlatUrl(slug)
 
     const buffer = await QRCode.toBuffer(url, {
       width: size,
@@ -134,13 +134,13 @@ export class QrCodeService {
    * Requirements: 6.1, 6.3
    */
   async generateQrCodeWithMetadata(
-    flat: { id: string; flatNumber: string },
+    flat: { id: string; flatNumber: string; slug: string },
     buildingName: string,
     options?: QrCodeOptions,
   ): Promise<QrCodeMetadata> {
-    const buffer = await this.generateQrCode(flat.id, options)
+    const buffer = await this.generateQrCode(flat.slug, options)
     const base64 = `data:image/png;base64,${buffer.toString('base64')}`
-    const encodedUrl = this.buildFlatUrl(flat.id)
+    const encodedUrl = this.buildFlatUrl(flat.slug)
 
     return {
       flatId: flat.id,
@@ -158,7 +158,7 @@ export class QrCodeService {
    * Requirements: 5.1, 5.2, 5.3
    */
   async generateBulkZipStream(
-    flats: Array<{ id: string; flatNumber: string }>,
+    flats: Array<{ id: string; flatNumber: string; slug: string }>,
     buildingName: string,
     options?: QrCodeOptions,
   ): Promise<Readable> {
@@ -168,7 +168,7 @@ export class QrCodeService {
     archive.pipe(passThrough)
 
     for (const flat of flats) {
-      const buffer = await this.generateQrCode(flat.id, options)
+      const buffer = await this.generateQrCode(flat.slug, options)
       const filename = `${buildingName}_${flat.flatNumber}.png`
       archive.append(buffer, { name: filename })
     }

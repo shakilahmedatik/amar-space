@@ -10,9 +10,9 @@ import { QrCodeService } from '../../src/services/qr-code'
  * Feature: flat-qr-code-generation
  * Property 1: QR Code Round-Trip
  *
- * For any valid flat ID and configured base URL, generating a QR code and then
+ * For any valid flat slug and configured frontend URL, generating a QR code and then
  * decoding the resulting PNG image SHALL yield the original URL in the format
- * `{base_url}/flats/{flat_id}`.
+ * `{frontend_url}/f/{slug}`.
  *
  * **Validates: Requirements 1.1, 1.3, 3.1, 3.4**
  */
@@ -35,15 +35,23 @@ function decodeQrFromPngBuffer(pngBuffer: Buffer): string | null {
 // --- Property 1: QR Code Round-Trip ---
 
 describe('Feature: flat-qr-code-generation, Property 1: QR Code Round-Trip', () => {
-  it('generating a QR code for any flat ID and decoding the PNG SHALL yield the original URL {base_url}/flats/{flat_id}', async () => {
+  it('generating a QR code for any flat slug and decoding the PNG SHALL yield the original URL {frontend_url}/f/{slug}', async () => {
     const service = new QrCodeService(TEST_BASE_URL)
 
+    // Generate valid slugs (lowercase alphanumeric + hyphens, 1-100 chars)
+    const slugArb = fc
+      .array(
+        fc.constantFrom(...'abcdefghijklmnopqrstuvwxyz0123456789-'.split('')),
+        { minLength: 1, maxLength: 50 },
+      )
+      .map((chars) => chars.join(''))
+
     await fc.assert(
-      fc.asyncProperty(fc.uuid(), async (flatId) => {
-        const expectedUrl = `${TEST_BASE_URL}/flats/${flatId}`
+      fc.asyncProperty(slugArb, async (slug) => {
+        const expectedUrl = `${TEST_BASE_URL}/f/${slug}`
 
         // Generate QR code PNG buffer
-        const pngBuffer = await service.generateQrCode(flatId)
+        const pngBuffer = await service.generateQrCode(slug)
 
         // Decode the QR code from the PNG
         const decodedUrl = decodeQrFromPngBuffer(pngBuffer)
@@ -74,10 +82,10 @@ describe('Feature: flat-qr-code-generation, Property 2: Size Parameter Controls 
   it('for any valid size in [100, 1000], the generated image dimensions SHALL equal the specified size', async () => {
     await fc.assert(
       fc.asyncProperty(
-        fc.uuid(),
+        fc.stringMatching(/^[a-z0-9][a-z0-9-]{0,48}[a-z0-9]$/),
         fc.integer({ min: 100, max: 1000 }),
-        async (flatId, size) => {
-          const pngBuffer = await service.generateQrCode(flatId, { size })
+        async (slug, size) => {
+          const pngBuffer = await service.generateQrCode(slug, { size })
           const png = PNG.sync.read(pngBuffer)
 
           expect(png.width).toBe(size)
@@ -91,14 +99,14 @@ describe('Feature: flat-qr-code-generation, Property 2: Size Parameter Controls 
   it('for any size outside [100, 1000], the service SHALL throw a ValidationError', async () => {
     await fc.assert(
       fc.asyncProperty(
-        fc.uuid(),
+        fc.stringMatching(/^[a-z0-9][a-z0-9-]{0,48}[a-z0-9]$/),
         fc.oneof(
           fc.integer({ min: -1000, max: 99 }),
           fc.integer({ min: 1001, max: 5000 }),
         ),
-        async (flatId, invalidSize) => {
+        async (slug, invalidSize) => {
           await expect(
-            service.generateQrCode(flatId, { size: invalidSize }),
+            service.generateQrCode(slug, { size: invalidSize }),
           ).rejects.toThrow(ValidationError)
         },
       ),
@@ -239,6 +247,7 @@ describe('Feature: flat-qr-code-generation, Property 5: Metadata Response Comple
         fc.record({
           id: fc.uuid(),
           flatNumber: fc.string({ minLength: 1, maxLength: 10 }),
+          slug: fc.stringMatching(/^[a-z0-9][a-z0-9-]{0,48}[a-z0-9]$/),
         }),
         fc.string({ minLength: 1, maxLength: 50 }),
         async (flat, buildingName) => {
@@ -256,8 +265,8 @@ describe('Feature: flat-qr-code-generation, Property 5: Metadata Response Comple
           // Verify buildingName equals the input buildingName
           expect(result.buildingName).toBe(buildingName)
 
-          // Verify encodedUrl equals {base_url}/flats/{flat.id}
-          expect(result.encodedUrl).toBe(`${TEST_BASE_URL}/flats/${flat.id}`)
+          // Verify encodedUrl equals {frontend_url}/f/{slug}
+          expect(result.encodedUrl).toBe(`${TEST_BASE_URL}/f/${flat.slug}`)
 
           // Verify imageBase64 starts with data:image/png;base64,
           expect(result.imageBase64).toMatch(/^data:image\/png;base64,/)
@@ -317,7 +326,7 @@ describe('Feature: flat-qr-code-generation, Property 4: Bulk Generation Produces
             ...'abcdefghijklmnopqrstuvwxyz0123456789'.split(''),
           ),
         }),
-        // Generate 1-10 flats with unique flat numbers
+        // Generate 1-10 flats with unique flat numbers and slugs
         fc
           .array(
             fc.record({
@@ -329,13 +338,18 @@ describe('Feature: flat-qr-code-generation, Property 4: Bulk Generation Produces
                   ...'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'.split(''),
                 ),
               }),
+              slug: fc.stringMatching(/^[a-z0-9][a-z0-9-]{0,48}[a-z0-9]$/),
             }),
             { minLength: 1, maxLength: 10 },
           )
           .filter((flats) => {
-            // Ensure unique flat numbers
+            // Ensure unique flat numbers and slugs
             const numbers = flats.map((f) => f.flatNumber)
-            return new Set(numbers).size === numbers.length
+            const slugs = flats.map((f) => f.slug)
+            return (
+              new Set(numbers).size === numbers.length &&
+              new Set(slugs).size === slugs.length
+            )
           }),
         async (buildingName, flats) => {
           // Generate bulk ZIP stream
@@ -359,7 +373,7 @@ describe('Feature: flat-qr-code-generation, Property 4: Bulk Generation Produces
           const actualFilenames = entries.map((entry) => entry.entryName).sort()
           expect(actualFilenames).toEqual(expectedFilenames.sort())
 
-          // Verify: each PNG in the ZIP decodes to the correct flat URL
+          // Verify: each PNG in the ZIP decodes to the correct flat portal URL
           for (const flat of flats) {
             const filename = `${buildingName}_${flat.flatNumber}.png`
             const entry = zip.getEntry(filename)
@@ -367,7 +381,7 @@ describe('Feature: flat-qr-code-generation, Property 4: Bulk Generation Produces
 
             const pngBuffer = entry!.getData()
             const decodedUrl = decodeQrFromPngBuffer(pngBuffer)
-            const expectedUrl = `${TEST_BASE_URL}/flats/${flat.id}`
+            const expectedUrl = `${TEST_BASE_URL}/f/${flat.slug}`
             expect(decodedUrl).toBe(expectedUrl)
           }
         },

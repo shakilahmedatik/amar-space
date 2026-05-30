@@ -107,6 +107,7 @@ export function buildApp(opts: Record<string, unknown> = {}) {
   app.register(fastifyCors, {
     origin: (origin, cb) => resolveCorsOrigin(origin, cb),
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   })
 
   // Register cookie plugin

@@ -51,7 +51,7 @@ export default function CreateFlatPage() {
       }
     }
     loadSession()
-  }, [])
+  }, [router.push])
 
   const validate = useCallback((): boolean => {
     const newErrors: Record<string, string> = {}
@@ -104,7 +104,15 @@ export default function CreateFlatPage() {
         })
       }
     },
-    [validate, flatNumber, floor, buildingId, createFlatMutation, t],
+    [
+      validate,
+      flatNumber,
+      floor,
+      buildingId,
+      createFlatMutation,
+      t,
+      router.push,
+    ],
   )
 
   const ownerRole = 'owner' as const
@@ -138,7 +146,7 @@ export default function CreateFlatPage() {
         />
       )}
 
-      <div className="max-w-128 mx-auto">
+      <div className="max-w-lg mx-auto">
         <div className="mb-6">
           <Link
             href="/flats"

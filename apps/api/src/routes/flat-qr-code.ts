@@ -1,4 +1,4 @@
-import { flats } from '@repo/db'
+import { flatSlugs, flats } from '@repo/db'
 import type { ApiErrorResponse } from '@repo/shared/types'
 import { and, eq } from 'drizzle-orm'
 import type { FastifyInstance } from 'fastify'
@@ -23,7 +23,7 @@ import { QrCodeService } from '../services/qr-code'
  * Requirements: 1.1, 1.2, 1.4, 1.5, 2.1, 2.2, 2.3, 2.4, 4.1, 4.2, 4.3, 4.4, 6.1, 6.2, 6.3
  */
 async function flatQrCodeRoutes(fastify: FastifyInstance) {
-  const qrCodeService = new QrCodeService(fastify.env.AUTH_BASE_URL)
+  const qrCodeService = new QrCodeService(fastify.env.FRONTEND_URL)
 
   /**
    * GET /api/flats/:id/qr-code
@@ -72,6 +72,7 @@ async function flatQrCodeRoutes(fastify: FastifyInstance) {
           401: errorResponseSchema,
           403: errorResponseSchema,
           404: errorResponseSchema,
+          500: errorResponseSchema,
         },
       },
     },
@@ -121,9 +122,53 @@ async function flatQrCodeRoutes(fastify: FastifyInstance) {
 
       const buildingName = flat.building?.name ?? 'Unknown'
 
+      // Look up or create the flat slug for the portal URL
+      let flatSlugRecord = await fastify.db.query.flatSlugs.findFirst({
+        where: eq(flatSlugs.flatId, flat.id),
+        columns: { slug: true },
+      })
+
+      if (!flatSlugRecord) {
+        // Auto-generate a slug from building name + flat number
+        const rawSlug = `${buildingName}-flat-${flat.flatNumber}`
+          .toLowerCase()
+          .replace(/[^a-z0-9-]/g, '-')
+          .replace(/-+/g, '-')
+          .replace(/^-|-$/g, '')
+          .slice(0, 100)
+
+        const [created] = await fastify.db
+          .insert(flatSlugs)
+          .values({ flatId: flat.id, slug: rawSlug })
+          .onConflictDoNothing()
+          .returning({ slug: flatSlugs.slug })
+
+        if (created) {
+          flatSlugRecord = created
+        } else {
+          // Conflict on flatId means it was created concurrently — re-fetch
+          flatSlugRecord = await fastify.db.query.flatSlugs.findFirst({
+            where: eq(flatSlugs.flatId, flat.id),
+            columns: { slug: true },
+          })
+        }
+      }
+
+      if (!flatSlugRecord) {
+        const response: ApiErrorResponse = {
+          requestId: request.id,
+          statusCode: 500,
+          error: 'Internal Server Error',
+          message: 'Failed to generate flat slug',
+        }
+        return reply.status(500).send(response)
+      }
+
+      const slug = flatSlugRecord.slug
+
       if (format === 'metadata') {
         const metadata = await qrCodeService.generateQrCodeWithMetadata(
-          { id: flat.id, flatNumber: flat.flatNumber },
+          { id: flat.id, flatNumber: flat.flatNumber, slug },
           buildingName,
           { size },
         )
@@ -132,7 +177,7 @@ async function flatQrCodeRoutes(fastify: FastifyInstance) {
       }
 
       // Default: return PNG image
-      const buffer = await qrCodeService.generateQrCode(flat.id, { size })
+      const buffer = await qrCodeService.generateQrCode(slug, { size })
 
       const rawFilename = `${buildingName}_${flat.flatNumber}.png`
       const asciiFilename = rawFilename.replace(/[^\x20-\x7E]/g, '_')

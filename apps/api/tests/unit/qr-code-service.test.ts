@@ -18,13 +18,13 @@ const TEST_BASE_URL = 'https://app.amarspace.com'
 
 describe('QrCodeService', () => {
   describe('buildFlatUrl', () => {
-    it('should return {baseUrl}/flats/{flatId} format', () => {
+    it('should return {frontendUrl}/f/{slug} format', () => {
       const service = new QrCodeService(TEST_BASE_URL)
-      const flatId = 'abc-123-def'
+      const slug = 'building-a-flat-4a'
 
-      const url = service.buildFlatUrl(flatId)
+      const url = service.buildFlatUrl(slug)
 
-      expect(url).toBe(`${TEST_BASE_URL}/flats/${flatId}`)
+      expect(url).toBe(`${TEST_BASE_URL}/f/${slug}`)
     })
   })
 
@@ -61,9 +61,9 @@ describe('QrCodeService', () => {
   describe('generateQrCode', () => {
     it('should produce a PNG buffer when no size option is provided', async () => {
       const service = new QrCodeService(TEST_BASE_URL)
-      const flatId = 'flat-001'
+      const slug = 'building-a-flat-001'
 
-      const buffer = await service.generateQrCode(flatId)
+      const buffer = await service.generateQrCode(slug)
 
       // PNG magic bytes: 0x89 0x50 0x4E 0x47 0x0D 0x0A 0x1A 0x0A
       expect(buffer[0]).toBe(0x89)
@@ -80,7 +80,11 @@ describe('QrCodeService', () => {
   describe('generateQrCodeWithMetadata', () => {
     it('should return object with flatId, flatNumber, buildingName, encodedUrl, imageBase64 fields', async () => {
       const service = new QrCodeService(TEST_BASE_URL)
-      const flat = { id: 'flat-001', flatNumber: 'A101' }
+      const flat = {
+        id: 'flat-001',
+        flatNumber: 'A101',
+        slug: 'sunrise-tower-flat-a101',
+      }
       const buildingName = 'Sunrise Tower'
 
       const metadata = await service.generateQrCodeWithMetadata(
@@ -93,14 +97,18 @@ describe('QrCodeService', () => {
       expect(metadata).toHaveProperty('buildingName', buildingName)
       expect(metadata).toHaveProperty(
         'encodedUrl',
-        `${TEST_BASE_URL}/flats/${flat.id}`,
+        `${TEST_BASE_URL}/f/${flat.slug}`,
       )
       expect(metadata).toHaveProperty('imageBase64')
     })
 
     it('should return imageBase64 starting with data:image/png;base64,', async () => {
       const service = new QrCodeService(TEST_BASE_URL)
-      const flat = { id: 'flat-002', flatNumber: 'B202' }
+      const flat = {
+        id: 'flat-002',
+        flatNumber: 'B202',
+        slug: 'ocean-view-flat-b202',
+      }
       const buildingName = 'Ocean View'
 
       const metadata = await service.generateQrCodeWithMetadata(
