@@ -19,6 +19,11 @@ export const buildings = pgTable(
     name: varchar('name', { length: 200 }).notNull(),
     address: varchar('address', { length: 500 }).notNull(),
     totalFloors: integer('total_floors'),
+    whatsappGroupLink: varchar('whatsapp_group_link', { length: 500 }),
+    managerPhone: varchar('manager_phone', { length: 20 }),
+    logoUrl: varchar('logo_url', { length: 500 }),
+    coverImageUrl: varchar('cover_image_url', { length: 500 }),
+    rules: text('rules'),
     createdAt: timestamp('created_at', { withTimezone: true })
       .notNull()
       .defaultNow(),

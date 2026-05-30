@@ -1,6 +1,8 @@
 import { relations } from 'drizzle-orm'
 import { buildings } from './buildings'
+import { emergencyContacts } from './emergency-contacts'
 import { fileReferences } from './file-references'
+import { flatSlugs } from './flat-slugs'
 import { flats } from './flats'
 import { issues } from './issues'
 import { maintenanceAttachments } from './maintenance-attachments'
@@ -8,7 +10,10 @@ import { maintenanceComments } from './maintenance-comments'
 import { maintenanceRequests } from './maintenance-requests'
 import { managerAssignments } from './manager-assignments'
 import { notices } from './notices'
+import { portalSessions } from './portal-sessions'
+import { registrationRequests } from './registration-requests'
 import { rentalContracts } from './rental-contracts'
+import { renterAccessCodes } from './renter-access-codes'
 import { renters } from './renters'
 import { users } from './users'
 
@@ -48,6 +53,7 @@ export const buildingsRelations = relations(buildings, ({ one, many }) => ({
   managerAssignments: many(managerAssignments),
   issues: many(issues),
   maintenanceRequests: many(maintenanceRequests),
+  emergencyContacts: many(emergencyContacts),
 }))
 
 export const flatsRelations = relations(flats, ({ one, many }) => ({
@@ -59,8 +65,20 @@ export const flatsRelations = relations(flats, ({ one, many }) => ({
     fields: [flats.buildingId],
     references: [buildings.id],
   }),
+  flatSlug: one(flatSlugs, {
+    fields: [flats.id],
+    references: [flatSlugs.flatId],
+  }),
   rentalContracts: many(rentalContracts),
   maintenanceRequests: many(maintenanceRequests),
+  registrationRequests: many(registrationRequests),
+}))
+
+export const flatSlugsRelations = relations(flatSlugs, ({ one }) => ({
+  flat: one(flats, {
+    fields: [flatSlugs.flatId],
+    references: [flats.id],
+  }),
 }))
 
 export const managerAssignmentsRelations = relations(
@@ -204,6 +222,59 @@ export const maintenanceCommentsRelations = relations(
     }),
     author: one(users, {
       fields: [maintenanceComments.authorId],
+      references: [users.id],
+    }),
+  }),
+)
+
+export const renterAccessCodesRelations = relations(
+  renterAccessCodes,
+  ({ one }) => ({
+    flat: one(flats, {
+      fields: [renterAccessCodes.flatId],
+      references: [flats.id],
+    }),
+    renter: one(renters, {
+      fields: [renterAccessCodes.renterId],
+      references: [renters.id],
+    }),
+  }),
+)
+
+export const emergencyContactsRelations = relations(
+  emergencyContacts,
+  ({ one }) => ({
+    building: one(buildings, {
+      fields: [emergencyContacts.buildingId],
+      references: [buildings.id],
+    }),
+    owner: one(users, {
+      fields: [emergencyContacts.ownerAccountId],
+      references: [users.id],
+    }),
+  }),
+)
+
+export const portalSessionsRelations = relations(portalSessions, ({ one }) => ({
+  flat: one(flats, {
+    fields: [portalSessions.flatId],
+    references: [flats.id],
+  }),
+  renter: one(renters, {
+    fields: [portalSessions.renterId],
+    references: [renters.id],
+  }),
+}))
+
+export const registrationRequestsRelations = relations(
+  registrationRequests,
+  ({ one }) => ({
+    flat: one(flats, {
+      fields: [registrationRequests.flatId],
+      references: [flats.id],
+    }),
+    owner: one(users, {
+      fields: [registrationRequests.ownerAccountId],
       references: [users.id],
     }),
   }),

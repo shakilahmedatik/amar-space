@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
 import { type FormEvent, useEffect, useState } from 'react'
 import { DashboardLayout } from '@/components/layout'
@@ -255,12 +256,12 @@ export default function NoticeDetailPage() {
       )}
 
       <div className="mb-6">
-        <a
+        <Link
           href="/notices"
           className="text-sm text-steel no-underline hover:underline"
         >
           ← {t('common.back')}
-        </a>
+        </Link>
       </div>
 
       {isLoading ? (

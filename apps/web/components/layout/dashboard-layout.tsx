@@ -4,6 +4,7 @@ import type { ReactNode } from 'react'
 import { BottomTabBar } from './bottom-tab-bar'
 import type { UserRole } from './navigation-items'
 import { Sidebar } from './sidebar'
+import { TopNavbar } from './top-navbar'
 
 interface DashboardLayoutProps {
   children: ReactNode
@@ -17,7 +18,7 @@ interface DashboardLayoutProps {
  *
  * Responsive behavior:
  * - Mobile (< 768px): Full-width content with BottomTabBar navigation
- * - Desktop (>= 768px): Sidebar navigation with content area
+ * - Desktop (>= 768px): Fixed sidebar + fixed top navbar + scrollable content
  *
  * Requirements satisfied:
  * - 14.1: Mobile-first responsive layout
@@ -37,14 +38,20 @@ export function DashboardLayout({
   onNavigate,
 }: DashboardLayoutProps) {
   return (
-    <div className="flex min-h-dvh w-full overflow-hidden bg-surface">
+    <div className="flex h-dvh w-full overflow-hidden bg-surface">
+      {/* Fixed full-height sidebar */}
       <Sidebar role={role} activePath={activePath} onNavigate={onNavigate} />
 
-      <main className="flex-1 overflow-y-auto text-base leading-relaxed pb-[72px] md:pb-0">
-        <div className="w-full max-w-7xl mx-auto px-4 py-6 md:px-6 md:py-8">
-          {children}
-        </div>
-      </main>
+      {/* Content area with fixed top navbar and scrollable body */}
+      <div className="flex-1 min-w-0 flex flex-col h-dvh">
+        <TopNavbar onNavigate={onNavigate} />
+
+        <main className="flex-1 overflow-y-auto text-base leading-relaxed pb-[72px] md:pb-0">
+          <div className="w-full max-w-7xl mx-auto px-4 py-6 md:px-6 md:py-8">
+            {children}
+          </div>
+        </main>
+      </div>
 
       <BottomTabBar
         role={role}

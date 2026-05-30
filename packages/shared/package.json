@@ -10,6 +10,7 @@
     "./validation": "./src/validation/index.ts",
     "./errors": "./src/errors/index.ts",
     "./formatters": "./src/formatters/index.ts",
+    "./portal": "./src/portal/index.ts",
     "./roles": "./src/roles.ts"
   },
   "scripts": {

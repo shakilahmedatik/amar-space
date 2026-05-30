@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
 import { type FormEvent, useEffect, useState } from 'react'
 import { DashboardLayout } from '@/components/layout'
+import { BulkQrDownloadButton } from '@/components/qr-code/bulk-qr-download-button'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { DataTable, type DataTableColumn } from '@/components/ui/data-table'
@@ -70,7 +71,7 @@ export default function BuildingDetailPage() {
       }
     }
     loadSession()
-  }, [])
+  }, [router.push])
 
   // Populate edit form when building data loads
   useEffect(() => {
@@ -138,6 +139,7 @@ export default function BuildingDetailPage() {
 
   const role = user.role as UserRole
   const isOwner = role === 'owner'
+  const isOwnerOrManager = role === 'owner' || role === 'manager'
 
   const flatColumns: DataTableColumn<FlatSummary>[] = [
     {
@@ -193,12 +195,12 @@ export default function BuildingDetailPage() {
       )}
 
       <div className="mb-6">
-        <a
+        <Link
           href="/buildings"
           className="text-sm text-steel no-underline hover:underline"
         >
           ← {t('common.back')}
-        </a>
+        </Link>
       </div>
 
       {isLoading ? (
@@ -224,6 +226,13 @@ export default function BuildingDetailPage() {
                   >
                     {t('common.edit')}
                   </Button>
+                )}
+
+                {isOwnerOrManager && !isEditing && (
+                  <BulkQrDownloadButton
+                    buildingId={buildingId}
+                    buildingName={building.name}
+                  />
                 )}
               </div>
 

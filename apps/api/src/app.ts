@@ -370,6 +370,12 @@ export function buildApp(opts: Record<string, unknown> = {}) {
   app.register(import('./routes/building-qr-codes'), {
     prefix: '/api/buildings',
   })
+  app.register(import('./routes/portal/analytics'), {
+    prefix: '/api/portal/analytics',
+  })
+  app.register(import('./routes/portal/flat'), {
+    prefix: '/api/portal/flat',
+  })
 
   return app
 }

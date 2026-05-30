@@ -12,3 +12,4 @@ export {
   type UserRole,
 } from './navigation-items'
 export { Sidebar } from './sidebar'
+export { TopNavbar } from './top-navbar'

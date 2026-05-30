@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useTranslation } from '@/lib/i18n'
 import { NavIcon } from './nav-icon'
 import {
@@ -38,7 +39,7 @@ export function Sidebar({ role, activePath, onNavigate }: SidebarProps) {
 
   return (
     <aside
-      className="hidden md:flex md:flex-col md:w-64 md:shrink-0 border-r border-hairline bg-canvas h-full"
+      className="hidden md:flex md:flex-col md:w-64 md:shrink-0 border-r border-hairline bg-canvas h-dvh sticky top-0"
       aria-label={t('nav.dashboard')}
     >
       <div className="flex items-center gap-3 px-4 py-5 border-b border-hairline">
@@ -52,7 +53,7 @@ export function Sidebar({ role, activePath, onNavigate }: SidebarProps) {
             const isActive = isNavItemActive(item.href, activePath)
             return (
               <li key={item.href}>
-                <a
+                <Link
                   href={item.href}
                   onClick={(e) => {
                     if (onNavigate) {
@@ -70,7 +71,7 @@ export function Sidebar({ role, activePath, onNavigate }: SidebarProps) {
                 >
                   <NavIcon name={item.icon} />
                   <span>{t(item.labelKey)}</span>
-                </a>
+                </Link>
               </li>
             )
           })}
@@ -78,7 +79,7 @@ export function Sidebar({ role, activePath, onNavigate }: SidebarProps) {
       </nav>
       {settingsItem && (
         <div className="border-t border-hairline px-3 py-3">
-          <a
+          <Link
             href={settingsItem.href}
             onClick={(e) => {
               if (onNavigate) {
@@ -100,7 +101,7 @@ export function Sidebar({ role, activePath, onNavigate }: SidebarProps) {
           >
             <NavIcon name={settingsItem.icon} />
             <span>{t(settingsItem.labelKey)}</span>
-          </a>
+          </Link>
         </div>
       )}
     </aside>

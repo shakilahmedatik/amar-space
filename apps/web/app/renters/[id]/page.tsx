@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import {
@@ -76,12 +77,12 @@ export default function RenterDetailPage() {
       )}
 
       <div className="mb-6">
-        <a
+        <Link
           href="/renters"
           className="text-sm text-steel no-underline hover:underline"
         >
           ← {t('common.back')}
-        </a>
+        </Link>
       </div>
 
       {isLoading ? (

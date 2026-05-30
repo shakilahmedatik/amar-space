@@ -47,7 +47,7 @@ export default function DashboardPage() {
       }
     }
     loadSession()
-  }, [])
+  }, [router.push])
 
   if (isLoadingSession || !user) {
     return (
@@ -60,7 +60,7 @@ export default function DashboardPage() {
   }
 
   const role = user.role as UserRole
-  console.log(user)
+
   return (
     <DashboardLayout role={role} activePath="/dashboard">
       <h1 className="text-2xl font-bold mb-6 text-ink">

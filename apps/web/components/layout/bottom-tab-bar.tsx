@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from '@/lib/i18n'
 import { NavIcon } from './nav-icon'
@@ -81,7 +82,7 @@ export function BottomTabBar({
           {overflowItems.map((item) => {
             const isActive = isNavItemActive(item.href, activePath)
             return (
-              <a
+              <Link
                 key={item.href}
                 href={item.href}
                 role="menuitem"
@@ -105,7 +106,7 @@ export function BottomTabBar({
               >
                 <NavIcon name={item.icon} className="w-5 h-5" />
                 <span>{t(item.labelKey)}</span>
-              </a>
+              </Link>
             )
           })}
         </div>
@@ -116,7 +117,7 @@ export function BottomTabBar({
           const isActive = isNavItemActive(item.href, activePath)
           return (
             <li key={item.href} className="flex-1">
-              <a
+              <Link
                 href={item.href}
                 onClick={(e) => {
                   if (onNavigate) {
@@ -141,7 +142,7 @@ export function BottomTabBar({
                 <span className="truncate max-w-full text-center">
                   {t(item.labelKey)}
                 </span>
-              </a>
+              </Link>
             </li>
           )
         })}

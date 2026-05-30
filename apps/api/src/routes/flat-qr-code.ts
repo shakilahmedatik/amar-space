@@ -134,12 +134,16 @@ async function flatQrCodeRoutes(fastify: FastifyInstance) {
       // Default: return PNG image
       const buffer = await qrCodeService.generateQrCode(flat.id, { size })
 
+      const rawFilename = `${buildingName}_${flat.flatNumber}.png`
+      const asciiFilename = rawFilename.replace(/[^\x20-\x7E]/g, '_')
+      const encodedFilename = encodeURIComponent(rawFilename)
+
       return reply
         .status(200)
         .header('Content-Type', 'image/png')
         .header(
           'Content-Disposition',
-          `inline; filename="${buildingName}_${flat.flatNumber}.png"`,
+          `inline; filename="${asciiFilename}"; filename*=UTF-8''${encodedFilename}`,
         )
         .send(buffer)
     },

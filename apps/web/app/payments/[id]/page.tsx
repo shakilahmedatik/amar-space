@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { DashboardLayout } from '@/components/layout'
@@ -79,12 +80,12 @@ export default function PaymentReceiptPage() {
       )}
 
       <div className="mb-6">
-        <a
+        <Link
           href="/payments"
           className="text-steel text-sm no-underline inline-flex items-center min-h-[44px]"
         >
           ← {t('common.back')}
-        </a>
+        </Link>
         <h1 className="text-2xl font-bold text-ink mt-2">
           {t('payments.receiptTitle')}
         </h1>

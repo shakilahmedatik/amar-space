@@ -1,6 +1,7 @@
 'use client'
 
 import Image from 'next/image'
+import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
 import { type FormEvent, useEffect, useState } from 'react'
 import { DashboardLayout } from '@/components/layout'
@@ -183,12 +184,12 @@ export default function MaintenanceDetailPage() {
       )}
 
       <div className="mb-6">
-        <a
+        <Link
           href="/maintenance"
           className="text-sm text-steel no-underline hover:underline"
         >
           ← {t('common.back')}
-        </a>
+        </Link>
       </div>
 
       {isLoading ? (

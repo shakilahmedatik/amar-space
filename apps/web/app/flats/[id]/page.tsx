@@ -1,8 +1,11 @@
 'use client'
 
+import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
 import { useCallback, useEffect, useState } from 'react'
 import { DashboardLayout } from '@/components/layout'
+import { QrCodeButton } from '@/components/qr-code/qr-code-button'
+import { QrCodeDialog } from '@/components/qr-code/qr-code-dialog'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
@@ -35,6 +38,7 @@ export default function FlatDetailPage() {
   const [role, setRole] = useState<UserRole>('owner')
   const [isLoadingSession, setIsLoadingSession] = useState(true)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const [qrDialogOpen, setQrDialogOpen] = useState(false)
   const [feedback, setFeedback] = useState<{
     message: string
     type: 'success' | 'error'
@@ -115,12 +119,12 @@ export default function FlatDetailPage() {
           type="error"
           visible
         />
-        <a
+        <Link
           href="/flats"
           className="inline-flex items-center min-h-[44px] text-sm text-brand-blue-deep no-underline"
         >
           ← {t('common.back')}
-        </a>
+        </Link>
       </DashboardLayout>
     )
   }
@@ -142,19 +146,27 @@ export default function FlatDetailPage() {
 
       <div className="max-w-160 mx-auto">
         <div className="mb-6">
-          <a
+          <Link
             href="/flats"
             className="inline-flex items-center min-h-[44px] text-sm text-brand-blue-deep no-underline"
           >
             ← {t('common.back')}
-          </a>
+          </Link>
         </div>
 
         <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
           <h1 className="text-2xl font-bold text-ink">
             {t('flats.flatDetail')}
           </h1>
-          <StatusBadge status={flat.status} />
+          <div className="flex items-center gap-3 flex-wrap">
+            {(role === 'owner' || role === 'manager') && (
+              <QrCodeButton
+                flatNumber={flat.flatNumber}
+                onClick={() => setQrDialogOpen(true)}
+              />
+            )}
+            <StatusBadge status={flat.status} />
+          </div>
         </div>
 
         {/* Flat Information Card */}
@@ -252,6 +264,15 @@ export default function FlatDetailPage() {
         cancelLabel={t('common.cancel')}
         destructive
         loading={deleteFlatMutation.isPending}
+      />
+
+      {/* QR Code Dialog */}
+      <QrCodeDialog
+        open={qrDialogOpen}
+        onOpenChange={setQrDialogOpen}
+        flatId={flatId}
+        flatNumber={flat.flatNumber}
+        buildingName={flat.buildingName || ''}
       />
     </DashboardLayout>
   )

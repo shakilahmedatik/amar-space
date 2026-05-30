@@ -131,11 +131,15 @@ async function buildingQrCodeRoutes(fastify: FastifyInstance) {
         { size },
       )
 
+      const rawFilename = `${building.name}_qr_codes.zip`
+      const asciiFilename = rawFilename.replace(/[^\x20-\x7E]/g, '_')
+      const encodedFilename = encodeURIComponent(rawFilename)
+
       return reply
         .header('Content-Type', 'application/zip')
         .header(
           'Content-Disposition',
-          `attachment; filename="${building.name}_qr_codes.zip"`,
+          `attachment; filename="${asciiFilename}"; filename*=UTF-8''${encodedFilename}`,
         )
         .send(zipStream)
     },

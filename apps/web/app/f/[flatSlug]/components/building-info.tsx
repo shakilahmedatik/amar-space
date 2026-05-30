@@ -1,0 +1,34 @@
+import { BookOpen } from 'lucide-react'
+
+interface BuildingInfoProps {
+  rules: string | null
+}
+
+/**
+ * Building information component displaying rich text building rules.
+ * Renders HTML content in a scrollable container.
+ * Hides the section entirely if no rules are configured.
+ *
+ * Validates: Requirements 6.1, 6.2, 6.3, 6.4
+ */
+export function BuildingInfo({ rules }: BuildingInfoProps) {
+  // Hide section entirely if no rules configured (null or empty string)
+  if (!rules || rules.trim().length === 0) {
+    return null
+  }
+
+  return (
+    <section aria-label="বিল্ডিং নিয়মাবলী" className="flex flex-col gap-3">
+      <div className="flex items-center gap-2">
+        <BookOpen className="h-5 w-5 text-brand-blue-deep" aria-hidden />
+        <h2 className="text-lg font-semibold text-ink">বিল্ডিং নিয়মাবলী</h2>
+      </div>
+
+      <div
+        className="building-rules-content max-h-96 overflow-y-auto rounded-lg border border-hairline bg-white p-4 text-base leading-relaxed text-ink"
+        // biome-ignore lint/security/noDangerouslySetInnerHtml: Building rules are admin-configured rich text HTML stored in the database
+        dangerouslySetInnerHTML={{ __html: rules }}
+      />
+    </section>
+  )
+}

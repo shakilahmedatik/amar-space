@@ -15,6 +15,20 @@
       "when": 1780088994039,
       "tag": "0001_daffy_dust",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1780145953645,
+      "tag": "0003_thick_switch",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1780145960000,
+      "tag": "0004_analytics_events",
+      "breakpoints": true
     }
   ]
 }
