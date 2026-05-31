@@ -1,5 +1,7 @@
+/** biome-ignore-all lint/suspicious/noArrayIndexKey: intentionally done */
 'use client'
 
+import Image from 'next/image'
 import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
 import { type FormEvent, useEffect, useState } from 'react'
@@ -8,6 +10,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { DataTable, type DataTableColumn } from '@/components/ui/data-table'
 import { ErrorFeedback } from '@/components/ui/error-feedback'
+import { FileUpload } from '@/components/ui/file-upload'
 import { FormField, FormInput } from '@/components/ui/form-field'
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton'
 import { StatusBadge } from '@/components/ui/status-badge'
@@ -21,14 +24,25 @@ import type { FlatSummary } from '@/lib/api-client'
 import { useTranslation } from '@/lib/i18n'
 
 /**
+ * Helper to convert File to base64 string
+ */
+function fileToBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.readAsDataURL(file)
+    reader.onload = () => resolve(reader.result as string)
+    reader.onerror = (error) => reject(error)
+  })
+}
+
+/**
  * Building detail page — /buildings/[id]
- * Shows building info with flat list.
+ * Shows building info with flat list, whatsapp link, cover photo, and emergency contacts.
  * Owner can edit building, Manager can only view.
- * Validates: Requirements 5.4, 5.5, 5.8
  */
 export default function BuildingDetailPage() {
   const { role } = useSession()
-  const { t } = useTranslation()
+  const { t, locale } = useTranslation()
   const params = useParams()
   const _router = useRouter()
   const buildingId = params.id as string
@@ -39,6 +53,20 @@ export default function BuildingDetailPage() {
   const [editName, setEditName] = useState('')
   const [editAddress, setEditAddress] = useState('')
   const [editFloors, setEditFloors] = useState('')
+  const [editWhatsapp, setEditWhatsapp] = useState('')
+  const [editPhoto, setEditPhoto] = useState<string | null | undefined>(
+    undefined,
+  ) // undefined = no change, null = remove, string = new photo
+  const [editPhotoPreview, setEditPhotoPreview] = useState<string | null>(null)
+  const [editEmergencyContacts, setEditEmergencyContacts] = useState<
+    Array<{
+      name: string
+      role: string
+      phone: string
+      type: 'building' | 'nearby'
+    }>
+  >([])
+
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [successMessage, setSuccessMessage] = useState('')
 
@@ -49,12 +77,24 @@ export default function BuildingDetailPage() {
     50,
   )
   const updateMutation = useUpdateBuilding(buildingId)
+
   // Populate edit form when building data loads
   useEffect(() => {
     if (building) {
       setEditName(building.name)
       setEditAddress(building.address)
       setEditFloors(building.totalFloors?.toString() ?? '')
+      setEditWhatsapp(building.whatsappGroupLink ?? '')
+      setEditPhotoPreview(building.coverImageUrl ?? null)
+      setEditPhoto(undefined)
+      setEditEmergencyContacts(
+        building.emergencyContacts?.map((c) => ({
+          name: c.name,
+          role: c.role,
+          phone: c.phone ?? '',
+          type: c.type,
+        })) ?? [],
+      )
     }
   }, [building])
 
@@ -80,8 +120,36 @@ export default function BuildingDetailPage() {
       }
     }
 
+    if (editWhatsapp.trim() && editWhatsapp.trim().length > 500) {
+      newErrors.whatsappGroupLink = t('buildings.addressMaxLength')
+    }
+
+    editEmergencyContacts.forEach((contact, index) => {
+      if (!contact.name.trim()) {
+        newErrors[`contact-${index}-name`] = t('validation.required')
+      }
+      if (!contact.role.trim()) {
+        newErrors[`contact-${index}-role`] = t('validation.required')
+      }
+      if (contact.phone.trim() && !/^01\d{9}$/.test(contact.phone.trim())) {
+        newErrors[`contact-${index}-phone`] = t('buildings.invalidPhoneFormat')
+      }
+    })
+
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
+  }
+
+  async function handlePhotoSelected(files: File[]) {
+    if (files.length > 0 && files[0]) {
+      try {
+        const base64 = await fileToBase64(files[0])
+        setEditPhoto(base64)
+        setEditPhotoPreview(base64)
+      } catch (_err) {
+        setErrors((prev) => ({ ...prev, photo: 'ফাইলটি আপলোড করা যায়নি' }))
+      }
+    }
   }
 
   async function handleUpdate(e: FormEvent) {
@@ -93,6 +161,14 @@ export default function BuildingDetailPage() {
         name: editName.trim(),
         address: editAddress.trim(),
         totalFloors: editFloors.trim() ? Number.parseInt(editFloors, 10) : null,
+        whatsappGroupLink: editWhatsapp.trim() || null,
+        buildingPhoto: editPhoto,
+        emergencyContacts: editEmergencyContacts.map((c) => ({
+          name: c.name.trim(),
+          role: c.role.trim(),
+          phone: c.phone.trim() || null,
+          type: c.type,
+        })),
       })
       setSuccessMessage(t('buildings.updateSuccess'))
       setIsEditing(false)
@@ -102,6 +178,7 @@ export default function BuildingDetailPage() {
       })
     }
   }
+
   const isOwner = role === 'owner'
   const isOwnerOrManager = role === 'owner' || role === 'manager'
 
@@ -174,7 +251,7 @@ export default function BuildingDetailPage() {
           {/* Building Info Section */}
           <Card className="bg-canvas border-hairline mb-8">
             <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
+              <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
                 <h1 className="text-2xl font-bold text-ink">
                   {isEditing
                     ? t('buildings.editBuilding')
@@ -186,7 +263,7 @@ export default function BuildingDetailPage() {
                     type="button"
                     variant="outline"
                     onClick={() => setIsEditing(true)}
-                    className="rounded-full min-h-[44px] text-brand-blue-deep border-brand-blue-deep"
+                    className="rounded-full min-h-[44px] text-brand-blue-deep border-brand-blue-deep cursor-pointer"
                   >
                     {t('common.edit')}
                   </Button>
@@ -201,22 +278,40 @@ export default function BuildingDetailPage() {
               </div>
 
               {isEditing ? (
-                <form onSubmit={handleUpdate} className="max-w-lg">
-                  <FormField
-                    label={t('buildings.buildingName')}
-                    required
-                    error={errors.name}
-                    htmlFor="edit-building-name"
-                  >
-                    <FormInput
-                      id="edit-building-name"
-                      type="text"
-                      value={editName}
-                      onChange={(e) => setEditName(e.target.value)}
-                      hasError={!!errors.name}
-                      maxLength={200}
-                    />
-                  </FormField>
+                <form onSubmit={handleUpdate} className="max-w-2xl">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField
+                      label={t('buildings.buildingName')}
+                      required
+                      error={errors.name}
+                      htmlFor="edit-building-name"
+                    >
+                      <FormInput
+                        id="edit-building-name"
+                        type="text"
+                        value={editName}
+                        onChange={(e) => setEditName(e.target.value)}
+                        hasError={!!errors.name}
+                        maxLength={200}
+                      />
+                    </FormField>
+
+                    <FormField
+                      label={t('buildings.totalFloors')}
+                      error={errors.totalFloors}
+                      htmlFor="edit-building-floors"
+                    >
+                      <FormInput
+                        id="edit-building-floors"
+                        type="number"
+                        value={editFloors}
+                        onChange={(e) => setEditFloors(e.target.value)}
+                        hasError={!!errors.totalFloors}
+                        min={1}
+                        max={200}
+                      />
+                    </FormField>
+                  </div>
 
                   <FormField
                     label={t('buildings.address')}
@@ -235,26 +330,258 @@ export default function BuildingDetailPage() {
                   </FormField>
 
                   <FormField
-                    label={t('buildings.totalFloors')}
-                    error={errors.totalFloors}
-                    htmlFor="edit-building-floors"
+                    label={t('buildings.whatsappGroupLink')}
+                    error={errors.whatsappGroupLink}
+                    htmlFor="edit-building-whatsapp"
                   >
                     <FormInput
-                      id="edit-building-floors"
-                      type="number"
-                      value={editFloors}
-                      onChange={(e) => setEditFloors(e.target.value)}
-                      hasError={!!errors.totalFloors}
-                      min={1}
-                      max={200}
+                      id="edit-building-whatsapp"
+                      type="text"
+                      placeholder={t('buildings.whatsappGroupLinkPlaceholder')}
+                      value={editWhatsapp}
+                      onChange={(e) => setEditWhatsapp(e.target.value)}
+                      hasError={!!errors.whatsappGroupLink}
+                      maxLength={500}
                     />
                   </FormField>
 
-                  <div className="flex gap-3 mt-6">
+                  <FormField
+                    label={t('buildings.buildingPhoto')}
+                    error={errors.photo}
+                    htmlFor="edit-building-photo"
+                  >
+                    <div className="flex flex-col gap-3">
+                      <FileUpload
+                        maxFiles={1}
+                        onFilesSelected={handlePhotoSelected}
+                        error={errors.photo}
+                      />
+                      {editPhotoPreview && (
+                        <div className="relative w-full aspect-3/1 rounded-md overflow-hidden border border-hairline mt-2">
+                          <Image
+                            src={editPhotoPreview}
+                            alt="Building Photo Preview"
+                            className="object-cover"
+                            fill
+                            unoptimized
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setEditPhoto(null)
+                              setEditPhotoPreview(null)
+                            }}
+                            className="absolute top-2 right-2 bg-error-text text-white px-2 py-1 text-xs rounded shadow-md cursor-pointer hover:bg-error-text/90"
+                          >
+                            {t('common.delete')}
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </FormField>
+
+                  {/* Emergency Contacts Edit Section */}
+                  <div className="mt-8 border-t border-hairline pt-6">
+                    <h2 className="text-lg font-semibold text-ink mb-4">
+                      {t('buildings.emergencyContacts')} (
+                      {t('payments.optional')})
+                    </h2>
+
+                    <div className="flex flex-col gap-4">
+                      {editEmergencyContacts.map((contact, index) => (
+                        <Card
+                          key={index}
+                          className="bg-canvas border-hairline p-4 relative"
+                        >
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setEditEmergencyContacts((prev) =>
+                                prev.filter((_, i) => i !== index),
+                              )
+                            }}
+                            className="absolute top-2 right-2 text-error-text hover:text-error-text/80 text-sm font-medium cursor-pointer"
+                          >
+                            {t('common.delete')}
+                          </button>
+
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+                            <FormField
+                              label={t('buildings.contactName')}
+                              required
+                              error={errors[`contact-${index}-name`]}
+                              htmlFor={`edit-contact-${index}-name`}
+                            >
+                              <FormInput
+                                id={`edit-contact-${index}-name`}
+                                type="text"
+                                value={contact.name}
+                                onChange={(e) => {
+                                  const newContacts = [...editEmergencyContacts]
+                                  newContacts[index]!.name = e.target.value
+                                  setEditEmergencyContacts(newContacts)
+                                }}
+                                hasError={!!errors[`contact-${index}-name`]}
+                              />
+                            </FormField>
+
+                            <FormField
+                              label={t('buildings.contactRole')}
+                              required
+                              error={errors[`contact-${index}-role`]}
+                              htmlFor={`edit-contact-${index}-role`}
+                            >
+                              <div className="flex flex-col gap-1.5">
+                                <FormInput
+                                  id={`edit-contact-${index}-role`}
+                                  type="text"
+                                  value={contact.role}
+                                  onChange={(e) => {
+                                    const newContacts = [
+                                      ...editEmergencyContacts,
+                                    ]
+                                    newContacts[index]!.role = e.target.value
+                                    setEditEmergencyContacts(newContacts)
+                                  }}
+                                  hasError={!!errors[`contact-${index}-role`]}
+                                  placeholder={t('buildings.contactRole')}
+                                />
+                                <div className="flex flex-wrap gap-1.5 mt-1">
+                                  {contact.type === 'building'
+                                    ? (locale === 'en'
+                                        ? [
+                                            'Owner',
+                                            'Manager',
+                                            'Caretaker',
+                                            'Security',
+                                          ]
+                                        : [
+                                            'মালিক',
+                                            'ম্যানেজার',
+                                            'কেয়ারটেকার',
+                                            'সিকিউরিটি',
+                                          ]
+                                      ).map((role) => (
+                                        <button
+                                          key={role}
+                                          type="button"
+                                          onClick={() => {
+                                            const newContacts = [
+                                              ...editEmergencyContacts,
+                                            ]
+                                            newContacts[index]!.role = role
+                                            setEditEmergencyContacts(
+                                              newContacts,
+                                            )
+                                          }}
+                                          className="text-xs px-2 py-1 rounded bg-surface border border-hairline text-steel hover:bg-brand-blue-200/20 cursor-pointer"
+                                        >
+                                          {role}
+                                        </button>
+                                      ))
+                                    : (locale === 'en'
+                                        ? [
+                                            'Hospital',
+                                            'Police Station',
+                                            'Fire Service',
+                                            'Ambulance',
+                                          ]
+                                        : [
+                                            'হাসপাতাল',
+                                            'পুলিশ স্টেশন',
+                                            'ফায়ার সার্ভিস',
+                                            'অ্যাম্বুলেন্স',
+                                          ]
+                                      ).map((role) => (
+                                        <button
+                                          key={role}
+                                          type="button"
+                                          onClick={() => {
+                                            const newContacts = [
+                                              ...editEmergencyContacts,
+                                            ]
+                                            newContacts[index]!.role = role
+                                            setEditEmergencyContacts(
+                                              newContacts,
+                                            )
+                                          }}
+                                          className="text-xs px-2 py-1 rounded bg-surface border border-hairline text-steel hover:bg-brand-blue-200/20 cursor-pointer"
+                                        >
+                                          {role}
+                                        </button>
+                                      ))}
+                                </div>
+                              </div>
+                            </FormField>
+
+                            <FormField
+                              label={t('buildings.contactPhone')}
+                              error={errors[`contact-${index}-phone`]}
+                              htmlFor={`edit-contact-${index}-phone`}
+                            >
+                              <FormInput
+                                id={`edit-contact-${index}-phone`}
+                                type="text"
+                                value={contact.phone}
+                                onChange={(e) => {
+                                  const newContacts = [...editEmergencyContacts]
+                                  newContacts[index]!.phone = e.target.value
+                                  setEditEmergencyContacts(newContacts)
+                                }}
+                                hasError={!!errors[`contact-${index}-phone`]}
+                              />
+                            </FormField>
+
+                            <FormField
+                              label={t('buildings.contactType')}
+                              htmlFor={`edit-contact-${index}-type`}
+                            >
+                              <select
+                                id={`edit-contact-${index}-type`}
+                                value={contact.type}
+                                onChange={(e) => {
+                                  const newContacts = [...editEmergencyContacts]
+                                  newContacts[index]!.type = e.target.value as
+                                    | 'building'
+                                    | 'nearby'
+                                  newContacts[index]!.role = ''
+                                  setEditEmergencyContacts(newContacts)
+                                }}
+                                className="w-full rounded-md border border-hairline min-h-[44px] px-3 bg-white text-ink text-sm"
+                              >
+                                <option value="building">
+                                  {t('buildings.buildingType')}
+                                </option>
+                                <option value="nearby">
+                                  {t('buildings.nearbyType')}
+                                </option>
+                              </select>
+                            </FormField>
+                          </div>
+                        </Card>
+                      ))}
+
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => {
+                          setEditEmergencyContacts((prev) => [
+                            ...prev,
+                            { name: '', role: '', phone: '', type: 'building' },
+                          ])
+                        }}
+                        className="rounded-full min-h-[44px] text-brand-blue-deep border-brand-blue-deep border self-start cursor-pointer"
+                      >
+                        + {t('buildings.addEmergencyContact')}
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-3 mt-8 border-t border-hairline pt-6">
                     <Button
                       type="submit"
                       disabled={updateMutation.isPending}
-                      className="rounded-full min-h-[44px] bg-primary text-on-primary font-semibold"
+                      className="rounded-full min-h-[44px] bg-primary text-on-primary font-semibold cursor-pointer"
                     >
                       {updateMutation.isPending
                         ? t('common.loading')
@@ -267,43 +594,120 @@ export default function BuildingDetailPage() {
                       onClick={() => {
                         setIsEditing(false)
                         setErrors({})
-                        // Reset to original values
                         if (building) {
                           setEditName(building.name)
                           setEditAddress(building.address)
                           setEditFloors(building.totalFloors?.toString() ?? '')
+                          setEditWhatsapp(building.whatsappGroupLink ?? '')
+                          setEditPhotoPreview(building.coverImageUrl ?? null)
+                          setEditPhoto(undefined)
+                          setEditEmergencyContacts(
+                            building.emergencyContacts?.map((c) => ({
+                              name: c.name,
+                              role: c.role,
+                              phone: c.phone ?? '',
+                              type: c.type,
+                            })) ?? [],
+                          )
                         }
                       }}
-                      className="rounded-full min-h-[44px] text-charcoal border-hairline"
+                      className="rounded-full min-h-[44px] text-charcoal border-hairline cursor-pointer"
                     >
                       {t('common.cancel')}
                     </Button>
                   </div>
                 </form>
               ) : (
-                <div className="grid gap-4 grid-cols-[repeat(auto-fit,minmax(200px,1fr))]">
-                  <div>
-                    <p className="text-xs font-medium text-steel mb-1">
-                      {t('buildings.buildingName')}
-                    </p>
-                    <p className="text-base font-semibold text-ink">
-                      {building.name}
-                    </p>
+                <div className="flex flex-col gap-6">
+                  {building.coverImageUrl && (
+                    <div className="relative w-full aspect-3/1 rounded-lg overflow-hidden border border-hairline">
+                      <Image
+                        src={building.coverImageUrl}
+                        alt={`${building.name} Cover`}
+                        className="object-cover"
+                        fill
+                        unoptimized
+                      />
+                    </div>
+                  )}
+
+                  <div className="grid gap-4 grid-cols-[repeat(auto-fit,minmax(200px,1fr))]">
+                    <div>
+                      <p className="text-xs font-medium text-steel mb-1">
+                        {t('buildings.buildingName')}
+                      </p>
+                      <p className="text-base font-semibold text-ink">
+                        {building.name}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs font-medium text-steel mb-1">
+                        {t('buildings.address')}
+                      </p>
+                      <p className="text-base text-ink">{building.address}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs font-medium text-steel mb-1">
+                        {t('buildings.totalFloors')}
+                      </p>
+                      <p className="text-base text-ink">
+                        {building.totalFloors ?? '—'}
+                      </p>
+                    </div>
+                    {building.whatsappGroupLink && (
+                      <div>
+                        <p className="text-xs font-medium text-steel mb-1">
+                          {t('buildings.whatsappGroupLink')}
+                        </p>
+                        <a
+                          href={building.whatsappGroupLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-brand-blue-deep font-semibold text-sm hover:underline inline-flex items-center gap-1"
+                        >
+                          {building.whatsappGroupLink}
+                        </a>
+                      </div>
+                    )}
                   </div>
-                  <div>
-                    <p className="text-xs font-medium text-steel mb-1">
-                      {t('buildings.address')}
-                    </p>
-                    <p className="text-base text-ink">{building.address}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs font-medium text-steel mb-1">
-                      {t('buildings.totalFloors')}
-                    </p>
-                    <p className="text-base text-ink">
-                      {building.totalFloors ?? '—'}
-                    </p>
-                  </div>
+
+                  {/* Emergency Contacts View Mode */}
+                  {building.emergencyContacts &&
+                    building.emergencyContacts.length > 0 && (
+                      <div className="border-t border-hairline pt-6">
+                        <h2 className="text-lg font-semibold text-ink mb-4">
+                          {t('buildings.emergencyContacts')}
+                        </h2>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {building.emergencyContacts.map((contact) => (
+                            <div
+                              key={contact.id}
+                              className="flex items-center justify-between gap-3 rounded-lg border border-hairline bg-surface p-4"
+                            >
+                              <div className="flex flex-col">
+                                <span className="text-base font-medium text-ink">
+                                  {contact.name}
+                                </span>
+                                <span className="text-xs text-steel">
+                                  {contact.role} •{' '}
+                                  {contact.type === 'building'
+                                    ? t('buildings.buildingType')
+                                    : t('buildings.nearbyType')}
+                                </span>
+                              </div>
+                              {contact.phone && (
+                                <a
+                                  href={`tel:${contact.phone}`}
+                                  className="inline-flex min-h-[40px] items-center gap-1.5 rounded-lg bg-brand-blue-deep px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-brand-blue-deep/90"
+                                >
+                                  {contact.phone}
+                                </a>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                 </div>
               )}
             </CardContent>

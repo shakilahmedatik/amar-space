@@ -10,7 +10,7 @@ import { isValidFlatSlug, registrationFormSchema } from '@repo/shared/portal'
 import { and, asc, desc, eq, or } from 'drizzle-orm'
 import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
-import { compareAccessCode } from '../../utils/access-code-hash'
+import { compareAccessCode, hashAccessCode } from '../../utils/access-code-hash'
 import { formatNoticesForPortal } from '../../utils/notice-formatting'
 
 /**
@@ -323,22 +323,32 @@ async function portalFlatRoutes(fastify: FastifyInstance) {
           bloodGroup: z.string(),
           occupation: z.string(),
           familyMembers: z.number(),
+          familyMemberNames: z.array(z.string()),
+          emergencyContactName: z.string(),
           emergencyContact: z.string(),
+          emergencyContactRelationship: z.string(),
           rentalStartDate: z.string(),
           advanceAmount: z.number(),
           digitalSignature: z.string(),
-          nidPhoto: z.string().optional(),
+          nidPhoto: z.string(),
+          selfiePhoto: z.string(),
         }),
         response: {
           201: z.object({
             success: z.boolean(),
             message: z.string(),
             requestId: z.string(),
+            accessCode: z.string(),
           }),
           400: z.object({
             error: z.string(),
             message: z.string(),
-            errors: z.record(z.string(), z.string()).optional(),
+            errors: z
+              .union([
+                z.record(z.string(), z.string()),
+                z.array(z.object({ field: z.string(), message: z.string() })),
+              ])
+              .optional(),
           }),
           409: z.object({
             error: z.string(),
@@ -360,8 +370,6 @@ async function portalFlatRoutes(fastify: FastifyInstance) {
 
       // Validate request body using shared registration schema
       const body = request.body as Record<string, unknown>
-      const nidPhoto =
-        typeof body.nidPhoto === 'string' ? body.nidPhoto : undefined
 
       const parseResult = registrationFormSchema.safeParse(body)
       if (!parseResult.success) {
@@ -443,22 +451,37 @@ async function portalFlatRoutes(fastify: FastifyInstance) {
         'image/png',
       )
 
-      // Upload NID photo to S3/R2 (optional)
-      let nidPhotoUrl: string | null = null
-      if (nidPhoto) {
-        const nidBase64 = nidPhoto.includes(',')
-          ? nidPhoto.split(',')[1]!
-          : nidPhoto
-        const nidBuffer = Buffer.from(nidBase64, 'base64')
-        nidPhotoUrl = await fastify.r2.upload(
-          building.ownerAccountId,
-          'registration_nid',
-          flat.id,
-          `nid-${Date.now()}.png`,
-          nidBuffer,
-          'image/png',
-        )
-      }
+      // Upload NID photo to S3/R2
+      const nidBase64 = data.nidPhoto.includes(',')
+        ? data.nidPhoto.split(',')[1]!
+        : data.nidPhoto
+      const nidBuffer = Buffer.from(nidBase64, 'base64')
+      const nidPhotoUrl = await fastify.r2.upload(
+        building.ownerAccountId,
+        'registration_nid',
+        flat.id,
+        `nid-${Date.now()}.png`,
+        nidBuffer,
+        'image/png',
+      )
+
+      // Upload Selfie Photo to S3/R2
+      const selfieBase64 = data.selfiePhoto.includes(',')
+        ? data.selfiePhoto.split(',')[1]!
+        : data.selfiePhoto
+      const selfieBuffer = Buffer.from(selfieBase64, 'base64')
+      const selfiePhotoUrl = await fastify.r2.upload(
+        building.ownerAccountId,
+        'registration_selfie',
+        flat.id,
+        `selfie-${Date.now()}.png`,
+        selfieBuffer,
+        'image/png',
+      )
+
+      // Generate a random 6-digit access code (plaintext) and its hash
+      const accessCode = Math.floor(100000 + Math.random() * 900000).toString()
+      const accessCodeHash = hashAccessCode(accessCode)
 
       // Create registration_requests record with PENDING_APPROVAL status
       const [registrationRecord] = await fastify.db
@@ -473,11 +496,16 @@ async function portalFlatRoutes(fastify: FastifyInstance) {
           bloodGroup: data.bloodGroup,
           occupation: data.occupation,
           familyMembers: data.familyMembers,
+          familyMemberNames: data.familyMemberNames,
+          emergencyContactName: data.emergencyContactName,
           emergencyContact: data.emergencyContact,
+          emergencyContactRelationship: data.emergencyContactRelationship,
+          selfiePhotoUrl,
           rentalStartDate: data.rentalStartDate,
           advanceAmount: String(data.advanceAmount),
           digitalSignatureUrl,
           status: 'PENDING_APPROVAL',
+          accessCodeHash,
         })
         .returning({ id: registrationRequests.id })
 
@@ -485,6 +513,7 @@ async function portalFlatRoutes(fastify: FastifyInstance) {
         success: true,
         message: 'আপনার আবেদন সফলভাবে জমা হয়েছে। অনুগ্রহ করে অপেক্ষা করুন।',
         requestId: registrationRecord!.id,
+        accessCode,
       })
     },
   )
@@ -681,7 +710,7 @@ async function portalFlatRoutes(fastify: FastifyInstance) {
       return reply.status(200).send({
         success: true as const,
         message: 'সফলভাবে লগইন হয়েছে',
-        redirectUrl: '/renter/dashboard',
+        redirectUrl: '/dashboard',
       })
     },
   )

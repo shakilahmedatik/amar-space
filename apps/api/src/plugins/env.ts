@@ -31,6 +31,10 @@ export const envSchema = z.object({
   R2_ACCESS_KEY_ID: z.string().min(1),
   R2_SECRET_ACCESS_KEY: z.string().min(1),
   R2_BUCKET_NAME: z.string().min(1),
+  R2_PUBLIC_BASE_URL: z
+    .string()
+    .url()
+    .default('https://pub-40447608ec184615a71d23d6ff08de5e.r2.dev'),
 })
 
 export type Env = z.infer<typeof envSchema>

@@ -43,16 +43,29 @@ export const loginSchema = z.object({
 
 // ─── Building Schemas ───────────────────────────────────────────────────────
 
+export const emergencyContactInputSchema = z.object({
+  name: z.string().min(1).max(100),
+  role: z.string().min(1).max(50),
+  phone: z.string().max(20).optional().nullable(),
+  type: z.enum(['building', 'nearby']),
+})
+
 export const createBuildingSchema = z.object({
   name: z.string().min(1).max(200),
   address: z.string().min(1).max(500),
   totalFloors: z.number().int().min(1).max(200).optional(),
+  whatsappGroupLink: z.string().max(500).optional().nullable(),
+  buildingPhoto: z.string().optional().nullable(),
+  emergencyContacts: z.array(emergencyContactInputSchema).optional(),
 })
 
 export const updateBuildingSchema = z.object({
   name: z.string().min(1).max(200).optional(),
   address: z.string().min(1).max(500).optional(),
   totalFloors: z.number().int().min(1).max(200).optional().nullable(),
+  whatsappGroupLink: z.string().max(500).optional().nullable(),
+  buildingPhoto: z.string().optional().nullable(),
+  emergencyContacts: z.array(emergencyContactInputSchema).optional(),
 })
 
 // ─── Flat Schemas ───────────────────────────────────────────────────────────

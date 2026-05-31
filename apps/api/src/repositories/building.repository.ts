@@ -14,6 +14,11 @@ export class BuildingRepository {
         eq(buildings.id, id),
         eq(buildings.ownerAccountId, ownerAccountId),
       ),
+      with: {
+        emergencyContacts: {
+          orderBy: (contacts, { asc }) => [asc(contacts.sortOrder)],
+        },
+      },
     })
   }
 

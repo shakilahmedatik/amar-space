@@ -31,7 +31,11 @@ import {
  * Requirements: 5.5, 6.7, 6.8
  */
 async function buildingRoutes(fastify: FastifyInstance) {
-  const buildingService = new BuildingService(fastify.db, fastify.auditLogger)
+  const buildingService = new BuildingService(
+    fastify.db,
+    fastify.auditLogger,
+    fastify.r2,
+  )
 
   /**
    * Helper to build RequestContext from the Fastify request.
@@ -54,6 +58,16 @@ async function buildingRoutes(fastify: FastifyInstance) {
       ipAddress: request.ip,
       userAgent: (request.headers['user-agent'] as string) || '',
     }
+  }
+
+  /**
+   * Helper to format R2 URLs.
+   */
+  const r2BaseUrl = fastify.env.R2_PUBLIC_BASE_URL.replace(/\/$/, '')
+  const formatR2Url = (key: string | null | undefined) => {
+    if (!key) return null
+    if (key.startsWith('http://') || key.startsWith('https://')) return key
+    return `${r2BaseUrl}/${key}`
   }
 
   /**
@@ -87,6 +101,8 @@ async function buildingRoutes(fastify: FastifyInstance) {
                 name: z.string(),
                 address: z.string(),
                 totalFloors: z.number().nullable(),
+                whatsappGroupLink: z.string().nullable(),
+                coverImageUrl: z.string().nullable(),
                 ownerAccountId: z.string(),
                 createdAt: dateTimeResponseSchema,
               }),
@@ -112,7 +128,15 @@ async function buildingRoutes(fastify: FastifyInstance) {
         pageSize,
       })
 
-      return reply.status(200).send(result)
+      const formattedData = result.data.map((b) => ({
+        ...b,
+        coverImageUrl: formatR2Url(b.coverImageUrl),
+      }))
+
+      return reply.status(200).send({
+        ...result,
+        data: formattedData,
+      })
     },
   )
 
@@ -137,6 +161,8 @@ async function buildingRoutes(fastify: FastifyInstance) {
             name: z.string(),
             address: z.string(),
             totalFloors: z.number().nullable(),
+            whatsappGroupLink: z.string().nullable(),
+            coverImageUrl: z.string().nullable(),
             ownerAccountId: z.string(),
             createdAt: dateTimeResponseSchema,
           }),
@@ -152,11 +178,22 @@ async function buildingRoutes(fastify: FastifyInstance) {
         name: string
         address: string
         totalFloors?: number
+        whatsappGroupLink?: string | null
+        buildingPhoto?: string | null
+        emergencyContacts?: Array<{
+          name: string
+          role: string
+          phone?: string | null
+          type: 'building' | 'nearby'
+        }>
       }
 
       const building = await buildingService.createBuilding(ctx, input)
 
-      return reply.status(201).send(building)
+      return reply.status(201).send({
+        ...building,
+        coverImageUrl: formatR2Url(building.coverImageUrl),
+      })
     },
   )
 
@@ -187,8 +224,26 @@ async function buildingRoutes(fastify: FastifyInstance) {
             name: z.string(),
             address: z.string(),
             totalFloors: z.number().nullable(),
+            whatsappGroupLink: z.string().nullable(),
+            coverImageUrl: z.string().nullable(),
             ownerAccountId: z.string(),
             createdAt: dateTimeResponseSchema,
+            emergencyContacts: z
+              .array(
+                z.object({
+                  id: z.string(),
+                  buildingId: z.string(),
+                  ownerAccountId: z.string(),
+                  name: z.string(),
+                  role: z.string(),
+                  phone: z.string().nullable(),
+                  type: z.enum(['building', 'nearby']),
+                  sortOrder: z.number(),
+                  createdAt: dateTimeResponseSchema,
+                  updatedAt: dateTimeResponseSchema,
+                }),
+              )
+              .optional(),
           }),
           401: errorResponseSchema,
           403: errorResponseSchema,
@@ -202,7 +257,10 @@ async function buildingRoutes(fastify: FastifyInstance) {
 
       const building = await buildingService.getBuilding(ctx, id)
 
-      return reply.status(200).send(building)
+      return reply.status(200).send({
+        ...building,
+        coverImageUrl: formatR2Url(building.coverImageUrl),
+      })
     },
   )
 
@@ -218,7 +276,7 @@ async function buildingRoutes(fastify: FastifyInstance) {
         tags: ['Buildings'],
         summary: 'Update a building',
         description:
-          "Updates a building's name, address, or total floors.\n\n**Roles: owner**",
+          "Updates a building's name, address, total floors, whatsapp link, photo, or emergency contacts.\n\n**Roles: owner**",
         security: [{ BearerAuth: [] }, { CookieAuth: [] }],
         params: z.object({
           id: z.string().uuid('Invalid building ID format'),
@@ -230,8 +288,26 @@ async function buildingRoutes(fastify: FastifyInstance) {
             name: z.string(),
             address: z.string(),
             totalFloors: z.number().nullable(),
+            whatsappGroupLink: z.string().nullable(),
+            coverImageUrl: z.string().nullable(),
             ownerAccountId: z.string(),
             updatedAt: dateTimeResponseSchema,
+            emergencyContacts: z
+              .array(
+                z.object({
+                  id: z.string(),
+                  buildingId: z.string(),
+                  ownerAccountId: z.string(),
+                  name: z.string(),
+                  role: z.string(),
+                  phone: z.string().nullable(),
+                  type: z.enum(['building', 'nearby']),
+                  sortOrder: z.number(),
+                  createdAt: dateTimeResponseSchema,
+                  updatedAt: dateTimeResponseSchema,
+                }),
+              )
+              .optional(),
           }),
           400: errorResponseSchema,
           401: errorResponseSchema,
@@ -247,11 +323,22 @@ async function buildingRoutes(fastify: FastifyInstance) {
         name?: string
         address?: string
         totalFloors?: number | null
+        whatsappGroupLink?: string | null
+        buildingPhoto?: string | null
+        emergencyContacts?: Array<{
+          name: string
+          role: string
+          phone?: string | null
+          type: 'building' | 'nearby'
+        }>
       }
 
       const building = await buildingService.updateBuilding(ctx, id, input)
 
-      return reply.status(200).send(building)
+      return reply.status(200).send({
+        ...building,
+        coverImageUrl: formatR2Url(building.coverImageUrl),
+      })
     },
   )
 }

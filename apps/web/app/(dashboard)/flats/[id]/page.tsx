@@ -192,8 +192,8 @@ export default function FlatDetailPage() {
                     ].join(' ')}
                   >
                     {targetStatus === 'under_maintenance'
-                        ? t('flats.setUnderMaintenance')
-                        : t('flats.setVacant')}
+                      ? t('flats.setUnderMaintenance')
+                      : t('flats.setVacant')}
                   </Button>
                 ))}
               </div>

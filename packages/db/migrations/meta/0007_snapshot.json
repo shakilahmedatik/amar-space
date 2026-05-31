@@ -1,6 +1,6 @@
 {
-  "id": "c6f26d7e-b000-4c98-b57f-2577aee57af3",
-  "prevId": "13d5543b-35f0-4162-aee2-7f7cecf55487",
+  "id": "f4f9d878-dba3-4b85-8564-25228bd7b215",
+  "prevId": "c6f26d7e-b000-4c98-b57f-2577aee57af3",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -2527,7 +2527,7 @@
         },
         "owner_account_id": {
           "name": "owner_account_id",
-          "type": "uuid",
+          "type": "text",
           "primaryKey": false,
           "notNull": false
         },

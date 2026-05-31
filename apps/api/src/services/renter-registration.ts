@@ -49,9 +49,16 @@ export interface RenterResult {
   emergencyContactNumber: string
   emergencyContactRelationship: string
   digitalSignatureUrl: string | null
+  selfiePhotoUrl: string | null
   createdAt: Date
   updatedAt: Date
   flatId?: string | null
+  flatNumber?: string | null
+  buildingName?: string | null
+  contractId?: string | null
+  monthlyRent?: number | null
+  startDate?: string | null
+  depositBalance?: number | null
 }
 
 export interface RentalContractResult {
@@ -309,6 +316,7 @@ export class RenterRegistrationService {
         emergencyContactNumber: renter.emergencyContactNumber,
         emergencyContactRelationship: renter.emergencyContactRelationship,
         digitalSignatureUrl: renter.digitalSignatureUrl,
+        selfiePhotoUrl: renter.selfiePhotoUrl,
         createdAt: renter.createdAt,
         updatedAt: renter.updatedAt,
       },
@@ -347,7 +355,14 @@ export class RenterRegistrationService {
       ),
       with: {
         rentalContracts: {
-          where: eq(rentalContracts.status, 'active'),
+          where: (contracts, { eq }) => eq(contracts.status, 'active'),
+          with: {
+            flat: {
+              with: {
+                building: true,
+              },
+            },
+          },
         },
       },
     })
@@ -357,6 +372,8 @@ export class RenterRegistrationService {
     }
 
     const activeContract = renter.rentalContracts?.[0]
+    const flat = activeContract?.flat
+    const building = flat?.building
 
     return {
       id: renter.id,
@@ -375,9 +392,20 @@ export class RenterRegistrationService {
       emergencyContactNumber: renter.emergencyContactNumber,
       emergencyContactRelationship: renter.emergencyContactRelationship,
       digitalSignatureUrl: renter.digitalSignatureUrl,
+      selfiePhotoUrl: renter.selfiePhotoUrl,
       createdAt: renter.createdAt,
       updatedAt: renter.updatedAt,
       flatId: activeContract?.flatId ?? null,
+      flatNumber: flat?.flatNumber ?? null,
+      buildingName: building?.name ?? null,
+      contractId: activeContract?.id ?? null,
+      monthlyRent: activeContract
+        ? Number.parseFloat(activeContract.monthlyRent)
+        : null,
+      startDate: activeContract?.startDate ?? null,
+      depositBalance: activeContract
+        ? Number.parseFloat(activeContract.remainingDepositBalance)
+        : null,
     }
   }
 
@@ -410,7 +438,14 @@ export class RenterRegistrationService {
         offset: offset,
         with: {
           rentalContracts: {
-            where: eq(rentalContracts.status, 'active'),
+            where: (contracts, { eq }) => eq(contracts.status, 'active'),
+            with: {
+              flat: {
+                with: {
+                  building: true,
+                },
+              },
+            },
           },
         },
         orderBy: desc(renters.createdAt),
@@ -423,6 +458,8 @@ export class RenterRegistrationService {
     return {
       data: data.map((row) => {
         const activeContract = row.rentalContracts?.[0]
+        const flat = activeContract?.flat
+        const building = flat?.building
         return {
           id: row.id,
           userId: row.userId,
@@ -440,9 +477,20 @@ export class RenterRegistrationService {
           emergencyContactNumber: row.emergencyContactNumber,
           emergencyContactRelationship: row.emergencyContactRelationship,
           digitalSignatureUrl: row.digitalSignatureUrl,
+          selfiePhotoUrl: row.selfiePhotoUrl,
           createdAt: row.createdAt,
           updatedAt: row.updatedAt,
           flatId: activeContract?.flatId ?? null,
+          flatNumber: flat?.flatNumber ?? null,
+          buildingName: building?.name ?? null,
+          contractId: activeContract?.id ?? null,
+          monthlyRent: activeContract
+            ? Number.parseFloat(activeContract.monthlyRent)
+            : null,
+          startDate: activeContract?.startDate ?? null,
+          depositBalance: activeContract
+            ? Number.parseFloat(activeContract.remainingDepositBalance)
+            : null,
         }
       }),
       total,

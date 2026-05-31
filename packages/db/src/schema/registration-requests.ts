@@ -2,6 +2,7 @@ import { sql } from 'drizzle-orm'
 import {
   date,
   integer,
+  jsonb,
   numeric,
   pgTable,
   text,
@@ -42,6 +43,13 @@ export const registrationRequests = pgTable(
     status: varchar('status', { length: 20 })
       .notNull()
       .default('PENDING_APPROVAL'),
+    accessCodeHash: varchar('access_code_hash', { length: 255 }),
+    familyMemberNames: jsonb('family_member_names'),
+    emergencyContactName: varchar('emergency_contact_name', { length: 200 }),
+    emergencyContactRelationship: varchar('emergency_contact_relationship', {
+      length: 100,
+    }),
+    selfiePhotoUrl: varchar('selfie_photo_url', { length: 500 }),
     createdAt: timestamp('created_at', { withTimezone: true })
       .notNull()
       .defaultNow(),

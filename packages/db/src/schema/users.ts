@@ -1,11 +1,4 @@
-import {
-  boolean,
-  pgTable,
-  text,
-  timestamp,
-  uuid,
-  varchar,
-} from 'drizzle-orm/pg-core'
+import { boolean, pgTable, text, timestamp, varchar } from 'drizzle-orm/pg-core'
 
 export const users = pgTable('users', {
   id: text('id').primaryKey(),
@@ -17,7 +10,7 @@ export const users = pgTable('users', {
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull(),
   // App-specific fields
   role: varchar('role', { length: 20 }).notNull().default('owner'),
-  ownerAccountId: uuid('owner_account_id'),
+  ownerAccountId: text('owner_account_id'),
   phone: varchar('phone', { length: 20 }),
   languagePreference: varchar('language_preference', { length: 5 }).default(
     'bn',

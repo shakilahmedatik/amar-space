@@ -1,4 +1,6 @@
+import { portalSessions } from '@repo/db'
 import type { ApiErrorResponse } from '@repo/shared/types'
+import { eq } from 'drizzle-orm'
 import type { FastifyReply, FastifyRequest } from 'fastify'
 
 /**
@@ -83,6 +85,39 @@ export async function authGuard(
     const session = await auth.api.getSession({ headers })
 
     if (!session?.user) {
+      // Fallback: check portal_session cookie
+      const sessionId = request.cookies?.portal_session
+      if (sessionId && request.server.db) {
+        const portalSession =
+          await request.server.db.query.portalSessions.findFirst({
+            where: eq(portalSessions.id, sessionId),
+            with: {
+              renter: {
+                with: {
+                  user: true,
+                },
+              },
+            },
+          })
+
+        if (
+          portalSession &&
+          new Date(portalSession.expiresAt) > new Date() &&
+          portalSession.renter?.user
+        ) {
+          const renterUser = portalSession.renter.user
+          request.user = {
+            id: renterUser.id,
+            role: 'renter',
+            ownerAccountId: renterUser.ownerAccountId ?? '',
+            email: renterUser.email,
+            approvalStatus: 'approved',
+            isActive: renterUser.isActive ?? true,
+          }
+          return
+        }
+      }
+
       const response: ApiErrorResponse = {
         requestId: request.id,
         statusCode: 401,

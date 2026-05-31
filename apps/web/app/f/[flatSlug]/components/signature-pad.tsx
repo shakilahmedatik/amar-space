@@ -64,7 +64,24 @@ export function SignaturePad({
   }, [])
 
   useEffect(() => {
-    initCanvas()
+    const canvas = canvasRef.current
+    if (!canvas) return
+
+    // Observe layout sizing dynamically (e.g. after flex elements align)
+    const observer = new ResizeObserver((entries) => {
+      if (entries.length > 0) {
+        initCanvas()
+      }
+    })
+    observer.observe(canvas)
+
+    // Fallback resize listener
+    window.addEventListener('resize', initCanvas)
+
+    return () => {
+      observer.disconnect()
+      window.removeEventListener('resize', initCanvas)
+    }
   }, [initCanvas])
 
   /**

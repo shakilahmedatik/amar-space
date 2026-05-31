@@ -1,3 +1,5 @@
+import { portalSessions } from '@repo/db'
+import { eq } from 'drizzle-orm'
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify'
 import { z } from 'zod'
 import {
@@ -409,11 +411,79 @@ async function authRoutes(fastify: FastifyInstance) {
               .nullable(),
           }),
           401: errorResponseSchema,
+          403: errorResponseSchema,
+          429: errorResponseSchema,
         },
       },
     },
     async (request, reply) => {
-      return handleBetterAuthRequest(request, reply)
+      // First try Better Auth
+      const webRequest = toWebRequest(request, fastify.env.AUTH_BASE_URL)
+      const response = await auth.handler(webRequest)
+      const body = await response.text()
+
+      // If Better Auth is successful and returns user, send that
+      if (response.status >= 200 && response.status < 300) {
+        try {
+          const parsed = JSON.parse(body)
+          if (parsed?.user) {
+            for (const [key, value] of response.headers.entries()) {
+              reply.header(key, value)
+            }
+            reply.status(response.status as 200 | 401)
+            return reply.send(body)
+          }
+        } catch {}
+      }
+
+      // Fallback: check portal_session cookie
+      const sessionId = request.cookies?.portal_session
+      if (sessionId && fastify.db) {
+        const portalSession = await fastify.db.query.portalSessions.findFirst({
+          where: eq(portalSessions.id, sessionId),
+          with: {
+            renter: {
+              with: {
+                user: true,
+              },
+            },
+          },
+        })
+
+        if (
+          portalSession &&
+          new Date(portalSession.expiresAt) > new Date() &&
+          portalSession.renter?.user
+        ) {
+          const renterUser = portalSession.renter.user
+          return reply.status(200).send({
+            user: {
+              id: renterUser.id,
+              email: renterUser.email,
+              name: renterUser.name || null,
+              role: 'renter',
+            },
+            session: {
+              token: portalSession.id,
+              expiresAt: portalSession.expiresAt,
+            },
+          })
+        }
+      }
+
+      // If no session found, return the Better Auth response (which will be 401 or null user)
+      const sanitized = sanitizeAuthErrorResponse(response.status, body)
+      if (sanitized) {
+        reply.status(sanitized.status as 401 | 403 | 429)
+        reply.header('content-type', 'application/json')
+        return reply.send(sanitized.body)
+      }
+
+      for (const [key, value] of response.headers.entries()) {
+        reply.header(key, value)
+      }
+      reply.status(response.status as 200 | 401)
+      return reply.send(body)
     },
   )
 

@@ -76,16 +76,39 @@ const validDigitalSignature = () =>
     'dGVzdA==',
   )
 
+/** Generates a valid image/base64 string for photo uploads */
+const validPhoto = () =>
+  fc.constantFrom(
+    'data:image/png;base64,iVBORw0KGgo=',
+    'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
+  )
+
+/** Generates family member names */
+const validFamilyMemberNames = () =>
+  fc.array(
+    fc
+      .string({ minLength: 1, maxLength: 50, unit: 'grapheme' })
+      .filter((s) => s.trim().length > 0),
+    { minLength: 1, maxLength: 20 },
+  )
+
 /** Generates a complete valid registration form input */
 const validRegistrationForm = () =>
   fc.record({
     fullName: validFullName(),
     phone: validPhone(),
     nidNumber: validNid(),
+    nidPhoto: validPhoto(),
+    selfiePhoto: validPhoto(),
     bloodGroup: validBloodGroup(),
     occupation: validOccupation(),
     familyMembers: validFamilyMembers(),
+    familyMemberNames: validFamilyMemberNames(),
+    emergencyContactName: validFullName(),
     emergencyContact: validEmergencyContact(),
+    emergencyContactRelationship: fc
+      .string({ minLength: 1, maxLength: 50, unit: 'grapheme' })
+      .filter((s) => s.trim().length > 0),
     rentalStartDate: validRentalStartDate(),
     advanceAmount: validAdvanceAmount(),
     digitalSignature: validDigitalSignature(),

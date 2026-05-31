@@ -97,6 +97,9 @@ describe('Feature: amarspace-full-implementation, Property 7: Building name uniq
             }),
             update: vi.fn(),
             select: vi.fn(),
+            transaction: vi.fn().mockImplementation(async (cb) => {
+              return cb(db)
+            }),
           }
 
           const service = new BuildingService(
@@ -155,7 +158,10 @@ describe('Feature: amarspace-full-implementation, Property 7: Building name uniq
           const db1 = {
             query: {
               buildings: {
-                findFirst: vi.fn().mockResolvedValue(null),
+                findFirst: vi
+                  .fn()
+                  .mockResolvedValueOnce(null)
+                  .mockResolvedValueOnce(createdBuilding1),
               },
             },
             insert: vi.fn().mockReturnValue({
@@ -165,13 +171,19 @@ describe('Feature: amarspace-full-implementation, Property 7: Building name uniq
             }),
             update: vi.fn(),
             select: vi.fn(),
+            transaction: vi.fn().mockImplementation(async (cb) => {
+              return cb(db1)
+            }),
           }
 
           // For owner 2: no existing building with that name in THEIR account
           const db2 = {
             query: {
               buildings: {
-                findFirst: vi.fn().mockResolvedValue(null),
+                findFirst: vi
+                  .fn()
+                  .mockResolvedValueOnce(null)
+                  .mockResolvedValueOnce(createdBuilding2),
               },
             },
             insert: vi.fn().mockReturnValue({
@@ -181,6 +193,9 @@ describe('Feature: amarspace-full-implementation, Property 7: Building name uniq
             }),
             update: vi.fn(),
             select: vi.fn(),
+            transaction: vi.fn().mockImplementation(async (cb) => {
+              return cb(db2)
+            }),
           }
 
           const service1 = new BuildingService(
@@ -235,31 +250,37 @@ describe('Feature: amarspace-full-implementation, Property 7: Building name uniq
           // Ensure the variation is actually different from the original
           fc.pre(caseVariation !== buildingName)
 
+          const createdBuilding = {
+            id: 'building-new',
+            ownerAccountId,
+            name: caseVariation,
+            address,
+            totalFloors: null,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          }
+
           // Simulate: findFirst returns null (no exact match for the case variation)
           // This tests that the service uses exact string matching via eq()
           const db = {
             query: {
               buildings: {
-                findFirst: vi.fn().mockResolvedValue(null),
+                findFirst: vi
+                  .fn()
+                  .mockResolvedValueOnce(null)
+                  .mockResolvedValueOnce(createdBuilding),
               },
             },
             insert: vi.fn().mockReturnValue({
               values: vi.fn().mockReturnValue({
-                returning: vi.fn().mockResolvedValue([
-                  {
-                    id: 'building-new',
-                    ownerAccountId,
-                    name: caseVariation,
-                    address,
-                    totalFloors: null,
-                    createdAt: new Date(),
-                    updatedAt: new Date(),
-                  },
-                ]),
+                returning: vi.fn().mockResolvedValue([createdBuilding]),
               }),
             }),
             update: vi.fn(),
             select: vi.fn(),
+            transaction: vi.fn().mockImplementation(async (cb) => {
+              return cb(db)
+            }),
           }
 
           const service = new BuildingService(
@@ -291,30 +312,36 @@ describe('Feature: amarspace-full-implementation, Property 7: Building name uniq
           const ownerAccountId = 'owner-account-1'
           const ctx = createOwnerContext(ownerAccountId)
 
+          const createdBuilding = {
+            id: 'building-new',
+            ownerAccountId,
+            name: buildingName,
+            address,
+            totalFloors: null,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          }
+
           // Simulate: no existing building with that name
           const db = {
             query: {
               buildings: {
-                findFirst: vi.fn().mockResolvedValue(null),
+                findFirst: vi
+                  .fn()
+                  .mockResolvedValueOnce(null)
+                  .mockResolvedValueOnce(createdBuilding),
               },
             },
             insert: vi.fn().mockReturnValue({
               values: vi.fn().mockReturnValue({
-                returning: vi.fn().mockResolvedValue([
-                  {
-                    id: 'building-new',
-                    ownerAccountId,
-                    name: buildingName,
-                    address,
-                    totalFloors: null,
-                    createdAt: new Date(),
-                    updatedAt: new Date(),
-                  },
-                ]),
+                returning: vi.fn().mockResolvedValue([createdBuilding]),
               }),
             }),
             update: vi.fn(),
             select: vi.fn(),
+            transaction: vi.fn().mockImplementation(async (cb) => {
+              return cb(db)
+            }),
           }
 
           const service = new BuildingService(

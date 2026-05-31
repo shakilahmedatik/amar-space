@@ -327,7 +327,7 @@ describe('Portal Access Route - POST /api/portal/flat/:slug/access', () => {
     expect(response.statusCode).toBe(200)
     expect(body.success).toBe(true)
     expect(body.message).toBe('সফলভাবে লগইন হয়েছে')
-    expect(body.redirectUrl).toBe('/renter/dashboard')
+    expect(body.redirectUrl).toBe('/dashboard')
 
     await app.close()
   })
@@ -394,7 +394,7 @@ describe('Portal Access Route - POST /api/portal/flat/:slug/access', () => {
     const body = response.json()
     expect(response.statusCode).toBe(200)
     expect(body.success).toBe(true)
-    expect(body.redirectUrl).toBe('/renter/dashboard')
+    expect(body.redirectUrl).toBe('/dashboard')
 
     await app.close()
   })

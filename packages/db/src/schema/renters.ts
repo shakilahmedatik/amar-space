@@ -37,6 +37,7 @@ export const renters = pgTable('renters', {
     length: 100,
   }).notNull(),
   digitalSignatureUrl: varchar('digital_signature_url', { length: 500 }),
+  selfiePhotoUrl: varchar('selfie_photo_url', { length: 500 }),
   createdAt: timestamp('created_at', { withTimezone: true })
     .notNull()
     .defaultNow(),

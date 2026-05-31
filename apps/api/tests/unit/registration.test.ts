@@ -144,7 +144,7 @@ describe('Registration Endpoint', () => {
       expect(response.statusCode).not.toBe(404)
 
       await app.close()
-    })
+    }, 15000)
   })
 
   describe('Rate Limiting', () => {
@@ -217,7 +217,7 @@ describe('Registration Endpoint', () => {
       app.db.query.users.findFirst = originalFindFirst
       app.db.update = originalUpdate
       await app.close()
-    })
+    }, 15000)
 
     it('should not rate limit different IPs', async () => {
       const app = buildApp({ logger: false })

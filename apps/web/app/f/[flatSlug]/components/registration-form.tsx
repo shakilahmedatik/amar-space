@@ -6,18 +6,24 @@ import { useMutation } from '@tanstack/react-query'
 import {
   AlertCircle,
   Calendar,
+  Camera,
+  CheckCircle2,
+  Copy,
   CreditCard,
   FileText,
   Heart,
   Loader2,
   Phone,
+  RefreshCw,
   Upload,
   User,
   Users,
+  X,
 } from 'lucide-react'
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { BASE_URL } from '@/lib/api'
 import { trackEvent } from '../lib/analytics'
+import { SignaturePad } from './signature-pad'
 
 interface RegistrationFormProps {
   flatSlug: string
@@ -29,6 +35,7 @@ interface RegistrationResponse {
   success: boolean
   message: string
   requestId?: string
+  accessCode?: string
 }
 
 const BLOOD_GROUPS = ['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-'] as const
@@ -37,16 +44,190 @@ const MAX_NID_PHOTO_SIZE = 5 * 1024 * 1024 // 5 MB
 const ACCEPTED_NID_FORMATS = ['image/jpeg', 'image/png']
 
 /**
+ * Selfie capture component — live webcam stream with fallback to file upload.
+ */
+function SelfieCapture({
+  value,
+  onChange,
+  onFocus,
+}: {
+  value?: string
+  onChange: (base64: string) => void
+  onFocus?: () => void
+}) {
+  const [isCameraActive, setIsCameraActive] = useState(false)
+  const [cameraError, setCameraError] = useState<string | null>(null)
+  const videoRef = useRef<HTMLVideoElement>(null)
+  const streamRef = useRef<MediaStream | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const startCamera = async () => {
+    onFocus?.()
+    setCameraError(null)
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          facingMode: 'user',
+          width: { ideal: 640 },
+          height: { ideal: 480 },
+        },
+        audio: false,
+      })
+      streamRef.current = stream
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream
+      }
+      setIsCameraActive(true)
+    } catch (err) {
+      console.error(err)
+      setCameraError('ক্যামেরা চালু করা যায়নি। অনুগ্রহ করে ফাইল আপলোড করুন।')
+    }
+  }
+
+  const stopCamera = () => {
+    if (streamRef.current) {
+      for (const track of streamRef.current.getTracks()) {
+        track.stop()
+      }
+      streamRef.current = null
+    }
+    setIsCameraActive(false)
+  }
+
+  const capturePhoto = () => {
+    const video = videoRef.current
+    if (!video) return
+    const canvas = document.createElement('canvas')
+    canvas.width = video.videoWidth || 640
+    canvas.height = video.videoHeight || 480
+    const ctx = canvas.getContext('2d')
+    if (ctx) {
+      // Draw frame to canvas
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
+      const base64 = canvas.toDataURL('image/jpeg', 0.8)
+      onChange(base64)
+      stopCamera()
+    }
+  }
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    onFocus?.()
+    const file = e.target.files?.[0]
+    if (!file) return
+    if (!['image/jpeg', 'image/png'].includes(file.type)) {
+      alert('শুধুমাত্র JPEG বা PNG ছবি গ্রহণযোগ্য')
+      return
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      alert('ফাইলের আকার সর্বোচ্চ ৫ MB হতে হবে')
+      return
+    }
+    const reader = new FileReader()
+    reader.onload = () => {
+      onChange(reader.result as string)
+    }
+    reader.readAsDataURL(file)
+  }
+
+  useEffect(() => {
+    return () => {
+      if (streamRef.current) {
+        for (const track of streamRef.current.getTracks()) {
+          track.stop()
+        }
+      }
+    }
+  }, [])
+
+  return (
+    <div className="flex flex-col gap-3">
+      {value ? (
+        <div className="relative overflow-hidden rounded-lg border border-hairline bg-surface p-4 flex flex-col items-center">
+          {/* biome-ignore lint/performance/noImgElement: R2 base64 and dynamic image urls */}
+          <img
+            src={value}
+            alt="সেলফি প্রিভিউ"
+            className="h-40 w-40 rounded-full object-cover border-4 border-white shadow-md bg-white"
+          />
+          <button
+            type="button"
+            onClick={() => onChange('')}
+            className="mt-3 flex min-h-[48px] items-center gap-2 rounded-lg border border-hairline bg-white px-4 py-2 text-base font-medium text-ink transition-colors hover:bg-surface active:bg-surface-dark"
+          >
+            <RefreshCw className="h-4 w-4" />
+            আবার তুলুন / আপলোড করুন
+          </button>
+        </div>
+      ) : isCameraActive ? (
+        <div className="relative overflow-hidden rounded-lg border border-hairline bg-black flex flex-col items-center p-2">
+          {/* biome-ignore lint/a11y/useMediaCaption: Live camera preview needs no captions */}
+          <video
+            ref={videoRef}
+            autoPlay
+            playsInline
+            className="w-full max-w-sm rounded-lg aspect-video object-cover"
+          />
+          <div className="mt-3 flex gap-3 w-full max-w-sm justify-center">
+            <button
+              type="button"
+              onClick={capturePhoto}
+              className="flex-1 flex min-h-[48px] items-center justify-center gap-2 rounded-lg bg-brand-blue-deep px-4 py-2 text-base font-semibold text-white transition-colors hover:bg-brand-blue-deep/90 active:bg-brand-blue-deep/80"
+            >
+              <Camera className="h-5 w-5" />
+              ছবি তুলুন
+            </button>
+            <button
+              type="button"
+              onClick={stopCamera}
+              className="flex min-h-[48px] items-center justify-center gap-2 rounded-lg border border-hairline bg-white px-4 py-2 text-base font-medium text-ink transition-colors hover:bg-surface active:bg-surface-dark"
+            >
+              <X className="h-5 w-5" />
+              বাতিল
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className="flex flex-col gap-2">
+          <div className="grid grid-cols-2 gap-3">
+            <button
+              type="button"
+              onClick={startCamera}
+              className="flex flex-col items-center justify-center gap-2 rounded-lg border border-hairline bg-white p-4 text-center hover:border-brand-blue-deep hover:text-brand-blue-deep transition-colors active:bg-surface min-h-[100px]"
+            >
+              <Camera className="h-6 w-6 text-steel" />
+              <span className="text-base font-medium">ক্যামেরা দিয়ে ছবি তুলুন</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="flex flex-col items-center justify-center gap-2 rounded-lg border border-hairline bg-white p-4 text-center hover:border-brand-blue-deep hover:text-brand-blue-deep transition-colors active:bg-surface min-h-[100px]"
+            >
+              <Upload className="h-6 w-6 text-steel" />
+              <span className="text-base font-medium">ছবি আপলোড করুন</span>
+            </button>
+          </div>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/jpeg,image/png"
+            capture="user"
+            onChange={handleFileChange}
+            className="hidden"
+          />
+          {cameraError && (
+            <p className="text-base text-warning-text bg-warning-bg p-2 rounded-lg border border-hairline flex items-center gap-1.5">
+              <AlertCircle className="h-4 w-4 shrink-0" />
+              {cameraError}
+            </p>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
+/**
  * Registration form component — multi-field renter registration form.
- *
- * Features:
- * - All form fields with shared Zod validation schema
- * - Field-level Bangla error messages
- * - Shows form only when flat status is AVAILABLE
- * - Hides during MAINTENANCE with maintenance message
- * - Preserves form data on validation errors
- * - Tracks "Registration Started" and "Registration Submitted" analytics events
- * - Submits via TanStack Query mutation to POST /api/portal/flat/:slug/register
  *
  * Requirements: 7.1, 7.2, 7.3, 7.4, 7.5, 7.6, 7.7, 7.8
  */
@@ -61,24 +242,49 @@ export function RegistrationForm({
     nidNumber: '',
     bloodGroup: '',
     occupation: '',
-    familyMembers: '',
+    familyMembers: '1',
+    emergencyContactName: '',
     emergencyContact: '',
+    emergencyContactRelationship: '',
     rentalStartDate: '',
     advanceAmount: '',
   })
+  const [familyMemberNames, setFamilyMemberNames] = useState<string[]>([''])
   const [digitalSignature, setDigitalSignature] = useState('')
   const [nidPhoto, setNidPhoto] = useState<string | undefined>(undefined)
   const [nidPhotoName, setNidPhotoName] = useState('')
+  const [selfiePhoto, setSelfiePhoto] = useState<string | undefined>(undefined)
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
   const [nidPhotoError, setNidPhotoError] = useState('')
   const [hasStartedTracking, setHasStartedTracking] = useState(false)
   const [submitSuccess, setSubmitSuccess] = useState(false)
+  const [generatedAccessCode, setGeneratedAccessCode] = useState('')
+  const [copiedCode, setCopiedCode] = useState(false)
 
   const nidFileInputRef = useRef<HTMLInputElement>(null)
 
+  // Resizes the family member names list based on the selected count
+  useEffect(() => {
+    const count = Number.parseInt(formData.familyMembers, 10) || 1
+    const clampedCount = Math.max(1, Math.min(20, count))
+    setFamilyMemberNames((prev) => {
+      const next = [...prev]
+      if (next.length < clampedCount) {
+        while (next.length < clampedCount) {
+          next.push('')
+        }
+      } else if (next.length > clampedCount) {
+        next.length = clampedCount
+      }
+      return next
+    })
+  }, [formData.familyMembers])
+
   // TanStack Query mutation for form submission
   const mutation = useMutation({
-    mutationFn: async (data: RegistrationFormInput & { nidPhoto?: string }) => {
+    mutationFn: async (
+      data: RegistrationFormInput & { nidPhoto: string; selfiePhoto: string },
+    ) => {
       const response = await fetch(
         `${BASE_URL}/api/portal/flat/${flatSlug}/register`,
         {
@@ -97,8 +303,11 @@ export function RegistrationForm({
 
       return response.json() as Promise<RegistrationResponse>
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       trackEvent('Registration Submitted', flatSlug)
+      if (data.accessCode) {
+        setGeneratedAccessCode(data.accessCode)
+      }
       setSubmitSuccess(true)
     },
   })
@@ -156,19 +365,64 @@ export function RegistrationForm({
     reader.onload = () => {
       setNidPhoto(reader.result as string)
       setNidPhotoName(file.name)
+      if (fieldErrors.nidPhoto) {
+        setFieldErrors((prev) => {
+          const next = { ...prev }
+          delete next.nidPhoto
+          return next
+        })
+      }
     }
     reader.readAsDataURL(file)
   }
 
+  // Handle selfie state changes
+  function handleSelfieChange(base64: string) {
+    setSelfiePhoto(base64 || undefined)
+    if (fieldErrors.selfiePhoto) {
+      setFieldErrors((prev) => {
+        const next = { ...prev }
+        delete next.selfiePhoto
+        return next
+      })
+    }
+  }
+
   // Handle signature change from SignaturePad
-  function handleSignatureChange(signatureData: string) {
-    setDigitalSignature(signatureData)
+  function handleSignatureChange(signatureData: string | null) {
+    setDigitalSignature(signatureData || '')
     if (fieldErrors.digitalSignature) {
       setFieldErrors((prev) => {
         const next = { ...prev }
         delete next.digitalSignature
         return next
       })
+    }
+  }
+
+  // Handle individual family member name input
+  function handleFamilyMemberNameChange(index: number, val: string) {
+    setFamilyMemberNames((prev) => {
+      const next = [...prev]
+      next[index] = val
+      return next
+    })
+    const errorKey = `familyMemberNames.${index}`
+    if (fieldErrors[errorKey]) {
+      setFieldErrors((prev) => {
+        const next = { ...prev }
+        delete next[errorKey]
+        return next
+      })
+    }
+  }
+
+  // Copy access code
+  function handleCopyCode() {
+    if (generatedAccessCode) {
+      navigator.clipboard.writeText(generatedAccessCode)
+      setCopiedCode(true)
+      setTimeout(() => setCopiedCode(false), 2000)
     }
   }
 
@@ -181,12 +435,17 @@ export function RegistrationForm({
       fullName: formData.fullName,
       phone: formData.phone,
       nidNumber: formData.nidNumber,
+      nidPhoto: nidPhoto || '',
+      selfiePhoto: selfiePhoto || '',
       bloodGroup: formData.bloodGroup,
       occupation: formData.occupation,
       familyMembers: formData.familyMembers
         ? Number.parseInt(formData.familyMembers, 10)
         : undefined,
+      familyMemberNames,
+      emergencyContactName: formData.emergencyContactName,
       emergencyContact: formData.emergencyContact,
+      emergencyContactRelationship: formData.emergencyContactRelationship,
       rentalStartDate: formData.rentalStartDate,
       advanceAmount: formData.advanceAmount
         ? Number.parseFloat(formData.advanceAmount)
@@ -198,13 +457,20 @@ export function RegistrationForm({
 
     if (!result.success) {
       setFieldErrors(result.errors || {})
+      // Scroll to the first error element
+      const firstErrorKey = Object.keys(result.errors || {})[0]
+      if (firstErrorKey) {
+        const element = document.getElementById(`reg-${firstErrorKey}`)
+        element?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      }
       return
     }
 
     // Submit the form
     mutation.mutate({
       ...result.data!,
-      nidPhoto,
+      nidPhoto: nidPhoto!,
+      selfiePhoto: selfiePhoto!,
     })
   }
 
@@ -248,24 +514,65 @@ export function RegistrationForm({
     return (
       <section
         aria-label="নিবন্ধন সফল"
-        className="flex flex-col items-center gap-3 rounded-lg border border-hairline bg-success-bg p-6 text-center"
+        className="flex flex-col items-center gap-4 rounded-xl border border-hairline bg-success-bg p-6 text-center shadow-lg"
       >
-        <FileText className="h-10 w-10 text-success-text" aria-hidden />
-        <h2 className="text-lg font-bold text-success-text">
+        <CheckCircle2 className="h-14 w-14 text-success-text" aria-hidden />
+        <h2 className="text-xl font-bold text-success-text">
           নিবন্ধন সফল হয়েছে!
         </h2>
-        <p className="text-base text-ink">
+        <p className="text-base text-ink leading-relaxed">
           আপনার নিবন্ধন অনুরোধ সফলভাবে জমা হয়েছে। বিল্ডিং ম্যানেজার শীঘ্রই আপনার অনুরোধ
           পর্যালোচনা করবেন।
         </p>
+
+        {generatedAccessCode && (
+          <div className="w-full bg-white rounded-lg p-5 border border-success-text/20 shadow-sm mt-2 flex flex-col items-center gap-3">
+            <span className="text-base text-steel font-medium">
+              ভবিষ্যতে লগইনের জন্য এই কোডটি সংরক্ষণ করুন
+            </span>
+            <div className="flex items-center gap-2">
+              <span className="text-3xl font-mono font-bold text-brand-blue-deep tracking-widest px-4 py-2 bg-surface rounded border border-hairline">
+                {generatedAccessCode}
+              </span>
+              <button
+                type="button"
+                onClick={handleCopyCode}
+                className="flex items-center justify-center p-3 rounded-lg bg-surface border border-hairline hover:bg-surface-dark transition-colors active:scale-95"
+                title="কপি করুন"
+              >
+                {copiedCode ? (
+                  <CheckCircle2 className="h-5 w-5 text-success-text" />
+                ) : (
+                  <Copy className="h-5 w-5 text-ink" />
+                )}
+              </button>
+            </div>
+            {copiedCode && (
+              <span className="text-base text-success-text">
+                কোডটি কপি করা হয়েছে!
+              </span>
+            )}
+            <div className="mt-2 text-base text-warning-text bg-warning-bg p-3 rounded-lg border border-warning-text/20 flex gap-2 items-start text-left">
+              <AlertCircle className="h-5 w-5 shrink-0 mt-0.5" />
+              <span>
+                <strong>গুরুত্বপূর্ণ:</strong> ম্যানেজার আপনার নিবন্ধন অনুমোদন করলে, ফ্ল্যাটের
+                QR কোড স্ক্যান করে এই ৬-সংখ্যার কোডটি দিয়ে প্রবেশ করতে হবে। কোডটি অন্য
+                কোথাও লিখে বা স্ক্রিনশট দিয়ে রাখুন।
+              </span>
+            </div>
+          </div>
+        )}
       </section>
     )
   }
 
   return (
-    <section aria-label="ভাড়াটিয়া নিবন্ধন">
-      <h2 className="mb-4 flex items-center gap-2 text-lg font-bold text-ink">
-        <FileText className="h-5 w-5" aria-hidden />
+    <section
+      aria-label="ভাড়াটিয়া নিবন্ধন"
+      className="bg-surface rounded-xl p-5 border border-hairline shadow-sm"
+    >
+      <h2 className="mb-5 flex items-center gap-2 text-lg font-bold text-ink border-b pb-3 border-hairline">
+        <FileText className="h-5 w-5 text-brand-blue-deep" aria-hidden />
         ভাড়াটিয়া নিবন্ধন
       </h2>
 
@@ -341,6 +648,51 @@ export function RegistrationForm({
           />
         </FormField>
 
+        {/* NID Photo - Mandatory */}
+        <FormField
+          label="NID ছবি (বাধ্যতামূলক)"
+          icon={<Upload className="h-4 w-4" aria-hidden />}
+          error={fieldErrors.nidPhoto || nidPhotoError}
+          fieldId="reg-nidPhoto"
+        >
+          <div className="flex flex-col gap-2">
+            <button
+              type="button"
+              onClick={() => nidFileInputRef.current?.click()}
+              onFocus={handleFieldFocus}
+              className="flex min-h-[48px] items-center justify-center gap-2 rounded-lg border border-dashed border-hairline bg-white px-3 py-3 text-base text-steel transition-colors hover:border-brand-blue-deep hover:text-brand-blue-deep active:bg-surface"
+            >
+              <Upload className="h-5 w-5" aria-hidden />
+              <span className="truncate max-w-[250px]">
+                {nidPhotoName || 'NID-এর ছবি আপলোড করুন (সর্বোচ্চ ৫ MB)'}
+              </span>
+            </button>
+            <input
+              id="reg-nidPhoto"
+              ref={nidFileInputRef}
+              type="file"
+              accept="image/jpeg,image/png"
+              onChange={handleNidPhotoChange}
+              className="hidden"
+              aria-label="NID ছবি আপলোড"
+            />
+          </div>
+        </FormField>
+
+        {/* Selfie Photo - Mandatory */}
+        <FormField
+          label="সেলফি ছবি (বাধ্যতামূলক)"
+          icon={<Camera className="h-4 w-4" aria-hidden />}
+          error={fieldErrors.selfiePhoto}
+          fieldId="reg-selfiePhoto"
+        >
+          <SelfieCapture
+            value={selfiePhoto}
+            onChange={handleSelfieChange}
+            onFocus={handleFieldFocus}
+          />
+        </FormField>
+
         {/* Blood Group */}
         <FormField
           label="রক্তের গ্রুপ"
@@ -393,7 +745,7 @@ export function RegistrationForm({
           />
         </FormField>
 
-        {/* Family Members */}
+        {/* Family Members Count */}
         <FormField
           label="পরিবারের সদস্য সংখ্যা"
           icon={<Users className="h-4 w-4" aria-hidden />}
@@ -419,7 +771,68 @@ export function RegistrationForm({
           />
         </FormField>
 
-        {/* Emergency Contact */}
+        {/* Dynamic Family Member Names */}
+        <div className="flex flex-col gap-3 pl-4 border-l-2 border-hairline bg-surface/50 p-3 rounded-r-lg">
+          <span className="text-base font-semibold text-ink">
+            পরিবারের সদস্যদের নাম:
+          </span>
+          {familyMemberNames.map((name, index) => {
+            const errorKey = `familyMemberNames.${index}`
+            return (
+              <FormField
+                // biome-ignore lint/suspicious/noArrayIndexKey: items can have duplicate values (e.g. empty strings)
+                key={`member-name-${index}`}
+                label={`সদস্য ${index + 1}`}
+                icon={<User className="h-4 w-4 text-steel" />}
+                error={fieldErrors[errorKey]}
+                fieldId={`reg-familyMemberNames-${index}`}
+              >
+                <input
+                  id={`reg-familyMemberNames-${index}`}
+                  type="text"
+                  value={name}
+                  onChange={(e) =>
+                    handleFamilyMemberNameChange(index, e.target.value)
+                  }
+                  onFocus={handleFieldFocus}
+                  placeholder={`সদস্য ${index + 1}-এর নাম লিখুন`}
+                  maxLength={100}
+                  className="w-full rounded-lg border border-hairline bg-white px-3 py-2 text-base text-ink placeholder:text-steel focus:border-brand-blue-deep focus:outline-none focus:ring-1 focus:ring-brand-blue-deep"
+                  aria-invalid={!!fieldErrors[errorKey]}
+                />
+              </FormField>
+            )
+          })}
+          {fieldErrors.familyMemberNames && (
+            <p className="text-base text-error-text flex items-center gap-1">
+              <AlertCircle className="h-4 w-4" />
+              {fieldErrors.familyMemberNames}
+            </p>
+          )}
+        </div>
+
+        {/* Emergency Contact Name */}
+        <FormField
+          label="জরুরি যোগাযোগের ব্যক্তির নাম"
+          icon={<User className="h-4 w-4" aria-hidden />}
+          error={fieldErrors.emergencyContactName}
+          fieldId="reg-emergencyContactName"
+        >
+          <input
+            id="reg-emergencyContactName"
+            type="text"
+            name="emergencyContactName"
+            value={formData.emergencyContactName}
+            onChange={handleInputChange}
+            onFocus={handleFieldFocus}
+            placeholder="জরুরি যোগাযোগের ব্যক্তির নাম লিখুন"
+            maxLength={200}
+            className="w-full rounded-lg border border-hairline bg-white px-3 py-3 text-base text-ink placeholder:text-steel focus:border-brand-blue-deep focus:outline-none focus:ring-1 focus:ring-brand-blue-deep"
+            aria-invalid={!!fieldErrors.emergencyContactName}
+          />
+        </FormField>
+
+        {/* Emergency Contact Phone */}
         <FormField
           label="জরুরি যোগাযোগ নম্বর"
           icon={<Phone className="h-4 w-4" aria-hidden />}
@@ -442,6 +855,27 @@ export function RegistrationForm({
                 ? 'emergencyContact-error'
                 : undefined
             }
+          />
+        </FormField>
+
+        {/* Emergency Contact Relationship */}
+        <FormField
+          label="সম্পর্ক"
+          icon={<Users className="h-4 w-4" aria-hidden />}
+          error={fieldErrors.emergencyContactRelationship}
+          fieldId="reg-emergencyContactRelationship"
+        >
+          <input
+            id="reg-emergencyContactRelationship"
+            type="text"
+            name="emergencyContactRelationship"
+            value={formData.emergencyContactRelationship}
+            onChange={handleInputChange}
+            onFocus={handleFieldFocus}
+            placeholder="যেমন: পিতা, ভাই, স্বামী ইত্যাদি"
+            maxLength={100}
+            className="w-full rounded-lg border border-hairline bg-white px-3 py-3 text-base text-ink placeholder:text-steel focus:border-brand-blue-deep focus:outline-none focus:ring-1 focus:ring-brand-blue-deep"
+            aria-invalid={!!fieldErrors.emergencyContactRelationship}
           />
         </FormField>
 
@@ -506,40 +940,10 @@ export function RegistrationForm({
           error={fieldErrors.digitalSignature}
           fieldId="reg-digitalSignature"
         >
-          <SignaturePadPlaceholder
-            value={digitalSignature}
-            onChange={handleSignatureChange}
-            onFocus={handleFieldFocus}
-          />
-        </FormField>
-
-        {/* NID Photo (Optional) */}
-        <FormField
-          label="NID ছবি (ঐচ্ছিক)"
-          icon={<Upload className="h-4 w-4" aria-hidden />}
-          error={nidPhotoError}
-          fieldId="reg-nidPhoto"
-        >
-          <div className="flex flex-col gap-2">
-            <button
-              type="button"
-              onClick={() => nidFileInputRef.current?.click()}
-              onFocus={handleFieldFocus}
-              className="flex min-h-[48px] items-center justify-center gap-2 rounded-lg border border-dashed border-hairline bg-white px-3 py-3 text-base text-steel transition-colors hover:border-brand-blue-deep hover:text-brand-blue-deep active:bg-surface"
-            >
-              <Upload className="h-5 w-5" aria-hidden />
-              <span>
-                {nidPhotoName || 'JPEG বা PNG ছবি আপলোড করুন (সর্বোচ্চ ৫ MB)'}
-              </span>
-            </button>
-            <input
-              id="reg-nidPhoto"
-              ref={nidFileInputRef}
-              type="file"
-              accept="image/jpeg,image/png"
-              onChange={handleNidPhotoChange}
-              className="hidden"
-              aria-label="NID ছবি আপলোড"
+          <div className="overflow-hidden rounded-lg border border-hairline bg-white">
+            <SignaturePad
+              onChange={handleSignatureChange}
+              label="এখানে আঙুল দিয়ে স্বাক্ষর করুন"
             />
           </div>
         </FormField>
@@ -598,7 +1002,7 @@ interface FormFieldProps {
  */
 function FormField({ label, icon, error, fieldId, children }: FormFieldProps) {
   return (
-    <div className="flex flex-col gap-1.5">
+    <div className="flex flex-col gap-1.5 w-full">
       <label
         htmlFor={fieldId}
         className="flex items-center gap-1.5 text-base font-medium text-ink"
@@ -616,142 +1020,6 @@ function FormField({ label, icon, error, fieldId, children }: FormFieldProps) {
           {error}
         </p>
       )}
-    </div>
-  )
-}
-
-interface SignaturePadPlaceholderProps {
-  value: string
-  onChange: (data: string) => void
-  onFocus: () => void
-}
-
-/**
- * Inline signature pad component for touch-based signature capture.
- * Uses a canvas element to capture drawn signatures and exports as base64 PNG.
- * Will be replaced by the dedicated SignaturePad component (Task 8.2).
- */
-function SignaturePadPlaceholder({
-  value,
-  onChange,
-  onFocus,
-}: SignaturePadPlaceholderProps) {
-  const canvasRef = useRef<HTMLCanvasElement>(null)
-  const [isDrawing, setIsDrawing] = useState(false)
-  const [hasStrokes, setHasStrokes] = useState(!!value)
-
-  function getCoordinates(
-    e:
-      | React.TouchEvent<HTMLCanvasElement>
-      | React.MouseEvent<HTMLCanvasElement>,
-  ) {
-    const canvas = canvasRef.current
-    if (!canvas) return { x: 0, y: 0 }
-    const rect = canvas.getBoundingClientRect()
-
-    if ('touches' in e) {
-      const touch = e.touches[0]
-      if (!touch) return { x: 0, y: 0 }
-      return {
-        x: touch.clientX - rect.left,
-        y: touch.clientY - rect.top,
-      }
-    }
-    return {
-      x: e.clientX - rect.left,
-      y: e.clientY - rect.top,
-    }
-  }
-
-  function startDrawing(
-    e:
-      | React.TouchEvent<HTMLCanvasElement>
-      | React.MouseEvent<HTMLCanvasElement>,
-  ) {
-    onFocus()
-    const canvas = canvasRef.current
-    const ctx = canvas?.getContext('2d')
-    if (!ctx) return
-
-    setIsDrawing(true)
-    const { x, y } = getCoordinates(e)
-    ctx.beginPath()
-    ctx.moveTo(x, y)
-  }
-
-  function draw(
-    e:
-      | React.TouchEvent<HTMLCanvasElement>
-      | React.MouseEvent<HTMLCanvasElement>,
-  ) {
-    if (!isDrawing) return
-    const canvas = canvasRef.current
-    const ctx = canvas?.getContext('2d')
-    if (!ctx) return
-
-    const { x, y } = getCoordinates(e)
-    ctx.lineWidth = 2
-    ctx.lineCap = 'round'
-    ctx.strokeStyle = 'rgb(26, 26, 26)'
-    ctx.lineTo(x, y)
-    ctx.stroke()
-  }
-
-  function stopDrawing() {
-    if (!isDrawing) return
-    setIsDrawing(false)
-    setHasStrokes(true)
-
-    const canvas = canvasRef.current
-    if (canvas) {
-      const dataUrl = canvas.toDataURL('image/png')
-      onChange(dataUrl)
-    }
-  }
-
-  function clearSignature() {
-    const canvas = canvasRef.current
-    const ctx = canvas?.getContext('2d')
-    if (!ctx || !canvas) return
-
-    ctx.clearRect(0, 0, canvas.width, canvas.height)
-    setHasStrokes(false)
-    onChange('')
-  }
-
-  return (
-    <div className="flex flex-col gap-2">
-      <div className="overflow-hidden rounded-lg border border-hairline bg-white">
-        <canvas
-          id="reg-digitalSignature"
-          ref={canvasRef}
-          width={300}
-          height={150}
-          className="w-full touch-none"
-          onMouseDown={startDrawing}
-          onMouseMove={draw}
-          onMouseUp={stopDrawing}
-          onMouseLeave={stopDrawing}
-          onTouchStart={startDrawing}
-          onTouchMove={draw}
-          onTouchEnd={stopDrawing}
-          aria-label="স্বাক্ষর প্যাড — এখানে আঙুল দিয়ে স্বাক্ষর করুন"
-        />
-      </div>
-      <div className="flex items-center justify-between">
-        <p className="text-base text-steel">
-          {hasStrokes ? 'স্বাক্ষর সম্পন্ন' : 'এখানে আঙুল দিয়ে স্বাক্ষর করুন'}
-        </p>
-        {hasStrokes && (
-          <button
-            type="button"
-            onClick={clearSignature}
-            className="min-h-[48px] min-w-[48px] rounded px-2 py-1 text-base text-error-text hover:bg-error-bg active:bg-error-bg"
-          >
-            মুছুন
-          </button>
-        )}
-      </div>
     </div>
   )
 }

@@ -98,6 +98,12 @@ async function renterRoutes(fastify: FastifyInstance) {
                 occupation: z.string(),
                 bloodGroup: z.string(),
                 flatId: z.string().nullable(),
+                flatNumber: z.string().nullable(),
+                buildingName: z.string().nullable(),
+                contractId: z.string().nullable(),
+                monthlyRent: z.number().nullable(),
+                startDate: z.string().nullable(),
+                depositBalance: z.number().nullable(),
                 ownerAccountId: z.string(),
                 createdAt: dateTimeResponseSchema,
               }),
@@ -315,9 +321,22 @@ async function renterRoutes(fastify: FastifyInstance) {
             nidNumber: z.string(),
             occupation: z.string(),
             bloodGroup: z.string(),
+            totalFamilyMembers: z.number(),
+            familyMemberNames: z.array(z.string()).nullable(),
+            emergencyContactName: z.string(),
+            emergencyContactNumber: z.string(),
+            emergencyContactRelationship: z.string(),
+            dateOfBirth: z.string().nullable(),
             flatId: z.string().nullable(),
+            flatNumber: z.string().nullable(),
+            buildingName: z.string().nullable(),
+            contractId: z.string().nullable(),
+            monthlyRent: z.number().nullable(),
+            startDate: z.string().nullable(),
+            depositBalance: z.number().nullable(),
             nidPhotoUrl: z.string().nullable(),
             digitalSignatureUrl: z.string().nullable(),
+            selfiePhotoUrl: z.string().nullable(),
             ownerAccountId: z.string(),
             createdAt: dateTimeResponseSchema,
           }),
@@ -333,7 +352,19 @@ async function renterRoutes(fastify: FastifyInstance) {
 
       const renter = await renterService.getRenter(ctx, id)
 
-      return reply.status(200).send(renter)
+      const r2BaseUrl = fastify.env.R2_PUBLIC_BASE_URL.replace(/\/$/, '')
+      const formatR2Url = (key: string | null | undefined) => {
+        if (!key) return null
+        if (key.startsWith('http://') || key.startsWith('https://')) return key
+        return `${r2BaseUrl}/${key}`
+      }
+
+      return reply.status(200).send({
+        ...renter,
+        nidPhotoUrl: formatR2Url(renter.nidPhotoUrl),
+        digitalSignatureUrl: formatR2Url(renter.digitalSignatureUrl),
+        selfiePhotoUrl: formatR2Url(renter.selfiePhotoUrl),
+      })
     },
   )
 }

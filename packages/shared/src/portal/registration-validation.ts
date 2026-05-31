@@ -86,6 +86,38 @@ export const registrationFormSchema = z.object({
 
   nidNumber: portalNidSchema,
 
+  nidPhoto: z
+    .string({ error: 'NID ছবি আবশ্যক' })
+    .min(1, { message: 'NID ছবি আবশ্যক' })
+    .refine(
+      (val) => {
+        try {
+          const base64Content = val.includes(',') ? val.split(',')[1] : val
+          if (!base64Content || base64Content.length === 0) return false
+          return /^[A-Za-z0-9+/]+=*$/.test(base64Content)
+        } catch {
+          return false
+        }
+      },
+      { message: 'NID ছবি সঠিক ফরম্যাটে নেই' },
+    ),
+
+  selfiePhoto: z
+    .string({ error: 'সেলফি ছবি আবশ্যক' })
+    .min(1, { message: 'সেলফি ছবি আবশ্যক' })
+    .refine(
+      (val) => {
+        try {
+          const base64Content = val.includes(',') ? val.split(',')[1] : val
+          if (!base64Content || base64Content.length === 0) return false
+          return /^[A-Za-z0-9+/]+=*$/.test(base64Content)
+        } catch {
+          return false
+        }
+      },
+      { message: 'সেলফি ছবি সঠিক ফরম্যাটে নেই' },
+    ),
+
   bloodGroup: portalBloodGroupEnum,
 
   occupation: z
@@ -99,7 +131,21 @@ export const registrationFormSchema = z.object({
     .min(1, { message: 'পরিবারের সদস্য সংখ্যা কমপক্ষে ১ হতে হবে' })
     .max(20, { message: 'পরিবারের সদস্য সংখ্যা সর্বোচ্চ ২০ হতে হবে' }),
 
+  familyMemberNames: z
+    .array(z.string().min(1, { message: 'সদস্যের নাম আবশ্যক' }))
+    .min(1, { message: 'পারিবারিক সদস্যের নাম প্রদান করুন' }),
+
+  emergencyContactName: z
+    .string({ error: 'জরুরি যোগাযোগের নাম আবশ্যক' })
+    .min(1, { message: 'জরুরি যোগাযোগের নাম আবশ্যক' })
+    .max(200),
+
   emergencyContact: portalEmergencyContactSchema,
+
+  emergencyContactRelationship: z
+    .string({ error: 'সম্পর্ক আবশ্যক' })
+    .min(1, { message: 'সম্পর্ক আবশ্যক' })
+    .max(100),
 
   rentalStartDate: portalRentalStartDateSchema,
 

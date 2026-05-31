@@ -27,9 +27,12 @@ vi.mock('../../src/plugins/r2', () => {
     }) => Promise<void>,
   ) => {
     const wrapped = fn
-    ;(wrapped as Record<string, unknown>)[Symbol.for('skip-override')] = true
-    ;(wrapped as Record<string, unknown>)[Symbol.for('fastify.display-name')] =
-      'r2'
+    ;(wrapped as unknown as Record<string | symbol, unknown>)[
+      Symbol.for('skip-override')
+    ] = true
+    ;(wrapped as unknown as Record<string | symbol, unknown>)[
+      Symbol.for('fastify.display-name')
+    ] = 'r2'
     return wrapped
   }
   return {
@@ -296,10 +299,15 @@ describe('Feature: renter-qr-portal, Property 6: Duplicate registration preventi
               bloodGroup,
               occupation,
               familyMembers,
+              familyMemberNames: ['সদস্য ১'],
+              emergencyContactName: 'জরুরি নাম',
               emergencyContact: phone, // Use same phone as emergency contact (valid BD number)
+              emergencyContactRelationship: 'ভাই',
               rentalStartDate,
               advanceAmount,
               digitalSignature: validSignatureBase64,
+              nidPhoto: validSignatureBase64,
+              selfiePhoto: validSignatureBase64,
             },
           })
 
@@ -400,10 +408,15 @@ describe('Feature: renter-qr-portal, Property 6: Duplicate registration preventi
               bloodGroup,
               occupation,
               familyMembers,
+              familyMemberNames: ['সদস্য ১'],
+              emergencyContactName: 'জরুরি নাম',
               emergencyContact: phone,
+              emergencyContactRelationship: 'ভাই',
               rentalStartDate,
               advanceAmount,
               digitalSignature: validSignatureBase64,
+              nidPhoto: validSignatureBase64,
+              selfiePhoto: validSignatureBase64,
             },
           })
 

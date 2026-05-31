@@ -81,7 +81,6 @@ async function registerRoutes(fastify: FastifyInstance) {
   // Clean up timer on server close
   fastify.addHook('onClose', async () => {
     clearInterval(cleanupTimer)
-    rateLimitStore.clear()
   })
 
   fastify.post(

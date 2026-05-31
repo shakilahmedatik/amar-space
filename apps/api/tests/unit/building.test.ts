@@ -108,6 +108,10 @@ function createMockDb(
     }),
   })
 
+  const mockDelete = vi.fn().mockReturnValue({
+    where: vi.fn().mockResolvedValue(undefined),
+  })
+
   // Alternate select behavior: first call returns data, second returns count
   let selectCallCount = 0
   const smartSelect = vi.fn().mockImplementation(() => {
@@ -118,22 +122,30 @@ function createMockDb(
     return mockSelectCount()
   })
 
-  return {
+  const dbMock = {
     query: {
       buildings: {
-        findFirst: vi
-          .fn()
-          .mockResolvedValue(
-            overrides.findFirstBuilding !== undefined
-              ? overrides.findFirstBuilding
-              : null,
-          ),
+        findFirst: vi.fn().mockImplementation(async (options) => {
+          if (overrides.findFirstBuilding !== undefined) {
+            return overrides.findFirstBuilding
+          }
+          if (options?.with) {
+            return defaultBuilding
+          }
+          return null
+        }),
       },
     },
     insert: mockInsert,
     update: mockUpdate,
+    delete: mockDelete,
     select: smartSelect,
-  } as unknown as Database
+    transaction: vi.fn().mockImplementation(async (cb) => {
+      return cb(dbMock)
+    }),
+  }
+
+  return dbMock as unknown as Database
 }
 
 // --- Tests ---
@@ -291,6 +303,30 @@ describe('BuildingService', () => {
         }),
       )
     })
+
+    it('should create a building with valid optional fields', async () => {
+      const db = createMockDb()
+      const service = new BuildingService(db, auditLogger)
+
+      const result = await service.createBuilding(ctx, {
+        name: 'My Building',
+        address: '123 Main St',
+        totalFloors: 10,
+        whatsappGroupLink: 'https://chat.whatsapp.com/123456',
+        buildingPhoto:
+          'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
+        emergencyContacts: [
+          {
+            name: 'Caretaker',
+            role: 'কেয়ারটেকার',
+            phone: '01712345678',
+            type: 'building',
+          },
+        ],
+      })
+
+      expect(result).toBeDefined()
+    })
   })
 
   describe('updateBuilding', () => {
@@ -305,18 +341,20 @@ describe('BuildingService', () => {
         updatedAt: new Date('2024-01-01'),
       }
 
-      // First findFirst call returns existing building (for ownership check)
-      // Second findFirst call returns null (no duplicate name)
-      const findFirstMock = vi
-        .fn()
-        .mockResolvedValueOnce(existingBuilding)
-        .mockResolvedValueOnce(null)
-
       const updatedBuilding = {
         ...existingBuilding,
         name: 'New Name',
         updatedAt: new Date(),
       }
+
+      // First findFirst call returns existing building (for ownership check)
+      // Second findFirst call returns null (no duplicate name)
+      // Third findFirst call returns updated building
+      const findFirstMock = vi
+        .fn()
+        .mockResolvedValueOnce(existingBuilding)
+        .mockResolvedValueOnce(null)
+        .mockResolvedValueOnce(updatedBuilding)
 
       const db = {
         query: {
@@ -333,6 +371,9 @@ describe('BuildingService', () => {
         }),
         select: vi.fn(),
         insert: vi.fn(),
+        transaction: vi.fn().mockImplementation(async (cb) => {
+          return cb(db)
+        }),
       }
 
       const service = new BuildingService(
@@ -389,6 +430,9 @@ describe('BuildingService', () => {
         update: vi.fn(),
         select: vi.fn(),
         insert: vi.fn(),
+        transaction: vi.fn().mockImplementation(async (cb) => {
+          return cb(db)
+        }),
       }
 
       const service = new BuildingService(
@@ -431,16 +475,17 @@ describe('BuildingService', () => {
         updatedAt: new Date('2024-01-01'),
       }
 
-      const findFirstMock = vi
-        .fn()
-        .mockResolvedValueOnce(existingBuilding)
-        .mockResolvedValueOnce(null) // no duplicate
-
       const updatedBuilding = {
         ...existingBuilding,
         name: 'New Name',
         updatedAt: new Date(),
       }
+
+      const findFirstMock = vi
+        .fn()
+        .mockResolvedValueOnce(existingBuilding)
+        .mockResolvedValueOnce(null) // no duplicate
+        .mockResolvedValueOnce(updatedBuilding)
 
       const db = {
         query: {
@@ -457,6 +502,9 @@ describe('BuildingService', () => {
         }),
         select: vi.fn(),
         insert: vi.fn(),
+        transaction: vi.fn().mockImplementation(async (cb) => {
+          return cb(db)
+        }),
       }
 
       const service = new BuildingService(
@@ -477,6 +525,73 @@ describe('BuildingService', () => {
           newValues: { name: 'New Name' },
         }),
       )
+    })
+
+    it('should update a building with optional fields successfully', async () => {
+      const existingBuilding = {
+        id: 'building-1',
+        ownerAccountId: 'owner-account-1',
+        name: 'Old Name',
+        address: '123 Main St',
+        totalFloors: 5,
+        createdAt: new Date('2024-01-01'),
+        updatedAt: new Date('2024-01-01'),
+      }
+
+      const updatedBuilding = {
+        ...existingBuilding,
+        whatsappGroupLink: 'https://chat.whatsapp.com/newlink',
+        updatedAt: new Date(),
+      }
+
+      const findFirstMock = vi
+        .fn()
+        .mockResolvedValueOnce(existingBuilding)
+        .mockResolvedValueOnce(updatedBuilding)
+
+      const db = {
+        query: {
+          buildings: {
+            findFirst: findFirstMock,
+          },
+        },
+        update: vi.fn().mockReturnValue({
+          set: vi.fn().mockReturnValue({
+            where: vi.fn().mockReturnValue({
+              returning: vi.fn().mockResolvedValue([updatedBuilding]),
+            }),
+          }),
+        }),
+        select: vi.fn(),
+        insert: vi.fn().mockReturnValue({
+          values: vi.fn().mockResolvedValue([]),
+        }),
+        delete: vi.fn().mockReturnValue({
+          where: vi.fn().mockResolvedValue([]),
+        }),
+        transaction: vi.fn().mockImplementation(async (cb) => {
+          return cb(db)
+        }),
+      }
+
+      const service = new BuildingService(
+        db as unknown as Database,
+        auditLogger,
+      )
+
+      const result = await service.updateBuilding(ctx, 'building-1', {
+        whatsappGroupLink: 'https://chat.whatsapp.com/newlink',
+        emergencyContacts: [
+          {
+            name: 'Caretaker New',
+            role: 'কেয়ারটেকার',
+            phone: '01711111111',
+            type: 'building',
+          },
+        ],
+      })
+
+      expect(result.whatsappGroupLink).toBe('https://chat.whatsapp.com/newlink')
     })
   })
 

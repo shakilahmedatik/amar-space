@@ -15,9 +15,12 @@ vi.mock('../../src/plugins/r2', () => {
     }) => Promise<void>,
   ) => {
     const wrapped = fn
-    ;(wrapped as Record<string, unknown>)[Symbol.for('skip-override')] = true
-    ;(wrapped as Record<string, unknown>)[Symbol.for('fastify.display-name')] =
-      'r2'
+    ;(wrapped as unknown as Record<string | symbol, unknown>)[
+      Symbol.for('skip-override')
+    ] = true
+    ;(wrapped as unknown as Record<string | symbol, unknown>)[
+      Symbol.for('fastify.display-name')
+    ] = 'r2'
     return wrapped
   }
   return {
@@ -140,12 +143,19 @@ describe('Portal Register Route - POST /api/portal/flat/:slug/register', () => {
     bloodGroup: 'A+',
     occupation: 'ব্যবসায়ী',
     familyMembers: 4,
+    familyMemberNames: ['সদস্য ১', 'সদস্য ২', 'সদস্য ৩', 'সদস্য ৪'],
+    emergencyContactName: 'করিম উদ্দিন',
     emergencyContact: '01798765432',
+    emergencyContactRelationship: 'ভাই',
     rentalStartDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
       .toISOString()
       .split('T')[0],
     advanceAmount: 50000,
     digitalSignature:
+      'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
+    nidPhoto:
+      'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
+    selfiePhoto:
       'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
   }
 
@@ -222,14 +232,20 @@ describe('Portal Register Route - POST /api/portal/flat/:slug/register', () => {
         bloodGroup: 'X+',
         occupation: '',
         familyMembers: 0,
+        familyMemberNames: [],
+        emergencyContactName: '',
         emergencyContact: '123',
+        emergencyContactRelationship: '',
         rentalStartDate: '2020-01-01',
         advanceAmount: -1,
         digitalSignature: '',
+        nidPhoto: '',
+        selfiePhoto: '',
       },
     })
 
     const body = response.json()
+    console.log('TEST STDOUT - STATUS:', response.statusCode, 'BODY:', body)
     expect(response.statusCode).toBe(400)
     expect(body.error).toBe('VALIDATION_ERROR')
     expect(body.message).toBe('ফর্মে ত্রুটি রয়েছে')

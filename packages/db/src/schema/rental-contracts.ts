@@ -33,6 +33,18 @@ export const rentalContracts = pgTable('rental_contracts', {
     precision: 12,
     scale: 2,
   }).notNull(),
+  gasBill: numeric('gas_bill', { precision: 12, scale: 2 })
+    .notNull()
+    .default('0.00'),
+  waterBill: numeric('water_bill', { precision: 12, scale: 2 })
+    .notNull()
+    .default('0.00'),
+  serviceCharge: numeric('service_charge', { precision: 12, scale: 2 })
+    .notNull()
+    .default('0.00'),
+  otherCharges: numeric('other_charges', { precision: 12, scale: 2 })
+    .notNull()
+    .default('0.00'),
   status: varchar('status', { length: 20 }).notNull().default('active'),
   createdAt: timestamp('created_at', { withTimezone: true })
     .notNull()

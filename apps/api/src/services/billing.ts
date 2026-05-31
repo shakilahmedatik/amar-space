@@ -217,6 +217,54 @@ export class BillingService {
         continue
       }
 
+      // Calculate total amount by adding default utility charges
+      let totalAmountVal = Number.parseFloat(contract.monthlyRent)
+      const lineItemsToInsert: {
+        billId: string
+        description: string
+        amount: string
+      }[] = []
+
+      // Check default utility columns on contract
+      const utilities = [
+        {
+          name: 'গ্যাস বিল (Gas Bill)',
+          amount: (contract as Record<string, unknown>).gasBill as
+            | string
+            | null,
+        },
+        {
+          name: 'পানি বিল (Water Bill)',
+          amount: (contract as Record<string, unknown>).waterBill as
+            | string
+            | null,
+        },
+        {
+          name: 'সার্ভিস চার্জ (Service Charge)',
+          amount: (contract as Record<string, unknown>).serviceCharge as
+            | string
+            | null,
+        },
+        {
+          name: 'অন্যান্য বিল (Other Charges)',
+          amount: (contract as Record<string, unknown>).otherCharges as
+            | string
+            | null,
+        },
+      ]
+
+      for (const util of utilities) {
+        if (util.amount && Number.parseFloat(util.amount) > 0) {
+          const amt = Number.parseFloat(util.amount)
+          totalAmountVal += amt
+          lineItemsToInsert.push({
+            billId: '', // Will fill after inserting bill
+            description: util.name,
+            amount: amt.toFixed(2),
+          })
+        }
+      }
+
       // Create the bill
       const [newBill] = await this.db
         .insert(bills)
@@ -227,7 +275,7 @@ export class BillingService {
           renterId: contract.renterId,
           billingMonth,
           baseRent: contract.monthlyRent,
-          totalAmount: contract.monthlyRent,
+          totalAmount: totalAmountVal.toFixed(2),
           paidAmount: '0',
           status: BILL_STATUS.UNPAID,
         })
@@ -239,6 +287,15 @@ export class BillingService {
           reason: `Failed to create bill for flat ${flat.flatNumber}`,
         })
         continue
+      }
+
+      // Insert line items if any
+      if (lineItemsToInsert.length > 0) {
+        const items = lineItemsToInsert.map((item) => ({
+          ...item,
+          billId: newBill.id,
+        }))
+        await this.db.insert(billLineItems).values(items)
       }
 
       result.generated++
@@ -254,8 +311,9 @@ export class BillingService {
           flatId: flat.id,
           billingMonth,
           baseRent: contract.monthlyRent,
-          totalAmount: contract.monthlyRent,
+          totalAmount: totalAmountVal.toFixed(2),
           status: BILL_STATUS.UNPAID,
+          lineItemsCount: lineItemsToInsert.length,
         },
       })
     }

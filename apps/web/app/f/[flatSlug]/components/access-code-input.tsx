@@ -159,7 +159,7 @@ export function AccessCodeInput({
     onSuccess: (data) => {
       setErrorMessage(null)
       trackEvent('Access Granted', flatSlug)
-      router.push(data.redirectUrl || '/renter/dashboard')
+      router.push(data.redirectUrl || '/dashboard')
     },
     onError: (error: AccessCodeErrorResponse) => {
       // Track failed attempt
