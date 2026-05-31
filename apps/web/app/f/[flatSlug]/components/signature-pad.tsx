@@ -81,9 +81,12 @@ export function SignaturePad({
     const rect = canvas.getBoundingClientRect()
 
     if ('touches' in e && e.touches.length > 0) {
-      return {
-        x: e.touches[0].clientX - rect.left,
-        y: e.touches[0].clientY - rect.top,
+      const touch = e.touches[0]
+      if (touch) {
+        return {
+          x: touch.clientX - rect.left,
+          y: touch.clientY - rect.top,
+        }
       }
     }
 

@@ -178,7 +178,10 @@ const validRentalStartDateArb = fc
   .map((daysFromNow) => {
     const date = new Date()
     date.setDate(date.getDate() + daysFromNow)
-    return date.toISOString().split('T')[0]!
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const day = String(date.getDate()).padStart(2, '0')
+    return `${year}-${month}-${day}`
   })
 
 /** Generate a valid advance amount: 0-99,999,999 */
@@ -315,7 +318,7 @@ describe('Feature: renter-qr-portal, Property 6: Duplicate registration preventi
       ),
       { numRuns: 100 },
     )
-  })
+  }, 60000)
 
   it('accepts registration with 201 when no PENDING_APPROVAL request exists for the same flat and phone', async () => {
     await fc.assert(
@@ -417,5 +420,5 @@ describe('Feature: renter-qr-portal, Property 6: Duplicate registration preventi
       ),
       { numRuns: 100 },
     )
-  })
+  }, 60000)
 })

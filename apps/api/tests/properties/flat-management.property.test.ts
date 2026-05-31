@@ -316,7 +316,7 @@ describe('Feature: amarspace-full-implementation, Property 9: Flat status transi
           updatedAt: new Date('2024-01-01'),
         }
 
-        const db = {
+        const dbMock = {
           query: {
             buildings: { findFirst: vi.fn() },
             flats: {
@@ -329,9 +329,12 @@ describe('Feature: amarspace-full-implementation, Property 9: Flat status transi
             where: vi.fn().mockResolvedValue(undefined),
           }),
           select: vi.fn(),
-        } as unknown
+          transaction: vi.fn().mockImplementation(async (cb) => {
+            return cb(dbMock)
+          }),
+        }
 
-        const service = new FlatService(db as never, auditLogger as never)
+        const service = new FlatService(dbMock as never, auditLogger as never)
 
         if (currentStatus === FLAT_STATUS.VACANT) {
           // Property: Deletion succeeds for Vacant flats

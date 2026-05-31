@@ -515,7 +515,9 @@ describe('Feature: qr-code-feature-ui, Property 3: Dialog displays flat metadata
           const { container } = render(
             React.createElement(
               I18nProvider,
-              { initialLocale: 'en' } as any,
+              { initialLocale: 'en' } as unknown as React.ComponentProps<
+                typeof I18nProvider
+              >,
               React.createElement(QrCodePreview, {
                 blobUrl: 'blob:http://localhost/test',
                 flatNumber,
@@ -555,7 +557,9 @@ describe('Feature: qr-code-feature-ui, Property 3: Dialog displays flat metadata
           const { container } = render(
             React.createElement(
               I18nProvider,
-              { initialLocale: 'en' } as any,
+              { initialLocale: 'en' } as unknown as React.ComponentProps<
+                typeof I18nProvider
+              >,
               React.createElement(QrCodePreview, {
                 blobUrl: 'blob:http://localhost/test',
                 flatNumber,

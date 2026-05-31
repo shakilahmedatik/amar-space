@@ -7,13 +7,11 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { ErrorFeedback } from '@/components/ui/error-feedback'
 import { FormField, FormInput } from '@/components/ui/form-field'
-import { LoadingSkeleton } from '@/components/ui/loading-skeleton'
 import { useBuildings } from '@/hooks/use-buildings'
 import { useCreateNotice } from '@/hooks/use-notices'
 import type { NoticeTargetAudience } from '@/lib/api-client'
 import { fetchFlats } from '@/lib/api-client'
 import { useTranslation } from '@/lib/i18n'
-import { useSession } from '@/contexts/session-context'
 
 /**
  * New notice form — /notices/new
@@ -24,7 +22,7 @@ import { useSession } from '@/contexts/session-context'
 export default function NewNoticePage() {
   const { t } = useTranslation()
   const router = useRouter()
-// Form state
+  // Form state
   const [title, setTitle] = useState('')
   const [body, setBody] = useState('')
   const [targetAudience, setTargetAudience] = useState<
@@ -43,7 +41,7 @@ export default function NewNoticePage() {
 
   const createMutation = useCreateNotice()
   const { data: buildingsData } = useBuildings(1, 100)
-// Load flats when building is selected for specific_flat audience
+  // Load flats when building is selected for specific_flat audience
   useEffect(() => {
     async function loadFlats() {
       if (targetAudience === 'specific_flat' && targetBuildingId) {
@@ -133,7 +131,7 @@ export default function NewNoticePage() {
       })
     }
   }
-return (
+  return (
     <>
       {successMessage && (
         <ErrorFeedback

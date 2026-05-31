@@ -85,7 +85,7 @@ const attemptSequenceArb = fc.array(fc.boolean(), {
 })
 
 /** Generate a sequence of exactly N invalid attempts */
-const invalidSequenceArb = (n: number) =>
+const _invalidSequenceArb = (n: number) =>
   fc.constant(new Array(n).fill(false) as boolean[])
 
 /** Generate a time offset in milliseconds (for testing lockout timing) */

@@ -3,8 +3,11 @@ import type { ApiErrorResponse } from '@repo/shared/types'
 import { registerSchema } from '@repo/shared/validation'
 import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
-import { dateTimeResponseSchema, errorResponseSchema } from '../app'
-import { registerUser } from '../services/registration'
+import { registerUser } from '../../services/registration'
+import {
+  dateTimeResponseSchema,
+  errorResponseSchema,
+} from '../../utils/schemas'
 
 /**
  * In-memory rate limiter for registration attempts.
@@ -106,6 +109,10 @@ async function registerRoutes(fastify: FastifyInstance) {
                 expiresAt: dateTimeResponseSchema,
               })
               .nullable(),
+            requestId: z.string().optional(),
+            statusCode: z.number().optional(),
+            error: z.string().optional(),
+            message: z.string().optional(),
           }),
           400: errorResponseSchema,
           429: errorResponseSchema,
@@ -142,6 +149,7 @@ async function registerRoutes(fastify: FastifyInstance) {
         return reply.status(201).send({
           ...response,
           user: result.user,
+          session: null,
         })
       }
 

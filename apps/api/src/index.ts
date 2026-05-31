@@ -1,4 +1,5 @@
 import { getLogTapeFastifyLogger } from '@logtape/fastify'
+import { validateConnection } from '@repo/db'
 import { buildApp } from './app'
 import { configureLogging, getLogger } from './lib/logger'
 
@@ -51,6 +52,18 @@ export default async function handler(req: Request): Promise<Response> {
 // In production, Vercel manages the lifecycle via the handler export above.
 if (process.env.NODE_ENV !== 'production') {
   const port = Number(process.env.PORT ?? 3001)
+
+  try {
+    await app.ready()
+    await validateConnection(app.db)
+    logger.info('Database connection established successfully')
+  } catch (err) {
+    logger.error('Failed to start server due to database connection issue: {error}', {
+      error: err instanceof Error ? err.message : String(err),
+    })
+    process.exit(1)
+  }
+
   app.listen({ port, host: '0.0.0.0' }, (err) => {
     if (err) {
       logger.error('Failed to start server: {error}', { error: err })

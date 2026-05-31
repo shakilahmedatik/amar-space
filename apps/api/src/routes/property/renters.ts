@@ -1,16 +1,19 @@
 import type { RequestContext } from '@repo/shared/types'
 import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
-import { dateTimeResponseSchema, errorResponseSchema } from '../app'
-import { approvalGuard } from '../middleware/approval-guard'
-import { authGuard } from '../middleware/auth-guard'
-import { roleGuard } from '../middleware/role-guard'
-import { tenantScope } from '../middleware/tenant-scope'
+import { approvalGuard } from '../../middleware/approval-guard'
+import { authGuard } from '../../middleware/auth-guard'
+import { roleGuard } from '../../middleware/role-guard'
+import { tenantScope } from '../../middleware/tenant-scope'
 import {
   type RegisterRenterData,
   type RenterFileUpload,
   RenterRegistrationService,
-} from '../services/renter-registration'
+} from '../../services/renter-registration'
+import {
+  dateTimeResponseSchema,
+  errorResponseSchema,
+} from '../../utils/schemas'
 
 /**
  * Renter routes plugin.
@@ -270,7 +273,15 @@ async function renterRoutes(fastify: FastifyInstance) {
 
       const result = await renterService.registerRenter(ctx, data)
 
-      return reply.status(201).send(result)
+      return reply.status(201).send({
+        id: result.renter.id,
+        fullName: result.renter.fullName,
+        phone: result.renter.phone,
+        nidNumber: result.renter.nidNumber,
+        flatId: result.contract.flatId,
+        ownerAccountId: result.renter.ownerAccountId,
+        createdAt: result.renter.createdAt,
+      })
     },
   )
 

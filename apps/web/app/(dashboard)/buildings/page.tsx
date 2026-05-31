@@ -7,10 +7,10 @@ import { Button } from '@/components/ui/button'
 import { DataTable, type DataTableColumn } from '@/components/ui/data-table'
 import { ErrorFeedback } from '@/components/ui/error-feedback'
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton'
+import { useSession } from '@/contexts/session-context'
 import { useBuildings } from '@/hooks/use-buildings'
 import type { Building } from '@/lib/api-client'
 import { useTranslation } from '@/lib/i18n'
-import { useSession } from '@/contexts/session-context'
 
 /**
  * Building list page — /buildings
@@ -21,10 +21,10 @@ import { useSession } from '@/contexts/session-context'
 export default function BuildingsPage() {
   const { role } = useSession()
   const { t } = useTranslation()
-  const router = useRouter()
-const [page, setPage] = useState(1)
-const { data, isLoading, isError, error } = useBuildings(page, 50)
-const isOwner = role === 'owner'
+  const _router = useRouter()
+  const [page, setPage] = useState(1)
+  const { data, isLoading, isError, error } = useBuildings(page, 50)
+  const isOwner = role === 'owner'
 
   const columns: DataTableColumn<Building>[] = [
     {

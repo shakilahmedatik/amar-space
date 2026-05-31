@@ -4,7 +4,12 @@ import fastifyCors from '@fastify/cors'
 import fastifyMultipart from '@fastify/multipart'
 import fastifySwagger from '@fastify/swagger'
 import { AppError, RateLimitError } from '@repo/shared/errors'
-import type { ApiErrorResponse } from '@repo/shared/types'
+/**
+ * Shared schema for datetime fields in response objects.
+ * Accepts both ISO string (from manual construction) and Date objects (from Drizzle ORM).
+ * Outputs ISO 8601 string in both cases.
+ */
+import type { ApiErrorResponse, RequestContext } from '@repo/shared/types'
 import apiReference from '@scalar/fastify-api-reference'
 import type { FastifyError } from 'fastify'
 import Fastify from 'fastify'
@@ -15,35 +20,14 @@ import {
   validatorCompiler,
   type ZodTypeProvider,
 } from 'fastify-type-provider-zod'
-import { z } from 'zod'
 
-/**
- * Shared schema for datetime fields in response objects.
- * Accepts both ISO string (from manual construction) and Date objects (from Drizzle ORM).
- * Outputs ISO 8601 string in both cases.
- */
-export const dateTimeResponseSchema = z
-  .string()
-  .or(z.date().transform((d) => d.toISOString()))
+export { dateTimeResponseSchema, errorResponseSchema } from './utils/schemas'
 
-/**
- * Shared OpenAPI error response schema.
- * Used across all route files to document 400/401/403/404/429/500 responses.
- */
-export const errorResponseSchema = z.object({
-  requestId: z.string(),
-  statusCode: z.number(),
-  error: z.string(),
-  message: z.string(),
-  errors: z
-    .array(
-      z.object({
-        field: z.string(),
-        message: z.string(),
-      }),
-    )
-    .optional(),
-})
+declare module 'fastify' {
+  interface FastifyRequest {
+    context: RequestContext
+  }
+}
 
 /**
  * Pure CORS origin resolver function — extracted for testability.
@@ -102,6 +86,20 @@ export function buildApp(opts: Record<string, unknown> = {}) {
 
   app.setValidatorCompiler(validatorCompiler)
   app.setSerializerCompiler(serializerCompiler)
+
+  app.decorateRequest('context', {
+    getter() {
+      return {
+        userId: this.user?.id,
+        role: this.user?.role as RequestContext['role'],
+        ownerAccountId: this.tenantScope?.ownerAccountId,
+        assignedBuildingIds: this.tenantScope?.assignedBuildingIds,
+        assignedFlatId: this.tenantScope?.assignedFlatId,
+        ipAddress: this.ip,
+        userAgent: (this.headers['user-agent'] as string) || '',
+      }
+    },
+  })
 
   // Register CORS plugin with environment-aware origin callback
   app.register(fastifyCors, {
@@ -345,30 +343,42 @@ export function buildApp(opts: Record<string, unknown> = {}) {
   })
 
   // Register routes
-  app.register(import('./routes/health'), { prefix: '/api/health' })
-  app.register(import('./routes/auth'), { prefix: '/api/auth' })
-  app.register(import('./routes/register'), { prefix: '/api/register' })
-  app.register(import('./routes/audit'), { prefix: '/api/audit' })
-  app.register(import('./routes/roles'), { prefix: '/api/users' })
-  app.register(import('./routes/buildings'), { prefix: '/api/buildings' })
-  app.register(import('./routes/flats'), { prefix: '/api/flats' })
-  app.register(import('./routes/renters'), { prefix: '/api/renters' })
-  app.register(import('./routes/bills'), { prefix: '/api/bills' })
-  app.register(import('./routes/payments'), { prefix: '/api/payments' })
-  app.register(import('./routes/deposits'), { prefix: '/api/deposits' })
-  app.register(import('./routes/maintenance'), { prefix: '/api/maintenance' })
-  app.register(import('./routes/issues'), { prefix: '/api/issues' })
-  app.register(import('./routes/notices'), { prefix: '/api/notices' })
-  app.register(import('./routes/settings'), { prefix: '/api/settings' })
-  app.register(import('./routes/dashboard'), { prefix: '/api/dashboard' })
+  app.register(import('./routes/system/health'), { prefix: '/api/health' })
+  app.register(import('./routes/auth/auth'), { prefix: '/api/auth' })
+  app.register(import('./routes/auth/register'), { prefix: '/api/register' })
+  app.register(import('./routes/system/audit'), { prefix: '/api/audit' })
+  app.register(import('./routes/property/roles'), { prefix: '/api/users' })
+  app.register(import('./routes/property/buildings'), {
+    prefix: '/api/buildings',
+  })
+  app.register(import('./routes/property/flats'), { prefix: '/api/flats' })
+  app.register(import('./routes/property/renters'), { prefix: '/api/renters' })
+  app.register(import('./routes/billing/bills'), { prefix: '/api/bills' })
+  app.register(import('./routes/billing/payments'), { prefix: '/api/payments' })
+  app.register(import('./routes/billing/deposits'), { prefix: '/api/deposits' })
+  app.register(import('./routes/operations/maintenance'), {
+    prefix: '/api/maintenance',
+  })
+  app.register(import('./routes/operations/issues'), { prefix: '/api/issues' })
+  app.register(import('./routes/operations/notices'), {
+    prefix: '/api/notices',
+  })
+  app.register(import('./routes/system/settings'), { prefix: '/api/settings' })
+  app.register(import('./routes/system/dashboard'), {
+    prefix: '/api/dashboard',
+  })
   app.register(import('./routes/admin/owners'), { prefix: '/api/admin/owners' })
   app.register(import('./routes/admin/users'), { prefix: '/api/admin/users' })
   app.register(import('./routes/admin/dashboard'), {
     prefix: '/api/admin/dashboard',
   })
-  app.register(import('./routes/managers'), { prefix: '/api/managers' })
-  app.register(import('./routes/flat-qr-code'), { prefix: '/api/flats' })
-  app.register(import('./routes/building-qr-codes'), {
+  app.register(import('./routes/property/managers'), {
+    prefix: '/api/managers',
+  })
+  app.register(import('./routes/property/flat-qr-code'), {
+    prefix: '/api/flats',
+  })
+  app.register(import('./routes/property/building-qr-codes'), {
     prefix: '/api/buildings',
   })
   app.register(import('./routes/portal/analytics'), {

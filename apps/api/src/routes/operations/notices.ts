@@ -7,12 +7,15 @@ import {
 } from '@repo/shared/validation'
 import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
-import { dateTimeResponseSchema, errorResponseSchema } from '../app'
-import { approvalGuard } from '../middleware/approval-guard'
-import { authGuard } from '../middleware/auth-guard'
-import { roleGuard } from '../middleware/role-guard'
-import { tenantScope } from '../middleware/tenant-scope'
-import { NoticeService } from '../services/notice.service'
+import { approvalGuard } from '../../middleware/approval-guard'
+import { authGuard } from '../../middleware/auth-guard'
+import { roleGuard } from '../../middleware/role-guard'
+import { tenantScope } from '../../middleware/tenant-scope'
+import { NoticeService } from '../../services/notice.service'
+import {
+  dateTimeResponseSchema,
+  errorResponseSchema,
+} from '../../utils/schemas'
 
 /**
  * Notice routes plugin.
@@ -106,7 +109,7 @@ async function noticeRoutes(fastify: FastifyInstance) {
               z.object({
                 id: z.string(),
                 title: z.string(),
-                content: z.string(),
+                body: z.string(),
                 targetAudience: z.string(),
                 isPinned: z.boolean(),
                 createdAt: dateTimeResponseSchema,
@@ -168,10 +171,10 @@ async function noticeRoutes(fastify: FastifyInstance) {
           201: z.object({
             id: z.string(),
             title: z.string(),
-            content: z.string(),
+            body: z.string(),
             targetAudience: z.string(),
-            buildingId: z.string().nullable(),
-            flatId: z.string().nullable(),
+            targetBuildingId: z.string().nullable(),
+            targetFlatId: z.string().nullable(),
             isPinned: z.boolean(),
             createdAt: dateTimeResponseSchema,
           }),
@@ -220,10 +223,10 @@ async function noticeRoutes(fastify: FastifyInstance) {
           200: z.object({
             id: z.string(),
             title: z.string(),
-            content: z.string(),
+            body: z.string(),
             targetAudience: z.string(),
-            buildingId: z.string().nullable(),
-            flatId: z.string().nullable(),
+            targetBuildingId: z.string().nullable(),
+            targetFlatId: z.string().nullable(),
             isPinned: z.boolean(),
             authorId: z.string(),
             createdAt: dateTimeResponseSchema,
@@ -275,10 +278,10 @@ async function noticeRoutes(fastify: FastifyInstance) {
           200: z.object({
             id: z.string(),
             title: z.string(),
-            content: z.string(),
+            body: z.string(),
             targetAudience: z.string(),
-            buildingId: z.string().nullable(),
-            flatId: z.string().nullable(),
+            targetBuildingId: z.string().nullable(),
+            targetFlatId: z.string().nullable(),
             isPinned: z.boolean(),
             updatedAt: dateTimeResponseSchema,
           }),

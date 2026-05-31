@@ -245,7 +245,7 @@ describe('Feature: role-based-user-management, Property 13: User deactivation in
 
         // Property: db.delete MUST NOT be called (sessions remain intact)
         // Since the mock db doesn't have delete defined, if it were called it would throw
-        expect((db as any).delete).toBeUndefined()
+        expect((db as unknown as Database).delete).toBeUndefined()
       }),
       { numRuns: 100 },
     )

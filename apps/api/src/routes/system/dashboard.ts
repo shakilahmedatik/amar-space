@@ -11,10 +11,13 @@ import {
 import { and, count, desc, eq, inArray, sql, sum } from 'drizzle-orm'
 import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
-import { dateTimeResponseSchema, errorResponseSchema } from '../app'
-import { authGuard } from '../middleware/auth-guard'
-import { roleGuard } from '../middleware/role-guard'
-import { tenantScope } from '../middleware/tenant-scope'
+import { authGuard } from '../../middleware/auth-guard'
+import { roleGuard } from '../../middleware/role-guard'
+import { tenantScope } from '../../middleware/tenant-scope'
+import {
+  dateTimeResponseSchema,
+  errorResponseSchema,
+} from '../../utils/schemas'
 
 /**
  * Dashboard routes plugin.

@@ -1,4 +1,4 @@
-import { users } from '@repo/db/schema'
+import { sessions, users } from '@repo/db/schema'
 import { ConflictError, ValidationError } from '@repo/shared/errors'
 import type { FieldError } from '@repo/shared/types'
 import { emailSchema, passwordSchema } from '@repo/shared/validation'
@@ -14,10 +14,13 @@ export interface RegisterResult {
   user: {
     id: string
     email: string
+    name: string | null
     role: string
+    createdAt: Date
   }
   session: {
     token: string
+    expiresAt: Date
   } | null
   sessionError: boolean
 }
@@ -100,7 +103,12 @@ export async function registerUser(
   }
 
   // Step 3: Create user via Better Auth (handles password hashing - Requirement 1.2)
-  let createdUser: { id: string; email: string }
+  let createdUser: {
+    id: string
+    email: string
+    name?: string | null
+    createdAt?: Date
+  }
 
   try {
     const signUpResponse = await fastify.auth.api.signUpEmail({
@@ -118,6 +126,8 @@ export async function registerUser(
     createdUser = {
       id: signUpResponse.user.id,
       email: signUpResponse.user.email,
+      name: signUpResponse.user.name,
+      createdAt: signUpResponse.user.createdAt,
     }
   } catch (error: unknown) {
     // Better Auth may throw for duplicate email as well
@@ -144,6 +154,7 @@ export async function registerUser(
   // Better Auth signUpEmail may return a token directly, but we use signInEmail
   // to ensure a proper session is created with all metadata.
   let sessionToken: string | null = null
+  let sessionExpiresAt: Date | null = null
   let sessionError = false
 
   try {
@@ -156,6 +167,20 @@ export async function registerUser(
 
     if (signInResult?.token) {
       sessionToken = signInResult.token
+      try {
+        if (fastify.db.query?.sessions) {
+          const sess = await fastify.db.query.sessions.findFirst({
+            where: eq(sessions.token, sessionToken),
+            columns: { expiresAt: true },
+          })
+          sessionExpiresAt = sess?.expiresAt ?? null
+        }
+      } catch {
+        // Safe fallback in case DB is mocked or query fails
+      }
+      if (!sessionExpiresAt) {
+        sessionExpiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+      }
     } else {
       sessionError = true
     }
@@ -168,9 +193,16 @@ export async function registerUser(
     user: {
       id: createdUser.id,
       email: createdUser.email,
+      name: createdUser.name ?? null,
       role: 'owner',
+      createdAt: createdUser.createdAt ?? new Date(),
     },
-    session: sessionToken ? { token: sessionToken } : null,
+    session: sessionToken
+      ? {
+          token: sessionToken,
+          expiresAt: sessionExpiresAt ?? new Date(),
+        }
+      : null,
     sessionError,
   }
 }

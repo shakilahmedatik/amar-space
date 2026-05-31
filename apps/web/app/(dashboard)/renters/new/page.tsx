@@ -8,10 +8,8 @@ import { Card, CardContent } from '@/components/ui/card'
 import { ErrorFeedback } from '@/components/ui/error-feedback'
 import { FileUpload } from '@/components/ui/file-upload'
 import { FormField, FormInput } from '@/components/ui/form-field'
-import { LoadingSkeleton } from '@/components/ui/loading-skeleton'
 import { useCreateRenter, useVacantFlats } from '@/hooks/use-renters'
 import { useTranslation } from '@/lib/i18n'
-import { useSession } from '@/contexts/session-context'
 
 const BLOOD_GROUPS = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-']
 
@@ -26,7 +24,7 @@ const BLOOD_GROUPS = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-']
 export default function NewRenterPage() {
   const { t } = useTranslation()
   const router = useRouter()
-// Required fields
+  // Required fields
   const [fullName, setFullName] = useState('')
   const [phone, setPhone] = useState('')
   const [nidNumber, setNidNumber] = useState('')
@@ -54,7 +52,7 @@ export default function NewRenterPage() {
 
   const createMutation = useCreateRenter()
   const { data: vacantFlatsData, isLoading: isLoadingFlats } = useVacantFlats()
-function validate(): boolean {
+  function validate(): boolean {
     const newErrors: Record<string, string> = {}
 
     // Full Name

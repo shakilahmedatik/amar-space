@@ -1,11 +1,14 @@
 import type { RequestContext } from '@repo/shared/types'
 import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
-import { dateTimeResponseSchema, errorResponseSchema } from '../app'
-import { authGuard } from '../middleware/auth-guard'
-import { roleGuard } from '../middleware/role-guard'
-import { tenantScope } from '../middleware/tenant-scope'
-import { AuditLogQueryService } from '../services/audit-log-query.service'
+import { authGuard } from '../../middleware/auth-guard'
+import { roleGuard } from '../../middleware/role-guard'
+import { tenantScope } from '../../middleware/tenant-scope'
+import { AuditLogQueryService } from '../../services/audit-log-query.service'
+import {
+  dateTimeResponseSchema,
+  errorResponseSchema,
+} from '../../utils/schemas'
 
 /**
  * Audit log routes plugin.

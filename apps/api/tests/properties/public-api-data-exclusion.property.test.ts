@@ -266,7 +266,7 @@ const STATUS_MAP: Record<string, 'AVAILABLE' | 'OCCUPIED' | 'MAINTENANCE'> = {
 function buildPortalFlatResponse(
   building: Record<string, unknown>,
   flat: Record<string, unknown>,
-  contacts: Array<Record<string, unknown>>,
+  contacts: Record<string, unknown>[],
   hasPendingRegistration: boolean,
   slug: string,
 ) {
@@ -338,7 +338,7 @@ describe('Feature: renter-qr-portal, Property 8: Public API data exclusion', () 
             const response = buildPortalFlatResponse(
               building as unknown as Record<string, unknown>,
               flat as unknown as Record<string, unknown>,
-              contacts as unknown as Array<Record<string, unknown>>,
+              contacts as unknown as Record<string, unknown>[],
               hasPending,
               slug,
             )

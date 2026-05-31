@@ -24,7 +24,7 @@ export function QrCodeButton({ flatNumber, onClick }: QrCodeButtonProps) {
       variant="outline"
       onClick={onClick}
       aria-label={t('qrCode.generateAriaLabel', { flatNumber })}
-      className="min-h-[44px] min-w-[44px]"
+      className="min-h-[44px] min-w-[44px] rounded-full"
     >
       <QrCode className="h-4 w-4" />
       <span>{t('qrCode.button')}</span>

@@ -8,6 +8,7 @@
  * Requirements: 2.1, 2.3, 3.1, 4.4, 4.7, 7.4
  */
 
+import type { Database } from '@repo/db'
 import Fastify, {
   type FastifyInstance,
   type FastifyReply,
@@ -18,7 +19,7 @@ import {
   validatorCompiler,
   type ZodTypeProvider,
 } from 'fastify-type-provider-zod'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { approvalGuard } from '../../src/middleware/approval-guard'
 import { authGuard } from '../../src/middleware/auth-guard'
 import { roleGuard } from '../../src/middleware/role-guard'
@@ -152,7 +153,7 @@ async function buildTestApp(options: {
         where: vi.fn().mockResolvedValue(assignedBuildings),
       }),
     })
-    ;(mockDb as any).select = selectFn
+    ;(mockDb as unknown as Database).select = selectFn
   }
 
   // Register test routes that use the real middleware chain
@@ -163,7 +164,7 @@ async function buildTestApp(options: {
     {
       preHandler: [authGuard, roleGuard(['superadmin'])],
     },
-    async (request: FastifyRequest, reply: FastifyReply) => {
+    async (_request: FastifyRequest, reply: FastifyReply) => {
       return reply.send({ data: [], message: 'admin owners list' })
     },
   )
@@ -173,7 +174,7 @@ async function buildTestApp(options: {
     {
       preHandler: [authGuard, roleGuard(['superadmin'])],
     },
-    async (request: FastifyRequest, reply: FastifyReply) => {
+    async (_request: FastifyRequest, reply: FastifyReply) => {
       return reply.send({ message: 'status updated' })
     },
   )
@@ -183,7 +184,7 @@ async function buildTestApp(options: {
     {
       preHandler: [authGuard, roleGuard(['superadmin'])],
     },
-    async (request: FastifyRequest, reply: FastifyReply) => {
+    async (_request: FastifyRequest, reply: FastifyReply) => {
       return reply.send({ data: [], message: 'admin users list' })
     },
   )
@@ -193,7 +194,7 @@ async function buildTestApp(options: {
     {
       preHandler: [authGuard, roleGuard(['superadmin'])],
     },
-    async (request: FastifyRequest, reply: FastifyReply) => {
+    async (_request: FastifyRequest, reply: FastifyReply) => {
       return reply.send({ message: 'user deactivated' })
     },
   )
@@ -203,7 +204,7 @@ async function buildTestApp(options: {
     {
       preHandler: [authGuard, roleGuard(['superadmin'])],
     },
-    async (request: FastifyRequest, reply: FastifyReply) => {
+    async (_request: FastifyRequest, reply: FastifyReply) => {
       return reply.send({
         usersByRole: {},
         pendingApprovals: 0,
@@ -223,7 +224,7 @@ async function buildTestApp(options: {
         tenantScope,
       ],
     },
-    async (request: FastifyRequest, reply: FastifyReply) => {
+    async (_request: FastifyRequest, reply: FastifyReply) => {
       return reply.send({ data: [], message: 'buildings list' })
     },
   )
@@ -233,7 +234,7 @@ async function buildTestApp(options: {
     {
       preHandler: [authGuard, roleGuard(['owner']), approvalGuard, tenantScope],
     },
-    async (request: FastifyRequest, reply: FastifyReply) => {
+    async (_request: FastifyRequest, reply: FastifyReply) => {
       return reply
         .status(201)
         .send({ id: 'new-building', message: 'building created' })
@@ -246,7 +247,7 @@ async function buildTestApp(options: {
     {
       preHandler: [authGuard, roleGuard(['owner']), approvalGuard, tenantScope],
     },
-    async (request: FastifyRequest, reply: FastifyReply) => {
+    async (_request: FastifyRequest, reply: FastifyReply) => {
       return reply
         .status(201)
         .send({ id: 'new-manager', message: 'manager created' })

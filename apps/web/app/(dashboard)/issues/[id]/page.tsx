@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { ErrorFeedback } from '@/components/ui/error-feedback'
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton'
 import { StatusBadge } from '@/components/ui/status-badge'
+import { useSession } from '@/contexts/session-context'
 import {
   useAssignIssue,
   useIssue,
@@ -15,7 +16,6 @@ import {
 import { BASE_URL } from '@/lib/api'
 import type { IssueStatus } from '@/lib/api-client'
 import { useTranslation } from '@/lib/i18n'
-import { useSession } from '@/contexts/session-context'
 
 /** Valid status transitions for issues */
 const VALID_TRANSITIONS: Record<IssueStatus, IssueStatus[]> = {
@@ -35,9 +35,9 @@ export default function IssueDetailPage() {
   const { user, role } = useSession()
   const { t } = useTranslation()
   const params = useParams()
-  const router = useRouter()
+  const _router = useRouter()
   const issueId = params.id as string
-// Status update state
+  // Status update state
   const [showStatusForm, setShowStatusForm] = useState(false)
   const [newStatus, setNewStatus] = useState<IssueStatus | ''>('')
   const [resolutionNotes, setResolutionNotes] = useState('')
@@ -58,7 +58,7 @@ export default function IssueDetailPage() {
   const [managers, setManagers] = useState<Array<{ id: string; name: string }>>(
     [],
   )
-// Load managers for assignment
+  // Load managers for assignment
   useEffect(() => {
     async function loadManagers() {
       try {
@@ -145,7 +145,7 @@ export default function IssueDetailPage() {
       })
     }
   }
-const canManage = role === 'owner' || role === 'manager'
+  const canManage = role === 'owner' || role === 'manager'
   const availableTransitions = issue
     ? (VALID_TRANSITIONS[issue.status] ?? [])
     : []

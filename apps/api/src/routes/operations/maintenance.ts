@@ -6,12 +6,15 @@ import {
 } from '@repo/shared/validation'
 import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
-import { dateTimeResponseSchema, errorResponseSchema } from '../app'
-import { approvalGuard } from '../middleware/approval-guard'
-import { authGuard } from '../middleware/auth-guard'
-import { roleGuard } from '../middleware/role-guard'
-import { tenantScope } from '../middleware/tenant-scope'
-import { MaintenanceService } from '../services/maintenance.service'
+import { approvalGuard } from '../../middleware/approval-guard'
+import { authGuard } from '../../middleware/auth-guard'
+import { roleGuard } from '../../middleware/role-guard'
+import { tenantScope } from '../../middleware/tenant-scope'
+import { MaintenanceService } from '../../services/maintenance.service'
+import {
+  dateTimeResponseSchema,
+  errorResponseSchema,
+} from '../../utils/schemas'
 
 /**
  * Maintenance routes plugin.
@@ -364,7 +367,13 @@ async function maintenanceRoutes(fastify: FastifyInstance) {
 
       const result = await maintenanceService.addComment(ctx, id, data)
 
-      return reply.status(201).send(result)
+      return reply.status(201).send({
+        id: result.id,
+        content: result.content,
+        userId: result.authorId,
+        maintenanceRequestId: result.requestId,
+        createdAt: result.createdAt,
+      })
     },
   )
 }

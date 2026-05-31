@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { buildApp } from '../../src/app'
-import { rateLimitStore } from '../../src/routes/register'
+import { rateLimitStore } from '../../src/routes/auth/register'
 import { validateRegistrationInput } from '../../src/services/registration'
 
 describe('Registration Endpoint', () => {

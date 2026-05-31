@@ -14,7 +14,7 @@ import {
   type RegisterRenterInput,
   registerRenterSchema,
 } from '@repo/shared/validation'
-import { and, eq } from 'drizzle-orm'
+import { and, desc, eq } from 'drizzle-orm'
 import type { AuditLogger } from '../plugins/audit-logger'
 import type { R2Client } from '../plugins/r2'
 
@@ -51,6 +51,7 @@ export interface RenterResult {
   digitalSignatureUrl: string | null
   createdAt: Date
   updatedAt: Date
+  flatId?: string | null
 }
 
 export interface RentalContractResult {
@@ -344,11 +345,18 @@ export class RenterRegistrationService {
         eq(renters.id, renterId),
         eq(renters.ownerAccountId, ctx.ownerAccountId),
       ),
+      with: {
+        rentalContracts: {
+          where: eq(rentalContracts.status, 'active'),
+        },
+      },
     })
 
     if (!renter) {
       throw new NotFoundError('Renter')
     }
+
+    const activeContract = renter.rentalContracts?.[0]
 
     return {
       id: renter.id,
@@ -369,6 +377,7 @@ export class RenterRegistrationService {
       digitalSignatureUrl: renter.digitalSignatureUrl,
       createdAt: renter.createdAt,
       updatedAt: renter.updatedAt,
+      flatId: activeContract?.flatId ?? null,
     }
   }
 
@@ -395,38 +404,47 @@ export class RenterRegistrationService {
     const { count } = await import('drizzle-orm')
 
     const [data, totalResult] = await Promise.all([
-      this.db
-        .select()
-        .from(renters)
-        .where(whereClause)
-        .limit(pageSize)
-        .offset(offset),
+      this.db.query.renters.findMany({
+        where: whereClause,
+        limit: pageSize,
+        offset: offset,
+        with: {
+          rentalContracts: {
+            where: eq(rentalContracts.status, 'active'),
+          },
+        },
+        orderBy: desc(renters.createdAt),
+      }),
       this.db.select({ count: count() }).from(renters).where(whereClause),
     ])
 
     const total = totalResult[0]?.count ?? 0
 
     return {
-      data: data.map((row) => ({
-        id: row.id,
-        userId: row.userId,
-        ownerAccountId: row.ownerAccountId,
-        fullName: row.fullName,
-        phone: row.phone,
-        nidNumber: row.nidNumber,
-        nidPhotoUrl: row.nidPhotoUrl,
-        dateOfBirth: row.dateOfBirth,
-        occupation: row.occupation,
-        bloodGroup: row.bloodGroup,
-        totalFamilyMembers: row.totalFamilyMembers,
-        familyMemberNames: row.familyMemberNames,
-        emergencyContactName: row.emergencyContactName,
-        emergencyContactNumber: row.emergencyContactNumber,
-        emergencyContactRelationship: row.emergencyContactRelationship,
-        digitalSignatureUrl: row.digitalSignatureUrl,
-        createdAt: row.createdAt,
-        updatedAt: row.updatedAt,
-      })),
+      data: data.map((row) => {
+        const activeContract = row.rentalContracts?.[0]
+        return {
+          id: row.id,
+          userId: row.userId,
+          ownerAccountId: row.ownerAccountId,
+          fullName: row.fullName,
+          phone: row.phone,
+          nidNumber: row.nidNumber,
+          nidPhotoUrl: row.nidPhotoUrl,
+          dateOfBirth: row.dateOfBirth,
+          occupation: row.occupation,
+          bloodGroup: row.bloodGroup,
+          totalFamilyMembers: row.totalFamilyMembers,
+          familyMemberNames: row.familyMemberNames,
+          emergencyContactName: row.emergencyContactName,
+          emergencyContactNumber: row.emergencyContactNumber,
+          emergencyContactRelationship: row.emergencyContactRelationship,
+          digitalSignatureUrl: row.digitalSignatureUrl,
+          createdAt: row.createdAt,
+          updatedAt: row.updatedAt,
+          flatId: activeContract?.flatId ?? null,
+        }
+      }),
       total,
       page,
       pageSize,

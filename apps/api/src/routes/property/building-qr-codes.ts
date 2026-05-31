@@ -3,12 +3,12 @@ import type { ApiErrorResponse } from '@repo/shared/types'
 import { and, eq } from 'drizzle-orm'
 import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
-import { errorResponseSchema } from '../app'
-import { approvalGuard } from '../middleware/approval-guard'
-import { authGuard } from '../middleware/auth-guard'
-import { roleGuard } from '../middleware/role-guard'
-import { tenantScope } from '../middleware/tenant-scope'
-import { QrCodeService } from '../services/qr-code'
+import { approvalGuard } from '../../middleware/approval-guard'
+import { authGuard } from '../../middleware/auth-guard'
+import { roleGuard } from '../../middleware/role-guard'
+import { tenantScope } from '../../middleware/tenant-scope'
+import { QrCodeService } from '../../services/qr-code'
+import { errorResponseSchema } from '../../utils/schemas'
 
 /**
  * Building bulk QR code routes plugin.

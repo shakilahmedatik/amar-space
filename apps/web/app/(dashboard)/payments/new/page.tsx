@@ -2,11 +2,9 @@
 
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { ErrorFeedback } from '@/components/ui/error-feedback'
-import { LoadingSkeleton } from '@/components/ui/loading-skeleton'
-import { useSession } from '@/contexts/session-context'
 import { useRecordPayment, useUnpaidBills } from '@/hooks/use-payments'
 import type { PaymentMethod } from '@/lib/api-client'
 import { useTranslation } from '@/lib/i18n'
@@ -26,7 +24,7 @@ interface FormErrors {
  */
 export default function RecordPaymentPage() {
   const { t } = useTranslation()
-  const router = useRouter()
+  const _router = useRouter()
   // Form state
   const [billId, setBillId] = useState('')
   const [amount, setAmount] = useState('')

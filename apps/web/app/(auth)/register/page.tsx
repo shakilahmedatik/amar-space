@@ -153,7 +153,13 @@ export default function RegisterPage() {
         setIsSubmitting(false)
       }
     },
-    [email, password, validateForm, t],
+    [
+      email,
+      password,
+      validateForm,
+      t, // Requirement 1.1: redirect to dashboard on success
+      router.push,
+    ],
   )
 
   return (

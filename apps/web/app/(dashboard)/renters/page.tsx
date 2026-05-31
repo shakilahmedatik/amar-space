@@ -7,10 +7,10 @@ import { Button } from '@/components/ui/button'
 import { DataTable, type DataTableColumn } from '@/components/ui/data-table'
 import { ErrorFeedback } from '@/components/ui/error-feedback'
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton'
+import { useSession } from '@/contexts/session-context'
 import { useRenters } from '@/hooks/use-renters'
 import type { RenterListItem } from '@/lib/api-client'
 import { useTranslation } from '@/lib/i18n'
-import { useSession } from '@/contexts/session-context'
 
 /**
  * Renter list page — /renters
@@ -21,10 +21,10 @@ import { useSession } from '@/contexts/session-context'
 export default function RentersPage() {
   const { role } = useSession()
   const { t } = useTranslation()
-  const router = useRouter()
-const [page, setPage] = useState(1)
-const { data, isLoading, isError, error } = useRenters(page, 50)
-const canRegister = role === 'owner' || role === 'manager'
+  const _router = useRouter()
+  const [page, setPage] = useState(1)
+  const { data, isLoading, isError, error } = useRenters(page, 50)
+  const canRegister = role === 'owner' || role === 'manager'
 
   const columns: DataTableColumn<RenterListItem>[] = [
     {

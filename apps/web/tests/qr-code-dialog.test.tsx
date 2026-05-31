@@ -17,7 +17,6 @@ vi.mock('@/lib/qr-code-utils', () => ({
 }))
 
 import { useQrCode } from '@/hooks/use-qr-code'
-import { downloadBlob, printQrCode } from '@/lib/qr-code-utils'
 import { QrCodeDialog } from '../components/qr-code/qr-code-dialog'
 import { I18nProvider } from '../lib/i18n/context'
 
@@ -36,7 +35,9 @@ function renderDialog(
   return render(
     React.createElement(
       I18nProvider,
-      { initialLocale: 'en' } as any,
+      { initialLocale: 'en' } as unknown as React.ComponentProps<
+        typeof I18nProvider
+      >,
       React.createElement(QrCodeDialog, { ...defaultProps, ...props }),
     ),
   )

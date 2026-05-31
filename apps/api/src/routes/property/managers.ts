@@ -2,12 +2,15 @@ import type { RequestContext } from '@repo/shared/types'
 import { createManagerSchema } from '@repo/shared/validation'
 import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
-import { dateTimeResponseSchema, errorResponseSchema } from '../app'
-import { approvalGuard } from '../middleware/approval-guard'
-import { authGuard } from '../middleware/auth-guard'
-import { roleGuard } from '../middleware/role-guard'
-import { tenantScope } from '../middleware/tenant-scope'
-import { ManagerService } from '../services/manager'
+import { approvalGuard } from '../../middleware/approval-guard'
+import { authGuard } from '../../middleware/auth-guard'
+import { roleGuard } from '../../middleware/role-guard'
+import { tenantScope } from '../../middleware/tenant-scope'
+import { ManagerService } from '../../services/manager'
+import {
+  dateTimeResponseSchema,
+  errorResponseSchema,
+} from '../../utils/schemas'
 
 /**
  * Manager routes plugin.

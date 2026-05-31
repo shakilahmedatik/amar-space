@@ -30,7 +30,7 @@ const assignedBuildingIdsArb = fc.uniqueArray(fc.uuid({ version: 4 }), {
 })
 
 /** Generate an empty set of assigned building IDs */
-const emptyBuildingIdsArb = fc.constant([] as string[])
+const _emptyBuildingIdsArb = fc.constant([] as string[])
 
 /** Generate a random email */
 const emailArb = fc

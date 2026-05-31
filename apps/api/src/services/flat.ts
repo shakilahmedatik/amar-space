@@ -1,4 +1,4 @@
-import { buildings, type Database, flatSlugs, flats } from '@repo/db'
+import type { Database } from '@repo/db'
 import {
   FLAT_STATUS,
   FLAT_STATUS_TRANSITIONS,
@@ -10,8 +10,9 @@ import {
   ValidationError,
 } from '@repo/shared/errors'
 import type { FieldError, RequestContext } from '@repo/shared/types'
-import { and, count, eq } from 'drizzle-orm'
 import type { AuditLogger } from '../plugins/audit-logger'
+import { BuildingRepository } from '../repositories/building.repository'
+import { FlatRepository } from '../repositories/flat.repository'
 
 // --- Types ---
 
@@ -42,6 +43,7 @@ export interface FlatResult {
   status: string
   createdAt: Date
   updatedAt: Date
+  buildingName?: string | null
 }
 
 export interface PaginatedFlats {
@@ -61,10 +63,16 @@ export interface PaginatedFlats {
  * Requirements: 6.1, 6.2, 6.3, 6.4, 6.5, 6.7, 6.10, 6.11, 6.12, 6.13, 6.14
  */
 export class FlatService {
+  private buildingRepository: BuildingRepository
+  private flatRepository: FlatRepository
+
   constructor(
     private db: Database,
     private auditLogger: AuditLogger,
-  ) {}
+  ) {
+    this.buildingRepository = new BuildingRepository(db)
+    this.flatRepository = new FlatRepository(db)
+  }
 
   /**
    * Creates a flat within a building.
@@ -84,24 +92,20 @@ export class FlatService {
     this.validateFlatFields(input.flatNumber, input.floor)
 
     // Verify building exists and belongs to the owner
-    const building = await this.db.query.buildings.findFirst({
-      where: and(
-        eq(buildings.id, input.buildingId),
-        eq(buildings.ownerAccountId, ctx.ownerAccountId),
-      ),
-    })
+    const building = await this.buildingRepository.findById(
+      input.buildingId,
+      ctx.ownerAccountId,
+    )
 
     if (!building) {
       throw new NotFoundError('Building')
     }
 
     // Check flat number uniqueness within building (Requirement 6.12)
-    const existingFlat = await this.db.query.flats.findFirst({
-      where: and(
-        eq(flats.buildingId, input.buildingId),
-        eq(flats.flatNumber, input.flatNumber),
-      ),
-    })
+    const existingFlat = await this.flatRepository.findByNumberAndBuilding(
+      input.flatNumber,
+      input.buildingId,
+    )
 
     if (existingFlat) {
       throw new ConflictError(
@@ -110,20 +114,13 @@ export class FlatService {
     }
 
     // Create the flat
-    const [created] = await this.db
-      .insert(flats)
-      .values({
-        ownerAccountId: ctx.ownerAccountId,
-        buildingId: input.buildingId,
-        flatNumber: input.flatNumber,
-        floor: input.floor,
-        status: FLAT_STATUS.VACANT,
-      })
-      .returning()
-
-    if (!created) {
-      throw new Error('Failed to create flat')
-    }
+    const created = await this.flatRepository.create({
+      ownerAccountId: ctx.ownerAccountId,
+      buildingId: input.buildingId,
+      flatNumber: input.flatNumber,
+      floor: input.floor,
+      status: FLAT_STATUS.VACANT,
+    })
 
     // Record audit event (Requirement 6.10)
     this.auditLogger.log({
@@ -164,12 +161,10 @@ export class FlatService {
     }
 
     // Find the flat with tenant isolation
-    const existing = await this.db.query.flats.findFirst({
-      where: and(
-        eq(flats.id, flatId),
-        eq(flats.ownerAccountId, ctx.ownerAccountId),
-      ),
-    })
+    const existing = await this.flatRepository.findById(
+      flatId,
+      ctx.ownerAccountId,
+    )
 
     if (!existing) {
       throw new NotFoundError('Flat')
@@ -177,12 +172,10 @@ export class FlatService {
 
     // If flatNumber is being changed, check uniqueness within building
     if (input.flatNumber && input.flatNumber !== existing.flatNumber) {
-      const duplicate = await this.db.query.flats.findFirst({
-        where: and(
-          eq(flats.buildingId, existing.buildingId),
-          eq(flats.flatNumber, input.flatNumber),
-        ),
-      })
+      const duplicate = await this.flatRepository.findByNumberAndBuilding(
+        input.flatNumber,
+        existing.buildingId,
+      )
 
       if (duplicate) {
         throw new ConflictError(
@@ -192,9 +185,7 @@ export class FlatService {
     }
 
     // Build update values
-    const updateValues: Record<string, unknown> = {
-      updatedAt: new Date(),
-    }
+    const updateValues: Record<string, unknown> = {}
     if (input.flatNumber !== undefined) {
       updateValues.flatNumber = input.flatNumber
     }
@@ -202,15 +193,7 @@ export class FlatService {
       updateValues.floor = input.floor
     }
 
-    const [updated] = await this.db
-      .update(flats)
-      .set(updateValues)
-      .where(eq(flats.id, flatId))
-      .returning()
-
-    if (!updated) {
-      throw new Error('Failed to update flat')
-    }
+    const updated = await this.flatRepository.update(flatId, updateValues)
 
     // Record audit event
     const oldValues: Record<string, unknown> = {}
@@ -249,12 +232,10 @@ export class FlatService {
    */
   async deleteFlat(ctx: RequestContext, flatId: string): Promise<void> {
     // Find the flat with tenant isolation
-    const existing = await this.db.query.flats.findFirst({
-      where: and(
-        eq(flats.id, flatId),
-        eq(flats.ownerAccountId, ctx.ownerAccountId),
-      ),
-    })
+    const existing = await this.flatRepository.findById(
+      flatId,
+      ctx.ownerAccountId,
+    )
 
     if (!existing) {
       throw new NotFoundError('Flat')
@@ -273,9 +254,7 @@ export class FlatService {
 
     // Use a transaction to ensure atomicity of delete + audit
     await this.db.transaction(async (tx) => {
-      // Delete related flat_slugs record (also handled by CASCADE after migration)
-      await tx.delete(flatSlugs).where(eq(flatSlugs.flatId, flatId))
-      await tx.delete(flats).where(eq(flats.id, flatId))
+      await this.flatRepository.delete(flatId, tx as unknown as Database)
     })
 
     // Record audit event
@@ -305,42 +284,16 @@ export class FlatService {
   ): Promise<PaginatedFlats> {
     const pageSize = Math.min(Math.max(input.pageSize, 1), 50)
     const page = Math.max(input.page, 1)
-    const offset = (page - 1) * pageSize
 
-    const conditions = [eq(flats.ownerAccountId, ctx.ownerAccountId)]
-
-    if (input.buildingId) {
-      conditions.push(eq(flats.buildingId, input.buildingId))
+    const filters = {
+      buildingId: input.buildingId,
+      status: input.status,
     }
 
-    if (input.status) {
-      conditions.push(eq(flats.status, input.status))
-    }
-
-    const whereClause = and(...conditions)
-
-    const [data, totalResult] = await Promise.all([
-      this.db
-        .select({
-          id: flats.id,
-          ownerAccountId: flats.ownerAccountId,
-          buildingId: flats.buildingId,
-          flatNumber: flats.flatNumber,
-          floor: flats.floor,
-          status: flats.status,
-          createdAt: flats.createdAt,
-          updatedAt: flats.updatedAt,
-          buildingName: buildings.name,
-        })
-        .from(flats)
-        .leftJoin(buildings, eq(flats.buildingId, buildings.id))
-        .where(whereClause)
-        .limit(pageSize)
-        .offset(offset),
-      this.db.select({ count: count() }).from(flats).where(whereClause),
+    const [data, total] = await Promise.all([
+      this.flatRepository.list(ctx.ownerAccountId, filters, page, pageSize),
+      this.flatRepository.count(ctx.ownerAccountId, filters),
     ])
-
-    const total = totalResult[0]?.count ?? 0
 
     return {
       data: data.map((row) => ({
@@ -378,12 +331,10 @@ export class FlatService {
     newStatus: FlatStatus,
   ): Promise<FlatResult> {
     // Find the flat with tenant isolation
-    const existing = await this.db.query.flats.findFirst({
-      where: and(
-        eq(flats.id, flatId),
-        eq(flats.ownerAccountId, ctx.ownerAccountId),
-      ),
-    })
+    const existing = await this.flatRepository.findById(
+      flatId,
+      ctx.ownerAccountId,
+    )
 
     if (!existing) {
       throw new NotFoundError('Flat')
@@ -403,18 +354,9 @@ export class FlatService {
       ])
     }
 
-    const [updated] = await this.db
-      .update(flats)
-      .set({
-        status: newStatus,
-        updatedAt: new Date(),
-      })
-      .where(eq(flats.id, flatId))
-      .returning()
-
-    if (!updated) {
-      throw new Error('Failed to update flat status')
-    }
+    const updated = await this.flatRepository.update(flatId, {
+      status: newStatus,
+    })
 
     // Record audit event for status transition
     this.auditLogger.log({
@@ -500,7 +442,16 @@ export class FlatService {
     return null
   }
 
-  private mapToResult(row: typeof flats.$inferSelect): FlatResult {
+  private mapToResult(row: {
+    id: string
+    ownerAccountId: string
+    buildingId: string
+    flatNumber: string
+    floor: number
+    status: string
+    createdAt: Date
+    updatedAt: Date
+  }): FlatResult {
     return {
       id: row.id,
       ownerAccountId: row.ownerAccountId,

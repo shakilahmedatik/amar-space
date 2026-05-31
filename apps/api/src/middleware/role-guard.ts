@@ -49,7 +49,7 @@ export function roleGuard(config: RoleGuardConfig) {
   return async (
     request: FastifyRequest,
     reply: FastifyReply,
-  ): Promise<void> => {
+  ): Promise<FastifyReply | undefined> => {
     const userRole = request.user.role
 
     // Superadmin always passes regardless of configuration
@@ -74,8 +74,7 @@ export function roleGuard(config: RoleGuardConfig) {
         error: 'Forbidden',
         message: 'Insufficient permissions',
       }
-      reply.status(403).send(response)
-      return
+      return reply.status(403).send(response)
     }
   }
 }

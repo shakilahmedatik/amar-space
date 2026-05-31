@@ -8,6 +8,7 @@ import { DataTable, type DataTableColumn } from '@/components/ui/data-table'
 import { ErrorFeedback } from '@/components/ui/error-feedback'
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton'
 import { StatusBadge } from '@/components/ui/status-badge'
+import { useSession } from '@/contexts/session-context'
 import { useBuildings } from '@/hooks/use-buildings'
 import { useMaintenanceRequests } from '@/hooks/use-maintenance'
 import type {
@@ -16,7 +17,6 @@ import type {
   MaintenanceStatus,
 } from '@/lib/api-client'
 import { useTranslation } from '@/lib/i18n'
-import { useSession } from '@/contexts/session-context'
 
 /**
  * Maintenance request list page — /maintenance
@@ -27,8 +27,8 @@ import { useSession } from '@/contexts/session-context'
 export default function MaintenancePage() {
   const { role } = useSession()
   const { t } = useTranslation()
-  const router = useRouter()
-const [page, setPage] = useState(1)
+  const _router = useRouter()
+  const [page, setPage] = useState(1)
 
   // Filter state
   const [buildingFilter, setBuildingFilter] = useState('')
@@ -37,7 +37,7 @@ const [page, setPage] = useState(1)
   const [priorityFilter, setPriorityFilter] = useState<
     MaintenancePriority | ''
   >('')
-const { data, isLoading, isError, error } = useMaintenanceRequests({
+  const { data, isLoading, isError, error } = useMaintenanceRequests({
     page,
     pageSize: 50,
     buildingId: buildingFilter || undefined,
@@ -65,7 +65,7 @@ const { data, isLoading, isError, error } = useMaintenanceRequests({
         break
     }
   }, [])
-const canCreate = role === 'renter'
+  const canCreate = role === 'renter'
 
   const filters = [
     {

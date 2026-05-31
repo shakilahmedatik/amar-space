@@ -9,15 +9,16 @@ import { DataTable, type DataTableColumn } from '@/components/ui/data-table'
 import { ErrorFeedback } from '@/components/ui/error-feedback'
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton'
 import { StatusBadge } from '@/components/ui/status-badge'
+import { useSession } from '@/contexts/session-context'
 import {
   useBills,
   useFlatOptions,
   useGenerateBills,
-  useRenterOptions } from '@/hooks/use-bills'
+  useRenterOptions,
+} from '@/hooks/use-bills'
 import { useBuildings } from '@/hooks/use-buildings'
 import type { BillListItem, BillStatus } from '@/lib/api-client'
 import { useTranslation } from '@/lib/i18n'
-import { useSession } from '@/contexts/session-context'
 
 /**
  * Bill list page — /bills
@@ -28,8 +29,8 @@ import { useSession } from '@/contexts/session-context'
 export default function BillsPage() {
   const { role } = useSession()
   const { t } = useTranslation()
-  const router = useRouter()
-const [page, setPage] = useState(1)
+  const _router = useRouter()
+  const [page, setPage] = useState(1)
 
   // Filter state
   const [buildingFilter, setBuildingFilter] = useState('')
@@ -43,7 +44,7 @@ const [page, setPage] = useState(1)
   const [generateMonth, setGenerateMonth] = useState('')
   const [generateError, setGenerateError] = useState('')
   const [successMessage, setSuccessMessage] = useState('')
-const { data, isLoading, isError, error } = useBills({
+  const { data, isLoading, isError, error } = useBills({
     page,
     pageSize: 50,
     buildingId: buildingFilter || undefined,
@@ -103,7 +104,7 @@ const { data, isLoading, isError, error } = useBills({
       )
     }
   }
-const canGenerate = role === 'owner' || role === 'manager'
+  const canGenerate = role === 'owner' || role === 'manager'
 
   const filters = [
     {

@@ -1,7 +1,7 @@
-import { createDbClient, validateConnection } from '@repo/db'
+import { validateConnection } from '@repo/db'
 import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
-import { dateTimeResponseSchema } from '../app'
+import { dateTimeResponseSchema } from '../../utils/schemas'
 
 /**
  * Health check route plugin.
@@ -60,9 +60,8 @@ async function healthRoutes(fastify: FastifyInstance) {
       let dbError: string | null = null
 
       try {
-        const db = createDbClient(fastify.env.DATABASE_URL)
         const dbCheckStart = Date.now()
-        await validateConnection(db)
+        await validateConnection(fastify.db)
         dbLatencyMs = Date.now() - dbCheckStart
         dbStatus = 'connected'
       } catch (error) {

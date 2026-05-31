@@ -10,9 +10,9 @@ import { ErrorFeedback } from '@/components/ui/error-feedback'
 import { FormField, FormInput } from '@/components/ui/form-field'
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton'
 import { StatusBadge } from '@/components/ui/status-badge'
+import { useSession } from '@/contexts/session-context'
 import { useAddUtilityCharge, useBill } from '@/hooks/use-bills'
 import { useTranslation } from '@/lib/i18n'
-import { useSession } from '@/contexts/session-context'
 
 /**
  * Bill detail page — /bills/[id]
@@ -24,9 +24,9 @@ export default function BillDetailPage() {
   const { role } = useSession()
   const { t } = useTranslation()
   const params = useParams()
-  const router = useRouter()
+  const _router = useRouter()
   const billId = params.id as string
-// Add charge form state
+  // Add charge form state
   const [showChargeForm, setShowChargeForm] = useState(false)
   const [chargeDescription, setChargeDescription] = useState('')
   const [chargeAmount, setChargeAmount] = useState('')
@@ -35,7 +35,7 @@ export default function BillDetailPage() {
 
   const { data: bill, isLoading, isError, error } = useBill(billId)
   const addChargeMutation = useAddUtilityCharge(billId)
-function validateCharge(): boolean {
+  function validateCharge(): boolean {
     const errors: Record<string, string> = {}
 
     if (!chargeDescription.trim()) {
@@ -83,7 +83,7 @@ function validateCharge(): boolean {
       })
     }
   }
-const canAddCharge = role === 'owner' || role === 'manager'
+  const canAddCharge = role === 'owner' || role === 'manager'
 
   return (
     <>

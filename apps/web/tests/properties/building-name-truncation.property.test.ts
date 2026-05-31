@@ -68,7 +68,7 @@ describe('Feature: renter-qr-portal, Property 2: Building name truncation', () =
       fc.property(fc.string({ minLength: 101, maxLength: 101 }), (name) => {
         const result = formatBuildingName(name)
         expect(result.length).toBe(101)
-        expect(result).toBe(name.slice(0, 100) + '\u2026')
+        expect(result).toBe(`${name.slice(0, 100)}\u2026`)
       }),
       { numRuns: 100 },
     )

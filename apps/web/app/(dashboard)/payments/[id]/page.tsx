@@ -2,13 +2,11 @@
 
 import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
-import { useState } from 'react'
 import { ErrorFeedback } from '@/components/ui/error-feedback'
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton'
 import { usePaymentReceipt } from '@/hooks/use-payments'
 import type { PaymentMethod } from '@/lib/api-client'
 import { useTranslation } from '@/lib/i18n'
-import { useSession } from '@/contexts/session-context'
 
 /**
  * Payment receipt display page — /payments/[id]
@@ -18,9 +16,9 @@ import { useSession } from '@/contexts/session-context'
 export default function PaymentReceiptPage() {
   const { t } = useTranslation()
   const params = useParams()
-  const router = useRouter()
+  const _router = useRouter()
   const paymentId = params.id as string
-const { data: receipt, isLoading, error } = usePaymentReceipt(paymentId)
+  const { data: receipt, isLoading, error } = usePaymentReceipt(paymentId)
 
   if (isLoading) {
     return (

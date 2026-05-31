@@ -115,9 +115,7 @@ export function OwnerDashboard() {
               >
                 <CardContent className="p-0 flex items-center justify-between gap-3 flex-wrap">
                   <div className="flex-1 min-w-[150px]">
-                    <p className="font-medium text-ink mb-1">
-                      {entry.action}
-                    </p>
+                    <p className="font-medium text-ink mb-1">{entry.action}</p>
                     <p className="text-xs text-steel">
                       {entry.actorName} • {entry.entityType}
                     </p>

@@ -59,8 +59,8 @@ describe('Feature: renter-qr-portal, Property 4: Emergency contact role ordering
 
           // Verify role ordering: each contact's role order should be <= the next
           for (let i = 0; i < buildingSorted.length - 1; i++) {
-            const currentRoleOrder = ROLE_ORDER[buildingSorted[i].role] ?? 999
-            const nextRoleOrder = ROLE_ORDER[buildingSorted[i + 1].role] ?? 999
+            const currentRoleOrder = ROLE_ORDER[buildingSorted[i]!.role] ?? 999
+            const nextRoleOrder = ROLE_ORDER[buildingSorted[i + 1]!.role] ?? 999
             expect(currentRoleOrder).toBeLessThanOrEqual(nextRoleOrder)
           }
         },
@@ -86,10 +86,10 @@ describe('Feature: renter-qr-portal, Property 4: Emergency contact role ordering
           // For contacts with the same role, their `order` values should be ascending
           // (preserving original relative order)
           for (let i = 0; i < buildingSorted.length - 1; i++) {
-            if (buildingSorted[i].role === buildingSorted[i + 1].role) {
-              expect(buildingSorted[i].order).toBeLessThan(
-                buildingSorted[i + 1].order,
-              )
+            const current = buildingSorted[i]!
+            const next = buildingSorted[i + 1]!
+            if (current.role === next.role) {
+              expect(current.order).toBeLessThan(next.order)
             }
           }
         },
@@ -112,9 +112,9 @@ describe('Feature: renter-qr-portal, Property 4: Emergency contact role ordering
           let firstNearbyIdx = sorted.length
 
           for (let i = 0; i < sorted.length; i++) {
-            if (sorted[i].type === 'building') lastBuildingIdx = i
-            if (sorted[i].type === 'nearby' && i < firstNearbyIdx)
-              firstNearbyIdx = i
+            const item = sorted[i]!
+            if (item.type === 'building') lastBuildingIdx = i
+            if (item.type === 'nearby' && i < firstNearbyIdx) firstNearbyIdx = i
           }
 
           // All building contacts should come before all nearby contacts

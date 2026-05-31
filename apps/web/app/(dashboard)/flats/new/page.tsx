@@ -88,7 +88,7 @@ export default function CreateFlatPage() {
     ],
   )
 
-  const ownerRole = 'owner' as const
+  const _ownerRole = 'owner' as const
 
   return (
     <>

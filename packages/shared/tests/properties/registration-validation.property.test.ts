@@ -1,10 +1,7 @@
 // Feature: renter-qr-portal, Property 5: Registration form validation
 import fc from 'fast-check'
 import { describe, expect, it } from 'vitest'
-import {
-  registrationFormSchema,
-  validateRegistrationForm,
-} from '../../src/portal/registration-validation'
+import { validateRegistrationForm } from '../../src/portal/registration-validation'
 
 /**
  * Property 5: Registration form validation

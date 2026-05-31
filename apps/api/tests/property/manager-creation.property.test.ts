@@ -1,8 +1,5 @@
-import {
-  ConflictError,
-  ForbiddenError,
-  ValidationError,
-} from '@repo/shared/errors'
+import type { Database } from '@repo/db'
+import { ForbiddenError } from '@repo/shared/errors'
 import { createManagerSchema } from '@repo/shared/validation'
 import fc from 'fast-check'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
@@ -48,13 +45,13 @@ const validBuildingIdsArb = fc.uniqueArray(uuidArb, {
 })
 
 /** Generate an invalid building IDs array (0 items or >20 items) */
-const invalidBuildingIdsCountArb = fc.oneof(
+const _invalidBuildingIdsCountArb = fc.oneof(
   fc.constant([] as string[]),
   fc.uniqueArray(uuidArb, { minLength: 21, maxLength: 30 }),
 )
 
 /** Generate a valid building IDs array of specific length */
-const buildingIdsOfLengthArb = (min: number, max: number) =>
+const _buildingIdsOfLengthArb = (min: number, max: number) =>
   fc.uniqueArray(uuidArb, { minLength: min, maxLength: max })
 
 // --- Mock Helpers ---
@@ -140,7 +137,7 @@ describe('Feature: role-based-user-management, Property 7: Valid manager creatio
   beforeEach(() => {
     mockDb = createMockDb()
     mockAuditLogger = createMockAuditLogger()
-    service = new ManagerService(mockDb as any, mockAuditLogger)
+    service = new ManagerService(mockDb as unknown as Database, mockAuditLogger)
   })
 
   /**
@@ -163,7 +160,10 @@ describe('Feature: role-based-user-management, Property 7: Valid manager creatio
           // Reset mocks for each iteration
           mockDb = createMockDb()
           mockAuditLogger = createMockAuditLogger()
-          service = new ManagerService(mockDb as any, mockAuditLogger)
+          service = new ManagerService(
+            mockDb as unknown as Database,
+            mockAuditLogger,
+          )
 
           // Configure DB to accept all building IDs as owned
           configureMockDbForValidBuildings(mockDb, buildingIds)
@@ -272,7 +272,7 @@ describe('Feature: role-based-user-management, Property 9: Building ownership va
   beforeEach(() => {
     mockDb = createMockDb()
     mockAuditLogger = createMockAuditLogger()
-    service = new ManagerService(mockDb as any, mockAuditLogger)
+    service = new ManagerService(mockDb as unknown as Database, mockAuditLogger)
   })
 
   /**
@@ -306,7 +306,10 @@ describe('Feature: role-based-user-management, Property 9: Building ownership va
           // Reset mocks for each iteration
           mockDb = createMockDb()
           mockAuditLogger = createMockAuditLogger()
-          service = new ManagerService(mockDb as any, mockAuditLogger)
+          service = new ManagerService(
+            mockDb as unknown as Database,
+            mockAuditLogger,
+          )
 
           // Configure DB to only return owned buildings
           configureMockDbForForeignBuildings(mockDb, ownedIds, allBuildingIds)

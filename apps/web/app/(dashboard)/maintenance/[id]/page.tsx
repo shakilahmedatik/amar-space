@@ -8,13 +8,14 @@ import { Button } from '@/components/ui/button'
 import { ErrorFeedback } from '@/components/ui/error-feedback'
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton'
 import { StatusBadge } from '@/components/ui/status-badge'
+import { useSession } from '@/contexts/session-context'
 import {
   useAddMaintenanceComment,
   useMaintenanceRequest,
-  useUpdateMaintenanceStatus } from '@/hooks/use-maintenance'
+  useUpdateMaintenanceStatus,
+} from '@/hooks/use-maintenance'
 import type { MaintenanceStatus } from '@/lib/api-client'
 import { useTranslation } from '@/lib/i18n'
-import { useSession } from '@/contexts/session-context'
 
 /**
  * Valid status transitions for maintenance requests.
@@ -62,9 +63,9 @@ export default function MaintenanceDetailPage() {
   const { role } = useSession()
   const { t } = useTranslation()
   const params = useParams()
-  const router = useRouter()
+  const _router = useRouter()
   const requestId = params.id as string
-// Comment form state
+  // Comment form state
   const [commentContent, setCommentContent] = useState('')
   const [commentError, setCommentError] = useState('')
   const [successMessage, setSuccessMessage] = useState('')
@@ -77,7 +78,7 @@ export default function MaintenanceDetailPage() {
   } = useMaintenanceRequest(requestId)
   const statusMutation = useUpdateMaintenanceStatus(requestId)
   const commentMutation = useAddMaintenanceComment(requestId)
-async function handleStatusUpdate(newStatus: MaintenanceStatus) {
+  async function handleStatusUpdate(newStatus: MaintenanceStatus) {
     try {
       await statusMutation.mutateAsync({ status: newStatus })
       setSuccessMessage(t('maintenance.statusUpdateSuccess'))
@@ -125,7 +126,7 @@ async function handleStatusUpdate(newStatus: MaintenanceStatus) {
         return status
     }
   }
-const canUpdateStatus = role === 'owner' || role === 'manager'
+  const canUpdateStatus = role === 'owner' || role === 'manager'
 
   return (
     <>

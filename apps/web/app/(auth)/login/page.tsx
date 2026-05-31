@@ -107,7 +107,13 @@ export default function LoginPage() {
         setIsSubmitting(false)
       }
     },
-    [email, password, validateForm, t],
+    [
+      email,
+      password,
+      validateForm,
+      t, // Requirement 2.1: redirect to dashboard on success
+      router.push,
+    ],
   )
 
   return (

@@ -114,7 +114,7 @@ export function QrCodeDialog({
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="min-h-[44px] min-w-[44px]"
+                  className="min-h-[44px] min-w-[44px] rounded-full"
                   aria-label={t('qrCode.close')}
                 >
                   <X className="h-4 w-4" />
@@ -153,7 +153,7 @@ export function QrCodeDialog({
               <Button
                 onClick={handleDownload}
                 disabled={isActionDisabled}
-                className="min-h-[44px] min-w-[44px] w-full sm:w-auto"
+                className="min-h-[44px] min-w-[44px] w-full sm:w-auto rounded-full"
               >
                 <Download className="h-4 w-4" />
                 {t('qrCode.download')}
@@ -162,7 +162,7 @@ export function QrCodeDialog({
                 variant="outline"
                 onClick={handlePrint}
                 disabled={isActionDisabled}
-                className="min-h-[44px] min-w-[44px] w-full sm:w-auto"
+                className="min-h-[44px] min-w-[44px] w-full sm:w-auto rounded-full"
               >
                 <Printer className="h-4 w-4" />
                 {t('qrCode.print')}

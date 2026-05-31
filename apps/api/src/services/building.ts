@@ -1,4 +1,4 @@
-import { buildings, type Database } from '@repo/db'
+import type { Database } from '@repo/db'
 import {
   ConflictError,
   NotFoundError,
@@ -11,8 +11,8 @@ import {
   type UpdateBuildingInput,
   updateBuildingSchema,
 } from '@repo/shared/validation'
-import { and, count, desc, eq } from 'drizzle-orm'
 import type { AuditLogger } from '../plugins/audit-logger'
+import { BuildingRepository } from '../repositories/building.repository'
 
 // --- Types ---
 
@@ -54,12 +54,12 @@ export interface Building {
  * Requirements: 5.1, 5.2, 5.3, 5.4, 5.6, 5.7, 5.8, 5.9
  */
 export class BuildingService {
-  private db: Database
   private auditLogger: AuditLogger
+  private buildingRepository: BuildingRepository
 
   constructor(db: Database, auditLogger: AuditLogger) {
-    this.db = db
     this.auditLogger = auditLogger
+    this.buildingRepository = new BuildingRepository(db)
   }
 
   /**
@@ -90,12 +90,10 @@ export class BuildingService {
     const validated = parseResult.data
 
     // Step 2: Check name uniqueness per owner (Requirement 5.9)
-    const existing = await this.db.query.buildings.findFirst({
-      where: and(
-        eq(buildings.ownerAccountId, ctx.ownerAccountId),
-        eq(buildings.name, validated.name),
-      ),
-    })
+    const existing = await this.buildingRepository.findByNameAndOwner(
+      validated.name,
+      ctx.ownerAccountId,
+    )
 
     if (existing) {
       throw new ConflictError(
@@ -104,19 +102,12 @@ export class BuildingService {
     }
 
     // Step 3: Insert the building
-    const [created] = await this.db
-      .insert(buildings)
-      .values({
-        ownerAccountId: ctx.ownerAccountId,
-        name: validated.name,
-        address: validated.address,
-        totalFloors: validated.totalFloors ?? null,
-      })
-      .returning()
-
-    if (!created) {
-      throw new Error('Failed to create building')
-    }
+    const created = await this.buildingRepository.create({
+      ownerAccountId: ctx.ownerAccountId,
+      name: validated.name,
+      address: validated.address,
+      totalFloors: validated.totalFloors ?? null,
+    })
 
     // Step 4: Record audit event (Requirement 5.6)
     this.auditLogger.log({
@@ -164,12 +155,10 @@ export class BuildingService {
     const validated = parseResult.data
 
     // Step 2: Verify building exists and belongs to the owner
-    const existing = await this.db.query.buildings.findFirst({
-      where: and(
-        eq(buildings.id, buildingId),
-        eq(buildings.ownerAccountId, ctx.ownerAccountId),
-      ),
-    })
+    const existing = await this.buildingRepository.findById(
+      buildingId,
+      ctx.ownerAccountId,
+    )
 
     if (!existing) {
       throw new NotFoundError('Building')
@@ -177,12 +166,10 @@ export class BuildingService {
 
     // Step 3: If name is being changed, check uniqueness (Requirement 5.9)
     if (validated.name && validated.name !== existing.name) {
-      const duplicate = await this.db.query.buildings.findFirst({
-        where: and(
-          eq(buildings.ownerAccountId, ctx.ownerAccountId),
-          eq(buildings.name, validated.name),
-        ),
-      })
+      const duplicate = await this.buildingRepository.findByNameAndOwner(
+        validated.name,
+        ctx.ownerAccountId,
+      )
 
       if (duplicate) {
         throw new ConflictError(
@@ -192,9 +179,7 @@ export class BuildingService {
     }
 
     // Step 4: Build update payload (only include provided fields)
-    const updatePayload: Record<string, unknown> = {
-      updatedAt: new Date(),
-    }
+    const updatePayload: Record<string, unknown> = {}
 
     if (validated.name !== undefined) {
       updatePayload.name = validated.name
@@ -207,16 +192,11 @@ export class BuildingService {
     }
 
     // Step 5: Perform the update
-    const [updated] = await this.db
-      .update(buildings)
-      .set(updatePayload)
-      .where(
-        and(
-          eq(buildings.id, buildingId),
-          eq(buildings.ownerAccountId, ctx.ownerAccountId),
-        ),
-      )
-      .returning()
+    const updated = await this.buildingRepository.update(
+      buildingId,
+      ctx.ownerAccountId,
+      updatePayload,
+    )
 
     if (!updated) {
       throw new NotFoundError('Building')
@@ -275,22 +255,11 @@ export class BuildingService {
   ): Promise<PaginatedResult<Building>> {
     const pageSize = Math.min(Math.max(pagination.pageSize, 1), 50)
     const page = Math.max(pagination.page, 1)
-    const offset = (page - 1) * pageSize
 
-    const whereClause = eq(buildings.ownerAccountId, ctx.ownerAccountId)
-
-    const [data, totalResult] = await Promise.all([
-      this.db
-        .select()
-        .from(buildings)
-        .where(whereClause)
-        .orderBy(desc(buildings.createdAt))
-        .limit(pageSize)
-        .offset(offset),
-      this.db.select({ count: count() }).from(buildings).where(whereClause),
+    const [data, total] = await Promise.all([
+      this.buildingRepository.list(ctx.ownerAccountId, page, pageSize),
+      this.buildingRepository.count(ctx.ownerAccountId),
     ])
-
-    const total = totalResult[0]?.count ?? 0
 
     return {
       data,
@@ -310,12 +279,10 @@ export class BuildingService {
     ctx: RequestContext,
     buildingId: string,
   ): Promise<Building> {
-    const building = await this.db.query.buildings.findFirst({
-      where: and(
-        eq(buildings.id, buildingId),
-        eq(buildings.ownerAccountId, ctx.ownerAccountId),
-      ),
-    })
+    const building = await this.buildingRepository.findById(
+      buildingId,
+      ctx.ownerAccountId,
+    )
 
     if (!building) {
       throw new NotFoundError('Building')

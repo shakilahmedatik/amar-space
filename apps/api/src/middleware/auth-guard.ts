@@ -74,7 +74,7 @@ function toWebHeaders(request: FastifyRequest, _baseURL: string): Headers {
 export async function authGuard(
   request: FastifyRequest,
   reply: FastifyReply,
-): Promise<void> {
+): Promise<FastifyReply | undefined> {
   const { auth, env } = request.server
 
   const headers = toWebHeaders(request, env.AUTH_BASE_URL)
@@ -89,8 +89,7 @@ export async function authGuard(
         error: 'Unauthorized',
         message: 'Authentication required',
       }
-      reply.status(401).send(response)
-      return
+      return reply.status(401).send(response)
     }
 
     const user = session.user as Record<string, unknown>
@@ -117,8 +116,7 @@ export async function authGuard(
         error: 'Unauthorized',
         message: 'Account is deactivated',
       }
-      reply.status(401).send(response)
-      return
+      return reply.status(401).send(response)
     }
 
     // For owners, ownerAccountId is their own ID (they ARE the owner account)
@@ -147,6 +145,6 @@ export async function authGuard(
       error: 'Unauthorized',
       message: 'Session is invalid or has expired',
     }
-    reply.status(401).send(response)
+    return reply.status(401).send(response)
   }
 }

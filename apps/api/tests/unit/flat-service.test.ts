@@ -101,6 +101,13 @@ function createMockDb(
 
   const mockSelect = vi.fn().mockReturnValue({
     from: vi.fn().mockReturnValue({
+      leftJoin: vi.fn().mockReturnValue({
+        where: vi.fn().mockReturnValue({
+          limit: vi.fn().mockReturnValue({
+            offset: vi.fn().mockResolvedValue(defaultSelectResult),
+          }),
+        }),
+      }),
       where: vi.fn().mockReturnValue({
         limit: vi.fn().mockReturnValue({
           offset: vi.fn().mockResolvedValue(defaultSelectResult),
@@ -136,7 +143,7 @@ function createMockDb(
     return mockSelect()
   })
 
-  return {
+  const dbMock = {
     query: {
       flats: {
         findFirst: vi.fn().mockResolvedValue(defaultFlat),
@@ -149,7 +156,12 @@ function createMockDb(
     update: mockUpdate,
     delete: mockDeleteFn,
     select: selectFn,
-  } as unknown
+    transaction: vi.fn().mockImplementation(async (cb) => {
+      return cb(dbMock)
+    }),
+  }
+
+  return dbMock as unknown
 }
 
 function createOwnerContext(

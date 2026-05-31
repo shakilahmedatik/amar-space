@@ -7,10 +7,10 @@ import { Button } from '@/components/ui/button'
 import { DataTable, type DataTableColumn } from '@/components/ui/data-table'
 import { ErrorFeedback } from '@/components/ui/error-feedback'
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton'
+import { useSession } from '@/contexts/session-context'
 import { useNotices } from '@/hooks/use-notices'
 import type { NoticeListItem, NoticeTargetAudience } from '@/lib/api-client'
 import { useTranslation } from '@/lib/i18n'
-import { useSession } from '@/contexts/session-context'
 
 /**
  * Notice list page — /notices
@@ -21,15 +21,15 @@ import { useSession } from '@/contexts/session-context'
 export default function NoticesPage() {
   const { role } = useSession()
   const { t } = useTranslation()
-  const router = useRouter()
-const [page, setPage] = useState(1)
+  const _router = useRouter()
+  const [page, setPage] = useState(1)
 
   // Filter state
   const [audienceFilter, setAudienceFilter] = useState<
     NoticeTargetAudience | ''
   >('')
   const [pinnedFilter, setPinnedFilter] = useState<boolean | ''>('')
-const { data, isLoading, isError, error } = useNotices({
+  const { data, isLoading, isError, error } = useNotices({
     page,
     pageSize: 50,
     targetAudience: audienceFilter || undefined,
@@ -49,7 +49,7 @@ const { data, isLoading, isError, error } = useNotices({
         break
     }
   }, [])
-const canCreate = role === 'owner' || role === 'manager'
+  const canCreate = role === 'owner' || role === 'manager'
 
   const audienceLabels: Record<NoticeTargetAudience, string> = {
     all_renters: t('notices.allRenters'),

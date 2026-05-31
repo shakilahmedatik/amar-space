@@ -1,18 +1,17 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
 import { useCallback, useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { ErrorFeedback } from '@/components/ui/error-feedback'
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton'
+import { useSession } from '@/contexts/session-context'
 import {
   fetchUserProfile,
   type UserProfile,
   updateLanguagePreference,
 } from '@/lib/api-client'
 import { type Locale, useTranslation } from '@/lib/i18n'
-import { useSession } from '@/contexts/session-context'
 
 /**
  * User settings page — /settings
@@ -21,17 +20,17 @@ import { useSession } from '@/contexts/session-context'
  * Validates: Requirements 15.5, 15.6
  */
 export default function SettingsPage() {
-  const { user, role } = useSession()
+  const { user } = useSession()
   const { t, locale, setLocale } = useTranslation()
-  const router = useRouter()
-const [profile, setProfile] = useState<UserProfile | null>(null)
+
+  const [profile, setProfile] = useState<UserProfile | null>(null)
   const [isLoadingProfile, setIsLoadingProfile] = useState(true)
   const [isSavingLanguage, setIsSavingLanguage] = useState(false)
   const [feedback, setFeedback] = useState<{
     message: string
     type: 'success' | 'error'
   } | null>(null)
-useEffect(() => {
+  useEffect(() => {
     if (!user) return
 
     async function loadProfile() {
@@ -77,7 +76,7 @@ useEffect(() => {
     },
     [setLocale, t],
   )
-/**
+  /**
    * Get the display label for a user role.
    */
   function getRoleLabel(userRole: string): string {

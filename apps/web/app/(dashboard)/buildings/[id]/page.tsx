@@ -11,6 +11,7 @@ import { ErrorFeedback } from '@/components/ui/error-feedback'
 import { FormField, FormInput } from '@/components/ui/form-field'
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton'
 import { StatusBadge } from '@/components/ui/status-badge'
+import { useSession } from '@/contexts/session-context'
 import {
   useBuilding,
   useBuildingFlats,
@@ -18,7 +19,6 @@ import {
 } from '@/hooks/use-buildings'
 import type { FlatSummary } from '@/lib/api-client'
 import { useTranslation } from '@/lib/i18n'
-import { useSession } from '@/contexts/session-context'
 
 /**
  * Building detail page — /buildings/[id]
@@ -30,9 +30,9 @@ export default function BuildingDetailPage() {
   const { role } = useSession()
   const { t } = useTranslation()
   const params = useParams()
-  const router = useRouter()
+  const _router = useRouter()
   const buildingId = params.id as string
-const [isEditing, setIsEditing] = useState(false)
+  const [isEditing, setIsEditing] = useState(false)
   const [flatPage, setFlatPage] = useState(1)
 
   // Edit form state
@@ -49,7 +49,7 @@ const [isEditing, setIsEditing] = useState(false)
     50,
   )
   const updateMutation = useUpdateBuilding(buildingId)
-// Populate edit form when building data loads
+  // Populate edit form when building data loads
   useEffect(() => {
     if (building) {
       setEditName(building.name)
@@ -102,7 +102,7 @@ const [isEditing, setIsEditing] = useState(false)
       })
     }
   }
-const isOwner = role === 'owner'
+  const isOwner = role === 'owner'
   const isOwnerOrManager = role === 'owner' || role === 'manager'
 
   const flatColumns: DataTableColumn<FlatSummary>[] = [

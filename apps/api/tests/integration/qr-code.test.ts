@@ -12,20 +12,16 @@
  * Requirements: 1.4, 1.5, 2.1, 2.4, 5.4
  */
 
-import { Readable } from 'node:stream'
+import type { Database } from '@repo/db'
 import Fastify, { type FastifyInstance } from 'fastify'
 import {
   serializerCompiler,
   validatorCompiler,
   type ZodTypeProvider,
 } from 'fastify-type-provider-zod'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { approvalGuard } from '../../src/middleware/approval-guard'
-import { authGuard } from '../../src/middleware/auth-guard'
-import { roleGuard } from '../../src/middleware/role-guard'
-import { tenantScope } from '../../src/middleware/tenant-scope'
-import buildingQrCodeRoutes from '../../src/routes/building-qr-codes'
-import flatQrCodeRoutes from '../../src/routes/flat-qr-code'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import buildingQrCodeRoutes from '../../src/routes/property/building-qr-codes'
+import flatQrCodeRoutes from '../../src/routes/property/flat-qr-code'
 
 // --- Test Constants ---
 
@@ -56,6 +52,9 @@ function createMockDb(overrides: Record<string, unknown> = {}) {
       },
       buildings: {
         findFirst: vi.fn().mockResolvedValue(null),
+      },
+      flatSlugs: {
+        findFirst: vi.fn().mockResolvedValue({ slug: 'test-slug' }),
       },
     },
     select: vi.fn().mockReturnValue({
@@ -107,6 +106,7 @@ async function buildTestApp(options: {
     AUTH_BASE_URL: 'http://localhost:3001',
     AUTH_TRUSTED_ORIGINS: ['http://localhost:3000'],
     NODE_ENV: 'test',
+    FRONTEND_URL: 'http://localhost:3000',
   })
   app.decorate('db', mockDb)
   app.decorate('auth', mockAuth)
@@ -121,7 +121,7 @@ async function buildTestApp(options: {
         where: vi.fn().mockResolvedValue(assignedBuildings),
       }),
     })
-    ;(mockDb as any).select = selectFn
+    ;(mockDb as unknown as Database).select = selectFn
   }
 
   // Register the actual QR code route plugins
@@ -261,7 +261,7 @@ describe('Integration: QR Code Endpoints', () => {
       expect(body.flatId).toBe(FLAT_ID)
       expect(body.flatNumber).toBe('101')
       expect(body.buildingName).toBe('Test Building')
-      expect(body.encodedUrl).toContain(`/flats/${FLAT_ID}`)
+      expect(body.encodedUrl).toContain(`/f/test-slug`)
       expect(body.imageBase64).toContain('data:image/png;base64,')
     })
 
@@ -405,7 +405,9 @@ describe('Integration: QR Code Endpoints', () => {
       }
 
       const mockDb = createMockDb()
-      ;(mockDb.query.buildings as any).findFirst = vi.fn().mockResolvedValue({
+      ;(
+        mockDb.query.buildings.findFirst as ReturnType<typeof vi.fn>
+      ).mockResolvedValue({
         id: BUILDING_ID,
         name: 'Test Building',
         ownerAccountId: OWNER_ID,
@@ -447,9 +449,9 @@ describe('Integration: QR Code Endpoints', () => {
       }
 
       const mockDb = createMockDb()
-      ;(mockDb.query.buildings as any).findFirst = vi
-        .fn()
-        .mockResolvedValue(null)
+      ;(
+        mockDb.query.buildings.findFirst as ReturnType<typeof vi.fn>
+      ).mockResolvedValue(null)
 
       const { app: testApp } = await buildTestApp({
         sessionUser: owner,
@@ -480,7 +482,9 @@ describe('Integration: QR Code Endpoints', () => {
       }
 
       const mockDb = createMockDb()
-      ;(mockDb.query.buildings as any).findFirst = vi.fn().mockResolvedValue({
+      ;(
+        mockDb.query.buildings.findFirst as ReturnType<typeof vi.fn>
+      ).mockResolvedValue({
         id: BUILDING_ID,
         name: 'Empty Building',
         ownerAccountId: OWNER_ID,

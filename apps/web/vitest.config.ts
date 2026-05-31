@@ -8,7 +8,7 @@ export default defineConfig({
     },
   },
   oxc: {
-    jsx: 'automatic' as any,
+    jsx: 'automatic' as unknown as 'preserve',
   },
   test: {
     globals: true,

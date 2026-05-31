@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import {
   DataTable,
@@ -10,7 +10,6 @@ import {
   type DataTableFilter,
 } from '@/components/ui/data-table'
 import { ErrorFeedback } from '@/components/ui/error-feedback'
-import { LoadingSkeleton } from '@/components/ui/loading-skeleton'
 import { useSession } from '@/contexts/session-context'
 import { usePayments, useRenterOptions } from '@/hooks/use-payments'
 import type { Payment, PaymentMethod } from '@/lib/api-client'
@@ -24,7 +23,7 @@ import { useTranslation } from '@/lib/i18n'
 export default function PaymentsPage() {
   const { role } = useSession()
   const { t } = useTranslation()
-  const router = useRouter()
+  const _router = useRouter()
   const [page, setPage] = useState(1)
   const [methodFilter, setMethodFilter] = useState<PaymentMethod | ''>('')
   const [renterFilter, setRenterFilter] = useState('')

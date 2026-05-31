@@ -7,10 +7,8 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { ErrorFeedback } from '@/components/ui/error-feedback'
 import { FormField, FormInput } from '@/components/ui/form-field'
-import { LoadingSkeleton } from '@/components/ui/loading-skeleton'
 import { useCreateBuilding } from '@/hooks/use-buildings'
 import { useTranslation } from '@/lib/i18n'
-import { useSession } from '@/contexts/session-context'
 
 /**
  * Building creation page — /buildings/new
@@ -21,14 +19,14 @@ import { useSession } from '@/contexts/session-context'
 export default function NewBuildingPage() {
   const { t } = useTranslation()
   const router = useRouter()
-const [name, setName] = useState('')
+  const [name, setName] = useState('')
   const [address, setAddress] = useState('')
   const [totalFloors, setTotalFloors] = useState('')
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [successMessage, setSuccessMessage] = useState('')
 
   const createMutation = useCreateBuilding()
-function validate(): boolean {
+  function validate(): boolean {
     const newErrors: Record<string, string> = {}
 
     if (!name.trim()) {

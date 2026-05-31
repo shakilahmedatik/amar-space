@@ -6,12 +6,10 @@ import { type FormEvent, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { ErrorFeedback } from '@/components/ui/error-feedback'
 import { FormField, FormInput } from '@/components/ui/form-field'
-import { LoadingSkeleton } from '@/components/ui/loading-skeleton'
 import { useBuildings } from '@/hooks/use-buildings'
 import { useCreateIssue } from '@/hooks/use-issues'
 import type { IssueCategory, IssuePriority } from '@/lib/api-client'
 import { useTranslation } from '@/lib/i18n'
-import { useSession } from '@/contexts/session-context'
 
 /**
  * New issue form page — /issues/new
@@ -21,7 +19,7 @@ import { useSession } from '@/contexts/session-context'
 export default function NewIssuePage() {
   const { t } = useTranslation()
   const router = useRouter()
-// Form state
+  // Form state
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [buildingId, setBuildingId] = useState('')
@@ -35,7 +33,7 @@ export default function NewIssuePage() {
     100,
   )
   const createMutation = useCreateIssue()
-function validate(): boolean {
+  function validate(): boolean {
     const newErrors: Record<string, string> = {}
 
     if (!buildingId) {
@@ -89,7 +87,7 @@ function validate(): boolean {
       })
     }
   }
-return (
+  return (
     <>
       {successMessage && (
         <ErrorFeedback

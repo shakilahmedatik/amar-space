@@ -11,14 +11,15 @@ import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { ErrorFeedback } from '@/components/ui/error-feedback'
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton'
 import { StatusBadge } from '@/components/ui/status-badge'
+import { useSession } from '@/contexts/session-context'
 import {
   getValidStatusTransitions,
   useDeleteFlat,
   useFlat,
-  useUpdateFlat } from '@/hooks/use-flats'
+  useUpdateFlat,
+} from '@/hooks/use-flats'
 import type { FlatStatus } from '@/lib/api-client'
 import { useTranslation } from '@/lib/i18n'
-import { useSession } from '@/contexts/session-context'
 
 /**
  * Flat detail page — /flats/[id]
@@ -31,7 +32,7 @@ export default function FlatDetailPage() {
   const params = useParams()
   const router = useRouter()
   const flatId = params.id as string
-const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [qrDialogOpen, setQrDialogOpen] = useState(false)
   const [feedback, setFeedback] = useState<{
     message: string
@@ -41,7 +42,7 @@ const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const { data: flat, isLoading, error } = useFlat(flatId)
   const updateFlatMutation = useUpdateFlat()
   const deleteFlatMutation = useDeleteFlat()
-const handleStatusTransition = useCallback(
+  const handleStatusTransition = useCallback(
     async (newStatus: FlatStatus) => {
       try {
         await updateFlatMutation.mutateAsync({
@@ -74,7 +75,7 @@ const handleStatusTransition = useCallback(
       })
       setShowDeleteDialog(false)
     }
-  }, [flatId, deleteFlatMutation, t])
+  }, [flatId, deleteFlatMutation, t, router.push])
 
   if (isLoading) {
     return (

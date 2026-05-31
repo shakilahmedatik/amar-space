@@ -3,12 +3,15 @@ import type { RequestContext } from '@repo/shared/types'
 import { paymentMethodEnum, recordPaymentSchema } from '@repo/shared/validation'
 import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
-import { dateTimeResponseSchema, errorResponseSchema } from '../app'
-import { approvalGuard } from '../middleware/approval-guard'
-import { authGuard } from '../middleware/auth-guard'
-import { roleGuard } from '../middleware/role-guard'
-import { tenantScope } from '../middleware/tenant-scope'
-import { PaymentService } from '../services/payment'
+import { approvalGuard } from '../../middleware/approval-guard'
+import { authGuard } from '../../middleware/auth-guard'
+import { roleGuard } from '../../middleware/role-guard'
+import { tenantScope } from '../../middleware/tenant-scope'
+import { PaymentService } from '../../services/payment'
+import {
+  dateTimeResponseSchema,
+  errorResponseSchema,
+} from '../../utils/schemas'
 
 /**
  * Payment routes plugin.
@@ -147,7 +150,21 @@ async function paymentRoutes(fastify: FastifyInstance) {
         { page, pageSize },
       )
 
-      return reply.status(200).send(result)
+      return reply.status(200).send({
+        data: result.data.map((p) => ({
+          id: p.id,
+          billId: p.billId,
+          amount: Number.parseFloat(p.amount),
+          paymentDate: p.paymentDate,
+          paymentMethod: p.paymentMethod as 'cash' | 'bank_transfer' | 'mobile_banking' | 'cheque',
+          note: p.note,
+          ownerAccountId: p.ownerAccountId,
+          createdAt: p.createdAt,
+        })),
+        total: result.total,
+        page: result.page,
+        pageSize: result.pageSize,
+      })
     },
   )
 
@@ -209,7 +226,16 @@ async function paymentRoutes(fastify: FastifyInstance) {
 
       const payment = await paymentService.recordPayment(ctx, data)
 
-      return reply.status(201).send(payment)
+      return reply.status(201).send({
+        id: payment.id,
+        billId: payment.billId,
+        amount: Number.parseFloat(payment.amount),
+        paymentDate: payment.paymentDate,
+        paymentMethod: payment.paymentMethod as 'cash' | 'bank_transfer' | 'mobile_banking' | 'cheque',
+        note: payment.note,
+        ownerAccountId: payment.ownerAccountId,
+        createdAt: payment.createdAt,
+      })
     },
   )
 
@@ -266,7 +292,16 @@ async function paymentRoutes(fastify: FastifyInstance) {
 
       const payment = await paymentService.getPayment(ctx, id)
 
-      return reply.status(200).send(payment)
+      return reply.status(200).send({
+        id: payment.id,
+        billId: payment.billId,
+        amount: Number.parseFloat(payment.amount),
+        paymentDate: payment.paymentDate,
+        paymentMethod: payment.paymentMethod as 'cash' | 'bank_transfer' | 'mobile_banking' | 'cheque',
+        note: payment.note,
+        ownerAccountId: payment.ownerAccountId,
+        createdAt: payment.createdAt,
+      })
     },
   )
 }

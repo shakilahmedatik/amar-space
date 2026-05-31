@@ -2,12 +2,15 @@ import type { RequestContext } from '@repo/shared/types'
 import { applyAdjustmentSchema } from '@repo/shared/validation'
 import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
-import { dateTimeResponseSchema, errorResponseSchema } from '../app'
-import { approvalGuard } from '../middleware/approval-guard'
-import { authGuard } from '../middleware/auth-guard'
-import { roleGuard } from '../middleware/role-guard'
-import { tenantScope } from '../middleware/tenant-scope'
-import { DepositService } from '../services/deposit'
+import { approvalGuard } from '../../middleware/approval-guard'
+import { authGuard } from '../../middleware/auth-guard'
+import { roleGuard } from '../../middleware/role-guard'
+import { tenantScope } from '../../middleware/tenant-scope'
+import { DepositService } from '../../services/deposit'
+import {
+  dateTimeResponseSchema,
+  errorResponseSchema,
+} from '../../utils/schemas'
 
 /**
  * Deposit routes plugin.
@@ -99,7 +102,12 @@ async function depositRoutes(fastify: FastifyInstance) {
 
       const deposit = await depositService.getDeposit(ctx, contractId)
 
-      return reply.status(200).send(deposit)
+      return reply.status(200).send({
+        contractId: deposit.contractId,
+        initialAmount: Number.parseFloat(deposit.securityDepositAmount),
+        remainingBalance: Number.parseFloat(deposit.remainingDepositBalance),
+        totalAdjusted: Number.parseFloat(deposit.securityDepositAmount) - Number.parseFloat(deposit.remainingDepositBalance),
+      })
     },
   )
 
@@ -155,7 +163,14 @@ async function depositRoutes(fastify: FastifyInstance) {
         data,
       )
 
-      return reply.status(201).send(adjustment)
+      return reply.status(201).send({
+        id: adjustment.id,
+        contractId: adjustment.contractId,
+        amount: Number.parseFloat(adjustment.amount),
+        billId: adjustment.billId,
+        note: adjustment.note,
+        createdAt: adjustment.createdAt,
+      })
     },
   )
 
@@ -223,7 +238,19 @@ async function depositRoutes(fastify: FastifyInstance) {
         pageSize,
       })
 
-      return reply.status(200).send(result)
+      return reply.status(200).send({
+        data: result.data.map((adj) => ({
+          id: adj.id,
+          contractId: adj.contractId,
+          amount: Number.parseFloat(adj.amount),
+          billId: adj.billId,
+          note: adj.note,
+          createdAt: adj.createdAt,
+        })),
+        total: result.total,
+        page: result.page,
+        pageSize: result.pageSize,
+      })
     },
   )
 }

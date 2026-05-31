@@ -7,7 +7,7 @@
  */
 export function formatBuildingName(name: string): string {
   if (name.length > 100) {
-    return name.slice(0, 100) + '\u2026'
+    return `${name.slice(0, 100)}\u2026`
   }
   return name
 }

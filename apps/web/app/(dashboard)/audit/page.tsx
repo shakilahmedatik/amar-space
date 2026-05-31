@@ -12,11 +12,12 @@ import {
   TableCell,
   TableHead,
   TableHeader,
-  TableRow } from '@/components/ui/table'
+  TableRow,
+} from '@/components/ui/table'
+import { useSession } from '@/contexts/session-context'
 import { useAuditLogs } from '@/hooks/use-audit'
 import type { AuditLogEntry } from '@/lib/api-client'
 import { useTranslation } from '@/lib/i18n'
-import { useSession } from '@/contexts/session-context'
 
 /**
  * Audit log viewer page — /audit
@@ -27,8 +28,8 @@ import { useSession } from '@/contexts/session-context'
 export default function AuditPage() {
   const { role } = useSession()
   const { t } = useTranslation()
-  const router = useRouter()
-const [page, setPage] = useState(1)
+  const _router = useRouter()
+  const [page, setPage] = useState(1)
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set())
 
   // Filter state
@@ -38,7 +39,7 @@ const [page, setPage] = useState(1)
   const [actionFilter, setActionFilter] = useState('')
   const [startDateFilter, setStartDateFilter] = useState('')
   const [endDateFilter, setEndDateFilter] = useState('')
-const { data, isLoading, isError, error } = useAuditLogs({
+  const { data, isLoading, isError, error } = useAuditLogs({
     page,
     pageSize: 100,
     entityType: entityTypeFilter || undefined,
@@ -84,17 +85,15 @@ const { data, isLoading, isError, error } = useAuditLogs({
       return next
     })
   }, [])
-// Owner-only access guard
+  // Owner-only access guard
   if (role !== 'owner') {
     return (
-      <>
-        <div className="flex flex-col items-center justify-center min-h-[300px] text-center p-8">
-          <h1 className="text-2xl font-bold text-error-text mb-3">
-            {t('audit.forbidden')}
-          </h1>
-          <p className="text-base text-steel">{t('audit.forbiddenMessage')}</p>
-        </div>
-      </>
+      <div className="flex flex-col items-center justify-center min-h-[300px] text-center p-8">
+        <h1 className="text-2xl font-bold text-error-text mb-3">
+          {t('audit.forbidden')}
+        </h1>
+        <p className="text-base text-steel">{t('audit.forbiddenMessage')}</p>
+      </div>
     )
   }
 

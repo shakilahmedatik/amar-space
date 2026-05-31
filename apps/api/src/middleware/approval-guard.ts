@@ -25,7 +25,7 @@ import type { FastifyReply, FastifyRequest } from 'fastify'
 export async function approvalGuard(
   request: FastifyRequest,
   reply: FastifyReply,
-): Promise<void> {
+): Promise<FastifyReply | undefined> {
   const { user } = request
 
   // Superadmin always bypasses the approval check
@@ -43,8 +43,7 @@ export async function approvalGuard(
         error: 'Forbidden',
         message: 'Your account is pending approval',
       }
-      reply.status(403).send(response)
-      return
+      return reply.status(403).send(response)
     }
   }
 }

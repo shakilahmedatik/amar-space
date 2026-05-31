@@ -8,6 +8,7 @@ import { DataTable, type DataTableColumn } from '@/components/ui/data-table'
 import { ErrorFeedback } from '@/components/ui/error-feedback'
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton'
 import { StatusBadge } from '@/components/ui/status-badge'
+import { useSession } from '@/contexts/session-context'
 import { useBuildings } from '@/hooks/use-buildings'
 import { useIssues } from '@/hooks/use-issues'
 import type {
@@ -17,7 +18,6 @@ import type {
   IssueStatus,
 } from '@/lib/api-client'
 import { useTranslation } from '@/lib/i18n'
-import { useSession } from '@/contexts/session-context'
 
 /**
  * Issue list page — /issues
@@ -28,8 +28,8 @@ import { useSession } from '@/contexts/session-context'
 export default function IssuesPage() {
   const { role } = useSession()
   const { t } = useTranslation()
-  const router = useRouter()
-const [page, setPage] = useState(1)
+  const _router = useRouter()
+  const [page, setPage] = useState(1)
 
   // Filter state
   const [buildingFilter, setBuildingFilter] = useState('')
@@ -37,7 +37,7 @@ const [page, setPage] = useState(1)
   const [statusFilter, setStatusFilter] = useState<IssueStatus | ''>('')
   const [priorityFilter, setPriorityFilter] = useState<IssuePriority | ''>('')
   const [assigneeFilter, setAssigneeFilter] = useState('')
-const { data, isLoading, isError, error } = useIssues({
+  const { data, isLoading, isError, error } = useIssues({
     page,
     pageSize: 50,
     buildingId: buildingFilter || undefined,
@@ -69,7 +69,7 @@ const { data, isLoading, isError, error } = useIssues({
         break
     }
   }, [])
-const canCreate = role === 'owner' || role === 'manager'
+  const canCreate = role === 'owner' || role === 'manager'
 
   const filters = [
     {

@@ -19,7 +19,7 @@ import type { AuthUser } from '../../src/middleware/auth-guard'
 
 // --- Types ---
 type ApprovalStatus = 'pending' | 'approved' | 'rejected'
-type Role = AuthUser['role']
+type HTTPMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH'
 
 // --- Generators ---
 
@@ -37,7 +37,10 @@ const approvalStatusArb = fc.constantFrom<ApprovalStatus>(
 )
 
 /** Generate a non-owner, non-superadmin role (manager or renter) */
-const nonOwnerRoleArb = fc.constantFrom<Role>('manager', 'renter')
+const nonOwnerRoleArb = fc.constantFrom<'manager' | 'renter'>(
+  'manager',
+  'renter',
+)
 
 /** Generate resource management endpoint paths that the approval guard protects */
 const resourceEndpointArb = fc.constantFrom(
@@ -62,7 +65,13 @@ const resourceEndpointArb = fc.constantFrom(
 )
 
 /** Generate HTTP methods used for resource management */
-const httpMethodArb = fc.constantFrom('GET', 'POST', 'PUT', 'DELETE', 'PATCH')
+const httpMethodArb = fc.constantFrom<HTTPMethod>(
+  'GET',
+  'POST',
+  'PUT',
+  'DELETE',
+  'PATCH',
+)
 
 // --- Test Helpers ---
 
@@ -73,7 +82,7 @@ const httpMethodArb = fc.constantFrom('GET', 'POST', 'PUT', 'DELETE', 'PATCH')
 function createTestApp(
   user: AuthUser,
   path: string,
-  method: string,
+  method: HTTPMethod,
 ): FastifyInstance {
   const app = Fastify({ logger: false })
 
@@ -144,7 +153,7 @@ describe('Feature: role-based-user-management, Property 4: Unapproved owners are
           await app.ready()
 
           const response = await app.inject({
-            method: method as any,
+            method,
             url: endpoint,
           })
 
@@ -174,7 +183,7 @@ describe('Feature: role-based-user-management, Property 4: Unapproved owners are
           await app.ready()
 
           const response = await app.inject({
-            method: method as any,
+            method,
             url: endpoint,
           })
 
@@ -201,7 +210,7 @@ describe('Feature: role-based-user-management, Property 4: Unapproved owners are
           await app.ready()
 
           const response = await app.inject({
-            method: method as any,
+            method,
             url: endpoint,
           })
 
@@ -231,7 +240,7 @@ describe('Feature: role-based-user-management, Property 4: Unapproved owners are
           await app.ready()
 
           const response = await app.inject({
-            method: method as any,
+            method,
             url: endpoint,
           })
 

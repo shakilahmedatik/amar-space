@@ -7,12 +7,15 @@ import {
 } from '@repo/shared/validation'
 import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
-import { dateTimeResponseSchema, errorResponseSchema } from '../app'
-import { approvalGuard } from '../middleware/approval-guard'
-import { authGuard } from '../middleware/auth-guard'
-import { roleGuard } from '../middleware/role-guard'
-import { tenantScope } from '../middleware/tenant-scope'
-import { BillingService } from '../services/billing'
+import { approvalGuard } from '../../middleware/approval-guard'
+import { authGuard } from '../../middleware/auth-guard'
+import { roleGuard } from '../../middleware/role-guard'
+import { tenantScope } from '../../middleware/tenant-scope'
+import { BillingService } from '../../services/billing'
+import {
+  dateTimeResponseSchema,
+  errorResponseSchema,
+} from '../../utils/schemas'
 
 /**
  * Billing routes plugin.
@@ -145,7 +148,22 @@ async function billRoutes(fastify: FastifyInstance) {
         { page, pageSize },
       )
 
-      return reply.status(200).send(result)
+      return reply.status(200).send({
+        data: result.data.map((bill) => ({
+          id: bill.id,
+          billingMonth: bill.billingMonth,
+          totalAmount: Number.parseFloat(bill.totalAmount),
+          paidAmount: Number.parseFloat(bill.paidAmount),
+          status: bill.status as 'unpaid' | 'partially_paid' | 'paid' | 'overdue',
+          flatId: bill.flatId,
+          renterId: bill.renterId,
+          ownerAccountId: bill.ownerAccountId,
+          createdAt: bill.createdAt,
+        })),
+        total: result.total,
+        page: result.page,
+        pageSize: result.pageSize,
+      })
     },
   )
 
@@ -190,7 +208,11 @@ async function billRoutes(fastify: FastifyInstance) {
 
       const result = await billingService.generateBills(ctx, billingMonth)
 
-      return reply.status(201).send(result)
+      return reply.status(201).send({
+        generated: result.generated,
+        skipped: result.skipped.length,
+        billingMonth,
+      })
     },
   )
 
@@ -259,7 +281,29 @@ async function billRoutes(fastify: FastifyInstance) {
 
       const bill = await billingService.getBill(ctx, id)
 
-      return reply.status(200).send(bill)
+      return reply.status(200).send({
+        id: bill.id,
+        billingMonth: bill.billingMonth,
+        totalAmount: Number.parseFloat(bill.totalAmount),
+        paidAmount: Number.parseFloat(bill.paidAmount),
+        status: bill.status as 'unpaid' | 'partially_paid' | 'paid' | 'overdue',
+        flatId: bill.flatId,
+        renterId: bill.renterId,
+        ownerAccountId: bill.ownerAccountId,
+        createdAt: bill.createdAt,
+        lineItems: bill.lineItems.map((item) => ({
+          id: item.id,
+          description: item.description,
+          amount: Number.parseFloat(item.amount),
+          createdAt: item.createdAt,
+        })),
+        payments: bill.payments.map((payment) => ({
+          id: payment.id,
+          amount: Number.parseFloat(payment.amount),
+          paidAt: new Date(payment.paymentDate),
+          method: payment.paymentMethod,
+        })),
+      })
     },
   )
 
@@ -311,7 +355,13 @@ async function billRoutes(fastify: FastifyInstance) {
 
       const lineItem = await billingService.addUtilityCharge(ctx, id, charge)
 
-      return reply.status(201).send(lineItem)
+      return reply.status(201).send({
+        id: lineItem.id,
+        billId: lineItem.billId,
+        description: lineItem.description,
+        amount: Number.parseFloat(lineItem.amount),
+        createdAt: lineItem.createdAt,
+      })
     },
   )
 }

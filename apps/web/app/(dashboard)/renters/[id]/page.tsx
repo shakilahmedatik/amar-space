@@ -2,19 +2,19 @@
 
 import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
-import { useState } from 'react'
 import {
   DepositAdjustmentForm,
   DepositAdjustmentHistory,
-  DepositBalanceCard } from '@/components/deposits'
+  DepositBalanceCard,
+} from '@/components/deposits'
 import { Card, CardContent } from '@/components/ui/card'
 import { CurrencyDisplay } from '@/components/ui/currency-display'
 import { DateDisplay } from '@/components/ui/date-display'
 import { ErrorFeedback } from '@/components/ui/error-feedback'
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton'
+import { useSession } from '@/contexts/session-context'
 import { useRenter } from '@/hooks/use-renters'
 import { useTranslation } from '@/lib/i18n'
-import { useSession } from '@/contexts/session-context'
 
 /**
  * Renter detail page — /renters/[id]
@@ -25,10 +25,10 @@ export default function RenterDetailPage() {
   const { role } = useSession()
   const { t } = useTranslation()
   const params = useParams()
-  const router = useRouter()
+  const _router = useRouter()
   const renterId = params.id as string
-const { data: renter, isLoading, isError, error } = useRenter(renterId)
-return (
+  const { data: renter, isLoading, isError, error } = useRenter(renterId)
+  return (
     <>
       {isError && (
         <ErrorFeedback

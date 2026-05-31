@@ -33,7 +33,13 @@ function renderWithProviders(ui: React.ReactElement) {
     React.createElement(
       QueryClientProvider,
       { client: queryClient },
-      React.createElement(I18nProvider, { initialLocale: 'en' } as any, ui),
+      React.createElement(
+        I18nProvider,
+        { initialLocale: 'en' } as unknown as React.ComponentProps<
+          typeof I18nProvider
+        >,
+        ui,
+      ),
     ),
   )
 }

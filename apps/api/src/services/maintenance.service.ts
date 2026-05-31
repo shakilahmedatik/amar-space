@@ -44,6 +44,15 @@ export interface MaintenanceRequestResult {
   updatedAt: Date
 }
 
+export interface MaintenanceRequestWithComments extends MaintenanceRequestResult {
+  comments: {
+    id: string
+    content: string
+    userId: string
+    createdAt: Date
+  }[]
+}
+
 export interface MaintenanceAttachmentResult {
   id: string
   requestId: string
@@ -386,9 +395,22 @@ export class MaintenanceService {
   async getRequest(
     ctx: RequestContext,
     requestId: string,
-  ): Promise<MaintenanceRequestResult> {
+  ): Promise<MaintenanceRequestWithComments> {
     const request = await this.findRequestWithAccess(ctx, requestId)
-    return this.mapToRequestResult(request)
+    const commentsList = await this.db.query.maintenanceComments.findMany({
+      where: eq(maintenanceComments.requestId, requestId),
+      orderBy: desc(maintenanceComments.createdAt),
+    })
+
+    return {
+      ...this.mapToRequestResult(request),
+      comments: commentsList.map((c) => ({
+        id: c.id,
+        content: c.content,
+        userId: c.authorId,
+        createdAt: c.createdAt,
+      })),
+    }
   }
 
   /**

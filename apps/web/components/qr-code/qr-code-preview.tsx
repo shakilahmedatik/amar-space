@@ -59,7 +59,7 @@ export function QrCodePreview({
             variant="outline"
             onClick={onRetry}
             disabled={isRetryDisabled}
-            className="min-h-[44px] min-w-[44px]"
+            className="min-h-[44px] min-w-[44px] rounded-full"
           >
             {t('qrCode.retry')}
           </Button>

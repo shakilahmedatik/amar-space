@@ -1,9 +1,9 @@
 import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
-import { errorResponseSchema } from '../app'
-import { authGuard } from '../middleware/auth-guard'
-import { roleGuard } from '../middleware/role-guard'
-import { assignRole, type Role } from '../services/role-assignment'
+import { authGuard } from '../../middleware/auth-guard'
+import { roleGuard } from '../../middleware/role-guard'
+import { assignRole, type Role } from '../../services/role-assignment'
+import { errorResponseSchema } from '../../utils/schemas'
 
 /**
  * Role assignment routes plugin.

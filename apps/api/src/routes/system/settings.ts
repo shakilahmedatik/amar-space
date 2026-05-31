@@ -2,8 +2,11 @@ import { users } from '@repo/db'
 import { eq } from 'drizzle-orm'
 import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
-import { dateTimeResponseSchema, errorResponseSchema } from '../app'
-import { authGuard } from '../middleware/auth-guard'
+import { authGuard } from '../../middleware/auth-guard'
+import {
+  dateTimeResponseSchema,
+  errorResponseSchema,
+} from '../../utils/schemas'
 
 /**
  * Settings routes plugin.

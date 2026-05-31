@@ -1,3 +1,5 @@
+import type { UserRole } from '../roles'
+
 /** Service context injected into domain services */
 export interface ServiceContext {
   db: unknown
@@ -7,7 +9,7 @@ export interface ServiceContext {
 /** Request context injected by auth middleware */
 export interface RequestContext {
   userId: string
-  role: 'owner' | 'manager' | 'renter'
+  role: UserRole
   ownerAccountId: string
   assignedBuildingIds?: string[]
   assignedFlatId?: string

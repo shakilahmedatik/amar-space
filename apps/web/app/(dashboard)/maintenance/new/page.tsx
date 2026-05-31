@@ -7,11 +7,9 @@ import { Button } from '@/components/ui/button'
 import { ErrorFeedback } from '@/components/ui/error-feedback'
 import { FileUpload } from '@/components/ui/file-upload'
 import { FormField, FormInput } from '@/components/ui/form-field'
-import { LoadingSkeleton } from '@/components/ui/loading-skeleton'
 import { useCreateMaintenanceRequest } from '@/hooks/use-maintenance'
 import type { MaintenancePriority } from '@/lib/api-client'
 import { useTranslation } from '@/lib/i18n'
-import { useSession } from '@/contexts/session-context'
 
 /**
  * New maintenance request form — /maintenance/new
@@ -22,7 +20,7 @@ import { useSession } from '@/contexts/session-context'
 export default function NewMaintenanceRequestPage() {
   const { t } = useTranslation()
   const router = useRouter()
-// Form state
+  // Form state
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [priority, setPriority] = useState<MaintenancePriority | ''>('')
@@ -31,7 +29,7 @@ export default function NewMaintenanceRequestPage() {
   const [successMessage, setSuccessMessage] = useState('')
 
   const createMutation = useCreateMaintenanceRequest()
-function validate(): boolean {
+  function validate(): boolean {
     const newErrors: Record<string, string> = {}
 
     if (!title.trim()) {
@@ -80,7 +78,7 @@ function validate(): boolean {
       })
     }
   }
-return (
+  return (
     <>
       {successMessage && (
         <ErrorFeedback
