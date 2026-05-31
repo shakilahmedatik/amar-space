@@ -544,6 +544,11 @@ describe('Feature: renter-qr-portal, Property 8: Public API data exclusion', () 
           fullDatabaseContractRecordArb,
           fc.stringMatching(/^[a-z0-9][a-z0-9-]{0,48}[a-z0-9]$/),
           (building, flat, renter, contract, slug) => {
+            // Prevent false positives due to collision between flatNumber and contract numeric values
+            fc.pre(flat.flatNumber !== contract.remainingDepositBalance)
+            fc.pre(flat.flatNumber !== contract.monthlyRent)
+            fc.pre(flat.flatNumber !== contract.securityDepositAmount)
+
             // Simulate a scenario where renter and contract data exist in the DB
             // The transformation should NEVER include any of this data
             const response = buildPortalFlatResponse(

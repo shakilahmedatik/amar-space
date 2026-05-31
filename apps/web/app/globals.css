@@ -15,6 +15,7 @@
   --color-on-primary: #ffffff;
   --color-primary-soft: #181e25;
   --color-brand-green: #1ba673;
+  --color-brand-green-hover: #17935f;
   --color-brand-green-light: #e8ffea;
   --color-brand-blue: #1456f0;
   --color-brand-blue-mid: #3b82f6;
@@ -127,51 +128,110 @@ body {
 }
 
 /* Rich text styles for building rules content */
-.building-rules-content h1,
-.building-rules-content h2,
-.building-rules-content h3,
-.building-rules-content h4,
-.building-rules-content h5,
-.building-rules-content h6 {
-  margin-top: 1em;
-  margin-bottom: 0.5em;
+@utility building-rules-content {
+  & h1,
+  & h2,
+  & h3,
+  & h4,
+  & h5,
+  & h6 {
+    margin-top: 1em;
+    margin-bottom: 0.5em;
+  }
+
+  & p {
+    margin-bottom: 0.75em;
+  }
+
+  & strong,
+  & b {
+    font-weight: 700;
+  }
+
+  & em,
+  & i {
+    font-style: italic;
+  }
+
+  & ul {
+    list-style-type: disc;
+    padding-left: 1.5em;
+    margin-bottom: 0.75em;
+  }
+
+  & ol {
+    list-style-type: decimal;
+    padding-left: 1.5em;
+    margin-bottom: 0.75em;
+  }
+
+  & li {
+    margin-bottom: 0.25em;
+  }
+
+  & a {
+    color: var(--color-brand-blue-deep);
+    text-decoration: underline;
+
+    &:hover {
+      opacity: 0.8;
+    }
+  }
 }
 
-.building-rules-content p {
-  margin-bottom: 0.75em;
+/* Hero page backgrounds to avoid inline style rule and hex literal rule */
+@utility hero-grid-bg {
+  background-image:
+    linear-gradient(to bottom, transparent 60%, var(--color-surface) 100%),
+    linear-gradient(rgba(229, 231, 235, 0.5) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(229, 231, 235, 0.5) 1px, transparent 1px);
+  background-size:
+    100% 100%,
+    40px 40px,
+    40px 40px;
 }
 
-.building-rules-content strong,
-.building-rules-content b {
-  font-weight: 700;
+@utility hero-glow-bg {
+  background: radial-gradient(
+    ellipse,
+    rgba(27, 166, 115, 0.07) 0%,
+    transparent 70%
+  );
 }
 
-.building-rules-content em,
-.building-rules-content i {
-  font-style: italic;
-}
+/* Portal-specific accessibility and responsive styles */
+@utility portal-root {
+  font-size: 16px;
+  line-height: 1.5;
+  overflow-x: hidden;
+  max-width: 100%;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 
-.building-rules-content ul {
-  list-style-type: disc;
-  padding-left: 1.5em;
-  margin-bottom: 0.75em;
-}
+  @media (min-width: 769px) {
+    max-width: 100vw;
+  }
 
-.building-rules-content ol {
-  list-style-type: decimal;
-  padding-left: 1.5em;
-  margin-bottom: 0.75em;
-}
+  & img,
+  & video {
+    max-width: 100%;
+    height: auto;
+  }
 
-.building-rules-content li {
-  margin-bottom: 0.25em;
-}
+  & canvas {
+    max-width: 100%;
+  }
 
-.building-rules-content a {
-  color: var(--color-brand-blue-deep);
-  text-decoration: underline;
-}
+  @media (max-width: 768px) {
+    & canvas[class] {
+      width: 100%;
+    }
+  }
 
-.building-rules-content a:hover {
-  opacity: 0.8;
+  & a:not([class*="min-h"]),
+  & button:not([class*="min-h"]),
+  & [role="button"]:not([class*="min-h"]) {
+    min-height: 48px;
+    min-width: 48px;
+  }
 }

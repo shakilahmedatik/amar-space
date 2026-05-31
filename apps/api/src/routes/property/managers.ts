@@ -185,7 +185,7 @@ async function managerRoutes(fastify: FastifyInstance) {
 
       await managerService.updateAssignments(ctx, id, buildingIds)
 
-      return reply.status(204).send()
+      return reply.status(204).send(null)
     },
   )
 }

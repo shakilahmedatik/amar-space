@@ -186,14 +186,14 @@ export default function FlatDetailPage() {
                     disabled={updateFlatMutation.isPending}
                     className={[
                       'rounded-full min-h-[44px]',
-                      targetStatus === 'maintenance'
+                      targetStatus === 'under_maintenance'
                         ? 'bg-warning-bg text-warning-text border-warning-text/30'
                         : 'bg-success-bg text-success-text border-success-text/30',
                     ].join(' ')}
                   >
-                    {targetStatus === 'maintenance'
-                      ? t('flats.setUnderMaintenance')
-                      : t('flats.setVacant')}
+                    {targetStatus === 'under_maintenance'
+                        ? t('flats.setUnderMaintenance')
+                        : t('flats.setVacant')}
                   </Button>
                 ))}
               </div>

@@ -18,26 +18,14 @@ export function LandingHero() {
     >
       {/* Background grid */}
       <div
-        className="absolute inset-0 pointer-events-none"
+        className="absolute inset-0 pointer-events-none hero-grid-bg"
         aria-hidden="true"
-        style={{
-          backgroundImage: `
-            linear-gradient(to bottom, transparent 60%, #f7f8fa 100%),
-            linear-gradient(rgba(229,231,235,0.5) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(229,231,235,0.5) 1px, transparent 1px)
-          `,
-          backgroundSize: '100% 100%, 40px 40px, 40px 40px',
-        }}
       />
 
       {/* Soft green glow */}
       <div
-        className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] rounded-full pointer-events-none"
+        className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] rounded-full pointer-events-none hero-glow-bg"
         aria-hidden="true"
-        style={{
-          background:
-            'radial-gradient(ellipse, rgba(27,166,115,0.07) 0%, transparent 70%)',
-        }}
       />
 
       <div className="relative z-10 max-w-4xl mx-auto text-center flex flex-col items-center gap-6">
@@ -53,8 +41,7 @@ export function LandingHero() {
         {/* Headline */}
         <h1
           id="hero-heading"
-          className="text-4xl md:text-6xl font-bold text-ink leading-[1.1] tracking-tight"
-          style={{ letterSpacing: '-1.5px' }}
+          className="text-4xl md:text-6xl font-bold text-ink leading-[1.1] tracking-[-1.5px]"
         >
           {t('landing.hero.headline1')}{' '}
           <span className="text-brand-green">

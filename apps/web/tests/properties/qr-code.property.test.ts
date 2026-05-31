@@ -213,9 +213,12 @@ describe('Feature: qr-code-feature-ui, Property 4: Size selection triggers corre
           _init?: RequestInit,
         ) => {
           capturedUrls.push(input.toString())
-          return new Response(new Blob(['fake-image'], { type: 'image/png' }), {
+          const blob = new Blob(['fake-image'], { type: 'image/png' })
+          return {
             status: 200,
-          })
+            ok: true,
+            blob: async () => blob,
+          } as unknown as Response
         }) as typeof fetch
 
         // Simulate the URL construction logic from useQrCode hook

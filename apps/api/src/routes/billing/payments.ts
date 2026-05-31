@@ -156,7 +156,11 @@ async function paymentRoutes(fastify: FastifyInstance) {
           billId: p.billId,
           amount: Number.parseFloat(p.amount),
           paymentDate: p.paymentDate,
-          paymentMethod: p.paymentMethod as 'cash' | 'bank_transfer' | 'mobile_banking' | 'cheque',
+          paymentMethod: p.paymentMethod as
+            | 'cash'
+            | 'bank_transfer'
+            | 'mobile_banking'
+            | 'cheque',
           note: p.note,
           ownerAccountId: p.ownerAccountId,
           createdAt: p.createdAt,
@@ -231,7 +235,11 @@ async function paymentRoutes(fastify: FastifyInstance) {
         billId: payment.billId,
         amount: Number.parseFloat(payment.amount),
         paymentDate: payment.paymentDate,
-        paymentMethod: payment.paymentMethod as 'cash' | 'bank_transfer' | 'mobile_banking' | 'cheque',
+        paymentMethod: payment.paymentMethod as
+          | 'cash'
+          | 'bank_transfer'
+          | 'mobile_banking'
+          | 'cheque',
         note: payment.note,
         ownerAccountId: payment.ownerAccountId,
         createdAt: payment.createdAt,
@@ -297,7 +305,11 @@ async function paymentRoutes(fastify: FastifyInstance) {
         billId: payment.billId,
         amount: Number.parseFloat(payment.amount),
         paymentDate: payment.paymentDate,
-        paymentMethod: payment.paymentMethod as 'cash' | 'bank_transfer' | 'mobile_banking' | 'cheque',
+        paymentMethod: payment.paymentMethod as
+          | 'cash'
+          | 'bank_transfer'
+          | 'mobile_banking'
+          | 'cheque',
         note: payment.note,
         ownerAccountId: payment.ownerAccountId,
         createdAt: payment.createdAt,

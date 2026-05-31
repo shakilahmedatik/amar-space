@@ -17,8 +17,7 @@ export function LandingCtaBanner() {
       <div className="max-w-3xl mx-auto text-center flex flex-col items-center gap-6">
         <h2
           id="cta-heading"
-          className="text-3xl md:text-4xl font-bold text-on-primary leading-tight tracking-tight"
-          style={{ letterSpacing: '-0.5px' }}
+          className="text-3xl md:text-4xl font-bold text-on-primary leading-tight tracking-[-0.5px]"
         >
           {t('landing.cta.heading')}
         </h2>
@@ -28,7 +27,7 @@ export function LandingCtaBanner() {
         <div className="flex flex-col sm:flex-row items-center gap-3 mt-2">
           <Link
             href="/register"
-            className="px-8 py-3.5 rounded-full text-base font-semibold bg-brand-green text-on-dark hover:bg-[#17935f] transition-colors duration-150 min-h-[48px] flex items-center shadow-[0_2px_8px_rgba(27,166,115,0.3)]"
+            className="px-8 py-3.5 rounded-full text-base font-semibold bg-brand-green text-on-dark hover:bg-brand-green-hover transition-colors duration-150 min-h-[48px] flex items-center shadow-[0_2px_8px_rgba(27,166,115,0.3)]"
           >
             {t('landing.cta.primary')}
           </Link>

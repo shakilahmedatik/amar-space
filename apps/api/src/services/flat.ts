@@ -25,6 +25,7 @@ export interface CreateFlatInput {
 export interface UpdateFlatInput {
   flatNumber?: string
   floor?: number
+  status?: FlatStatus
 }
 
 export interface ListFlatsInput {
@@ -220,6 +221,13 @@ export class FlatService {
         oldValues,
         newValues,
       })
+    }
+
+    // If a status transition was requested, delegate to transitionStatus after
+    // persisting any flatNumber/floor changes, so we get full state machine
+    // validation and a separate audit event for the status change.
+    if (input.status !== undefined) {
+      return this.transitionStatus(ctx, flatId, input.status)
     }
 
     return this.mapToResult(updated)

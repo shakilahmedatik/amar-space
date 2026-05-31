@@ -1,6 +1,5 @@
 import type { Metadata, Viewport } from 'next'
 import type { ReactNode } from 'react'
-import './portal.css'
 
 export const metadata: Metadata = {
   title: 'আমারস্পেস - ফ্ল্যাট পোর্টাল',

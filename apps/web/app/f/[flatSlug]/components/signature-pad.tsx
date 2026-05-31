@@ -53,11 +53,11 @@ export function SignaturePad({
     ctx.scale(dpr, dpr)
 
     // Fill with white background
-    ctx.fillStyle = '#ffffff'
+    ctx.fillStyle = 'white'
     ctx.fillRect(0, 0, rect.width, rect.height)
 
     // Set drawing styles
-    ctx.strokeStyle = '#1a1a1a'
+    ctx.strokeStyle = 'rgb(26, 26, 26)'
     ctx.lineWidth = 2.5
     ctx.lineCap = 'round'
     ctx.lineJoin = 'round'
@@ -200,11 +200,11 @@ export function SignaturePad({
 
     // Clear and refill with white
     ctx.clearRect(0, 0, rect.width * dpr, rect.height * dpr)
-    ctx.fillStyle = '#ffffff'
+    ctx.fillStyle = 'white'
     ctx.fillRect(0, 0, rect.width, rect.height)
 
     // Reset drawing styles
-    ctx.strokeStyle = '#1a1a1a'
+    ctx.strokeStyle = 'rgb(26, 26, 26)'
     ctx.lineWidth = 2.5
     ctx.lineCap = 'round'
     ctx.lineJoin = 'round'

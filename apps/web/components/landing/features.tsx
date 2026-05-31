@@ -213,8 +213,7 @@ export function LandingFeatures() {
           </span>
           <h2
             id="features-heading"
-            className="mt-3 text-3xl md:text-4xl font-bold text-ink tracking-tight"
-            style={{ letterSpacing: '-0.5px' }}
+            className="mt-3 text-3xl md:text-4xl font-bold text-ink tracking-[-0.5px]"
           >
             {t('landing.features.heading')}
           </h2>

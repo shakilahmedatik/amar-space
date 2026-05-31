@@ -44,7 +44,8 @@ export interface MaintenanceRequestResult {
   updatedAt: Date
 }
 
-export interface MaintenanceRequestWithComments extends MaintenanceRequestResult {
+export interface MaintenanceRequestWithComments
+  extends MaintenanceRequestResult {
   comments: {
     id: string
     content: string

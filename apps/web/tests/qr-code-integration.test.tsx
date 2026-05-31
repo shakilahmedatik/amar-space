@@ -46,7 +46,14 @@ function renderWithProviders(ui: React.ReactElement) {
 
 function createBlobResponse(content = 'fake-image-data', type = 'image/png') {
   const blob = new Blob([content], { type })
-  return new Response(blob, { status: 200, headers: { 'Content-Type': type } })
+  return {
+    status: 200,
+    ok: true,
+    headers: new Headers({ 'Content-Type': type }),
+    blob: async () => blob,
+    json: async () => ({}),
+    text: async () => content,
+  } as unknown as Response
 }
 
 // ---------------------------------------------------------------------------

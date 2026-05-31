@@ -58,9 +58,12 @@ if (process.env.NODE_ENV !== 'production') {
     await validateConnection(app.db)
     logger.info('Database connection established successfully')
   } catch (err) {
-    logger.error('Failed to start server due to database connection issue: {error}', {
-      error: err instanceof Error ? err.message : String(err),
-    })
+    logger.error(
+      'Failed to start server due to database connection issue: {error}',
+      {
+        error: err instanceof Error ? err.message : String(err),
+      },
+    )
     process.exit(1)
   }
 

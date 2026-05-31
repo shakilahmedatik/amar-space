@@ -57,8 +57,7 @@ export function LandingPricing() {
           </span>
           <h2
             id="pricing-heading"
-            className="mt-3 text-3xl md:text-4xl font-bold text-ink tracking-tight"
-            style={{ letterSpacing: '-0.5px' }}
+            className="mt-3 text-3xl md:text-4xl font-bold text-ink tracking-[-0.5px]"
           >
             {t('landing.pricing.heading')}
           </h2>
@@ -147,7 +146,7 @@ export function LandingPricing() {
                 className={[
                   'mt-auto px-6 py-3 rounded-full text-sm font-semibold text-center min-h-[44px] flex items-center justify-center transition-colors duration-150',
                   plan.highlight
-                    ? 'bg-brand-green text-on-dark hover:bg-[#17935f]'
+                    ? 'bg-brand-green text-on-dark hover:bg-brand-green-hover'
                     : 'bg-primary text-on-primary hover:bg-charcoal',
                 ].join(' ')}
               >

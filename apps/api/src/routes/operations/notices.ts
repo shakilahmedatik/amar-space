@@ -342,7 +342,7 @@ async function noticeRoutes(fastify: FastifyInstance) {
 
       await noticeService.deleteNotice(ctx, id)
 
-      return reply.status(204).send()
+      return reply.status(204).send(null)
     },
   )
 

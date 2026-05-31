@@ -74,7 +74,7 @@ async function flatRoutes(fastify: FastifyInstance) {
     id: z.string(),
     flatNumber: z.string(),
     floor: z.number(),
-    status: z.enum(['vacant', 'occupied', 'maintenance']),
+    status: flatStatusEnum,
     buildingId: z.string(),
     ownerAccountId: z.string(),
     createdAt: dateTimeResponseSchema,
@@ -315,7 +315,7 @@ async function flatRoutes(fastify: FastifyInstance) {
 
       await flatService.deleteFlat(ctx, id)
 
-      return reply.status(204).send()
+      return reply.status(204).send(null)
     },
   )
 

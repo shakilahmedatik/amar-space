@@ -113,8 +113,8 @@ export function getValidStatusTransitions(
 ): FlatStatus[] {
   switch (currentStatus) {
     case 'vacant':
-      return ['maintenance']
-    case 'maintenance':
+      return ['under_maintenance']
+    case 'under_maintenance':
       return ['vacant']
     case 'occupied':
       return [] // Status changes from Occupied happen via contract management

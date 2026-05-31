@@ -106,7 +106,9 @@ async function depositRoutes(fastify: FastifyInstance) {
         contractId: deposit.contractId,
         initialAmount: Number.parseFloat(deposit.securityDepositAmount),
         remainingBalance: Number.parseFloat(deposit.remainingDepositBalance),
-        totalAdjusted: Number.parseFloat(deposit.securityDepositAmount) - Number.parseFloat(deposit.remainingDepositBalance),
+        totalAdjusted:
+          Number.parseFloat(deposit.securityDepositAmount) -
+          Number.parseFloat(deposit.remainingDepositBalance),
       })
     },
   )

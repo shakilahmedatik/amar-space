@@ -41,7 +41,7 @@ export interface FlatSummary {
   id: string
   flatNumber: string
   floor: number
-  status: 'vacant' | 'occupied' | 'maintenance'
+  status: 'vacant' | 'occupied' | 'under_maintenance'
 }
 
 export interface FlatPaginatedResponse {
@@ -95,7 +95,7 @@ export function fetchFlatsForBuilding(
 
 // --- Flat API Types ---
 
-export type FlatStatus = 'vacant' | 'occupied' | 'maintenance'
+export type FlatStatus = 'vacant' | 'occupied' | 'under_maintenance'
 
 export interface Flat {
   id: string
@@ -1163,7 +1163,7 @@ export interface FlatWithOccupancy {
   flatNumber: string
   floor: number
   buildingName: string
-  status: 'vacant' | 'occupied' | 'maintenance'
+  status: 'vacant' | 'occupied' | 'under_maintenance'
 }
 
 export interface MaintenanceRequestSummary {

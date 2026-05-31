@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils'
 type StatusVariant =
   | 'vacant'
   | 'occupied'
-  | 'maintenance'
+  | 'under_maintenance'
   | 'unpaid'
   | 'partially_paid'
   | 'paid'
@@ -72,7 +72,7 @@ function getStatusConfig(status: string): {
         colorClasses: 'bg-brand-blue-200 text-brand-blue-deep',
         dotClass: 'bg-brand-blue-deep',
       }
-    case 'maintenance':
+    case 'under_maintenance':
     case 'partially_paid':
     case 'open':
       return {
@@ -99,7 +99,7 @@ function getStatusLabel(status: string, t: (key: string) => string): string {
   const labelMap: Record<string, string> = {
     vacant: t('flats.vacant'),
     occupied: t('flats.occupied'),
-    maintenance: t('flats.underMaintenance'),
+    under_maintenance: t('flats.underMaintenance'),
     unpaid: t('bills.unpaid'),
     partially_paid: t('bills.partiallyPaid'),
     paid: t('bills.paid'),

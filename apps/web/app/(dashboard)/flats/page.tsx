@@ -93,7 +93,7 @@ export default function FlatsPage() {
       options: [
         { value: 'vacant', label: t('flats.vacant') },
         { value: 'occupied', label: t('flats.occupied') },
-        { value: 'maintenance', label: t('flats.underMaintenance') },
+        { value: 'under_maintenance', label: t('flats.underMaintenance') },
       ],
     },
     {

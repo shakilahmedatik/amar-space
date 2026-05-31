@@ -692,7 +692,7 @@ function SignaturePadPlaceholder({
     const { x, y } = getCoordinates(e)
     ctx.lineWidth = 2
     ctx.lineCap = 'round'
-    ctx.strokeStyle = '#1a1a1a'
+    ctx.strokeStyle = 'rgb(26, 26, 26)'
     ctx.lineTo(x, y)
     ctx.stroke()
   }

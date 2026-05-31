@@ -154,7 +154,11 @@ async function billRoutes(fastify: FastifyInstance) {
           billingMonth: bill.billingMonth,
           totalAmount: Number.parseFloat(bill.totalAmount),
           paidAmount: Number.parseFloat(bill.paidAmount),
-          status: bill.status as 'unpaid' | 'partially_paid' | 'paid' | 'overdue',
+          status: bill.status as
+            | 'unpaid'
+            | 'partially_paid'
+            | 'paid'
+            | 'overdue',
           flatId: bill.flatId,
           renterId: bill.renterId,
           ownerAccountId: bill.ownerAccountId,

@@ -50,7 +50,7 @@ describe('Responsive Rendering', () => {
     it('portal layout container uses max-w-md to constrain width within viewport', () => {
       // The layout uses max-w-md (448px) which fits within 360px with px-4 padding.
       // We verify the portal root and container classes prevent overflow.
-      // The portal.css applies overflow-x: hidden on .portal-root.
+      // The portal-root utility in globals.css applies overflow-x: hidden on .portal-root.
       // We test that the QuickActionsGrid renders within a constrained container.
       const { container } = render(
         <div className="portal-root min-h-dvh">
@@ -124,7 +124,7 @@ describe('Responsive Rendering', () => {
     })
 
     it('all text content uses break-word classes to prevent overflow', () => {
-      // The portal.css sets word-wrap: break-word and overflow-wrap: break-word
+      // The portal-root utility in globals.css sets word-wrap: break-word and overflow-wrap: break-word
       // on .portal-root. We verify the root class is applied.
       const { container } = render(
         <div className="portal-root">

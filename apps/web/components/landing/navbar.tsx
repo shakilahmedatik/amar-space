@@ -80,7 +80,7 @@ export function LandingNavbar() {
                 width="6"
                 height="6"
                 rx="1.5"
-                fill="#1ba673"
+                fill="var(--color-brand-green)"
               />
             </svg>
           </span>
