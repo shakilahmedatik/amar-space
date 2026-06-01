@@ -5,6 +5,7 @@ import {
   type AddUtilityChargeInput,
   addUtilityCharge,
   type BillListParams,
+  deleteBill,
   fetchBill,
   fetchBills,
   fetchFlats,
@@ -90,5 +91,19 @@ export function useRenterOptions() {
     queryKey: ['renters', 'options'],
     queryFn: () => fetchRenterOptions(),
     staleTime: 60 * 1000,
+  })
+}
+
+/**
+ * Mutation hook for deleting a bill.
+ */
+export function useDeleteBill() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (id: string) => deleteBill(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['bills'] })
+    },
   })
 }

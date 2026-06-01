@@ -210,6 +210,18 @@ const bn: TranslationDictionary = {
     familyMemberNameMax: 'প্রতিটি নাম সর্বোচ্চ ১০০ অক্ষরের হতে হবে',
     selectBloodGroup: 'রক্তের গ্রুপ নির্বাচন করুন',
     selectFlatPlaceholder: 'একটি খালি ফ্ল্যাট নির্বাচন করুন',
+    accessCodeCardTitle: 'পোর্টাল অ্যাক্সেস কোড',
+    accessCodeLabel: 'অ্যাক্সেস কোড',
+    showCode: 'কোড দেখান',
+    hideCode: 'কোড লুকান',
+    generateNewCode: 'নতুন কোড তৈরি করুন',
+    generateNewCodeConfirmTitle:
+      'আপনি কি নিশ্চিত যে আপনি একটি নতুন অ্যাক্সেস কোড তৈরি করতে চান?',
+    generateNewCodeConfirmDesc:
+      'এর ফলে আগের অ্যাক্সেস কোডটি নিষ্ক্রিয় হয়ে যাবে এবং ভাড়াটিয়াকে পোর্টাল ব্যবহারের জন্য নতুন কোডটি ব্যবহার করতে হবে।',
+    newCodeGenerated: 'নতুন অ্যাক্সেস কোড সফলভাবে তৈরি করা হয়েছে!',
+    copyCode: 'কোড কপি করুন',
+    codeCopied: 'কোড কপি করা হয়েছে',
   },
   deposits: {
     title: 'জমা ব্যবস্থাপনা',
@@ -284,6 +296,11 @@ const bn: TranslationDictionary = {
     paymentMethod: 'পেমেন্ট পদ্ধতি',
     receiptRef: 'রসিদ রেফারেন্স',
     note: 'নোট',
+    deleteBill: 'বিল মুছুন',
+    deleteConfirmTitle: 'বিল মুছুন',
+    deleteConfirmDescription:
+      'আপনি কি নিশ্চিত যে আপনি এই বিলটি মুছতে চান? সমস্ত সংশ্লিষ্ট পেমেন্ট এবং ইউটিলিটি চার্জ স্থায়ীভাবে মুছে ফেলা হবে। এই কাজটি পূর্বাবস্থায় ফেরানো যাবে না।',
+    deleteSuccess: 'বিল সফলভাবে মুছে ফেলা হয়েছে',
   },
   payments: {
     title: 'পেমেন্ট ইতিহাস',
@@ -330,6 +347,11 @@ const bn: TranslationDictionary = {
     totalPaid: 'মোট পরিশোধিত',
     remainingBalance: 'অবশিষ্ট ব্যালেন্স',
     receiptGenerated: 'তৈরির সময়',
+    deletePayment: 'পেমেন্ট মুছুন',
+    deleteConfirmTitle: 'পেমেন্ট মুছুন',
+    deleteConfirmDescription:
+      'আপনি কি নিশ্চিত যে আপনি এই পেমেন্টটি মুছতে চান? সংশ্লিষ্ট বিলের অবস্থা এবং পরিশোধিত পরিমাণ পুনরায় হিসাব করা হবে।',
+    deleteSuccess: 'পেমেন্ট সফলভাবে মুছে ফেলা হয়েছে',
   },
   maintenance: {
     title: 'রক্ষণাবেক্ষণ',

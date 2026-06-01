@@ -7,6 +7,7 @@ import {
   fetchRenter,
   fetchRenters,
   fetchVacantFlats,
+  resetRenterAccessCode,
 } from '@/lib/api-client'
 
 /**
@@ -58,6 +59,21 @@ export function useCreateRenter() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['renters'] })
       queryClient.invalidateQueries({ queryKey: ['flats'] })
+    },
+  })
+}
+
+/**
+ * Mutation hook for resetting a renter's access code.
+ */
+export function useResetRenterAccessCode() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (id: string) => resetRenterAccessCode(id),
+    onSuccess: (_data, id) => {
+      queryClient.invalidateQueries({ queryKey: ['renters'] })
+      queryClient.invalidateQueries({ queryKey: ['renters', id] })
     },
   })
 }

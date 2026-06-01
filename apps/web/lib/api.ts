@@ -42,7 +42,9 @@ export async function apiFetch<T>(
     const error = await response.json().catch(() => ({
       message: 'Request failed',
     }))
-    throw new Error(error.message || `HTTP ${response.status}`)
+    const err = new Error(error.message || `HTTP ${response.status}`)
+    ;(err as Error & { status?: number }).status = response.status
+    throw err
   }
 
   if (response.status === 204) {

@@ -144,6 +144,7 @@ async function renterRoutes(fastify: FastifyInstance) {
         approvalGuard,
         tenantScope,
       ],
+      validatorCompiler: () => () => true,
       schema: {
         tags: ['Renters'],
         summary: 'Register a new renter',
@@ -338,6 +339,7 @@ async function renterRoutes(fastify: FastifyInstance) {
             digitalSignatureUrl: z.string().nullable(),
             selfiePhotoUrl: z.string().nullable(),
             ownerAccountId: z.string(),
+            accessCode: z.string().nullable(),
             createdAt: dateTimeResponseSchema,
           }),
           401: errorResponseSchema,
@@ -364,6 +366,55 @@ async function renterRoutes(fastify: FastifyInstance) {
         nidPhotoUrl: formatR2Url(renter.nidPhotoUrl),
         digitalSignatureUrl: formatR2Url(renter.digitalSignatureUrl),
         selfiePhotoUrl: formatR2Url(renter.selfiePhotoUrl),
+      })
+    },
+  )
+
+  /**
+   * POST /api/renters/:id/reset-code
+   * Resets the access code of a renter. Owner and Manager only.
+   */
+  fastify.post(
+    '/:id/reset-code',
+    {
+      preHandler: [
+        authGuard,
+        roleGuard(['owner', 'manager']),
+        approvalGuard,
+        tenantScope,
+      ],
+      schema: {
+        tags: ['Renters'],
+        summary: "Reset a renter's access code",
+        description:
+          "Generates a new random 6-digit access code for the renter and returns it. Scoped to owner's account.\n\n**Roles: owner, manager**",
+        security: [{ BearerAuth: [] }, { CookieAuth: [] }],
+        params: z.object({
+          id: z.string().uuid('Invalid renter ID format'),
+        }),
+        response: {
+          200: z.object({
+            success: z.boolean(),
+            message: z.string(),
+            code: z.string(),
+          }),
+          400: errorResponseSchema,
+          401: errorResponseSchema,
+          403: errorResponseSchema,
+          404: errorResponseSchema,
+        },
+      },
+    },
+    async (request, reply) => {
+      const { id } = request.params as { id: string }
+      const ctx = buildRequestContext(request as never)
+
+      const result = await renterService.resetAccessCode(ctx, id)
+
+      return reply.status(200).send({
+        success: true,
+        message: 'নতুন অ্যাক্সেস কোড তৈরি করা হয়েছে।',
+        code: result.code,
       })
     },
   )

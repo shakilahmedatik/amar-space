@@ -57,6 +57,13 @@
       "when": 1780238700760,
       "tag": "0007_past_famine",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1780331122699,
+      "tag": "0008_lumpy_the_order",
+      "breakpoints": true
     }
   ]
 }

@@ -12,6 +12,7 @@ interface AccessCodeInputProps {
   flatSlug: string
   flatStatus: 'AVAILABLE' | 'OCCUPIED' | 'MAINTENANCE'
   className?: string
+  onSuccess?: () => void
 }
 
 interface AccessCodeResponse {
@@ -86,6 +87,7 @@ export function AccessCodeInput({
   flatSlug,
   flatStatus,
   className,
+  onSuccess,
 }: AccessCodeInputProps) {
   const router = useRouter()
   const [code, setCode] = useState('')
@@ -159,7 +161,11 @@ export function AccessCodeInput({
     onSuccess: (data) => {
       setErrorMessage(null)
       trackEvent('Access Granted', flatSlug)
-      router.push(data.redirectUrl || '/dashboard')
+      if (onSuccess) {
+        onSuccess()
+      } else {
+        router.push(data.redirectUrl || '/dashboard')
+      }
     },
     onError: (error: AccessCodeErrorResponse) => {
       // Track failed attempt

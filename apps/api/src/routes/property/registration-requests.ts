@@ -297,6 +297,7 @@ async function registrationRequestRoutes(fastify: FastifyInstance) {
           await tx.insert(renterAccessCodes).values({
             flatId: req.flatId,
             renterId: renter!.id,
+            code: req.accessCode,
             codeHash: req.accessCodeHash,
             failedAttempts: 0,
             createdAt: new Date(),

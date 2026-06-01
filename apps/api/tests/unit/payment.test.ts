@@ -875,17 +875,15 @@ describe('PaymentService', () => {
         select: vi.fn().mockImplementation(() => {
           selectCallCount++
           if (selectCallCount % 2 === 1) {
-            return {
-              from: vi.fn().mockReturnValue({
-                where: vi.fn().mockReturnValue({
-                  orderBy: vi.fn().mockReturnValue({
-                    limit: vi.fn().mockReturnValue({
-                      offset: vi.fn().mockResolvedValue([defaultPayment]),
-                    }),
-                  }),
-                }),
-              }),
+            const queryBuilder = {
+              from: vi.fn().mockReturnThis(),
+              leftJoin: vi.fn().mockReturnThis(),
+              where: vi.fn().mockReturnThis(),
+              orderBy: vi.fn().mockReturnThis(),
+              limit: vi.fn().mockReturnThis(),
+              offset: vi.fn().mockResolvedValue([defaultPayment]),
             }
+            return queryBuilder
           }
           return {
             from: vi.fn().mockReturnValue({
@@ -924,17 +922,15 @@ describe('PaymentService', () => {
         select: vi.fn().mockImplementation(() => {
           selectCallCount++
           if (selectCallCount % 2 === 1) {
-            return {
-              from: vi.fn().mockReturnValue({
-                where: vi.fn().mockReturnValue({
-                  orderBy: vi.fn().mockReturnValue({
-                    limit: vi.fn().mockReturnValue({
-                      offset: vi.fn().mockResolvedValue([]),
-                    }),
-                  }),
-                }),
-              }),
+            const queryBuilder = {
+              from: vi.fn().mockReturnThis(),
+              leftJoin: vi.fn().mockReturnThis(),
+              where: vi.fn().mockReturnThis(),
+              orderBy: vi.fn().mockReturnThis(),
+              limit: vi.fn().mockReturnThis(),
+              offset: vi.fn().mockResolvedValue([]),
             }
+            return queryBuilder
           }
           return {
             from: vi.fn().mockReturnValue({

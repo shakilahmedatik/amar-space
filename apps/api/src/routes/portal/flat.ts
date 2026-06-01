@@ -1,7 +1,9 @@
 import {
+  bills,
   emergencyContacts,
   flatSlugs,
   notices,
+  payments,
   portalSessions,
   registrationRequests,
   renterAccessCodes,
@@ -505,6 +507,7 @@ async function portalFlatRoutes(fastify: FastifyInstance) {
           advanceAmount: String(data.advanceAmount),
           digitalSignatureUrl,
           status: 'PENDING_APPROVAL',
+          accessCode,
           accessCodeHash,
         })
         .returning({ id: registrationRequests.id })
@@ -765,6 +768,281 @@ async function portalFlatRoutes(fastify: FastifyInstance) {
       }
 
       return reply.status(200).send({ valid: true })
+    },
+  )
+
+  /**
+   * GET /api/portal/flat/:slug/renter-data
+   *
+   * Fetches authenticated renter's submitted details, active contract, and payment/bill history.
+   * Requires a valid portal_session cookie.
+   */
+  fastify.get(
+    '/:slug/renter-data',
+    {
+      schema: {
+        tags: ['Portal'],
+        summary: 'Get authenticated renter portal data',
+        description:
+          "Returns the authenticated renter's profile, active rental contract details, and full bill and payment histories. Requires a valid portal_session cookie.",
+        params: z.object({
+          slug: z.string(),
+        }),
+        response: {
+          200: z.object({
+            renter: z.object({
+              id: z.string(),
+              fullName: z.string(),
+              phone: z.string(),
+              nidNumber: z.string(),
+              nidPhotoUrl: z.string().nullable(),
+              dateOfBirth: z.string().nullable(),
+              occupation: z.string(),
+              bloodGroup: z.string(),
+              totalFamilyMembers: z.number(),
+              familyMemberNames: z.array(z.string()).nullable(),
+              emergencyContactName: z.string(),
+              emergencyContactNumber: z.string(),
+              emergencyContactRelationship: z.string(),
+              digitalSignatureUrl: z.string().nullable(),
+              selfiePhotoUrl: z.string().nullable(),
+            }),
+            contract: z
+              .object({
+                id: z.string(),
+                monthlyRent: z.number(),
+                startDate: z.string(),
+                depositBalance: z.number(),
+                gasBill: z.number().nullable(),
+                waterBill: z.number().nullable(),
+                serviceCharge: z.number().nullable(),
+                otherCharges: z.number().nullable(),
+              })
+              .nullable(),
+            bills: z.array(
+              z.object({
+                id: z.string(),
+                billingMonth: z.string(),
+                totalAmount: z.number(),
+                paidAmount: z.number(),
+                status: z.string(),
+                createdAt: z.string(),
+              }),
+            ),
+            payments: z.array(
+              z.object({
+                id: z.string(),
+                amount: z.number(),
+                paymentDate: z.string(),
+                paymentMethod: z.string(),
+                receiptReference: z.string(),
+                note: z.string().nullable(),
+                createdAt: z.string(),
+              }),
+            ),
+            flat: z.object({
+              flatNumber: z.string(),
+              floor: z.number(),
+              buildingName: z.string(),
+              buildingAddress: z.string(),
+            }),
+          }),
+          401: z.object({
+            error: z.string(),
+            message: z.string(),
+          }),
+          404: z.object({
+            error: z.string(),
+            message: z.string(),
+          }),
+        },
+      },
+    },
+    async (request, reply) => {
+      // const { slug } = request.params as { slug: string }
+
+      const sessionId = request.cookies.portal_session
+      if (!sessionId) {
+        return reply.status(401).send({
+          error: 'UNAUTHORIZED',
+          message: 'প্রবেশাধিকার নেই। অনুগ্রহ করে কোড দিয়ে লগইন করুন।',
+        })
+      }
+
+      // Check portal session in DB
+      const portalSession = await fastify.db.query.portalSessions.findFirst({
+        where: eq(portalSessions.id, sessionId),
+        with: {
+          renter: {
+            with: {
+              rentalContracts: {
+                where: (contracts, { eq }) => eq(contracts.status, 'active'),
+                with: {
+                  flat: {
+                    with: {
+                      building: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      })
+
+      if (
+        !portalSession ||
+        new Date(portalSession.expiresAt) <= new Date() ||
+        !portalSession.renter
+      ) {
+        return reply.status(401).send({
+          error: 'UNAUTHORIZED',
+          message: 'সেশনের মেয়াদ শেষ হয়েছে। আবার লগইন করুন।',
+        })
+      }
+
+      const { renter } = portalSession
+      const activeContract = renter.rentalContracts?.[0]
+      const flat = activeContract?.flat
+      const building = flat?.building
+
+      if (!flat || !building) {
+        return reply.status(404).send({
+          error: 'NOT_FOUND',
+          message: 'কোনো সক্রিয় ফ্ল্যাট বা চুক্তি পাওয়া যায়নি।',
+        })
+      }
+
+      // Query all bills for this renter
+      const renterBills = await fastify.db
+        .select()
+        .from(bills)
+        .where(eq(bills.renterId, renter.id))
+        .orderBy(desc(bills.billingMonth))
+
+      // Query all payments for this renter's bills
+      const renterPayments = await fastify.db
+        .select()
+        .from(payments)
+        .innerJoin(bills, eq(payments.billId, bills.id))
+        .where(eq(bills.renterId, renter.id))
+        .orderBy(desc(payments.paymentDate))
+
+      const r2BaseUrl = fastify.env.R2_PUBLIC_BASE_URL.replace(/\/$/, '')
+      const formatR2Url = (key: string | null | undefined) => {
+        if (!key) return null
+        if (key.startsWith('http://') || key.startsWith('https://')) return key
+        return `${r2BaseUrl}/${key}`
+      }
+
+      return reply.status(200).send({
+        renter: {
+          id: renter.id,
+          fullName: renter.fullName,
+          phone: renter.phone,
+          nidNumber: renter.nidNumber,
+          nidPhotoUrl: formatR2Url(renter.nidPhotoUrl),
+          dateOfBirth: renter.dateOfBirth,
+          occupation: renter.occupation,
+          bloodGroup: renter.bloodGroup,
+          totalFamilyMembers: renter.totalFamilyMembers,
+          familyMemberNames: renter.familyMemberNames as string[] | null,
+          emergencyContactName: renter.emergencyContactName,
+          emergencyContactNumber: renter.emergencyContactNumber,
+          emergencyContactRelationship: renter.emergencyContactRelationship,
+          digitalSignatureUrl: formatR2Url(renter.digitalSignatureUrl),
+          selfiePhotoUrl: formatR2Url(renter.selfiePhotoUrl),
+        },
+        contract: activeContract
+          ? {
+              id: activeContract.id,
+              monthlyRent: Number.parseFloat(activeContract.monthlyRent),
+              startDate: activeContract.startDate,
+              depositBalance: Number.parseFloat(
+                activeContract.remainingDepositBalance,
+              ),
+              gasBill: activeContract.gasBill
+                ? Number.parseFloat(activeContract.gasBill)
+                : null,
+              waterBill: activeContract.waterBill
+                ? Number.parseFloat(activeContract.waterBill)
+                : null,
+              serviceCharge: activeContract.serviceCharge
+                ? Number.parseFloat(activeContract.serviceCharge)
+                : null,
+              otherCharges: activeContract.otherCharges
+                ? Number.parseFloat(activeContract.otherCharges)
+                : null,
+            }
+          : null,
+        bills: renterBills.map((b) => ({
+          id: b.id,
+          billingMonth: b.billingMonth,
+          totalAmount: Number.parseFloat(b.totalAmount),
+          paidAmount: Number.parseFloat(b.paidAmount),
+          status: b.status,
+          createdAt: b.createdAt.toISOString(),
+        })),
+        payments: renterPayments.map(({ payments: p }) => ({
+          id: p.id,
+          amount: Number.parseFloat(p.amount),
+          paymentDate: p.paymentDate,
+          paymentMethod: p.paymentMethod,
+          receiptReference: p.receiptReference,
+          note: p.note,
+          createdAt: p.createdAt.toISOString(),
+        })),
+        flat: {
+          flatNumber: flat.flatNumber,
+          floor: flat.floor,
+          buildingName: building.name,
+          buildingAddress: building.address,
+        },
+      })
+    },
+  )
+
+  /**
+   * DELETE /api/portal/flat/:slug/logout
+   *
+   * Clears the portal_session cookie and deletes the session in DB.
+   */
+  fastify.delete(
+    '/:slug/logout',
+    {
+      schema: {
+        tags: ['Portal'],
+        summary: 'Logout from portal',
+        description:
+          'Clears the portal_session cookie and invalidates it in the database.',
+        params: z.object({
+          slug: z.string(),
+        }),
+        response: {
+          200: z.object({
+            success: z.boolean(),
+            message: z.string(),
+          }),
+        },
+      },
+    },
+    async (request, reply) => {
+      const sessionId = request.cookies.portal_session
+
+      if (sessionId) {
+        // Delete the session record in DB
+        await fastify.db
+          .delete(portalSessions)
+          .where(eq(portalSessions.id, sessionId))
+      }
+
+      // Clear the cookie
+      reply.clearCookie('portal_session', { path: '/' })
+
+      return reply.status(200).send({
+        success: true,
+        message: 'লগআউট সফল হয়েছে',
+      })
     },
   )
 }

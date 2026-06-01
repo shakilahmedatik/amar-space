@@ -244,6 +244,7 @@ export interface Renter {
   monthlyRent: number
   startDate: string
   depositBalance: number
+  accessCode: string | null
   createdAt: string
   updatedAt: string
 }
@@ -310,6 +311,17 @@ export function fetchRenters(
 
 export function fetchRenter(id: string): Promise<Renter> {
   return apiFetch<Renter>(`/api/renters/${id}`)
+}
+
+export function resetRenterAccessCode(
+  id: string,
+): Promise<{ success: boolean; message: string; code: string }> {
+  return apiFetch<{ success: boolean; message: string; code: string }>(
+    `/api/renters/${id}/reset-code`,
+    {
+      method: 'POST',
+    },
+  )
 }
 
 export function fetchVacantFlats(): Promise<VacantFlatsResponse> {
@@ -513,7 +525,7 @@ export interface BillListParams {
 }
 
 export interface GenerateBillsInput {
-  month: string // YYYY-MM
+  billingMonth: string // YYYY-MM
 }
 
 export interface GenerateBillsResponse {
@@ -1341,6 +1353,90 @@ export function rejectRegistration(
     `/api/registration-requests/${id}/reject`,
     {
       method: 'POST',
+    },
+  )
+}
+
+// --- Deletion API Functions ---
+
+export function deleteBill(id: string): Promise<void> {
+  return apiFetch<void>(`/api/bills/${id}`, {
+    method: 'DELETE',
+  })
+}
+
+export function deletePayment(id: string): Promise<void> {
+  return apiFetch<void>(`/api/payments/${id}`, {
+    method: 'DELETE',
+  })
+}
+
+// --- Portal Renter Data & Logout ---
+
+export interface PortalRenterData {
+  renter: {
+    id: string
+    fullName: string
+    phone: string
+    nidNumber: string
+    nidPhotoUrl: string | null
+    dateOfBirth: string | null
+    occupation: string
+    bloodGroup: string
+    totalFamilyMembers: number
+    familyMemberNames: string[] | null
+    emergencyContactName: string
+    emergencyContactNumber: string
+    emergencyContactRelationship: string
+    digitalSignatureUrl: string | null
+    selfiePhotoUrl: string | null
+  }
+  contract: {
+    id: string
+    monthlyRent: number
+    startDate: string
+    depositBalance: number
+    gasBill: number | null
+    waterBill: number | null
+    serviceCharge: number | null
+    otherCharges: number | null
+  } | null
+  bills: Array<{
+    id: string
+    billingMonth: string
+    totalAmount: number
+    paidAmount: number
+    status: string
+    createdAt: string
+  }>
+  payments: Array<{
+    id: string
+    amount: number
+    paymentDate: string
+    paymentMethod: string
+    receiptReference: string
+    note: string | null
+    createdAt: string
+  }>
+  flat: {
+    flatNumber: string
+    floor: number
+    buildingName: string
+    buildingAddress: string
+  }
+}
+
+export function fetchPortalRenterData(slug: string): Promise<PortalRenterData> {
+  return apiFetch<PortalRenterData>(`/api/portal/flat/${slug}/renter-data`)
+}
+
+export function portalLogout(
+  slug: string,
+): Promise<{ success: boolean; message: string }> {
+  return apiFetch<{ success: boolean; message: string }>(
+    `/api/portal/flat/${slug}/logout`,
+    {
+      method: 'DELETE',
     },
   )
 }

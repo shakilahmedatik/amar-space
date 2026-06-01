@@ -1,9 +1,11 @@
 'use client'
 
+import { Trash2 } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useCallback, useState } from 'react'
 import { Button } from '@/components/ui/button'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import {
   DataTable,
   type DataTableColumn,
@@ -11,7 +13,11 @@ import {
 } from '@/components/ui/data-table'
 import { ErrorFeedback } from '@/components/ui/error-feedback'
 import { useSession } from '@/contexts/session-context'
-import { usePayments, useRenterOptions } from '@/hooks/use-payments'
+import {
+  useDeletePayment,
+  usePayments,
+  useRenterOptions,
+} from '@/hooks/use-payments'
 import type { Payment, PaymentMethod } from '@/lib/api-client'
 import { useTranslation } from '@/lib/i18n'
 
@@ -21,6 +27,12 @@ import { useTranslation } from '@/lib/i18n'
  * Validates: Requirements 8.5, 8.6, 8.9
  */
 export default function PaymentsPage() {
+  const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null)
+  const [feedback, setFeedback] = useState<{
+    message: string
+    type: 'success' | 'error'
+  } | null>(null)
+  const deletePaymentMutation = useDeletePayment()
   const { role } = useSession()
   const { t } = useTranslation()
   const _router = useRouter()
@@ -120,6 +132,27 @@ export default function PaymentsPage() {
     },
   ]
 
+  if (role === 'owner' || role === 'manager') {
+    columns.push({
+      key: 'actions',
+      header: t('flats.actions'),
+      render: (row) => (
+        <div className="flex justify-end">
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={() => setDeleteTargetId(row.id)}
+            className="min-h-[44px] w-[44px] p-0 rounded-full text-error-text hover:bg-error-bg/10 hover:text-error-text"
+            aria-label={t('payments.deletePayment')}
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        </div>
+      ),
+      width: '60px',
+    })
+  }
+
   const filters: DataTableFilter[] = [
     {
       key: 'method',
@@ -150,6 +183,14 @@ export default function PaymentsPage() {
 
   return (
     <>
+      {feedback && (
+        <ErrorFeedback
+          message={feedback.message}
+          type={feedback.type}
+          visible
+          onDismiss={() => setFeedback(null)}
+        />
+      )}
       {error && (
         <ErrorFeedback
           message={error.message || t('common.error')}
@@ -220,6 +261,34 @@ export default function PaymentsPage() {
         filters={filters}
         filterValues={{ method: methodFilter, renter: renterFilter }}
         onFilterChange={handleFilterChange}
+      />
+
+      <ConfirmDialog
+        open={!!deleteTargetId}
+        onClose={() => setDeleteTargetId(null)}
+        onConfirm={async () => {
+          if (!deleteTargetId) return
+          try {
+            await deletePaymentMutation.mutateAsync(deleteTargetId)
+            setFeedback({
+              message: t('payments.deleteSuccess'),
+              type: 'success',
+            })
+          } catch (err) {
+            setFeedback({
+              message: err instanceof Error ? err.message : t('common.error'),
+              type: 'error',
+            })
+          } finally {
+            setDeleteTargetId(null)
+          }
+        }}
+        title={t('payments.deleteConfirmTitle')}
+        description={t('payments.deleteConfirmDescription')}
+        confirmLabel={t('common.delete')}
+        cancelLabel={t('common.cancel')}
+        destructive
+        loading={deletePaymentMutation.isPending}
       />
     </>
   )

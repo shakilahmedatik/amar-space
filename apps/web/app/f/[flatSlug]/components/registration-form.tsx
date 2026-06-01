@@ -22,6 +22,7 @@ import {
 } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { BASE_URL } from '@/lib/api'
+import { cn } from '@/lib/utils'
 import { trackEvent } from '../lib/analytics'
 import { SignaturePad } from './signature-pad'
 
@@ -40,20 +41,30 @@ interface RegistrationResponse {
 
 const BLOOD_GROUPS = ['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-'] as const
 
-const MAX_NID_PHOTO_SIZE = 5 * 1024 * 1024 // 5 MB
-const ACCEPTED_NID_FORMATS = ['image/jpeg', 'image/png']
-
 /**
- * Selfie capture component — live webcam stream with fallback to file upload.
+ * Generalized image capture component — live webcam stream with fallback to file upload.
  */
-function SelfieCapture({
+function ImageCapture({
   value,
   onChange,
   onFocus,
+  facingMode = 'user',
+  isCircular = false,
+  previewAlt = 'ছবি প্রিভিউ',
+  cameraButtonLabel = 'ক্যামেরা দিয়ে ছবি তুলুন',
+  uploadButtonLabel = 'ছবি আপলোড করুন',
+  retakeButtonLabel = 'আবার তুলুন / আপলোড করুন',
 }: {
   value?: string
   onChange: (base64: string) => void
   onFocus?: () => void
+  facingMode?: 'user' | 'environment'
+  isCircular?: boolean
+  previewAlt?: string
+  cameraButtonLabel?: string
+  uploadButtonLabel?: string
+  retakeButtonLabel?: string
+  placeholderLabel?: string
 }) {
   const [isCameraActive, setIsCameraActive] = useState(false)
   const [cameraError, setCameraError] = useState<string | null>(null)
@@ -67,7 +78,7 @@ function SelfieCapture({
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
         video: {
-          facingMode: 'user',
+          facingMode: facingMode,
           width: { ideal: 640 },
           height: { ideal: 480 },
         },
@@ -102,7 +113,6 @@ function SelfieCapture({
     canvas.height = video.videoHeight || 480
     const ctx = canvas.getContext('2d')
     if (ctx) {
-      // Draw frame to canvas
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
       const base64 = canvas.toDataURL('image/jpeg', 0.8)
       onChange(base64)
@@ -146,8 +156,13 @@ function SelfieCapture({
           {/* biome-ignore lint/performance/noImgElement: R2 base64 and dynamic image urls */}
           <img
             src={value}
-            alt="সেলফি প্রিভিউ"
-            className="h-40 w-40 rounded-full object-cover border-4 border-white shadow-md bg-white"
+            alt={previewAlt}
+            className={cn(
+              'object-cover border-4 border-white shadow-md bg-white',
+              isCircular
+                ? 'h-40 w-40 rounded-full'
+                : 'w-full max-w-sm aspect-3/2 rounded-lg',
+            )}
           />
           <button
             type="button"
@@ -155,7 +170,7 @@ function SelfieCapture({
             className="mt-3 flex min-h-[48px] items-center gap-2 rounded-lg border border-hairline bg-white px-4 py-2 text-base font-medium text-ink transition-colors hover:bg-surface active:bg-surface-dark"
           >
             <RefreshCw className="h-4 w-4" />
-            আবার তুলুন / আপলোড করুন
+            {retakeButtonLabel}
           </button>
         </div>
       ) : isCameraActive ? (
@@ -195,7 +210,7 @@ function SelfieCapture({
               className="flex flex-col items-center justify-center gap-2 rounded-lg border border-hairline bg-white p-4 text-center hover:border-brand-blue-deep hover:text-brand-blue-deep transition-colors active:bg-surface min-h-[100px]"
             >
               <Camera className="h-6 w-6 text-steel" />
-              <span className="text-base font-medium">ক্যামেরা দিয়ে ছবি তুলুন</span>
+              <span className="text-base font-medium">{cameraButtonLabel}</span>
             </button>
             <button
               type="button"
@@ -203,14 +218,14 @@ function SelfieCapture({
               className="flex flex-col items-center justify-center gap-2 rounded-lg border border-hairline bg-white p-4 text-center hover:border-brand-blue-deep hover:text-brand-blue-deep transition-colors active:bg-surface min-h-[100px]"
             >
               <Upload className="h-6 w-6 text-steel" />
-              <span className="text-base font-medium">ছবি আপলোড করুন</span>
+              <span className="text-base font-medium">{uploadButtonLabel}</span>
             </button>
           </div>
           <input
             ref={fileInputRef}
             type="file"
             accept="image/jpeg,image/png"
-            capture="user"
+            capture={facingMode === 'user' ? 'user' : 'environment'}
             onChange={handleFileChange}
             className="hidden"
           />
@@ -252,16 +267,14 @@ export function RegistrationForm({
   const [familyMemberNames, setFamilyMemberNames] = useState<string[]>([''])
   const [digitalSignature, setDigitalSignature] = useState('')
   const [nidPhoto, setNidPhoto] = useState<string | undefined>(undefined)
-  const [nidPhotoName, setNidPhotoName] = useState('')
+
   const [selfiePhoto, setSelfiePhoto] = useState<string | undefined>(undefined)
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
-  const [nidPhotoError, setNidPhotoError] = useState('')
+  const [nidPhotoError, _setNidPhotoError] = useState('')
   const [hasStartedTracking, setHasStartedTracking] = useState(false)
   const [submitSuccess, setSubmitSuccess] = useState(false)
   const [generatedAccessCode, setGeneratedAccessCode] = useState('')
   const [copiedCode, setCopiedCode] = useState(false)
-
-  const nidFileInputRef = useRef<HTMLInputElement>(null)
 
   // Resizes the family member names list based on the selected count
   useEffect(() => {
@@ -336,44 +349,16 @@ export function RegistrationForm({
     }
   }
 
-  // Handle NID photo upload
-  function handleNidPhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
-    setNidPhotoError('')
-
-    if (!file) {
-      setNidPhoto(undefined)
-      setNidPhotoName('')
-      return
+  // Handle NID photo changes
+  function handleNidPhotoChange(base64: string) {
+    setNidPhoto(base64 || undefined)
+    if (fieldErrors.nidPhoto) {
+      setFieldErrors((prev) => {
+        const next = { ...prev }
+        delete next.nidPhoto
+        return next
+      })
     }
-
-    if (!ACCEPTED_NID_FORMATS.includes(file.type)) {
-      setNidPhotoError('শুধুমাত্র JPEG বা PNG ফরম্যাট গ্রহণযোগ্য')
-      setNidPhoto(undefined)
-      setNidPhotoName('')
-      return
-    }
-
-    if (file.size > MAX_NID_PHOTO_SIZE) {
-      setNidPhotoError('ফাইলের আকার সর্বোচ্চ ৫ MB হতে হবে')
-      setNidPhoto(undefined)
-      setNidPhotoName('')
-      return
-    }
-
-    const reader = new FileReader()
-    reader.onload = () => {
-      setNidPhoto(reader.result as string)
-      setNidPhotoName(file.name)
-      if (fieldErrors.nidPhoto) {
-        setFieldErrors((prev) => {
-          const next = { ...prev }
-          delete next.nidPhoto
-          return next
-        })
-      }
-    }
-    reader.readAsDataURL(file)
   }
 
   // Handle selfie state changes
@@ -655,28 +640,18 @@ export function RegistrationForm({
           error={fieldErrors.nidPhoto || nidPhotoError}
           fieldId="reg-nidPhoto"
         >
-          <div className="flex flex-col gap-2">
-            <button
-              type="button"
-              onClick={() => nidFileInputRef.current?.click()}
-              onFocus={handleFieldFocus}
-              className="flex min-h-[48px] items-center justify-center gap-2 rounded-lg border border-dashed border-hairline bg-white px-3 py-3 text-base text-steel transition-colors hover:border-brand-blue-deep hover:text-brand-blue-deep active:bg-surface"
-            >
-              <Upload className="h-5 w-5" aria-hidden />
-              <span className="truncate max-w-[250px]">
-                {nidPhotoName || 'NID-এর ছবি আপলোড করুন (সর্বোচ্চ ৫ MB)'}
-              </span>
-            </button>
-            <input
-              id="reg-nidPhoto"
-              ref={nidFileInputRef}
-              type="file"
-              accept="image/jpeg,image/png"
-              onChange={handleNidPhotoChange}
-              className="hidden"
-              aria-label="NID ছবি আপলোড"
-            />
-          </div>
+          <ImageCapture
+            value={nidPhoto}
+            onChange={handleNidPhotoChange}
+            onFocus={handleFieldFocus}
+            facingMode="environment"
+            isCircular={false}
+            previewAlt="NID প্রিভিউ"
+            cameraButtonLabel="ক্যামেরা দিয়ে NID-র ছবি তুলুন"
+            uploadButtonLabel="NID ছবি আপলোড করুন"
+            retakeButtonLabel="আবার তুলুন / আপলোড করুন"
+            placeholderLabel="NID-এর ছবি আপলোড করুন (সর্বোচ্চ ৫ MB)"
+          />
         </FormField>
 
         {/* Selfie Photo - Mandatory */}
@@ -686,10 +661,17 @@ export function RegistrationForm({
           error={fieldErrors.selfiePhoto}
           fieldId="reg-selfiePhoto"
         >
-          <SelfieCapture
+          <ImageCapture
             value={selfiePhoto}
             onChange={handleSelfieChange}
             onFocus={handleFieldFocus}
+            facingMode="user"
+            isCircular={true}
+            previewAlt="সেলফি প্রিভিউ"
+            cameraButtonLabel="ক্যামেরা দিয়ে সেলফি তুলুন"
+            uploadButtonLabel="সেলফি আপলোড করুন"
+            retakeButtonLabel="আবার তুলুন / আপলোড করুন"
+            placeholderLabel="সেলফি ছবি আপলোড করুন (সর্বোচ্চ ৫ MB)"
           />
         </FormField>
 

@@ -1,17 +1,20 @@
 'use client'
 
+import { Trash2 } from 'lucide-react'
 import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
 import { type FormEvent, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { CurrencyDisplay } from '@/components/ui/currency-display'
 import { ErrorFeedback } from '@/components/ui/error-feedback'
 import { FormField, FormInput } from '@/components/ui/form-field'
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton'
 import { StatusBadge } from '@/components/ui/status-badge'
 import { useSession } from '@/contexts/session-context'
-import { useAddUtilityCharge, useBill } from '@/hooks/use-bills'
+import { useAddUtilityCharge, useBill, useDeleteBill } from '@/hooks/use-bills'
+import { useDeletePayment } from '@/hooks/use-payments'
 import { useTranslation } from '@/lib/i18n'
 
 /**
@@ -35,6 +38,43 @@ export default function BillDetailPage() {
 
   const { data: bill, isLoading, isError, error } = useBill(billId)
   const addChargeMutation = useAddUtilityCharge(billId)
+  const deleteBillMutation = useDeleteBill()
+  const deletePaymentMutation = useDeletePayment(billId)
+
+  const [showDeleteBillDialog, setShowDeleteBillDialog] = useState(false)
+  const [deletePaymentTargetId, setDeletePaymentTargetId] = useState<
+    string | null
+  >(null)
+
+  async function handleDeleteBill() {
+    try {
+      await deleteBillMutation.mutateAsync(billId)
+      setSuccessMessage(t('bills.deleteSuccess'))
+      setShowDeleteBillDialog(false)
+      setTimeout(() => {
+        _router.push('/bills')
+      }, 1500)
+    } catch (err) {
+      setChargeErrors({
+        form: err instanceof Error ? err.message : t('common.error'),
+      })
+      setShowDeleteBillDialog(false)
+    }
+  }
+
+  async function handleDeletePayment() {
+    if (!deletePaymentTargetId) return
+    try {
+      await deletePaymentMutation.mutateAsync(deletePaymentTargetId)
+      setSuccessMessage(t('payments.deleteSuccess'))
+    } catch (err) {
+      setChargeErrors({
+        form: err instanceof Error ? err.message : t('common.error'),
+      })
+    } finally {
+      setDeletePaymentTargetId(null)
+    }
+  }
   function validateCharge(): boolean {
     const errors: Record<string, string> = {}
 
@@ -123,7 +163,19 @@ export default function BillDetailPage() {
                 <h1 className="text-2xl font-bold text-ink">
                   {t('bills.billDetail')}
                 </h1>
-                <StatusBadge status={bill.status} />
+                <div className="flex items-center gap-3">
+                  {(role === 'owner' || role === 'manager') && (
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      onClick={() => setShowDeleteBillDialog(true)}
+                      className="rounded-full min-h-[44px] bg-error-text text-on-dark font-semibold hover:bg-error-text/90"
+                    >
+                      {t('bills.deleteBill')}
+                    </Button>
+                  )}
+                  <StatusBadge status={bill.status} />
+                </div>
               </div>
 
               <div className="grid gap-4 grid-cols-[repeat(auto-fit,minmax(180px,1fr))]">
@@ -348,6 +400,11 @@ export default function BillDetailPage() {
                         <th className="px-4 py-3 text-right font-semibold text-xs text-steel uppercase bg-surface w-[140px]">
                           {t('bills.amount')}
                         </th>
+                        {(role === 'owner' || role === 'manager') && (
+                          <th className="px-4 py-3 text-right font-semibold text-xs text-steel uppercase bg-surface w-[60px]">
+                            {t('flats.actions')}
+                          </th>
+                        )}
                       </tr>
                     </thead>
                     <tbody>
@@ -371,6 +428,21 @@ export default function BillDetailPage() {
                           <td className="px-4 py-3 text-right">
                             <CurrencyDisplay amount={payment.amount} />
                           </td>
+                          {(role === 'owner' || role === 'manager') && (
+                            <td className="px-4 py-3 text-right">
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                onClick={() =>
+                                  setDeletePaymentTargetId(payment.id)
+                                }
+                                className="min-h-[44px] w-[44px] p-0 rounded-full text-error-text hover:bg-error-bg/10 hover:text-error-text inline-flex items-center justify-center"
+                                aria-label={t('payments.deletePayment')}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </td>
+                          )}
                         </tr>
                       ))}
                     </tbody>
@@ -381,6 +453,30 @@ export default function BillDetailPage() {
           </Card>
         </>
       ) : null}
+
+      <ConfirmDialog
+        open={showDeleteBillDialog}
+        onClose={() => setShowDeleteBillDialog(false)}
+        onConfirm={handleDeleteBill}
+        title={t('bills.deleteConfirmTitle')}
+        description={t('bills.deleteConfirmDescription')}
+        confirmLabel={t('common.delete')}
+        cancelLabel={t('common.cancel')}
+        destructive
+        loading={deleteBillMutation.isPending}
+      />
+
+      <ConfirmDialog
+        open={!!deletePaymentTargetId}
+        onClose={() => setDeletePaymentTargetId(null)}
+        onConfirm={handleDeletePayment}
+        title={t('payments.deleteConfirmTitle')}
+        description={t('payments.deleteConfirmDescription')}
+        confirmLabel={t('common.delete')}
+        cancelLabel={t('common.cancel')}
+        destructive
+        loading={deletePaymentMutation.isPending}
+      />
     </>
   )
 }

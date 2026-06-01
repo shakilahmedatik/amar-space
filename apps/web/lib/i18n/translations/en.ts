@@ -210,6 +210,18 @@ const en: TranslationDictionary = {
     familyMemberNameMax: 'Each name must be at most 100 characters',
     selectBloodGroup: 'Select blood group',
     selectFlatPlaceholder: 'Select a vacant flat',
+    accessCodeCardTitle: 'Portal Access Code',
+    accessCodeLabel: 'Access Code',
+    showCode: 'Show Code',
+    hideCode: 'Hide Code',
+    generateNewCode: 'Generate New Code',
+    generateNewCodeConfirmTitle:
+      'Are you sure you want to generate a new access code?',
+    generateNewCodeConfirmDesc:
+      'This will invalidate the previous access code and the renter will need to use the new code to access the portal.',
+    newCodeGenerated: 'New access code generated successfully!',
+    copyCode: 'Copy Code',
+    codeCopied: 'Code copied to clipboard',
   },
   deposits: {
     title: 'Deposit Management',
@@ -284,6 +296,11 @@ const en: TranslationDictionary = {
     paymentMethod: 'Payment Method',
     receiptRef: 'Receipt Reference',
     note: 'Note',
+    deleteBill: 'Delete Bill',
+    deleteConfirmTitle: 'Delete Bill',
+    deleteConfirmDescription:
+      'Are you sure you want to delete this bill? All associated payments and line items will be permanently deleted. This action cannot be undone.',
+    deleteSuccess: 'Bill deleted successfully',
   },
   payments: {
     title: 'Payment History',
@@ -330,6 +347,11 @@ const en: TranslationDictionary = {
     totalPaid: 'Total Paid',
     remainingBalance: 'Remaining Balance',
     receiptGenerated: 'Generated',
+    deletePayment: 'Delete Payment',
+    deleteConfirmTitle: 'Delete Payment',
+    deleteConfirmDescription:
+      'Are you sure you want to delete this payment? The associated bill status and paid amount will be recalculated.',
+    deleteSuccess: 'Payment deleted successfully',
   },
   maintenance: {
     title: 'Maintenance',

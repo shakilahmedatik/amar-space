@@ -43,6 +43,7 @@ export const registrationRequests = pgTable(
     status: varchar('status', { length: 20 })
       .notNull()
       .default('PENDING_APPROVAL'),
+    accessCode: varchar('access_code', { length: 6 }),
     accessCodeHash: varchar('access_code_hash', { length: 255 }),
     familyMemberNames: jsonb('family_member_names'),
     emergencyContactName: varchar('emergency_contact_name', { length: 200 }),

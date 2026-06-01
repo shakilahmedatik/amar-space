@@ -495,15 +495,27 @@ function ApproveRegistrationDialog({
 
             <div className="flex flex-col gap-2 mt-2">
               {request.nidPhotoUrl && (
-                <a
-                  href={request.nidPhotoUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="flex min-h-[44px] items-center gap-2 px-3 py-2 rounded-lg border border-hairline bg-white hover:bg-surface text-base text-brand-blue-deep font-semibold transition-colors"
-                >
-                  <Eye className="h-4 w-4" />
-                  NID ছবি দেখুন
-                </a>
+                <div className="border border-hairline rounded-lg p-3 bg-white flex flex-col items-center gap-1.5">
+                  <span className="text-base text-steel font-medium">
+                    NID ছবি:
+                  </span>
+                  <div className="relative group w-full max-w-[240px] aspect-3/2 overflow-hidden rounded border border-hairline bg-surface">
+                    {/* biome-ignore lint/performance/noImgElement: R2 public url rendering */}
+                    <img
+                      src={request.nidPhotoUrl}
+                      alt="NID কার্ড"
+                      className="w-full h-full object-cover"
+                    />
+                    <a
+                      href={request.nidPhotoUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="absolute inset-0 bg-black/50 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-xs"
+                    >
+                      বড় করে দেখুন
+                    </a>
+                  </div>
+                </div>
               )}
               {request.digitalSignatureUrl && (
                 <div className="border border-hairline rounded-lg p-3 bg-white flex flex-col items-center gap-1">

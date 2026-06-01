@@ -2,6 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
+  deletePayment,
   fetchPayment,
   fetchPayments,
   fetchRenterOptions,
@@ -70,6 +71,23 @@ export function useRecordPayment() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['payments'] })
       queryClient.invalidateQueries({ queryKey: ['bills'] })
+    },
+  })
+}
+
+/**
+ * Mutation hook for deleting a payment.
+ */
+export function useDeletePayment(billId?: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => deletePayment(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['payments'] })
+      queryClient.invalidateQueries({ queryKey: ['bills'] })
+      if (billId) {
+        queryClient.invalidateQueries({ queryKey: ['bills', billId] })
+      }
     },
   })
 }

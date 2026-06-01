@@ -6,6 +6,7 @@ import {
   rentalContracts,
   renters,
   users,
+  renterAccessCodes,
 } from '@repo/db'
 import { FLAT_STATUS } from '@repo/shared/constants'
 import { NotFoundError, ValidationError } from '@repo/shared/errors'
@@ -17,6 +18,7 @@ import {
 import { and, desc, eq } from 'drizzle-orm'
 import type { AuditLogger } from '../plugins/audit-logger'
 import type { R2Client } from '../plugins/r2'
+import { hashAccessCode } from '../utils/access-code-hash'
 
 // --- Types ---
 
@@ -59,6 +61,7 @@ export interface RenterResult {
   monthlyRent?: number | null
   startDate?: string | null
   depositBalance?: number | null
+  accessCode?: string | null
 }
 
 export interface RentalContractResult {
@@ -375,6 +378,10 @@ export class RenterRegistrationService {
     const flat = activeContract?.flat
     const building = flat?.building
 
+    const accessCodeRecord = await this.db.query.renterAccessCodes.findFirst({
+      where: eq(renterAccessCodes.renterId, renterId),
+    })
+
     return {
       id: renter.id,
       userId: renter.userId,
@@ -406,7 +413,88 @@ export class RenterRegistrationService {
       depositBalance: activeContract
         ? Number.parseFloat(activeContract.remainingDepositBalance)
         : null,
+      accessCode: accessCodeRecord?.code ?? null,
     }
+  }
+
+  /**
+   * Resets the renter's access code and returns the new plaintext code.
+   */
+  async resetAccessCode(
+    ctx: RequestContext,
+    renterId: string,
+  ): Promise<{ code: string }> {
+    const renter = await this.db.query.renters.findFirst({
+      where: and(
+        eq(renters.id, renterId),
+        eq(renters.ownerAccountId, ctx.ownerAccountId),
+      ),
+      with: {
+        rentalContracts: {
+          where: (contracts, { eq }) => eq(contracts.status, 'active'),
+        },
+      },
+    })
+
+    if (!renter) {
+      throw new NotFoundError('Renter')
+    }
+
+    const activeContract = renter.rentalContracts?.[0]
+    if (!activeContract) {
+      throw new ValidationError([
+        {
+          field: 'contractId',
+          message:
+            'সক্রিয় চুক্তি ব্যতীত কোনো ভাড়াটিয়ার অ্যাক্সেস কোড পরিবর্তন করা সম্ভব নয়।',
+          rule: 'no_active_contract',
+        },
+      ])
+    }
+
+    const newCode = Math.floor(100000 + Math.random() * 900000).toString()
+    const newHash = hashAccessCode(newCode)
+
+    const existingAccessCode = await this.db.query.renterAccessCodes.findFirst({
+      where: eq(renterAccessCodes.renterId, renterId),
+    })
+
+    if (existingAccessCode) {
+      await this.db
+        .update(renterAccessCodes)
+        .set({
+          code: newCode,
+          codeHash: newHash,
+          failedAttempts: 0,
+          lockedUntil: null,
+          updatedAt: new Date(),
+        })
+        .where(eq(renterAccessCodes.id, existingAccessCode.id))
+    } else {
+      await this.db.insert(renterAccessCodes).values({
+        flatId: activeContract.flatId,
+        renterId: renterId,
+        code: newCode,
+        codeHash: newHash,
+        failedAttempts: 0,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
+    }
+
+    this.auditLogger.log({
+      actorId: ctx.userId,
+      action: 'renter_access_code_reset',
+      entityType: 'renter',
+      entityId: renterId,
+      ownerAccountId: ctx.ownerAccountId,
+      newValues: {
+        flatId: activeContract.flatId,
+        renterId,
+      },
+    })
+
+    return { code: newCode }
   }
 
   /**

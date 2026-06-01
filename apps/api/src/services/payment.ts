@@ -1,5 +1,17 @@
-import { bills, type Database, flats, payments, renters } from '@repo/db'
-import { BILL_STATUS, type PaymentMethod, ROLES } from '@repo/shared/constants'
+import {
+  bills,
+  buildings,
+  type Database,
+  flats,
+  payments,
+  renters,
+} from '@repo/db'
+import {
+  BILL_STATUS,
+  type BillStatus,
+  type PaymentMethod,
+  ROLES,
+} from '@repo/shared/constants'
 import {
   ForbiddenError,
   NotFoundError,
@@ -10,7 +22,7 @@ import {
   type RecordPaymentInput,
   recordPaymentSchema,
 } from '@repo/shared/validation'
-import { and, count, desc, eq, gte, inArray, lte } from 'drizzle-orm'
+import { and, count, desc, eq, gte, inArray, lte, sql } from 'drizzle-orm'
 import type { AuditLogger } from '../plugins/audit-logger'
 
 // --- Types ---
@@ -25,6 +37,10 @@ export interface PaymentResult {
   paymentMethod: string
   note: string | null
   createdAt: Date
+  renterName?: string
+  flatNumber?: string
+  buildingName?: string
+  billingMonth?: string
 }
 
 export interface ListPaymentsFilters {
@@ -434,8 +450,26 @@ export class PaymentService {
 
     const [data, totalResult] = await Promise.all([
       this.db
-        .select()
+        .select({
+          id: payments.id,
+          ownerAccountId: payments.ownerAccountId,
+          billId: payments.billId,
+          receiptReference: payments.receiptReference,
+          amount: payments.amount,
+          paymentDate: payments.paymentDate,
+          paymentMethod: payments.paymentMethod,
+          note: payments.note,
+          createdAt: payments.createdAt,
+          renterName: renters.fullName,
+          flatNumber: flats.flatNumber,
+          buildingName: buildings.name,
+          billingMonth: bills.billingMonth,
+        })
         .from(payments)
+        .leftJoin(bills, eq(payments.billId, bills.id))
+        .leftJoin(renters, eq(bills.renterId, renters.id))
+        .leftJoin(flats, eq(bills.flatId, flats.id))
+        .leftJoin(buildings, eq(flats.buildingId, buildings.id))
         .where(whereClause)
         .orderBy(desc(payments.createdAt))
         .limit(pageSize)
@@ -452,6 +486,79 @@ export class PaymentService {
       pageSize,
       totalPages: Math.ceil(total / pageSize),
     }
+  }
+
+  /**
+   * Deletes a payment record and updates the associated bill's paidAmount and status.
+   * Scoped to the owner account and role-based access.
+   */
+  async deletePayment(ctx: RequestContext, paymentId: string): Promise<void> {
+    // Only Owner or Manager can delete payments (Requirement 8.6)
+    if (ctx.role === ROLES.RENTER) {
+      throw new ForbiddenError()
+    }
+
+    // Find the payment and verify access
+    const payment = await this.findPaymentWithAccess(ctx, paymentId)
+
+    await this.db.transaction(async (tx) => {
+      // 1. Delete the payment
+      await tx.delete(payments).where(eq(payments.id, paymentId))
+
+      // 2. Find the associated bill
+      const bill = await tx.query.bills.findFirst({
+        where: eq(bills.id, payment.billId),
+      })
+
+      if (bill) {
+        // Recalculate paidAmount by summing all remaining payments
+        const remainingPayments = await tx
+          .select({
+            sum: sql<string>`COALESCE(SUM(${payments.amount}::numeric), 0)`,
+          })
+          .from(payments)
+          .where(eq(payments.billId, payment.billId))
+
+        const newPaidAmount = Number.parseFloat(
+          remainingPayments[0]?.sum ?? '0',
+        )
+
+        // Recalculate bill status
+        const total = Number.parseFloat(bill.totalAmount)
+        let newStatus: BillStatus = BILL_STATUS.UNPAID
+        if (newPaidAmount >= total) {
+          newStatus = BILL_STATUS.PAID
+        } else if (newPaidAmount > 0) {
+          newStatus = BILL_STATUS.PARTIALLY_PAID
+        } else {
+          newStatus = BILL_STATUS.UNPAID
+        }
+
+        // Update the bill
+        await tx
+          .update(bills)
+          .set({
+            paidAmount: newPaidAmount.toFixed(2),
+            status: newStatus,
+            updatedAt: new Date(),
+          })
+          .where(eq(bills.id, payment.billId))
+      }
+    })
+
+    // Record audit event
+    this.auditLogger.log({
+      actorId: ctx.userId,
+      action: 'payment_deleted',
+      entityType: 'payment',
+      entityId: paymentId,
+      ownerAccountId: ctx.ownerAccountId,
+      oldValues: {
+        billId: payment.billId,
+        amount: payment.amount,
+        receiptReference: payment.receiptReference,
+      },
+    })
   }
 
   // --- Private Helpers ---
@@ -579,9 +686,21 @@ export class PaymentService {
     return reference.slice(0, 20).padEnd(12, '0')
   }
 
-  private mapToPaymentResult(
-    payment: typeof payments.$inferSelect,
-  ): PaymentResult {
+  private mapToPaymentResult(payment: {
+    id: string
+    ownerAccountId: string
+    billId: string
+    receiptReference: string
+    amount: string
+    paymentDate: string
+    paymentMethod: string
+    note: string | null
+    createdAt: Date
+    renterName?: string | null
+    flatNumber?: string | null
+    buildingName?: string | null
+    billingMonth?: string | null
+  }): PaymentResult {
     return {
       id: payment.id,
       ownerAccountId: payment.ownerAccountId,
@@ -592,6 +711,10 @@ export class PaymentService {
       paymentMethod: payment.paymentMethod,
       note: payment.note,
       createdAt: payment.createdAt,
+      renterName: payment.renterName ?? undefined,
+      flatNumber: payment.flatNumber ?? undefined,
+      buildingName: payment.buildingName ?? undefined,
+      billingMonth: payment.billingMonth ?? undefined,
     }
   }
 }

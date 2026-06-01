@@ -113,6 +113,10 @@ async function paymentRoutes(fastify: FastifyInstance) {
                 note: z.string().nullable(),
                 ownerAccountId: z.string(),
                 createdAt: dateTimeResponseSchema,
+                renterName: z.string().optional(),
+                flatNumber: z.string().optional(),
+                buildingName: z.string().optional(),
+                billingMonth: z.string().optional(),
               }),
             ),
             total: z.number(),
@@ -164,6 +168,10 @@ async function paymentRoutes(fastify: FastifyInstance) {
           note: p.note,
           ownerAccountId: p.ownerAccountId,
           createdAt: p.createdAt,
+          renterName: p.renterName,
+          flatNumber: p.flatNumber,
+          buildingName: p.buildingName,
+          billingMonth: p.billingMonth,
         })),
         total: result.total,
         page: result.page,
@@ -313,6 +321,53 @@ async function paymentRoutes(fastify: FastifyInstance) {
         note: payment.note,
         ownerAccountId: payment.ownerAccountId,
         createdAt: payment.createdAt,
+      })
+    },
+  )
+
+  /**
+   * DELETE /api/payments/:id
+   * Deletes a payment record and updates the associated bill.
+   * Owner and Manager only.
+   */
+  fastify.delete(
+    '/:id',
+    {
+      preHandler: [
+        authGuard,
+        roleGuard(['owner', 'manager']),
+        approvalGuard,
+        tenantScope,
+      ],
+      schema: {
+        tags: ['Payments'],
+        summary: 'Delete a payment',
+        description:
+          "Deletes a payment record and updates the associated bill's paid amount and status in a transaction.\n\n**Roles: owner, manager**",
+        security: [{ BearerAuth: [] }, { CookieAuth: [] }],
+        params: z.object({
+          id: z.string().uuid('Invalid payment ID format'),
+        }),
+        response: {
+          200: z.object({
+            success: z.boolean(),
+            message: z.string(),
+          }),
+          401: errorResponseSchema,
+          403: errorResponseSchema,
+          404: errorResponseSchema,
+        },
+      },
+    },
+    async (request, reply) => {
+      const { id } = request.params as { id: string }
+      const ctx = buildRequestContext(request as never)
+
+      await paymentService.deletePayment(ctx, id)
+
+      return reply.status(200).send({
+        success: true,
+        message: 'পেমেন্টটি সফলভাবে ডিলিট করা হয়েছে।',
       })
     },
   )

@@ -91,7 +91,7 @@ export default function BillsPage() {
 
     try {
       const result = await generateMutation.mutateAsync({
-        month: generateMonth,
+        billingMonth: generateMonth,
       })
       setShowGenerateDialog(false)
       setGenerateMonth('')

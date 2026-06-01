@@ -2,9 +2,9 @@ import { isValidFlatSlug } from '@repo/shared'
 import { AlertCircle } from 'lucide-react'
 import { Suspense } from 'react'
 import { BASE_URL } from '@/lib/api'
-import { AccessCodeInput } from './components/access-code-input'
 import { BuildingInfo } from './components/building-info'
 import { PortalHeader } from './components/portal-header'
+import PortalOccupiedView from './components/portal-occupied-view'
 import { QuickActionsGrid } from './components/quick-actions-grid'
 import { RegistrationForm } from './components/registration-form'
 import { SessionExpiredBanner } from './components/session-expired-banner'
@@ -141,12 +141,9 @@ export default async function PortalPage({ params }: PortalPageProps) {
         />
       )}
 
-      {/* Access code input — shown when flat is OCCUPIED */}
+      {/* Portal view for occupied flat status */}
       {data.flat.status === 'OCCUPIED' && (
-        <AccessCodeInput
-          flatSlug={data.flat.slug}
-          flatStatus={data.flat.status}
-        />
+        <PortalOccupiedView flatSlug={data.flat.slug} />
       )}
 
       {/* Building info — renders only if rules are configured */}

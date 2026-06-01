@@ -104,6 +104,7 @@ async function billRoutes(fastify: FastifyInstance) {
               z.object({
                 id: z.string(),
                 billingMonth: z.string(),
+                baseRent: z.number(),
                 totalAmount: z.number(),
                 paidAmount: z.number(),
                 status: z.enum(['unpaid', 'partially_paid', 'paid', 'overdue']),
@@ -111,6 +112,9 @@ async function billRoutes(fastify: FastifyInstance) {
                 renterId: z.string(),
                 ownerAccountId: z.string(),
                 createdAt: dateTimeResponseSchema,
+                flatNumber: z.string(),
+                buildingName: z.string(),
+                renterName: z.string(),
               }),
             ),
             total: z.number(),
@@ -152,6 +156,7 @@ async function billRoutes(fastify: FastifyInstance) {
         data: result.data.map((bill) => ({
           id: bill.id,
           billingMonth: bill.billingMonth,
+          baseRent: Number.parseFloat(bill.baseRent),
           totalAmount: Number.parseFloat(bill.totalAmount),
           paidAmount: Number.parseFloat(bill.paidAmount),
           status: bill.status as
@@ -163,6 +168,9 @@ async function billRoutes(fastify: FastifyInstance) {
           renterId: bill.renterId,
           ownerAccountId: bill.ownerAccountId,
           createdAt: bill.createdAt,
+          flatNumber: bill.flatNumber,
+          buildingName: bill.buildingName,
+          renterName: bill.renterName,
         })),
         total: result.total,
         page: result.page,
@@ -248,14 +256,20 @@ async function billRoutes(fastify: FastifyInstance) {
         response: {
           200: z.object({
             id: z.string(),
+            contractId: z.string(),
             billingMonth: z.string(),
+            baseRent: z.number(),
             totalAmount: z.number(),
             paidAmount: z.number(),
             status: z.enum(['unpaid', 'partially_paid', 'paid', 'overdue']),
             flatId: z.string(),
+            flatNumber: z.string(),
+            buildingName: z.string(),
             renterId: z.string(),
+            renterName: z.string(),
             ownerAccountId: z.string(),
             createdAt: dateTimeResponseSchema,
+            updatedAt: dateTimeResponseSchema,
             lineItems: z.array(
               z.object({
                 id: z.string(),
@@ -287,14 +301,20 @@ async function billRoutes(fastify: FastifyInstance) {
 
       return reply.status(200).send({
         id: bill.id,
+        contractId: bill.contractId,
         billingMonth: bill.billingMonth,
+        baseRent: Number.parseFloat(bill.baseRent),
         totalAmount: Number.parseFloat(bill.totalAmount),
         paidAmount: Number.parseFloat(bill.paidAmount),
         status: bill.status as 'unpaid' | 'partially_paid' | 'paid' | 'overdue',
         flatId: bill.flatId,
+        flatNumber: bill.flatNumber,
+        buildingName: bill.buildingName,
         renterId: bill.renterId,
+        renterName: bill.renterName,
         ownerAccountId: bill.ownerAccountId,
         createdAt: bill.createdAt,
+        updatedAt: bill.updatedAt,
         lineItems: bill.lineItems.map((item) => ({
           id: item.id,
           description: item.description,
@@ -365,6 +385,53 @@ async function billRoutes(fastify: FastifyInstance) {
         description: lineItem.description,
         amount: Number.parseFloat(lineItem.amount),
         createdAt: lineItem.createdAt,
+      })
+    },
+  )
+
+  /**
+   * DELETE /api/bills/:id
+   * Deletes a bill and all its associated line items and payments.
+   * Owner and Manager only.
+   */
+  fastify.delete(
+    '/:id',
+    {
+      preHandler: [
+        authGuard,
+        roleGuard(['owner', 'manager']),
+        approvalGuard,
+        tenantScope,
+      ],
+      schema: {
+        tags: ['Bills'],
+        summary: 'Delete a bill',
+        description:
+          'Deletes a bill along with its line items and payment records inside a transaction.\n\n**Roles: owner, manager**',
+        security: [{ BearerAuth: [] }, { CookieAuth: [] }],
+        params: z.object({
+          id: z.string().uuid('Invalid bill ID format'),
+        }),
+        response: {
+          200: z.object({
+            success: z.boolean(),
+            message: z.string(),
+          }),
+          401: errorResponseSchema,
+          403: errorResponseSchema,
+          404: errorResponseSchema,
+        },
+      },
+    },
+    async (request, reply) => {
+      const { id } = request.params as { id: string }
+      const ctx = buildRequestContext(request as never)
+
+      await billingService.deleteBill(ctx, id)
+
+      return reply.status(200).send({
+        success: true,
+        message: 'বিলটি সফলভাবে ডিলিট করা হয়েছে।',
       })
     },
   )

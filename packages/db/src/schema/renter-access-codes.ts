@@ -10,6 +10,7 @@ export const renterAccessCodes = pgTable('renter_access_codes', {
   renterId: uuid('renter_id')
     .notNull()
     .references(() => renters.id),
+  code: varchar('code', { length: 6 }),
   codeHash: varchar('code_hash', { length: 255 }).notNull(),
   failedAttempts: integer('failed_attempts').notNull().default(0),
   lockedUntil: timestamp('locked_until', { withTimezone: true }),

@@ -166,6 +166,9 @@ function createMockDb(
       renters: {
         findFirst: vi.fn().mockResolvedValue(null),
       },
+      renterAccessCodes: {
+        findFirst: vi.fn().mockResolvedValue(null),
+      },
     },
     insert: mockInsert,
     update: mockUpdate,
@@ -539,6 +542,88 @@ describe('RenterRegistrationService', () => {
       await expect(service.registerRenter(ctx, input)).rejects.toThrow(
         ValidationError,
       )
+    })
+  })
+
+  describe('resetAccessCode', () => {
+    it('should successfully reset access code for renter with active contract', async () => {
+      const mockRenter = {
+        id: RENTER_ID,
+        ownerAccountId: OWNER_ID,
+        rentalContracts: [
+          {
+            id: CONTRACT_ID,
+            flatId: FLAT_ID,
+            status: 'active',
+          },
+        ],
+      }
+      const db = createMockDb()
+      vi.mocked(db.query.renters.findFirst).mockResolvedValue(
+        mockRenter as never,
+      )
+      vi.mocked(db.query.renterAccessCodes.findFirst).mockResolvedValue({
+        id: 'code-1',
+        renterId: RENTER_ID,
+      } as never)
+
+      const service = new RenterRegistrationService(db, auditLogger, r2)
+      const result = await service.resetAccessCode(ctx, RENTER_ID)
+
+      expect(result.code).toHaveLength(6)
+      expect(Number(result.code)).not.toBeNaN()
+      expect(db.update).toHaveBeenCalled()
+      expect(auditLogger.log).toHaveBeenCalledWith(
+        expect.objectContaining({
+          action: 'renter_access_code_reset',
+          entityType: 'renter',
+          entityId: RENTER_ID,
+        }),
+      )
+    })
+
+    it('should reject with ValidationError when renter has no active contract', async () => {
+      const mockRenter = {
+        id: RENTER_ID,
+        ownerAccountId: OWNER_ID,
+        rentalContracts: [],
+      }
+      const db = createMockDb()
+      vi.mocked(db.query.renters.findFirst).mockResolvedValue(
+        mockRenter as never,
+      )
+
+      const service = new RenterRegistrationService(db, auditLogger, r2)
+      await expect(service.resetAccessCode(ctx, RENTER_ID)).rejects.toThrow(
+        ValidationError,
+      )
+    })
+
+    it('should insert a new access code record if none exists', async () => {
+      const mockRenter = {
+        id: RENTER_ID,
+        ownerAccountId: OWNER_ID,
+        rentalContracts: [
+          {
+            id: CONTRACT_ID,
+            flatId: FLAT_ID,
+            status: 'active',
+          },
+        ],
+      }
+      const db = createMockDb()
+      vi.mocked(db.query.renters.findFirst).mockResolvedValue(
+        mockRenter as never,
+      )
+      vi.mocked(db.query.renterAccessCodes.findFirst).mockResolvedValue(
+        undefined,
+      )
+
+      const service = new RenterRegistrationService(db, auditLogger, r2)
+      const result = await service.resetAccessCode(ctx, RENTER_ID)
+
+      expect(result.code).toHaveLength(6)
+      expect(db.insert).toHaveBeenCalled()
     })
   })
 })

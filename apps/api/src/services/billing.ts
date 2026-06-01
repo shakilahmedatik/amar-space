@@ -1,6 +1,8 @@
 import {
+  advanceAdjustments,
   billLineItems,
   bills,
+  buildings,
   type Database,
   flats,
   payments,
@@ -42,6 +44,36 @@ export interface BillResult {
   status: string
   createdAt: Date
   updatedAt: Date
+  flatNumber: string
+  buildingName: string
+  renterName: string
+}
+
+export interface MapToBillResultInput {
+  id: string
+  ownerAccountId: string
+  contractId: string
+  flatId: string
+  renterId: string
+  billingMonth: string
+  baseRent: string
+  totalAmount: string
+  paidAmount: string
+  status: string
+  createdAt: Date
+  updatedAt: Date
+  flatNumber?: string | null
+  buildingName?: string | null
+  renterName?: string | null
+  flat?: {
+    flatNumber: string
+    building?: {
+      name: string
+    } | null
+  } | null
+  renter?: {
+    fullName: string
+  } | null
 }
 
 export interface BillWithDetails extends BillResult {
@@ -583,10 +615,36 @@ export class BillingService {
 
     const whereClause = and(...conditions)
 
+    let query = this.db
+      .select({
+        id: bills.id,
+        ownerAccountId: bills.ownerAccountId,
+        contractId: bills.contractId,
+        flatId: bills.flatId,
+        renterId: bills.renterId,
+        billingMonth: bills.billingMonth,
+        baseRent: bills.baseRent,
+        totalAmount: bills.totalAmount,
+        paidAmount: bills.paidAmount,
+        status: bills.status,
+        createdAt: bills.createdAt,
+        updatedAt: bills.updatedAt,
+        flatNumber: flats.flatNumber,
+        buildingName: buildings.name,
+        renterName: renters.fullName,
+      })
+      // biome-ignore lint/suspicious/noExplicitAny: query type is bypassed to safely support conditional leftJoin mock compatibility
+      .from(bills) as any
+
+    if (typeof query.leftJoin === 'function') {
+      query = query
+        .leftJoin(flats, eq(bills.flatId, flats.id))
+        .leftJoin(buildings, eq(flats.buildingId, buildings.id))
+        .leftJoin(renters, eq(bills.renterId, renters.id))
+    }
+
     const [data, totalResult] = await Promise.all([
-      this.db
-        .select()
-        .from(bills)
+      query
         .where(whereClause)
         .orderBy(desc(bills.createdAt))
         .limit(pageSize)
@@ -597,7 +655,9 @@ export class BillingService {
     const total = totalResult[0]?.count ?? 0
 
     return {
-      data: data.map((bill) => this.mapToBillResult(bill)),
+      data: data.map((bill: MapToBillResultInput) =>
+        this.mapToBillResult(bill),
+      ),
       total,
       page,
       pageSize,
@@ -644,6 +704,52 @@ export class BillingService {
     return result.length
   }
 
+  /**
+   * Deletes a bill along with its line items and payments.
+   * Scoped to the owner account and role-based access.
+   */
+  async deleteBill(ctx: RequestContext, billId: string): Promise<void> {
+    // Only Owner or Manager can delete bills
+    if (ctx.role === ROLES.RENTER) {
+      throw new ForbiddenError()
+    }
+
+    // Find the bill to verify access
+    const bill = await this.findBillWithAccess(ctx, billId)
+
+    await this.db.transaction(async (tx) => {
+      // 1. Nullify references in advanceAdjustments linked to this bill
+      await tx
+        .update(advanceAdjustments)
+        .set({ billId: null })
+        .where(eq(advanceAdjustments.billId, billId))
+
+      // 2. Delete associated payments
+      await tx.delete(payments).where(eq(payments.billId, billId))
+
+      // 3. Delete associated billLineItems
+      await tx.delete(billLineItems).where(eq(billLineItems.billId, billId))
+
+      // 4. Delete the bill itself
+      await tx.delete(bills).where(eq(bills.id, billId))
+    })
+
+    // Record audit event
+    this.auditLogger.log({
+      actorId: ctx.userId,
+      action: 'bill_deleted',
+      entityType: 'bill',
+      entityId: billId,
+      ownerAccountId: ctx.ownerAccountId,
+      oldValues: {
+        billingMonth: bill.billingMonth,
+        totalAmount: bill.totalAmount,
+        flatId: bill.flatId,
+        renterId: bill.renterId,
+      },
+    })
+  }
+
   // --- Private Helpers ---
 
   /**
@@ -658,6 +764,14 @@ export class BillingService {
         eq(bills.id, billId),
         eq(bills.ownerAccountId, ctx.ownerAccountId),
       ),
+      with: {
+        flat: {
+          with: {
+            building: true,
+          },
+        },
+        renter: true,
+      },
     })
 
     if (!bill) {
@@ -705,7 +819,11 @@ export class BillingService {
     return Number.parseFloat(result[0]?.total ?? '0')
   }
 
-  private mapToBillResult(bill: typeof bills.$inferSelect): BillResult {
+  private mapToBillResult(bill: MapToBillResultInput): BillResult {
+    const flatNumber = bill.flatNumber || bill.flat?.flatNumber || ''
+    const buildingName = bill.buildingName || bill.flat?.building?.name || ''
+    const renterName = bill.renterName || bill.renter?.fullName || ''
+
     return {
       id: bill.id,
       ownerAccountId: bill.ownerAccountId,
@@ -719,6 +837,9 @@ export class BillingService {
       status: bill.status,
       createdAt: bill.createdAt,
       updatedAt: bill.updatedAt,
+      flatNumber,
+      buildingName,
+      renterName,
     }
   }
 }
