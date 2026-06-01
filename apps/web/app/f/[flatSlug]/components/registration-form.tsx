@@ -474,6 +474,22 @@ export function RegistrationForm({
     )
   }
 
+  // OCCUPIED state — show occupied message
+  if (flatStatus === 'OCCUPIED') {
+    return (
+      <section
+        aria-label="নিবন্ধন"
+        className="flex flex-col items-center gap-3 rounded-lg border border-hairline bg-surface p-6 text-center"
+      >
+        <AlertCircle className="h-10 w-10 text-brand-blue-deep" aria-hidden />
+        <p className="text-base font-medium text-ink">
+          এই ফ্ল্যাটটি ইতিমধ্যে নিবন্ধিত এবং একজন ভাড়াটিয়া বসবাস করছেন। নতুন ভাড়াটিয়া নিবন্ধন
+          সম্ভব নয়।
+        </p>
+      </section>
+    )
+  }
+
   // Only show form when flat status is AVAILABLE
   if (flatStatus !== 'AVAILABLE') {
     return null

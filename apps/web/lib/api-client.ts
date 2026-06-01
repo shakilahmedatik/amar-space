@@ -35,7 +35,10 @@ export interface Building {
   address: string
   totalFloors: number | null
   whatsappGroupLink?: string | null
+  managerPhone?: string | null
   coverImageUrl?: string | null
+  logoUrl?: string | null
+  rules?: string | null
   createdAt: string
   updatedAt: string
   emergencyContacts?: EmergencyContact[]
@@ -53,7 +56,10 @@ export interface CreateBuildingInput {
   address: string
   totalFloors?: number | null
   whatsappGroupLink?: string | null
+  managerPhone?: string | null
   buildingPhoto?: string | null
+  logoPhoto?: string | null
+  rules?: string | null
   emergencyContacts?: EmergencyContactInput[]
 }
 
@@ -62,7 +68,10 @@ export interface UpdateBuildingInput {
   address?: string
   totalFloors?: number | null
   whatsappGroupLink?: string | null
+  managerPhone?: string | null
   buildingPhoto?: string | null
+  logoPhoto?: string | null
+  rules?: string | null
   emergencyContacts?: EmergencyContactInput[]
 }
 

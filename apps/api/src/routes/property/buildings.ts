@@ -102,7 +102,10 @@ async function buildingRoutes(fastify: FastifyInstance) {
                 address: z.string(),
                 totalFloors: z.number().nullable(),
                 whatsappGroupLink: z.string().nullable(),
+                managerPhone: z.string().nullable(),
                 coverImageUrl: z.string().nullable(),
+                logoUrl: z.string().nullable(),
+                rules: z.string().nullable(),
                 ownerAccountId: z.string(),
                 createdAt: dateTimeResponseSchema,
               }),
@@ -162,7 +165,10 @@ async function buildingRoutes(fastify: FastifyInstance) {
             address: z.string(),
             totalFloors: z.number().nullable(),
             whatsappGroupLink: z.string().nullable(),
+            managerPhone: z.string().nullable(),
             coverImageUrl: z.string().nullable(),
+            logoUrl: z.string().nullable(),
+            rules: z.string().nullable(),
             ownerAccountId: z.string(),
             createdAt: dateTimeResponseSchema,
           }),
@@ -179,7 +185,10 @@ async function buildingRoutes(fastify: FastifyInstance) {
         address: string
         totalFloors?: number
         whatsappGroupLink?: string | null
+        managerPhone?: string | null
         buildingPhoto?: string | null
+        logoPhoto?: string | null
+        rules?: string | null
         emergencyContacts?: Array<{
           name: string
           role: string
@@ -193,6 +202,7 @@ async function buildingRoutes(fastify: FastifyInstance) {
       return reply.status(201).send({
         ...building,
         coverImageUrl: formatR2Url(building.coverImageUrl),
+        logoUrl: formatR2Url(building.logoUrl),
       })
     },
   )
@@ -225,7 +235,10 @@ async function buildingRoutes(fastify: FastifyInstance) {
             address: z.string(),
             totalFloors: z.number().nullable(),
             whatsappGroupLink: z.string().nullable(),
+            managerPhone: z.string().nullable(),
             coverImageUrl: z.string().nullable(),
+            logoUrl: z.string().nullable(),
+            rules: z.string().nullable(),
             ownerAccountId: z.string(),
             createdAt: dateTimeResponseSchema,
             emergencyContacts: z
@@ -260,6 +273,7 @@ async function buildingRoutes(fastify: FastifyInstance) {
       return reply.status(200).send({
         ...building,
         coverImageUrl: formatR2Url(building.coverImageUrl),
+        logoUrl: formatR2Url(building.logoUrl),
       })
     },
   )
@@ -289,7 +303,10 @@ async function buildingRoutes(fastify: FastifyInstance) {
             address: z.string(),
             totalFloors: z.number().nullable(),
             whatsappGroupLink: z.string().nullable(),
+            managerPhone: z.string().nullable(),
             coverImageUrl: z.string().nullable(),
+            logoUrl: z.string().nullable(),
+            rules: z.string().nullable(),
             ownerAccountId: z.string(),
             updatedAt: dateTimeResponseSchema,
             emergencyContacts: z
@@ -324,7 +341,10 @@ async function buildingRoutes(fastify: FastifyInstance) {
         address?: string
         totalFloors?: number | null
         whatsappGroupLink?: string | null
+        managerPhone?: string | null
         buildingPhoto?: string | null
+        logoPhoto?: string | null
+        rules?: string | null
         emergencyContacts?: Array<{
           name: string
           role: string
@@ -338,6 +358,7 @@ async function buildingRoutes(fastify: FastifyInstance) {
       return reply.status(200).send({
         ...building,
         coverImageUrl: formatR2Url(building.coverImageUrl),
+        logoUrl: formatR2Url(building.logoUrl),
       })
     },
   )

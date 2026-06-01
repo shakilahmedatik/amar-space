@@ -54,10 +54,14 @@ export default function BuildingDetailPage() {
   const [editAddress, setEditAddress] = useState('')
   const [editFloors, setEditFloors] = useState('')
   const [editWhatsapp, setEditWhatsapp] = useState('')
+  const [editManagerPhone, setEditManagerPhone] = useState('')
+  const [editRules, setEditRules] = useState('')
   const [editPhoto, setEditPhoto] = useState<string | null | undefined>(
     undefined,
   ) // undefined = no change, null = remove, string = new photo
   const [editPhotoPreview, setEditPhotoPreview] = useState<string | null>(null)
+  const [editLogo, setEditLogo] = useState<string | null | undefined>(undefined) // undefined = no change, null = remove, string = new logo
+  const [editLogoPreview, setEditLogoPreview] = useState<string | null>(null)
   const [editEmergencyContacts, setEditEmergencyContacts] = useState<
     Array<{
       name: string
@@ -87,6 +91,10 @@ export default function BuildingDetailPage() {
       setEditWhatsapp(building.whatsappGroupLink ?? '')
       setEditPhotoPreview(building.coverImageUrl ?? null)
       setEditPhoto(undefined)
+      setEditManagerPhone(building.managerPhone ?? '')
+      setEditRules(building.rules ?? '')
+      setEditLogoPreview(building.logoUrl ?? null)
+      setEditLogo(undefined)
       setEditEmergencyContacts(
         building.emergencyContacts?.map((c) => ({
           name: c.name,
@@ -124,6 +132,10 @@ export default function BuildingDetailPage() {
       newErrors.whatsappGroupLink = t('buildings.addressMaxLength')
     }
 
+    if (editManagerPhone.trim() && !/^01\d{9}$/.test(editManagerPhone.trim())) {
+      newErrors.managerPhone = t('buildings.invalidPhoneFormat')
+    }
+
     editEmergencyContacts.forEach((contact, index) => {
       if (!contact.name.trim()) {
         newErrors[`contact-${index}-name`] = t('validation.required')
@@ -152,6 +164,18 @@ export default function BuildingDetailPage() {
     }
   }
 
+  async function handleLogoSelected(files: File[]) {
+    if (files.length > 0 && files[0]) {
+      try {
+        const base64 = await fileToBase64(files[0])
+        setEditLogo(base64)
+        setEditLogoPreview(base64)
+      } catch (_err) {
+        setErrors((prev) => ({ ...prev, logo: 'লোগো ফাইলটি আপলোড করা যায়নি' }))
+      }
+    }
+  }
+
   async function handleUpdate(e: FormEvent) {
     e.preventDefault()
     if (!validate()) return
@@ -162,7 +186,10 @@ export default function BuildingDetailPage() {
         address: editAddress.trim(),
         totalFloors: editFloors.trim() ? Number.parseInt(editFloors, 10) : null,
         whatsappGroupLink: editWhatsapp.trim() || null,
+        managerPhone: editManagerPhone.trim() || null,
+        rules: editRules.trim() || null,
         buildingPhoto: editPhoto,
+        logoPhoto: editLogo,
         emergencyContacts: editEmergencyContacts.map((c) => ({
           name: c.name.trim(),
           role: c.role.trim(),
@@ -343,6 +370,73 @@ export default function BuildingDetailPage() {
                       hasError={!!errors.whatsappGroupLink}
                       maxLength={500}
                     />
+                  </FormField>
+
+                  <FormField
+                    label={t('buildings.managerPhone')}
+                    error={errors.managerPhone}
+                    htmlFor="edit-manager-phone"
+                  >
+                    <FormInput
+                      id="edit-manager-phone"
+                      type="text"
+                      placeholder={t('buildings.managerPhonePlaceholder')}
+                      value={editManagerPhone}
+                      onChange={(e) => setEditManagerPhone(e.target.value)}
+                      hasError={!!errors.managerPhone}
+                      maxLength={20}
+                    />
+                  </FormField>
+
+                  <FormField
+                    label={t('buildings.buildingRules')}
+                    error={errors.rules}
+                    htmlFor="edit-building-rules"
+                  >
+                    <textarea
+                      id="edit-building-rules"
+                      placeholder={t('buildings.buildingRulesPlaceholder')}
+                      value={editRules}
+                      onChange={(e) => setEditRules(e.target.value)}
+                      className={`w-full rounded-md border min-h-[100px] p-3 text-sm bg-white text-ink ${
+                        errors.rules ? 'border-error-text' : 'border-hairline'
+                      }`}
+                    />
+                  </FormField>
+
+                  <FormField
+                    label={t('buildings.buildingLogo')}
+                    error={errors.logo}
+                    htmlFor="edit-building-logo"
+                  >
+                    <div className="flex flex-col gap-3">
+                      <FileUpload
+                        maxFiles={1}
+                        onFilesSelected={handleLogoSelected}
+                        error={errors.logo}
+                      />
+                      {editLogoPreview && (
+                        <div className="relative w-24 h-24 rounded-full overflow-hidden border border-hairline mt-2">
+                          <Image
+                            src={editLogoPreview}
+                            alt="Building Logo Preview"
+                            className="object-cover"
+                            fill
+                            unoptimized
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setEditLogo(null)
+                              setEditLogoPreview(null)
+                            }}
+                            className="absolute inset-0 bg-black/60 text-white flex items-center justify-center text-xs font-semibold opacity-0 hover:opacity-100 transition-opacity cursor-pointer"
+                          >
+                            {t('common.delete')}
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </FormField>
 
                   <FormField
@@ -601,6 +695,10 @@ export default function BuildingDetailPage() {
                           setEditWhatsapp(building.whatsappGroupLink ?? '')
                           setEditPhotoPreview(building.coverImageUrl ?? null)
                           setEditPhoto(undefined)
+                          setEditManagerPhone(building.managerPhone ?? '')
+                          setEditRules(building.rules ?? '')
+                          setEditLogoPreview(building.logoUrl ?? null)
+                          setEditLogo(undefined)
                           setEditEmergencyContacts(
                             building.emergencyContacts?.map((c) => ({
                               name: c.name,
@@ -631,45 +729,82 @@ export default function BuildingDetailPage() {
                     </div>
                   )}
 
-                  <div className="grid gap-4 grid-cols-[repeat(auto-fit,minmax(200px,1fr))]">
-                    <div>
-                      <p className="text-xs font-medium text-steel mb-1">
-                        {t('buildings.buildingName')}
-                      </p>
-                      <p className="text-base font-semibold text-ink">
-                        {building.name}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-xs font-medium text-steel mb-1">
-                        {t('buildings.address')}
-                      </p>
-                      <p className="text-base text-ink">{building.address}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs font-medium text-steel mb-1">
-                        {t('buildings.totalFloors')}
-                      </p>
-                      <p className="text-base text-ink">
-                        {building.totalFloors ?? '—'}
-                      </p>
-                    </div>
-                    {building.whatsappGroupLink && (
-                      <div>
-                        <p className="text-xs font-medium text-steel mb-1">
-                          {t('buildings.whatsappGroupLink')}
-                        </p>
-                        <a
-                          href={building.whatsappGroupLink}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-brand-blue-deep font-semibold text-sm hover:underline inline-flex items-center gap-1"
-                        >
-                          {building.whatsappGroupLink}
-                        </a>
+                  <div className="flex items-start gap-6 flex-col sm:flex-row">
+                    {building.logoUrl && (
+                      <div className="relative w-20 h-20 rounded-full overflow-hidden border border-hairline shrink-0 bg-white shadow-sm">
+                        <Image
+                          src={building.logoUrl}
+                          alt={`${building.name} Logo`}
+                          className="object-cover"
+                          fill
+                          unoptimized
+                        />
                       </div>
                     )}
+                    <div className="grid gap-4 grid-cols-[repeat(auto-fit,minmax(200px,1fr))] flex-1 w-full">
+                      <div>
+                        <p className="text-xs font-medium text-steel mb-1">
+                          {t('buildings.buildingName')}
+                        </p>
+                        <p className="text-base font-semibold text-ink">
+                          {building.name}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-xs font-medium text-steel mb-1">
+                          {t('buildings.address')}
+                        </p>
+                        <p className="text-base text-ink">{building.address}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs font-medium text-steel mb-1">
+                          {t('buildings.totalFloors')}
+                        </p>
+                        <p className="text-base text-ink">
+                          {building.totalFloors ?? '—'}
+                        </p>
+                      </div>
+                      {building.whatsappGroupLink && (
+                        <div>
+                          <p className="text-xs font-medium text-steel mb-1">
+                            {t('buildings.whatsappGroupLink')}
+                          </p>
+                          <a
+                            href={building.whatsappGroupLink}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-brand-blue-deep font-semibold text-sm hover:underline inline-flex items-center gap-1 break-all"
+                          >
+                            {building.whatsappGroupLink}
+                          </a>
+                        </div>
+                      )}
+                      {building.managerPhone && (
+                        <div>
+                          <p className="text-xs font-medium text-steel mb-1">
+                            {t('buildings.managerPhone')}
+                          </p>
+                          <a
+                            href={`tel:${building.managerPhone}`}
+                            className="text-brand-blue-deep font-semibold text-sm hover:underline inline-flex items-center gap-1"
+                          >
+                            {building.managerPhone}
+                          </a>
+                        </div>
+                      )}
+                    </div>
                   </div>
+
+                  {building.rules && (
+                    <div className="border-t border-hairline pt-6">
+                      <h2 className="text-lg font-semibold text-ink mb-2">
+                        {t('buildings.buildingRules')}
+                      </h2>
+                      <p className="text-sm text-charcoal whitespace-pre-line leading-relaxed">
+                        {building.rules}
+                      </p>
+                    </div>
+                  )}
 
                   {/* Emergency Contacts View Mode */}
                   {building.emergencyContacts &&

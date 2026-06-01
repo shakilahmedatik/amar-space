@@ -2,11 +2,9 @@ import { isValidFlatSlug } from '@repo/shared'
 import { AlertCircle } from 'lucide-react'
 import { Suspense } from 'react'
 import { BASE_URL } from '@/lib/api'
-import { BuildingInfo } from './components/building-info'
+import { PortalActionsSection } from './components/portal-actions-section'
 import { PortalHeader } from './components/portal-header'
-import PortalOccupiedView from './components/portal-occupied-view'
 import { QuickActionsGrid } from './components/quick-actions-grid'
-import { RegistrationForm } from './components/registration-form'
 import { SessionExpiredBanner } from './components/session-expired-banner'
 
 /**
@@ -106,48 +104,36 @@ export default async function PortalPage({ params }: PortalPageProps) {
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-5">
       {/* Session expired banner — shown when redirected due to session expiry */}
       <Suspense fallback={null}>
         <SessionExpiredBanner />
       </Suspense>
 
-      {/* Portal Header Section */}
+      {/* Portal Header — building info, logo, flat number, status badge */}
       <PortalHeader building={data.building} flat={data.flat} />
 
-      {/* Placeholder sections — will be implemented in subsequent tasks */}
-      <section aria-label="দ্রুত কার্যক্রম">
-        <QuickActionsGrid
-          whatsappGroupLink={data.building.whatsappGroupLink}
-          managerPhone={data.building.managerPhone}
-          flatSlug={data.flat.slug}
-        />
-      </section>
+      {/* Communication shortcuts — WhatsApp Group & Call Manager */}
+      {(data.building.whatsappGroupLink || data.building.managerPhone) && (
+        <section aria-label="দ্রুত কার্যক্রম">
+          <QuickActionsGrid
+            whatsappGroupLink={data.building.whatsappGroupLink}
+            managerPhone={data.building.managerPhone}
+            flatSlug={data.flat.slug}
+          />
+        </section>
+      )}
 
-      <section id="notice-board" aria-label="নোটিশ বোর্ড">
-        {/* Notice board — Task 7.2 */}
-      </section>
-
-      <section id="emergency-contacts" aria-label="জরুরি যোগাযোগ">
-        {/* Emergency contacts — Task 7.3 */}
-      </section>
-
-      {/* Registration form — shown when flat is AVAILABLE */}
-      {data.flat.status === 'AVAILABLE' && (
-        <RegistrationForm
+      {/* Renter actions — registration card & view-info card (with inline panels) */}
+      <section aria-label="ভাড়াটিয়া কার্যক্রম">
+        <PortalActionsSection
           flatSlug={data.flat.slug}
           flatStatus={data.flat.status}
           hasPendingRegistration={data.hasPendingRegistration}
+          emergencyContacts={data.emergencyContacts}
+          rules={data.building.rules}
         />
-      )}
-
-      {/* Portal view for occupied flat status */}
-      {data.flat.status === 'OCCUPIED' && (
-        <PortalOccupiedView flatSlug={data.flat.slug} />
-      )}
-
-      {/* Building info — renders only if rules are configured */}
-      <BuildingInfo rules={data.building.rules} />
+      </section>
     </div>
   )
 }

@@ -38,6 +38,13 @@ const STATUS_MAP: Record<string, 'AVAILABLE' | 'OCCUPIED' | 'MAINTENANCE'> = {
  * Requirements: 1.1, 1.2, 1.3, 2.1, 5.1, 9.1, 9.2
  */
 async function portalFlatRoutes(fastify: FastifyInstance) {
+  const r2BaseUrl = fastify.env.R2_PUBLIC_BASE_URL.replace(/\/$/, '')
+  const formatR2Url = (key: string | null | undefined) => {
+    if (!key) return null
+    if (key.startsWith('http://') || key.startsWith('https://')) return key
+    return `${r2BaseUrl}/${key}`
+  }
+
   fastify.get(
     '/:slug',
     {
@@ -155,8 +162,8 @@ async function portalFlatRoutes(fastify: FastifyInstance) {
       return reply.status(200).send({
         building: {
           name: building.name,
-          logoUrl: building.logoUrl ?? null,
-          coverImageUrl: building.coverImageUrl ?? null,
+          logoUrl: formatR2Url(building.logoUrl),
+          coverImageUrl: formatR2Url(building.coverImageUrl),
           whatsappGroupLink: building.whatsappGroupLink ?? null,
           managerPhone: building.managerPhone ?? null,
           rules: building.rules ?? null,
@@ -746,19 +753,34 @@ async function portalFlatRoutes(fastify: FastifyInstance) {
       },
     },
     async (request, reply) => {
+      const { slug } = request.params as { slug: string }
       const sessionId = request.cookies.portal_session
 
       if (!sessionId) {
         return reply.status(200).send({ valid: false })
       }
 
+      // Resolve flat via flat_slugs table to get flatId
+      const flatSlugRecord = await fastify.db.query.flatSlugs.findFirst({
+        where: eq(flatSlugs.slug, slug),
+      })
+
+      if (!flatSlugRecord) {
+        return reply.status(200).send({ valid: false })
+      }
+
       // Look up the session in the database
       const session = await fastify.db.query.portalSessions.findFirst({
         where: eq(portalSessions.id, sessionId),
-        columns: { id: true, expiresAt: true },
+        columns: { id: true, expiresAt: true, flatId: true },
       })
 
       if (!session) {
+        return reply.status(200).send({ valid: false })
+      }
+
+      // Verify session belongs to the requested flat
+      if (session.flatId !== flatSlugRecord.flatId) {
         return reply.status(200).send({ valid: false })
       }
 
@@ -859,13 +881,25 @@ async function portalFlatRoutes(fastify: FastifyInstance) {
       },
     },
     async (request, reply) => {
-      // const { slug } = request.params as { slug: string }
+      const { slug } = request.params as { slug: string }
 
       const sessionId = request.cookies.portal_session
       if (!sessionId) {
         return reply.status(401).send({
           error: 'UNAUTHORIZED',
           message: 'প্রবেশাধিকার নেই। অনুগ্রহ করে কোড দিয়ে লগইন করুন।',
+        })
+      }
+
+      // Resolve flat via flat_slugs table to get flatId
+      const flatSlugRecord = await fastify.db.query.flatSlugs.findFirst({
+        where: eq(flatSlugs.slug, slug),
+      })
+
+      if (!flatSlugRecord) {
+        return reply.status(404).send({
+          error: 'NOT_FOUND',
+          message: 'ফ্ল্যাটটি পাওয়া যায়নি',
         })
       }
 
@@ -901,6 +935,14 @@ async function portalFlatRoutes(fastify: FastifyInstance) {
         })
       }
 
+      // Verify session belongs to the requested flat
+      if (portalSession.flatId !== flatSlugRecord.flatId) {
+        return reply.status(401).send({
+          error: 'UNAUTHORIZED',
+          message: 'এই ফ্ল্যাটে প্রবেশের জন্য আপনার সেশনটি সঠিক নয়।',
+        })
+      }
+
       const { renter } = portalSession
       const activeContract = renter.rentalContracts?.[0]
       const flat = activeContract?.flat
@@ -927,13 +969,6 @@ async function portalFlatRoutes(fastify: FastifyInstance) {
         .innerJoin(bills, eq(payments.billId, bills.id))
         .where(eq(bills.renterId, renter.id))
         .orderBy(desc(payments.paymentDate))
-
-      const r2BaseUrl = fastify.env.R2_PUBLIC_BASE_URL.replace(/\/$/, '')
-      const formatR2Url = (key: string | null | undefined) => {
-        if (!key) return null
-        if (key.startsWith('http://') || key.startsWith('https://')) return key
-        return `${r2BaseUrl}/${key}`
-      }
 
       return reply.status(200).send({
         renter: {

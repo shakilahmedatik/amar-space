@@ -127,6 +127,7 @@ export class BuildingService {
 
     const buildingId = randomUUID()
     let coverImageUrl: string | null = null
+    let logoUrl: string | null = null
 
     if (validated.buildingPhoto && this.r2) {
       const base64Data = validated.buildingPhoto.includes(',')
@@ -150,6 +151,28 @@ export class BuildingService {
       )
     }
 
+    if (validated.logoPhoto && this.r2) {
+      const base64Data = validated.logoPhoto.includes(',')
+        ? validated.logoPhoto.split(',')[1]!
+        : validated.logoPhoto
+      const buffer = Buffer.from(base64Data, 'base64')
+      const mimeMatch = validated.logoPhoto.match(
+        /^data:(image\/[a-zA-Z+]+);base64,/,
+      )
+      const mimeType = mimeMatch ? mimeMatch[1]! : 'image/png'
+      const ext = mimeType.split('/')[1] || 'png'
+      const filename = `logo-${Date.now()}.${ext}`
+
+      logoUrl = await this.r2.upload(
+        ctx.ownerAccountId,
+        'building',
+        buildingId,
+        filename,
+        buffer,
+        mimeType,
+      )
+    }
+
     // Step 3: Insert the building
     return await this.db.transaction(async (tx) => {
       const created = await this.buildingRepository.create(
@@ -160,7 +183,10 @@ export class BuildingService {
           address: validated.address,
           totalFloors: validated.totalFloors ?? null,
           whatsappGroupLink: validated.whatsappGroupLink ?? null,
+          managerPhone: validated.managerPhone ?? null,
           coverImageUrl,
+          logoUrl,
+          rules: validated.rules ?? null,
         },
         tx as unknown as Database,
       )
@@ -262,6 +288,7 @@ export class BuildingService {
 
     // Step 4: Handle building photo upload if provided
     let coverImageUrl: string | null | undefined
+    let logoUrl: string | null | undefined
 
     if (validated.buildingPhoto !== undefined) {
       if (validated.buildingPhoto === null) {
@@ -305,6 +332,47 @@ export class BuildingService {
       }
     }
 
+    if (validated.logoPhoto !== undefined) {
+      if (validated.logoPhoto === null) {
+        logoUrl = null
+        if (existing.logoUrl && this.r2) {
+          try {
+            await this.r2.delete(existing.logoUrl)
+          } catch (_e) {
+            // Ignore delete errors
+          }
+        }
+      } else if (validated.logoPhoto && this.r2) {
+        const base64Data = validated.logoPhoto.includes(',')
+          ? validated.logoPhoto.split(',')[1]!
+          : validated.logoPhoto
+        const buffer = Buffer.from(base64Data, 'base64')
+        const mimeMatch = validated.logoPhoto.match(
+          /^data:(image\/[a-zA-Z+]+);base64,/,
+        )
+        const mimeType = mimeMatch ? mimeMatch[1]! : 'image/png'
+        const ext = mimeType.split('/')[1] || 'png'
+        const filename = `logo-${Date.now()}.${ext}`
+
+        logoUrl = await this.r2.upload(
+          ctx.ownerAccountId,
+          'building',
+          buildingId,
+          filename,
+          buffer,
+          mimeType,
+        )
+
+        if (existing.logoUrl && this.r2) {
+          try {
+            await this.r2.delete(existing.logoUrl)
+          } catch (_e) {
+            // Ignore delete errors
+          }
+        }
+      }
+    }
+
     // Step 5: Build update payload (only include provided fields)
     const updatePayload: Record<string, unknown> = {}
 
@@ -320,8 +388,17 @@ export class BuildingService {
     if (validated.whatsappGroupLink !== undefined) {
       updatePayload.whatsappGroupLink = validated.whatsappGroupLink
     }
+    if (validated.managerPhone !== undefined) {
+      updatePayload.managerPhone = validated.managerPhone
+    }
+    if (validated.rules !== undefined) {
+      updatePayload.rules = validated.rules
+    }
     if (coverImageUrl !== undefined) {
       updatePayload.coverImageUrl = coverImageUrl
+    }
+    if (logoUrl !== undefined) {
+      updatePayload.logoUrl = logoUrl
     }
 
     // Step 6: Perform update inside transaction

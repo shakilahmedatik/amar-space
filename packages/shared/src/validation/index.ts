@@ -55,7 +55,10 @@ export const createBuildingSchema = z.object({
   address: z.string().min(1).max(500),
   totalFloors: z.number().int().min(1).max(200).optional(),
   whatsappGroupLink: z.string().max(500).optional().nullable(),
+  managerPhone: z.string().max(20).optional().nullable(),
   buildingPhoto: z.string().optional().nullable(),
+  logoPhoto: z.string().optional().nullable(),
+  rules: z.string().max(5000).optional().nullable(),
   emergencyContacts: z.array(emergencyContactInputSchema).optional(),
 })
 
@@ -64,7 +67,10 @@ export const updateBuildingSchema = z.object({
   address: z.string().min(1).max(500).optional(),
   totalFloors: z.number().int().min(1).max(200).optional().nullable(),
   whatsappGroupLink: z.string().max(500).optional().nullable(),
+  managerPhone: z.string().max(20).optional().nullable(),
   buildingPhoto: z.string().optional().nullable(),
+  logoPhoto: z.string().optional().nullable(),
+  rules: z.string().max(5000).optional().nullable(),
   emergencyContacts: z.array(emergencyContactInputSchema).optional(),
 })
 

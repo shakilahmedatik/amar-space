@@ -1,6 +1,6 @@
 'use client'
 
-import { AlertTriangle, FileText, MessageCircle, Phone } from 'lucide-react'
+import { MessageCircle, Phone } from 'lucide-react'
 import { trackEvent } from '../lib/analytics'
 
 interface QuickActionsGridProps {
@@ -10,18 +10,16 @@ interface QuickActionsGridProps {
 }
 
 /**
- * Quick actions grid component — renders a 2-column grid of large,
- * touch-friendly action buttons for the portal.
+ * Quick actions grid — communication shortcuts for the portal.
  *
- * - WhatsApp Group button (conditional: only shown if link configured)
- * - Call Manager button (conditional: only shown if phone configured)
- * - Emergency Contacts scroll-to button (always shown)
- * - Notices scroll-to button (always shown)
+ * Renders touch-friendly action cards for:
+ * - WhatsApp Group (conditional: only when configured)
+ * - Call Manager (conditional: only when configured)
  *
- * All buttons meet the 48x48px minimum touch target requirement.
+ * All buttons meet the 48×48px minimum touch target requirement.
  * Tracks "WhatsApp Clicked" analytics event on WhatsApp button tap.
  *
- * Validates: Requirements 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 3.8
+ * Validates: Requirements 3.1, 3.2, 3.3, 3.6, 3.7
  */
 export function QuickActionsGrid({
   whatsappGroupLink,
@@ -32,11 +30,9 @@ export function QuickActionsGrid({
     trackEvent('WhatsApp Clicked', flatSlug)
   }
 
-  function scrollToSection(sectionId: string) {
-    const element = document.getElementById(sectionId)
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' })
-    }
+  // If neither link is configured, don't render anything
+  if (!whatsappGroupLink && !managerPhone) {
+    return null
   }
 
   return (
@@ -47,48 +43,27 @@ export function QuickActionsGrid({
           target="_blank"
           rel="noopener noreferrer"
           onClick={handleWhatsAppClick}
-          className="flex min-h-[48px] min-w-[48px] flex-col items-center justify-center gap-2 rounded-lg border border-hairline bg-white p-4 text-center shadow-sm transition-colors active:bg-surface"
+          className="flex min-h-[72px] min-h-[48px] min-w-[48px] flex-col items-center justify-center gap-2 rounded-xl border border-hairline bg-white px-4 py-4 text-center shadow-sm transition-all hover:border-green-300 hover:shadow active:scale-[0.98]"
           aria-label="হোয়াটসঅ্যাপ গ্রুপে যোগ দিন"
         >
           <MessageCircle className="h-6 w-6 text-green-600" aria-hidden />
-          <span className="text-base font-medium text-ink">
-            হোয়াটসঅ্যাপ গ্রুপে যোগ দিন
-          </span>
+          <span className="text-sm font-semibold text-ink">হোয়াটসঅ্যাপ গ্রুপ</span>
         </a>
       )}
 
       {managerPhone && (
         <a
           href={`tel:${managerPhone}`}
-          className="flex min-h-[48px] min-w-[48px] flex-col items-center justify-center gap-2 rounded-lg border border-hairline bg-white p-4 text-center shadow-sm transition-colors active:bg-surface"
+          className="flex min-h-[72px] min-h-[48px] min-w-[48px] flex-col items-center justify-center gap-2 rounded-xl border border-hairline bg-white px-4 py-4 text-center shadow-sm transition-all hover:border-brand-blue-deep/40 hover:shadow active:scale-[0.98]"
           aria-label="ম্যানেজারকে কল করুন"
+          rel="noopener"
         >
           <Phone className="h-6 w-6 text-brand-blue-deep" aria-hidden />
-          <span className="text-base font-medium text-ink">
+          <span className="text-sm font-semibold text-ink">
             ম্যানেজারকে কল করুন
           </span>
         </a>
       )}
-
-      <button
-        type="button"
-        onClick={() => scrollToSection('emergency-contacts')}
-        className="flex min-h-[48px] min-w-[48px] flex-col items-center justify-center gap-2 rounded-lg border border-hairline bg-white p-4 text-center shadow-sm transition-colors active:bg-surface"
-        aria-label="জরুরি যোগাযোগ"
-      >
-        <AlertTriangle className="h-6 w-6 text-warning-text" aria-hidden />
-        <span className="text-base font-medium text-ink">জরুরি যোগাযোগ</span>
-      </button>
-
-      <button
-        type="button"
-        onClick={() => scrollToSection('notice-board')}
-        className="flex min-h-[48px] min-w-[48px] flex-col items-center justify-center gap-2 rounded-lg border border-hairline bg-white p-4 text-center shadow-sm transition-colors active:bg-surface"
-        aria-label="নোটিশ"
-      >
-        <FileText className="h-6 w-6 text-brand-blue-deep" aria-hidden />
-        <span className="text-base font-medium text-ink">নোটিশ</span>
-      </button>
     </div>
   )
 }

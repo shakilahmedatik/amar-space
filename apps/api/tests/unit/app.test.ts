@@ -378,7 +378,7 @@ describe('App Factory and Global Error Handler', () => {
   })
 
   describe('Body size limit', () => {
-    it('should reject requests exceeding 1MB body size with 413', async () => {
+    it('should reject requests exceeding 7MB body size with 413', async () => {
       const app = buildApp({ logger: false })
 
       app.post('/test', {
@@ -387,8 +387,8 @@ describe('App Factory and Global Error Handler', () => {
 
       await app.ready()
 
-      // Create a payload larger than 1MB
-      const largeBody = 'x'.repeat(1_048_577)
+      // Create a payload larger than 7MB (7_340_032 + 1)
+      const largeBody = 'x'.repeat(7_340_033)
 
       const response = await app.inject({
         method: 'POST',
@@ -402,6 +402,7 @@ describe('App Factory and Global Error Handler', () => {
       expect(response.statusCode).toBe(413)
       expect(body.statusCode).toBe(413)
       expect(body.error).toBe('Payload Too Large')
+      expect(body.message).toBe('Request body exceeds the 5MB size limit')
       expect(body.requestId).toBeDefined()
 
       await app.close()

@@ -137,24 +137,32 @@ export function NoticeBoard({
   if (sortedNotices.length === 0) {
     return (
       <section
+        id="notice-board"
         aria-label="নোটিশ বোর্ড"
-        className={cn('flex flex-col items-center gap-3 py-8', className)}
+        className={cn('flex flex-col gap-3', className)}
       >
-        <Megaphone className="h-10 w-10 text-steel" aria-hidden />
-        <p className="text-base text-steel">কোনো নোটিশ নেই</p>
+        <div className="flex items-center gap-2">
+          <Megaphone className="h-5 w-5 text-brand-blue-deep" aria-hidden />
+          <h2 className="text-base font-bold text-ink">নোটিশ বোর্ড</h2>
+        </div>
+        <div className="flex flex-col items-center gap-3 rounded-xl border border-hairline bg-surface p-8 text-center">
+          <Megaphone className="h-10 w-10 text-steel" aria-hidden />
+          <p className="text-sm text-steel">কোনো নোটিশ নেই</p>
+        </div>
       </section>
     )
   }
 
   return (
     <section
+      id="notice-board"
       aria-label="নোটিশ বোর্ড"
       className={cn('flex flex-col gap-3', className)}
     >
-      <h2 className="flex items-center gap-2 text-lg font-bold text-ink">
-        <Megaphone className="h-5 w-5" aria-hidden />
-        নোটিশ বোর্ড
-      </h2>
+      <div className="flex items-center gap-2">
+        <Megaphone className="h-5 w-5 text-brand-blue-deep" aria-hidden />
+        <h2 className="text-base font-bold text-ink">নোটিশ বোর্ড</h2>
+      </div>
 
       <div className="flex flex-col gap-2">
         {sortedNotices.map((notice) => {
@@ -166,18 +174,28 @@ export function NoticeBoard({
               key={notice.id}
               type="button"
               onClick={() => handleToggle(notice.id)}
-              className="w-full rounded-lg border border-hairline bg-white p-4 text-left transition-colors hover:bg-surface active:bg-surface"
+              className={cn(
+                'w-full rounded-xl border p-4 text-left transition-all hover:shadow-sm active:scale-[0.99]',
+                notice.isPinned
+                  ? 'border-brand-blue-deep/30 bg-brand-blue-200/20'
+                  : 'border-hairline bg-white',
+              )}
               aria-expanded={isExpanded}
               aria-label={`নোটিশ: ${notice.title}`}
             >
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0 flex-1">
-                  <h3 className="text-base font-semibold text-ink">
+                  {notice.isPinned && (
+                    <span className="inline-flex items-center gap-1 text-xs font-semibold text-brand-blue-deep bg-brand-blue-200/50 px-2 py-0.5 rounded-full mb-1.5">
+                      📌 পিন করা
+                    </span>
+                  )}
+                  <h3 className="text-sm font-semibold text-ink">
                     {notice.title}
                   </h3>
                   <time
                     dateTime={notice.createdAt}
-                    className="mt-1 block text-base text-steel"
+                    className="mt-0.5 block text-xs text-steel"
                   >
                     {formatBanglaDate(notice.createdAt)}
                   </time>
@@ -185,15 +203,15 @@ export function NoticeBoard({
                 {needsTruncation && (
                   <span className="shrink-0 text-steel" aria-hidden>
                     {isExpanded ? (
-                      <ChevronUp className="h-5 w-5" />
+                      <ChevronUp className="h-4 w-4" />
                     ) : (
-                      <ChevronDown className="h-5 w-5" />
+                      <ChevronDown className="h-4 w-4" />
                     )}
                   </span>
                 )}
               </div>
 
-              <p className="mt-2 text-base leading-relaxed text-ink/80">
+              <p className="mt-2 text-sm leading-relaxed text-ink/80">
                 {isExpanded || !needsTruncation
                   ? notice.body
                   : truncateText(notice.body, MAX_DESCRIPTION_LENGTH)}

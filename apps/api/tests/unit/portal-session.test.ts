@@ -91,6 +91,10 @@ describe('Portal Session Route - GET /api/portal/flat/:slug/session', () => {
   beforeEach(() => {
     originalEnv = { ...process.env }
     process.env = { ...originalEnv, ...validEnv }
+    mockFlatSlugsFindFirst.mockResolvedValue({
+      flatId: 'flat-123',
+      slug: 'valid-slug',
+    })
   })
 
   afterEach(() => {
@@ -132,6 +136,7 @@ describe('Portal Session Route - GET /api/portal/flat/:slug/session', () => {
     mockPortalSessionsFindFirst.mockResolvedValue({
       id: 'session-123',
       expiresAt: expiredDate,
+      flatId: 'flat-123',
     })
 
     const app = await buildApp()
@@ -153,6 +158,7 @@ describe('Portal Session Route - GET /api/portal/flat/:slug/session', () => {
     mockPortalSessionsFindFirst.mockResolvedValue({
       id: 'session-123',
       expiresAt: futureDate,
+      flatId: 'flat-123',
     })
 
     const app = await buildApp()
@@ -169,11 +175,34 @@ describe('Portal Session Route - GET /api/portal/flat/:slug/session', () => {
     expect(response.json()).toEqual({ valid: true })
   })
 
+  it('should return valid: false when session flatId does not match flat slug flatId', async () => {
+    const futureDate = new Date(Date.now() + 15 * 60 * 1000) // 15 minutes from now
+    mockPortalSessionsFindFirst.mockResolvedValue({
+      id: 'session-123',
+      expiresAt: futureDate,
+      flatId: 'different-flat-id',
+    })
+
+    const app = await buildApp()
+
+    const response = await app.inject({
+      method: 'GET',
+      url: '/api/portal/flat/valid-slug/session',
+      cookies: {
+        portal_session: 'session-123',
+      },
+    })
+
+    expect(response.statusCode).toBe(200)
+    expect(response.json()).toEqual({ valid: false })
+  })
+
   it('should return valid: false when session expires at exactly the current time', async () => {
     const now = new Date()
     mockPortalSessionsFindFirst.mockResolvedValue({
       id: 'session-123',
       expiresAt: now,
+      flatId: 'flat-123',
     })
 
     const app = await buildApp()

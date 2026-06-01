@@ -37,7 +37,10 @@ export default function NewBuildingPage() {
   const [address, setAddress] = useState('')
   const [totalFloors, setTotalFloors] = useState('')
   const [whatsappGroupLink, setWhatsappGroupLink] = useState('')
+  const [managerPhone, setManagerPhone] = useState('')
   const [buildingPhoto, setBuildingPhoto] = useState<string | null>(null)
+  const [logoPhoto, setLogoPhoto] = useState<string | null>(null)
+  const [rules, setRules] = useState('')
   const [emergencyContacts, setEmergencyContacts] = useState<
     Array<{
       name: string
@@ -77,6 +80,14 @@ export default function NewBuildingPage() {
       newErrors.whatsappGroupLink = t('buildings.addressMaxLength')
     }
 
+    if (managerPhone.trim() && !/^01\d{9}$/.test(managerPhone.trim())) {
+      newErrors.managerPhone = t('buildings.invalidPhoneFormat')
+    }
+
+    if (rules.trim().length > 5000) {
+      newErrors.rules = 'নিয়মাবলী সর্বোচ্চ ৫০০০ অক্ষরের হতে পারে'
+    }
+
     emergencyContacts.forEach((contact, index) => {
       if (!contact.name.trim()) {
         newErrors[`contact-${index}-name`] = t('validation.required')
@@ -106,6 +117,19 @@ export default function NewBuildingPage() {
     }
   }
 
+  async function handleLogoSelected(files: File[]) {
+    if (files.length > 0 && files[0]) {
+      try {
+        const base64 = await fileToBase64(files[0])
+        setLogoPhoto(base64)
+      } catch (_err) {
+        setErrors((prev) => ({ ...prev, logo: 'ফাইলটি আপলোড করা যায়নি' }))
+      }
+    } else {
+      setLogoPhoto(null)
+    }
+  }
+
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
     if (!validate()) return
@@ -118,7 +142,10 @@ export default function NewBuildingPage() {
           ? Number.parseInt(totalFloors, 10)
           : null,
         whatsappGroupLink: whatsappGroupLink.trim() || null,
+        managerPhone: managerPhone.trim() || null,
         buildingPhoto,
+        logoPhoto,
+        rules: rules.trim() || null,
         emergencyContacts: emergencyContacts.map((c) => ({
           name: c.name.trim(),
           role: c.role.trim(),
@@ -241,28 +268,88 @@ export default function NewBuildingPage() {
             </FormField>
 
             <FormField
-              label={t('buildings.buildingPhoto')}
-              error={errors.photo}
-              htmlFor="building-photo"
+              label={t('buildings.managerPhone')}
+              error={errors.managerPhone}
+              htmlFor="building-manager-phone"
             >
-              <div className="flex flex-col gap-3">
-                <FileUpload
-                  maxFiles={1}
-                  onFilesSelected={handlePhotoSelected}
-                  error={errors.photo}
-                />
-                {buildingPhoto && (
-                  <div className="relative w-full aspect-3/1 rounded-md overflow-hidden border border-hairline mt-2">
-                    <Image
-                      src={buildingPhoto}
-                      alt="Building Photo Preview"
-                      className="object-cover"
-                      fill
-                      unoptimized
-                    />
-                  </div>
-                )}
-              </div>
+              <FormInput
+                id="building-manager-phone"
+                type="text"
+                placeholder={t('buildings.managerPhonePlaceholder')}
+                value={managerPhone}
+                onChange={(e) => setManagerPhone(e.target.value)}
+                hasError={!!errors.managerPhone}
+                maxLength={20}
+              />
+            </FormField>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                label={t('buildings.buildingPhoto')}
+                error={errors.photo}
+                htmlFor="building-photo"
+              >
+                <div className="flex flex-col gap-3">
+                  <FileUpload
+                    maxFiles={1}
+                    onFilesSelected={handlePhotoSelected}
+                    error={errors.photo}
+                  />
+                  {buildingPhoto && (
+                    <div className="relative w-full aspect-3/1 rounded-md overflow-hidden border border-hairline mt-2">
+                      <Image
+                        src={buildingPhoto}
+                        alt="Building Photo Preview"
+                        className="object-cover"
+                        fill
+                        unoptimized
+                      />
+                    </div>
+                  )}
+                </div>
+              </FormField>
+
+              <FormField
+                label={t('buildings.buildingLogo')}
+                error={errors.logo}
+                htmlFor="building-logo"
+              >
+                <div className="flex flex-col gap-3">
+                  <FileUpload
+                    maxFiles={1}
+                    onFilesSelected={handleLogoSelected}
+                    error={errors.logo}
+                  />
+                  {logoPhoto && (
+                    <div className="relative w-20 h-20 rounded-md overflow-hidden border border-hairline mt-2">
+                      <Image
+                        src={logoPhoto}
+                        alt="Building Logo Preview"
+                        className="object-contain"
+                        fill
+                        unoptimized
+                      />
+                    </div>
+                  )}
+                </div>
+              </FormField>
+            </div>
+
+            <FormField
+              label={t('buildings.buildingRules')}
+              error={errors.rules}
+              htmlFor="building-rules"
+            >
+              <textarea
+                id="building-rules"
+                value={rules}
+                onChange={(e) => setRules(e.target.value)}
+                placeholder={t('buildings.buildingRulesPlaceholder')}
+                maxLength={5000}
+                rows={5}
+                className={`w-full rounded-md border px-3 py-2 text-sm bg-canvas text-ink placeholder:text-steel focus:outline-none focus:ring-2 focus:ring-brand/50 resize-y ${errors.rules ? 'border-error-text' : 'border-hairline'}`}
+              />
+              <p className="text-xs text-steel mt-1">{rules.length}/5000</p>
             </FormField>
 
             {/* Emergency Contacts Section */}

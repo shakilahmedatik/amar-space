@@ -50,7 +50,6 @@ export function PortalHeader({ building, flat, className }: PortalHeaderProps) {
     : PLACEHOLDER_TEXT
 
   const displayFlatNumber = flat.flatNumber || PLACEHOLDER_TEXT
-
   return (
     <section
       aria-label="ফ্ল্যাট তথ্য"
@@ -66,41 +65,43 @@ export function PortalHeader({ building, flat, className }: PortalHeaderProps) {
             className="object-cover"
             sizes="(max-width: 768px) 100vw, 448px"
             priority
+            unoptimized
           />
         </div>
       )}
 
-      <div className="flex items-start gap-3">
-        {/* Logo — max 120px width */}
-        {building.logoUrl ? (
-          <div className="relative h-16 w-[120px] shrink-0 overflow-hidden rounded-md">
-            <Image
-              src={building.logoUrl}
-              alt={`${building.name || 'বিল্ডিং'} লোগো`}
-              fill
-              className="object-contain"
-              sizes="120px"
-            />
-          </div>
-        ) : (
-          <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-md bg-surface">
-            <Building2 className="h-8 w-8 text-steel" aria-hidden />
-          </div>
-        )}
+      <div className="flex items-center justify-between  gap-2">
+        <div className="flex items-center gap-3">
+          {/* Logo — max 120px width */}
+          {building.logoUrl ? (
+            <div className="relative h-16 w-[120px] shrink-0 overflow-hidden rounded-md">
+              <Image
+                src={building.logoUrl}
+                alt={`${building.name || 'বিল্ডিং'} লোগো`}
+                fill
+                className="object-contain"
+                sizes="120px"
+                unoptimized
+              />
+            </div>
+          ) : (
+            <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-md bg-surface">
+              <Building2 className="h-8 w-8 text-steel" aria-hidden />
+            </div>
+          )}
 
-        {/* Building name, flat number, and status badge */}
-        <div className="flex min-w-0 flex-1 flex-col gap-1">
-          <h1
-            className="text-lg font-bold leading-tight text-ink"
-            title={building.name || undefined}
-          >
-            {displayName}
-          </h1>
-          <p className="text-base text-steel">ফ্ল্যাট: {displayFlatNumber}</p>
-          <div className="mt-1">
-            <PortalStatusBadge status={flat.status} />
+          {/* Building name, flat number, and status badge */}
+          <div className="flex min-w-0 flex-1 flex-col gap-1">
+            <h1
+              className="text-lg font-bold leading-tight text-ink"
+              title={building.name || undefined}
+            >
+              {displayName}
+            </h1>
+            <p className="text-base text-steel">ফ্ল্যাট: {displayFlatNumber}</p>
           </div>
         </div>
+        <PortalStatusBadge status={flat.status} />
       </div>
     </section>
   )

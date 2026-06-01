@@ -79,7 +79,7 @@ export function resolveCorsOrigin(
  */
 export function buildApp(opts: Record<string, unknown> = {}) {
   const app = Fastify({
-    bodyLimit: 1_048_576, // 1MB
+    bodyLimit: 7_340_032, // 7MB (to accept up to 5MB files base64-encoded)
     genReqId: () => randomUUID(),
     ...opts,
   }).withTypeProvider<ZodTypeProvider>()
@@ -177,13 +177,12 @@ export function buildApp(opts: Record<string, unknown> = {}) {
       return reply.status(400).send(response)
     }
 
-    // Body too large (Fastify returns this as a 413 with FST_ERR_CTP_BODY_TOO_LARGE)
     if (error.statusCode === 413) {
       const response: ApiErrorResponse = {
         requestId,
         statusCode: 413,
         error: 'Payload Too Large',
-        message: 'Request body exceeds the 1MB size limit',
+        message: 'Request body exceeds the 5MB size limit',
       }
       return reply.status(413).send(response)
     }

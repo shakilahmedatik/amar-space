@@ -3,9 +3,11 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
+  AlertTriangle,
   CreditCard,
   FileText,
   LogOut,
+  Megaphone,
   MessageSquare,
   Phone,
   ShieldCheck,
@@ -27,17 +29,30 @@ import {
 import { useTranslation } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { AccessCodeInput } from './access-code-input'
+import { BuildingInfo } from './building-info'
+import { EmergencyContacts } from './emergency-contacts'
+import { NoticeBoardSection } from './notice-board-section'
 
 interface PortalOccupiedViewProps {
   flatSlug: string
   className?: string
+  emergencyContacts?: Array<{
+    name: string
+    role: string
+    phone: string | null
+    type: 'building' | 'nearby'
+    order: number
+  }>
+  rules?: string | null
 }
 
-type TabType = 'profile' | 'bills' | 'maintenance'
+type TabType = 'profile' | 'bills' | 'notices' | 'contacts' | 'maintenance'
 
 export default function PortalOccupiedView({
   flatSlug,
   className,
+  emergencyContacts = [],
+  rules = null,
 }: PortalOccupiedViewProps) {
   const { t } = useTranslation()
   const queryClient = useQueryClient()
@@ -217,7 +232,7 @@ export default function PortalOccupiedView({
             variant="outline"
             onClick={() => logoutMutation.mutate()}
             disabled={logoutMutation.isPending}
-            className="rounded-full bg-white/10 hover:bg-white/20 text-white border-white/20 min-h-[44px] gap-2 font-medium"
+            className="rounded-full cursor-pointer bg-white/10 hover:bg-white/20 text-white border-white/20 min-h-[44px] gap-2 font-medium"
           >
             <LogOut className="h-4 w-4" />
             {t('common.logout') || 'লগ আউট'}
@@ -255,6 +270,32 @@ export default function PortalOccupiedView({
         </button>
         <button
           type="button"
+          onClick={() => setActiveTab('notices')}
+          className={cn(
+            'px-5 py-3 text-sm font-semibold border-b-2 transition-all min-h-[44px] whitespace-nowrap flex items-center gap-2',
+            activeTab === 'notices'
+              ? 'border-primary text-primary'
+              : 'border-transparent text-steel hover:text-charcoal',
+          )}
+        >
+          <Megaphone className="h-4 w-4" />
+          {'নোটিশ বোর্ড'}
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab('contacts')}
+          className={cn(
+            'px-5 py-3 text-sm font-semibold border-b-2 transition-all min-h-[44px] whitespace-nowrap flex items-center gap-2',
+            activeTab === 'contacts'
+              ? 'border-primary text-primary'
+              : 'border-transparent text-steel hover:text-charcoal',
+          )}
+        >
+          <AlertTriangle className="h-4 w-4" />
+          {'জরুরি যোগাযোগ ও নিয়মাবলী'}
+        </button>
+        <button
+          type="button"
           onClick={() => setActiveTab('maintenance')}
           className={cn(
             'px-5 py-3 text-sm font-semibold border-b-2 transition-all min-h-[44px] whitespace-nowrap flex items-center gap-2',
@@ -270,8 +311,30 @@ export default function PortalOccupiedView({
 
       {/* Tab Contents */}
       <div className="transition-all duration-200">
+        {activeTab === 'notices' && (
+          <div className="bg-canvas border border-hairline p-5 rounded-xl shadow-sm">
+            <NoticeBoardSection flatSlug={flatSlug} />
+          </div>
+        )}
+
+        {activeTab === 'contacts' && (
+          <div className="flex flex-col gap-6">
+            <div className="bg-canvas border border-hairline p-5 rounded-xl shadow-sm">
+              <EmergencyContacts
+                contacts={emergencyContacts}
+                flatSlug={flatSlug}
+              />
+            </div>
+            {rules && (
+              <div className="bg-canvas border border-hairline p-5 rounded-xl shadow-sm">
+                <BuildingInfo rules={rules} />
+              </div>
+            )}
+          </div>
+        )}
+
         {activeTab === 'profile' && (
-          <div className="grid gap-6 grid-cols-1 lg:grid-cols-3">
+          <div className="grid gap-6 grid-cols-1">
             {/* Personal Details */}
             <div className="lg:col-span-2 flex flex-col gap-6">
               <Card className="bg-canvas border border-hairline rounded-xl">
