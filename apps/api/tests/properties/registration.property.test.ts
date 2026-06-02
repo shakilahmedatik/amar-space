@@ -13,7 +13,6 @@ import { validateRegistrationInput } from '../../src/services/registration'
  * account with the Owner role, a hashed password that differs from the plaintext,
  * and a lowercase-normalized email.
  *
- * **Validates: Requirements 1.1, 1.2, 1.5**
  */
 
 /**
@@ -26,7 +25,6 @@ import { validateRegistrationInput } from '../../src/services/registration'
  * one lowercase letter, and one digit. All other inputs SHALL be rejected with
  * appropriate field-level errors.
  *
- * **Validates: Requirements 1.5, 1.6**
  */
 
 /**
@@ -37,7 +35,6 @@ import { validateRegistrationInput } from '../../src/services/registration'
  * registration attempt with that email SHALL be rejected regardless of password or
  * other field values.
  *
- * **Validates: Requirements 1.3**
  */
 
 // --- Generators ---

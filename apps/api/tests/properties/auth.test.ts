@@ -12,7 +12,6 @@ import { buildApp } from '../../src/app'
  * structure, message content, and HTTP status code, revealing no information about
  * which credential was wrong.
  *
- * Validates: Requirements 5.6
  */
 
 /**
@@ -24,7 +23,6 @@ import { buildApp } from '../../src/app'
  * rate-limit error for 15 minutes, regardless of whether the credentials provided
  * are valid.
  *
- * Validates: Requirements 5.8
  */
 
 // --- Generators ---
@@ -243,7 +241,6 @@ describe('Feature: amarspace-infrastructure-setup, Property 4: Authentication Er
  * rate-limit error for 15 minutes, regardless of whether the credentials provided
  * are valid.
  *
- * Validates: Requirements 5.8
  */
 
 /**
@@ -255,7 +252,6 @@ describe('Feature: amarspace-infrastructure-setup, Property 4: Authentication Er
  * authentication error response, and the rejected token SHALL NOT grant access to
  * any protected resource.
  *
- * Validates: Requirements 5.9
  */
 
 // --- Property 5 Generators ---
@@ -585,7 +581,6 @@ describe('Feature: amarspace-infrastructure-setup, Property 5: Rate Limiting Enf
  * authentication error response, and the rejected token SHALL NOT grant access to
  * any protected resource.
  *
- * Validates: Requirements 5.9
  */
 
 // --- Property 6 Generators ---

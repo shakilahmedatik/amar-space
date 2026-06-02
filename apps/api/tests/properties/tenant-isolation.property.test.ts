@@ -21,7 +21,6 @@ import { tenantScope } from '../../src/middleware/tenant-scope'
  *   matching the authenticated user's tenant.
  * - No user SHALL be able to access data belonging to a different ownerAccountId.
  *
- * **Validates: Requirements 17.2, 17.3, 17.6**
  */
 
 // --- Generators ---

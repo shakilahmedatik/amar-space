@@ -7,7 +7,6 @@
  * - User deactivation with session invalidation (AdminUserService)
  * - Manager creation with building assignments (ManagerService)
  *
- * Requirements: 2.1, 2.3, 3.1, 4.4, 4.7, 7.4
  */
 
 import type { Database } from '@repo/db'
@@ -38,7 +37,6 @@ function createMockAuditLogger(): AuditLogger {
 
 describe('Integration: Owner Approval Workflow (OwnerApprovalService)', () => {
   /**
-   * Validates: Requirements 2.1, 2.3
    *
    * Tests the complete approval lifecycle:
    * pending → approved, pending → rejected, rejected → approved, approved → rejected
@@ -201,7 +199,6 @@ describe('Integration: Owner Approval Workflow (OwnerApprovalService)', () => {
 
 describe('Integration: Deactivation → Session Invalidation (AdminUserService)', () => {
   /**
-   * Validates: Requirements 4.4, 4.7
    *
    * Tests:
    * - Deactivating a user sets isActive=false
@@ -323,7 +320,6 @@ describe('Integration: Deactivation → Session Invalidation (AdminUserService)'
 
 describe('Integration: Manager Creation (ManagerService)', () => {
   /**
-   * Validates: Requirements 3.1
    *
    * Tests:
    * - Successful manager creation with valid input

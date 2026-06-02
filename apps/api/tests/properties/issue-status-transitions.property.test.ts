@@ -29,7 +29,6 @@ import { IssueService } from '../../src/services/issue.service'
  * (max 2000 chars). Transitioning to Resolved without resolution notes SHALL
  * be rejected.
  *
- * **Validates: Requirements 11.4, 11.8, 11.9**
  */
 
 // --- Helpers ---

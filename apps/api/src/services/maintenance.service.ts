@@ -124,7 +124,6 @@ const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
  * - Pagination max 50 per page, sorted by createdAt desc
  * - Audit events for status changes
  *
- * Requirements: 10.1, 10.2, 10.3, 10.4, 10.5, 10.6, 10.7, 10.8, 10.9, 10.10, 10.11, 10.12
  */
 export class MaintenanceService {
   constructor(
@@ -141,7 +140,6 @@ export class MaintenanceService {
    * - Handles file attachments (max 5 images, JPEG/PNG/WebP, max 5MB each)
    * - Only Renter can create requests (they submit for their own flat)
    *
-   * Requirements: 10.1, 10.2, 10.3, 10.11
    */
   async createRequest(
     ctx: RequestContext,
@@ -254,7 +252,6 @@ export class MaintenanceService {
    * - Only Owner or Manager can update status (Requirement 10.6, 10.7)
    * - Records audit event with old/new status (Requirement 10.9)
    *
-   * Requirements: 10.5, 10.6, 10.7, 10.9, 10.12
    */
   async updateRequestStatus(
     ctx: RequestContext,
@@ -329,7 +326,6 @@ export class MaintenanceService {
    * - Renter can add comments to their own requests (Requirement 10.8)
    * - Owner/Manager can also add comments
    *
-   * Requirements: 10.8
    */
   async addComment(
     ctx: RequestContext,
@@ -382,7 +378,6 @@ export class MaintenanceService {
    * - Manager sees requests for assigned buildings
    * - Renter sees only their own requests
    *
-   * Requirements: 10.6, 10.7, 10.8
    */
   async getRequest(
     ctx: RequestContext,
@@ -412,7 +407,6 @@ export class MaintenanceService {
    * Pagination: max 50 per page, sorted by createdAt desc (Requirement 10.10)
    * Role-based access: Owner sees all, Manager sees assigned buildings, Renter sees own
    *
-   * Requirements: 10.6, 10.7, 10.8, 10.10
    */
   async listRequests(
     ctx: RequestContext,

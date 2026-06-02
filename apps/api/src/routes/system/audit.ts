@@ -21,7 +21,6 @@ import {
  * - Manager: access restricted to logs for entities in assigned buildings
  * - Renter: denied (403 via role guard)
  *
- * Requirements: 13.3, 13.4, 13.5
  */
 async function auditRoutes(fastify: FastifyInstance) {
   const auditLogQueryService = new AuditLogQueryService(fastify.db)
@@ -69,7 +68,6 @@ async function auditRoutes(fastify: FastifyInstance) {
    * - page (optional): Page number, default 1
    * - pageSize (optional): Items per page, default 20, max 100
    *
-   * Requirements: 13.3, 13.4, 13.5
    */
   fastify.get(
     '/',

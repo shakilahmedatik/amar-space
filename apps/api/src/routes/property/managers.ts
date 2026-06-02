@@ -24,7 +24,6 @@ import {
  * - Owner only, with approval guard ensuring the owner account is approved
  * - Middleware order: authGuard → roleGuard(['owner']) → approvalGuard → tenantScope
  *
- * Requirements: 3.1, 3.6, 6.5, 6.6
  */
 async function managerRoutes(fastify: FastifyInstance) {
   const managerService = new ManagerService(fastify.db, fastify.auditLogger)

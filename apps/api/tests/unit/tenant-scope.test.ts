@@ -16,7 +16,6 @@ import { tenantScope } from '../../src/middleware/tenant-scope'
  * - Manager with no assignments gets empty array
  * - Renter with no active contract gets undefined flatId
  *
- * Requirements: 17.2, 17.5, 17.7
  */
 describe('Tenant Scope Middleware', () => {
   let app: FastifyInstance

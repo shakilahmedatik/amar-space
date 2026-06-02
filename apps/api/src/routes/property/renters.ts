@@ -27,7 +27,6 @@ import {
  * - Owner: full access (create, read)
  * - Manager: full access (create, read)
  *
- * Requirements: 4.1, 4.9
  */
 async function renterRoutes(fastify: FastifyInstance) {
   const renterService = new RenterRegistrationService(

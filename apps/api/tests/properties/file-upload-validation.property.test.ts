@@ -21,7 +21,6 @@ import {
  * When some files are valid and some invalid, valid ones are preserved and
  * invalid ones are rejected individually.
  *
- * **Validates: Requirements 18.3, 18.9**
  */
 
 // --- Constants ---

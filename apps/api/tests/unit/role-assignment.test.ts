@@ -19,7 +19,6 @@ import {
  * - Records role changes in audit log
  * - Validates input fields
  *
- * Requirements: 3.5, 3.7, 3.8
  */
 
 // --- Mock Helpers ---

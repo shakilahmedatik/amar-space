@@ -16,7 +16,6 @@ import { PaymentService } from '../../src/services/payment'
  * the payment SHALL be rejected. The paid amount on the bill SHALL equal the sum of all
  * recorded payments.
  *
- * **Validates: Requirements 8.2, 8.3, 8.4, 8.5**
  */
 
 // --- Helpers ---

@@ -10,7 +10,6 @@ import { analyticsEventSchema } from '../../src/portal/analytics-validation'
  * always contain a non-empty `flat_slug` string and a valid ISO 8601
  * `timestamp` field.
  *
- * **Validates: Requirements 13.2**
  */
 describe('Property 9: Analytics event structure', () => {
   // Generator for valid ISO 8601 timestamps with offset

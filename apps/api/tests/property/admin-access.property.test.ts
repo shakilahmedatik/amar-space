@@ -116,7 +116,6 @@ function createAdminApp(user: AuthUser): FastifyInstance {
 // Feature: role-based-user-management, Property 6: Non-superadmin users cannot access admin endpoints
 describe('Feature: role-based-user-management, Property 6: Non-superadmin users cannot access admin endpoints', () => {
   /**
-   * **Validates: Requirements 1.5, 2.7, 7.4**
    *
    * For any user with role `owner`, `manager`, or `renter`, accessing any admin endpoint
    * (owner approval, user management, dashboard) SHALL result in a 403 Forbidden response.

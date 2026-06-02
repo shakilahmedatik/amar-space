@@ -14,7 +14,6 @@ import { QrCodeService } from '../../src/services/qr-code'
  * decoding the resulting PNG image SHALL yield the original URL in the format
  * `{frontend_url}/f/{slug}`.
  *
- * **Validates: Requirements 1.1, 1.3, 3.1, 3.4**
  */
 
 // --- Helpers ---
@@ -73,7 +72,6 @@ describe('Feature: flat-qr-code-generation, Property 1: QR Code Round-Trip', () 
  * value outside [100, 1000], the service SHALL reject the request with a
  * validation error.
  *
- * **Validates: Requirements 1.2, 4.1, 4.2, 4.3**
  */
 
 describe('Feature: flat-qr-code-generation, Property 2: Size Parameter Controls Output Dimensions', () => {
@@ -124,7 +122,6 @@ describe('Feature: flat-qr-code-generation, Property 2: Size Parameter Controls 
  * `ownerAccountId`, OR (b) the user is a manager and the flat's `buildingId`
  * is in their `assignedBuildingIds`. All other combinations SHALL be denied.
  *
- * **Validates: Requirements 2.2, 2.3, 5.5**
  */
 
 // --- Access Control Decision Logic (extracted from route handler) ---
@@ -235,7 +232,6 @@ describe('Feature: flat-qr-code-generation, Property 3: Tenant-Scoped Access Con
  * number, building name, encoded URL, and a base64 string that decodes to a
  * valid PNG image.
  *
- * **Validates: Requirements 6.1, 6.3**
  */
 
 describe('Feature: flat-qr-code-generation, Property 5: Metadata Response Completeness', () => {
@@ -296,7 +292,6 @@ describe('Feature: flat-qr-code-generation, Property 5: Metadata Response Comple
  * a ZIP archive containing exactly N PNG files, where each file is named
  * `{building_name}_{flat_number}.png` and each PNG decodes to the correct flat URL.
  *
- * **Validates: Requirements 5.1, 5.2, 5.3**
  */
 
 describe('Feature: flat-qr-code-generation, Property 4: Bulk Generation Produces Complete ZIP Archive', () => {

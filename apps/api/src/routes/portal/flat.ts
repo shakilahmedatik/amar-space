@@ -308,7 +308,6 @@ async function portalFlatRoutes(fastify: FastifyInstance) {
    * digital signature to S3/R2, and creates a registration_requests record.
    * No authentication required.
    *
-   * Requirements: 7.5, 7.9
    */
   fastify.post(
     '/:slug/register',
@@ -532,7 +531,6 @@ async function portalFlatRoutes(fastify: FastifyInstance) {
    * On success: creates a portal session (30-min expiry), sets HTTP-only cookie.
    * No authentication required (this IS the authentication mechanism).
    *
-   * Requirements: 8.1, 8.2, 8.5
    */
   fastify.post(
     '/:slug/access',
@@ -728,7 +726,6 @@ async function portalFlatRoutes(fastify: FastifyInstance) {
    * Returns session validity status. Used by the client-side hook
    * to detect session expiry and redirect back to the portal.
    *
-   * Requirements: 8.6
    */
   fastify.get(
     '/:slug/session',

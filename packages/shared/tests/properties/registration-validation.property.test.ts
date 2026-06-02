@@ -15,7 +15,6 @@ import { validateRegistrationForm } from '../../src/portal/registration-validati
  * Signature (at least 1 stroke). For any invalid input, the function SHALL produce
  * a Bangla error message for each invalid field.
  *
- * **Validates: Requirements 7.2, 7.7**
  */
 
 // ─── Generators ─────────────────────────────────────────────────────────────

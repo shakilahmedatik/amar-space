@@ -18,7 +18,6 @@ import { OwnerApprovalService } from '../../src/services/owner-approval'
  * the approval status update SHALL succeed if and only if the transition is in the valid
  * transitions map: pending→approved, pending→rejected, rejected→approved, approved→rejected.
  *
- * **Validates: Requirements 2.6, 2.8**
  */
 
 // --- Constants ---

@@ -12,7 +12,6 @@ import type { FieldError } from '../../src/types/index.js'
 
 /**
  * Property 20: API error response structure
- * Validates: Requirements 19.2, 19.3, 19.4, 19.5, 19.6
  *
  * For any failed API request, the error response SHALL contain a requestId field.
  * Validation errors (400) SHALL include an errors array with field path, rule, and message.
@@ -54,7 +53,6 @@ const retryAfterArb = fc.integer({ min: 1, max: 3600 })
 
 describe('Property 20: API error response structure', () => {
   /**
-   * **Validates: Requirements 19.2, 19.3, 19.4, 19.5, 19.6**
    *
    * Property 1: Every error's toResponse always includes requestId, statusCode,
    * error (HTTP status text), and message.
@@ -88,7 +86,6 @@ describe('Property 20: API error response structure', () => {
   })
 
   /**
-   * **Validates: Requirements 19.2**
    *
    * Property 2: ValidationError always includes errors array with field, message,
    * and optional rule for each entry.
@@ -124,7 +121,6 @@ describe('Property 20: API error response structure', () => {
   })
 
   /**
-   * **Validates: Requirements 19.3**
    *
    * Property 3: NotFoundError never exposes the entity ID in the response message.
    */
@@ -149,7 +145,6 @@ describe('Property 20: API error response structure', () => {
   })
 
   /**
-   * **Validates: Requirements 19.4**
    *
    * Property 4: ForbiddenError never reveals permission details.
    */
@@ -189,7 +184,6 @@ describe('Property 20: API error response structure', () => {
   })
 
   /**
-   * **Validates: Requirements 19.5, 19.6**
    *
    * Property 5: RateLimitError always has statusCode 429.
    */
@@ -210,7 +204,6 @@ describe('Property 20: API error response structure', () => {
   })
 
   /**
-   * **Validates: Requirements 19.6**
    *
    * Property 6: The requestId in the response always matches the one passed to toResponse.
    */
@@ -235,7 +228,6 @@ describe('Property 20: API error response structure', () => {
   })
 
   /**
-   * **Validates: Requirements 19.2, 19.5**
    *
    * Property 7: statusCode in response always matches the error's statusCode property.
    */

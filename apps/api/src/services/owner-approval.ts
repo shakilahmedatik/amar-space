@@ -35,7 +35,6 @@ export interface PaginatedResult<T> {
  * - Approval status transitions with validation against VALID_APPROVAL_TRANSITIONS
  * - Audit logging for all approval actions
  *
- * Requirements: 2.1, 2.3, 2.4, 2.5, 2.6, 2.8
  */
 export class OwnerApprovalService {
   private db: Database
@@ -110,7 +109,6 @@ export class OwnerApprovalService {
    * Returns 404 for non-existent owner, 400 for invalid transitions.
    * Logs all approval actions to the audit logger.
    *
-   * Requirements: 2.3, 2.4, 2.6, 2.8
    */
   async updateApprovalStatus(
     actorId: string,

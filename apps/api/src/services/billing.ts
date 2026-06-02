@@ -135,7 +135,6 @@ export interface GenerateBillsResult {
  * - Max 20 line items per bill
  * - Audit events for bill creation and modification
  *
- * Requirements: 7.1, 7.2, 7.3, 7.4, 7.5, 7.6, 7.7, 7.8, 7.9, 7.10, 7.11, 7.12, 7.13, 7.14
  */
 export class BillingService {
   constructor(
@@ -152,7 +151,6 @@ export class BillingService {
    * - Skips flats without a defined rent amount (Requirement 7.12)
    * - Only Owner or Manager can generate bills (Requirement 7.14)
    *
-   * Requirements: 7.1, 7.10, 7.12, 7.14
    */
   async generateBills(
     ctx: RequestContext,
@@ -353,7 +351,6 @@ export class BillingService {
    * - Recalculates totalAmount (Requirement 7.3)
    * - Only Owner or Manager can add charges (Requirement 7.14)
    *
-   * Requirements: 7.2, 7.3, 7.14
    */
   async addUtilityCharge(
     ctx: RequestContext,
@@ -452,7 +449,6 @@ export class BillingService {
    * - Enforces tenant isolation and role-based access
    * - Owner sees all bills, Manager sees assigned buildings, Renter sees own bills
    *
-   * Requirements: 7.6, 7.7, 7.8
    */
   async getBill(ctx: RequestContext, billId: string): Promise<BillWithDetails> {
     const bill = await this.findBillWithAccess(ctx, billId)
@@ -498,7 +494,6 @@ export class BillingService {
    * Pagination: max 50 per page (Requirement 7.11)
    * Role-based access: Owner sees all, Manager sees assigned buildings, Renter sees own
    *
-   * Requirements: 7.6, 7.7, 7.8, 7.11
    */
   async listBills(
     ctx: RequestContext,

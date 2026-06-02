@@ -19,7 +19,6 @@ const BLOOD_GROUPS = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-']
  * NID photo upload and digital signature upload.
  * Flat selection (only Vacant flats).
  * Field-level validation with Bangla error messages.
- * Validates: Requirements 4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 4.9, 4.11, 4.12
  */
 export default function NewRenterPage() {
   const { t } = useTranslation()

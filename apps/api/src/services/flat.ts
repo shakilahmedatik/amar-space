@@ -61,7 +61,6 @@ export interface PaginatedFlats {
  * FlatService handles flat CRUD operations with tenant isolation,
  * field validation, uniqueness enforcement, and state machine transitions.
  *
- * Requirements: 6.1, 6.2, 6.3, 6.4, 6.5, 6.7, 6.10, 6.11, 6.12, 6.13, 6.14
  */
 export class FlatService {
   private buildingRepository: BuildingRepository

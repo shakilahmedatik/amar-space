@@ -1,7 +1,6 @@
 /**
  * Feature: amarspace-infrastructure-setup, Property 3: Seed Script Idempotence
  *
- * Validates: Requirements 4.4
  *
  * For any database state, executing the seed script N times (where N ≥ 1)
  * SHALL produce the same database state as executing it exactly once —

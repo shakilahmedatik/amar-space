@@ -15,7 +15,6 @@ import { DepositService } from '../../src/services/deposit'
  * exactly A. Adjustments where A > remaining balance SHALL be rejected. The remaining
  * balance SHALL always equal the initial deposit minus the sum of all adjustment amounts.
  *
- * **Validates: Requirements 9.2, 9.3, 9.4**
  */
 
 /**
@@ -27,7 +26,6 @@ import { DepositService } from '../../src/services/deposit'
  * to the same rules as direct payments. The adjustment SHALL be rejected if the bill is
  * already Paid or if the adjustment exceeds the bill's outstanding balance.
  *
- * **Validates: Requirements 9.5, 9.6**
  */
 
 // --- Helpers ---

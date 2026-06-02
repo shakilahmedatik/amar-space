@@ -29,7 +29,6 @@ export interface RegisterResult {
  * Validates registration input (email and password) using shared Zod schemas.
  * Returns field-level errors if validation fails.
  *
- * Requirements: 1.5, 1.6
  */
 export function validateRegistrationInput(input: RegisterInput): {
   email: string
@@ -82,7 +81,6 @@ export function validateRegistrationInput(input: RegisterInput): {
  * 5. Create session via signInEmail
  * 6. If session creation fails, return error indicating user should sign in manually
  *
- * Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7
  */
 export async function registerUser(
   fastify: FastifyInstance,

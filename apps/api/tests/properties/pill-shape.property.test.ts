@@ -11,7 +11,6 @@ import { describe, expect, it } from 'vitest'
  * the `rounded-full` class is present — the pill shape is a non-negotiable
  * system signature per DESIGN.md.
  *
- * **Validates: Requirements 6.3, 6.4**
  */
 
 // ---------------------------------------------------------------------------

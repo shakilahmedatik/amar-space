@@ -16,7 +16,6 @@ import { FlatService } from '../../src/services/flat'
  * For any building, creating a flat with a flat number that already exists within
  * that building SHALL be rejected. The same flat number in different buildings is allowed.
  *
- * **Validates: Requirements 6.12**
  */
 
 /**
@@ -28,7 +27,6 @@ import { FlatService } from '../../src/services/flat'
  * Vacant → Under_Maintenance, Under_Maintenance → Vacant.
  * All other transitions SHALL be rejected. Occupied flats cannot be deleted.
  *
- * **Validates: Requirements 6.13, 6.14**
  */
 
 // --- Generators ---

@@ -14,7 +14,6 @@ import { BuildingService } from '../../src/services/building'
  * within that owner's account SHALL be rejected. Building names across different
  * owners are independent.
  *
- * **Validates: Requirements 5.9**
  */
 
 // --- Helpers ---

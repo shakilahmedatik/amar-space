@@ -9,7 +9,6 @@ import { formatBDT } from '../../src/formatters/index'
  * the ৳ symbol followed by the amount with 2 decimal places and comma separators
  * following the Bangladeshi numbering system (last 3 digits grouped, then groups of 2).
  *
- * **Validates: Requirements 15.3**
  */
 describe('Property 19: BDT currency formatting', () => {
   it('output always starts with ৳ for non-negative numbers or -৳ for negative numbers', () => {

@@ -62,7 +62,6 @@ export interface PaginatedAuditLogs {
  * - Paginated with max 100 per page, sorted by createdAt descending
  * - Tenant isolation via ownerAccountId (Requirement 13.8)
  *
- * Requirements: 13.3, 13.4, 13.5, 13.8
  */
 export class AuditLogQueryService {
   private db: Database
@@ -78,7 +77,6 @@ export class AuditLogQueryService {
    * - Manager: access only to logs for entities in their assigned buildings
    * - Renter: denied (403 ForbiddenError)
    *
-   * Requirements: 13.3, 13.4, 13.5, 13.8
    */
   async queryLogs(
     ctx: RequestContext,

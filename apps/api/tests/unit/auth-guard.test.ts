@@ -23,7 +23,6 @@ vi.mock('@repo/db', () => ({
  * - 401 response for missing/invalid/expired sessions
  * - Correct ownerAccountId resolution for different roles
  *
- * Requirements: 2.4, 2.6, 17.2
  */
 describe('Auth Guard Middleware', () => {
   let app: FastifyInstance

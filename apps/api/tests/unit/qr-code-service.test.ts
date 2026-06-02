@@ -11,7 +11,6 @@ import { QrCodeService } from '../../src/services/qr-code'
  * - QR code generation produces valid PNG buffers
  * - Metadata response contains all required fields
  *
- * Requirements: 3.1, 4.4, 6.1, 6.3
  */
 
 const TEST_BASE_URL = 'https://app.amarspace.com'

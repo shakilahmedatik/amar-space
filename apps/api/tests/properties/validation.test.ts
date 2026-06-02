@@ -21,7 +21,6 @@ type FieldError = { field: string; rule: string; message: string }
  * array where each entry includes the failing field name and the validation rule
  * that failed.
  *
- * Validates: Requirements 2.6, 2.7
  */
 
 // --- Test Schema ---

@@ -106,7 +106,6 @@ const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
  * 7. Handles file uploads for NID photo and digital signature
  * 8. Records audit event
  *
- * Requirements: 4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 4.7, 4.8, 4.9, 4.10, 4.11, 4.12, 4.13
  */
 export class RenterRegistrationService {
   constructor(

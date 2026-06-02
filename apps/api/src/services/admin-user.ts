@@ -38,7 +38,6 @@ export interface DashboardStats {
  * - User deactivation with session invalidation and audit logging
  * - Platform dashboard statistics (user counts by role, pending approvals, active sessions)
  *
- * Requirements: 4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 7.1, 7.2, 7.3, 7.5
  */
 export class AdminUserService {
   private db: Database
@@ -57,7 +56,6 @@ export class AdminUserService {
    * - Sorted by creation date descending
    * - Returns id, name, email, role, approvalStatus, createdAt (Requirement 4.2)
    *
-   * Requirements: 4.1, 4.2
    */
   async listUsers(params: {
     page: number
@@ -113,7 +111,6 @@ export class AdminUserService {
    * - Invalidates all sessions for the user by deleting them from the sessions table (Requirement 4.4)
    * - Logs the action to audit (Requirement 4.6)
    *
-   * Requirements: 4.3, 4.4, 4.5, 4.6
    */
   async deactivateUser(actorId: string, targetUserId: string): Promise<void> {
     // Step 1: Find the target user
@@ -177,7 +174,6 @@ export class AdminUserService {
    * - Count of pending approvals (Requirement 7.2)
    * - Count of active sessions (not expired per 7-day policy) (Requirement 7.2)
    *
-   * Requirements: 7.1, 7.2, 7.3, 7.5
    */
   async getDashboardStats(): Promise<DashboardStats> {
     const now = new Date()

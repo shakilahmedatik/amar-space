@@ -19,7 +19,6 @@ import { RenterRegistrationService } from '../../src/services/renter-registratio
  * - File upload validation (NID photo, digital signature)
  * - Audit event recording
  *
- * Requirements: 4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 4.7, 4.8, 4.9, 4.10, 4.11, 4.12, 4.13
  */
 
 // --- Constants ---

@@ -14,7 +14,6 @@ import type { AuthUser } from '../../src/middleware/auth-guard'
  * resource management endpoint, the approval guard SHALL deny access with
  * a 403 response.
  *
- * **Validates: Requirements 2.2, 5.4**
  */
 
 // --- Types ---

@@ -76,7 +76,6 @@ function createTestApp(
 // Feature: role-based-user-management, Property 1: Superadmin bypasses all role guards
 describe('Feature: role-based-user-management, Property 1: Superadmin bypasses all role guards', () => {
   /**
-   * **Validates: Requirements 1.3, 5.3**
    *
    * For any role guard configuration (whether explicit role list or hierarchical minimum),
    * a user with the `superadmin` role SHALL always be granted access.
@@ -110,7 +109,6 @@ describe('Feature: role-based-user-management, Property 1: Superadmin bypasses a
 // Feature: role-based-user-management, Property 2: Explicit role list grants access only to listed roles
 describe('Feature: role-based-user-management, Property 2: Explicit role list grants access only to listed roles', () => {
   /**
-   * **Validates: Requirements 5.3**
    *
    * For any non-superadmin user role and any explicit allowed-roles list,
    * the role guard SHALL grant access if and only if the user's role is
@@ -160,7 +158,6 @@ describe('Feature: role-based-user-management, Property 2: Explicit role list gr
 // Feature: role-based-user-management, Property 3: Hierarchical role access respects ordinal ranking
 describe('Feature: role-based-user-management, Property 3: Hierarchical role access respects ordinal ranking', () => {
   /**
-   * **Validates: Requirements 5.1, 5.2**
    *
    * For any non-superadmin user role and any minimum required role,
    * the role guard in hierarchical mode SHALL grant access if and only if

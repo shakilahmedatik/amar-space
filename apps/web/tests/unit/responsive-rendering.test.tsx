@@ -40,7 +40,6 @@ afterEach(() => {
 
 describe('Responsive Rendering', () => {
   /**
-   * Validates: Requirements 10.2, 10.6
    *
    * Since jsdom doesn't compute actual pixel dimensions, we verify that
    * the correct CSS classes are applied to ensure responsive behavior.

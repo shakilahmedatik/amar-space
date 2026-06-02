@@ -13,7 +13,6 @@ import { AdminUserService } from '../../src/services/admin-user'
  * For any user with N active sessions (where N ≥ 0), deactivating that user
  * SHALL result in zero active sessions remaining for that user in the sessions table.
  *
- * **Validates: Requirements 4.4**
  */
 
 // --- Types ---
@@ -119,7 +118,6 @@ function createMockDbSuperadmin(userId: string) {
 
 describe('Feature: role-based-user-management, Property 13: User deactivation invalidates all sessions', () => {
   /**
-   * **Validates: Requirements 4.4**
    *
    * For any user with N active sessions (where N ≥ 0), deactivating that user
    * SHALL result in zero active sessions remaining for that user in the sessions table.
@@ -159,7 +157,6 @@ describe('Feature: role-based-user-management, Property 13: User deactivation in
   })
 
   /**
-   * **Validates: Requirements 4.4**
    *
    * Complementary property: After deactivation, the user's isActive flag is set to false,
    * which combined with session deletion ensures no active sessions remain.
@@ -216,7 +213,6 @@ describe('Feature: role-based-user-management, Property 13: User deactivation in
   })
 
   /**
-   * **Validates: Requirements 4.5**
    *
    * Deactivation of superadmin users SHALL be rejected with a 403 error,
    * ensuring their sessions are NOT deleted.

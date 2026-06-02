@@ -10,7 +10,6 @@ import { describe, expect, it } from 'vitest'
  * code input for exactly 15 minutes. During the lockout period, all further
  * attempts SHALL be rejected regardless of code validity.
  *
- * **Validates: Requirements 8.5**
  */
 
 // --- Rate Limiting State Machine ---

@@ -132,7 +132,6 @@ describe('Feature: qr-code-feature-ui, Property 6: Translation key completeness'
  * (including Bengali Unicode range U+0980–U+09FF), hyphens, and underscores —
  * no other characters SHALL appear in the output.
  *
- * **Validates: Requirements 4.2, 6.4**
  */
 
 /** Regex that matches ONLY safe characters: alphanumeric, Bengali Unicode, hyphens, underscores */
@@ -190,7 +189,6 @@ describe('Feature: qr-code-feature-ui, Property 2: Filename sanitization preserv
  * (200, 300, 500, 800), the `useQrCode` hook SHALL include that exact value
  * as the `size` query parameter in the API request URL.
  *
- * **Validates: Requirements 2.3**
  */
 
 describe('Feature: qr-code-feature-ui, Property 4: Size selection triggers correct API parameter', () => {
@@ -274,7 +272,6 @@ describe('Feature: qr-code-feature-ui, Property 4: Size selection triggers corre
  * (on building detail) SHALL be visible if and only if the role is "owner" or
  * "manager". For the "renter" role, both buttons SHALL be hidden.
  *
- * **Validates: Requirements 1.1, 1.2, 6.1, 6.2**
  */
 
 /**
@@ -344,7 +341,6 @@ describe('Feature: qr-code-feature-ui, Property 1: Role-based visibility of QR a
  * construct its aria-label. We verify the interpolation logic directly against
  * both locale dictionaries.
  *
- * **Validates: Requirements 9.4**
  */
 
 describe('Feature: qr-code-feature-ui, Property 5: Aria-label contains flat identifier', () => {
@@ -484,7 +480,6 @@ describe('Feature: qr-code-feature-ui, Property 5: Aria-label contains flat iden
  * For any flat number and building name, when QR code is loaded, the dialog
  * displays both as visible text and in the image alt attribute.
  *
- * **Validates: Requirements 3.2, 3.6, 9.6**
  */
 
 /** Arbitrary non-empty string generator for flat numbers and building names.

@@ -9,7 +9,6 @@
  * - GET /api/flats/:id/qr-code (single flat QR code)
  * - GET /api/buildings/:id/qr-codes (bulk building QR codes)
  *
- * Requirements: 1.4, 1.5, 2.1, 2.4, 5.4
  */
 
 import type { Database } from '@repo/db'

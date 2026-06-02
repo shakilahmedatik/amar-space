@@ -69,7 +69,6 @@ export interface PaginatedNotices {
  * - Pagination with max 50 per page
  * - Audit events for create/update/delete/pin actions
  *
- * Requirements: 12.1, 12.2, 12.3, 12.4, 12.5, 12.6, 12.7, 12.8, 12.9, 12.10, 12.11, 12.12, 12.13
  */
 export class NoticeService {
   constructor(
@@ -88,7 +87,6 @@ export class NoticeService {
    * - Manager can only target buildings assigned to them
    * - Sets initial isPinned to false unless specified (and enforces max 5 pinned)
    *
-   * Requirements: 12.1, 12.3, 12.4, 12.7, 12.11, 12.12, 12.13
    */
   async createNotice(
     ctx: RequestContext,
@@ -216,7 +214,6 @@ export class NoticeService {
    * - Only the author or an Owner can edit (Requirement 12.9, 12.10)
    * - If target audience changes, validates new building/flat references
    *
-   * Requirements: 12.9, 12.10
    */
   async updateNotice(
     ctx: RequestContext,
@@ -391,7 +388,6 @@ export class NoticeService {
   /**
    * Deletes a notice. Only the author or an Owner can delete.
    *
-   * Requirements: 12.9, 12.10
    */
   async deleteNotice(ctx: RequestContext, noticeId: string): Promise<void> {
     // Step 1: Verify notice exists and belongs to the owner's account
@@ -505,7 +501,6 @@ export class NoticeService {
    *
    * Paginated with max 50 per page, ordered by pinned status first then createdAt desc.
    *
-   * Requirements: 12.5, 12.6, 12.8
    */
   async listNotices(
     ctx: RequestContext,
@@ -667,7 +662,6 @@ export class NoticeService {
    * - Manager: sees all_renters, managers_only, and notices for assigned buildings
    * - Renter: sees all_renters, notices for their building, and notices for their flat
    *
-   * Requirements: 12.5, 12.6
    */
   private buildVisibilityCondition(ctx: RequestContext) {
     if (ctx.role === 'owner') {

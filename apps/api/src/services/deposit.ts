@@ -70,7 +70,6 @@ export interface PaginatedAdjustments {
  * - Pagination max 50 per page, sorted by createdAt desc
  * - Audit events with old/new balance values
  *
- * Requirements: 9.1, 9.2, 9.3, 9.4, 9.5, 9.6, 9.7, 9.8, 9.9, 9.10, 9.11
  */
 export class DepositService {
   constructor(
@@ -84,7 +83,6 @@ export class DepositService {
    * - Enforces tenant isolation and role-based access
    * - Owner sees all, Manager sees assigned buildings, Renter sees own
    *
-   * Requirements: 9.7, 9.8, 9.9
    */
   async getDeposit(
     ctx: RequestContext,
@@ -106,7 +104,6 @@ export class DepositService {
    * - Records audit event with old/new balance values (Requirement 9.10)
    * - Only Owner can make adjustments (Requirement 9.7)
    *
-   * Requirements: 9.2, 9.3, 9.4, 9.5, 9.6, 9.7, 9.10
    */
   async applyAdjustment(
     ctx: RequestContext,
@@ -271,7 +268,6 @@ export class DepositService {
    * - Enforces tenant isolation and role-based access
    * - Owner sees all, Manager sees assigned buildings, Renter sees own
    *
-   * Requirements: 9.7, 9.8, 9.9, 9.11
    */
   async listAdjustments(
     ctx: RequestContext,

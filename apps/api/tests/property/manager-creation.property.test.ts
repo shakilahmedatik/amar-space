@@ -141,7 +141,6 @@ describe('Feature: role-based-user-management, Property 7: Valid manager creatio
   })
 
   /**
-   * **Validates: Requirements 3.1, 3.4**
    *
    * For any valid CreateManagerInput (email ≤ 254 chars, name 1-200 chars, 1-20 valid
    * building IDs belonging to the owner), the system SHALL create a user with role
@@ -216,7 +215,6 @@ describe('Feature: role-based-user-management, Property 7: Valid manager creatio
 // Feature: role-based-user-management, Property 8: Building ID count validation
 describe('Feature: role-based-user-management, Property 8: Building ID count validation', () => {
   /**
-   * **Validates: Requirements 3.2**
    *
    * For any array of building IDs, the manager creation validation SHALL accept
    * the input if and only if the array length is between 1 and 20 inclusive.
@@ -276,7 +274,6 @@ describe('Feature: role-based-user-management, Property 9: Building ownership va
   })
 
   /**
-   * **Validates: Requirements 3.3**
    *
    * For any set of building IDs where at least one ID does not belong to the
    * requesting owner's account, the system SHALL reject the request with a

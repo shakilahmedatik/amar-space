@@ -10,7 +10,6 @@ import { buildApp } from '../../src/app'
  * request with PENDING_APPROVAL status, a subsequent registration submission
  * with the same phone number and flat SHALL be rejected with an appropriate message.
  *
- * **Validates: Requirements 7.9**
  */
 
 // Mock the access-code-hash utility

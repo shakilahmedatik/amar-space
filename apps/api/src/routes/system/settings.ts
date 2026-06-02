@@ -18,7 +18,6 @@ import {
  * Access control:
  * - All authenticated users can access their own settings
  *
- * Requirements: 15.5, 15.6
  */
 async function settingsRoutes(fastify: FastifyInstance) {
   /**

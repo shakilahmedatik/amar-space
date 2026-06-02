@@ -10,7 +10,6 @@ import { describe, expect, it } from 'vitest'
  * NID numbers, payment history, rent amounts, family member details, contract
  * information, deposit information, issue reports, or private notices.
  *
- * **Validates: Requirements 9.1, 9.2**
  */
 
 // --- Private data field patterns ---

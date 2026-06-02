@@ -22,7 +22,6 @@ import { RenterRegistrationService } from '../../src/services/renter-registratio
  * phone number SHALL accept only 11-digit strings starting with "01".
  * All invalid inputs SHALL be rejected with field-level errors.
  *
- * **Validates: Requirements 4.3, 4.4, 4.5, 4.6, 4.9**
  */
 
 /**
@@ -33,7 +32,6 @@ import { RenterRegistrationService } from '../../src/services/renter-registratio
  * to that flat SHALL be rejected. Only flats with status Vacant SHALL accept
  * renter assignment.
  *
- * **Validates: Requirements 4.13, 6.6**
  */
 
 // --- Generators ---

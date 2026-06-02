@@ -20,7 +20,6 @@ import { FlatService } from '../../src/services/flat'
  * - Status transition state machine
  * - Audit event recording
  *
- * Requirements: 6.1, 6.2, 6.3, 6.4, 6.5, 6.7, 6.10, 6.11, 6.12, 6.13, 6.14
  */
 
 // --- Mock Helpers ---

@@ -60,7 +60,6 @@ export interface ManagerListItem {
  * - At least 1 assignment must remain on updates
  * - Audit logging for create and assignment update operations
  *
- * Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 3.8, 6.5, 6.6, 6.7
  */
 export class ManagerService {
   private db: Database
@@ -85,7 +84,6 @@ export class ManagerService {
    * - Generates a temporary password
    * - Logs to audit
    *
-   * Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.7, 3.8
    */
   async createManager(
     ctx: RequestContext,
@@ -277,7 +275,6 @@ export class ManagerService {
    *
    * Replaces all existing assignments with the new set.
    *
-   * Requirements: 6.6, 6.7
    */
   async updateAssignments(
     ctx: RequestContext,

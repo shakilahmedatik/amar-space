@@ -14,7 +14,6 @@ import {
  * (b) truncate each notice description to a maximum of 120 characters, and
  * (c) return at most 20 notices regardless of input list size.
  *
- * **Validates: Requirements 4.1, 4.2**
  */
 
 // --- Generators ---

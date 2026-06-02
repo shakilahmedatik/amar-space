@@ -18,7 +18,6 @@ const lengthArb = fc.integer({ min: 1, max: 128 })
 // Feature: role-based-user-management, Property 10: Generated temporary passwords meet all character requirements
 describe('Feature: role-based-user-management, Property 10: Generated temporary passwords meet all character requirements', () => {
   /**
-   * **Validates: Requirements 3.7**
    *
    * For any invocation of the password generation function, the resulting password
    * SHALL have length ≥ 12 AND contain at least one uppercase letter, one lowercase

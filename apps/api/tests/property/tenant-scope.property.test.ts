@@ -16,7 +16,6 @@ import { ManagerService } from '../../src/services/manager'
 // the tenant scope middleware SHALL grant access if and only if the requested building ID
 // is contained in the manager's assigned building IDs set.
 //
-// **Validates: Requirements 6.1, 6.2, 6.3**
 
 // --- Generators ---
 
@@ -350,7 +349,6 @@ describe('Feature: role-based-user-management, Property 11: Manager scope enforc
 // accept the update if and only if all IDs belong to the owner's account AND the set
 // contains at least one ID.
 //
-// **Validates: Requirements 6.6, 6.7**
 
 // --- Mock Helpers for Property 12 ---
 
@@ -440,7 +438,6 @@ describe('Feature: role-based-user-management, Property 12: Building assignment 
   })
 
   /**
-   * **Validates: Requirements 6.6, 6.7**
    *
    * For any set of building IDs submitted as a manager assignment update,
    * the system SHALL accept the update if and only if all IDs belong to the

@@ -13,7 +13,6 @@ import envPlugin, { envSchema } from '../../src/plugins/env'
  * and terminate with a non-zero exit code. Additionally, for any variable defined
  * at both root and application level, the application-level value SHALL take precedence.
  *
- * Validates: Requirements 8.1, 8.3, 8.5, 8.6
  */
 
 // --- Generators ---

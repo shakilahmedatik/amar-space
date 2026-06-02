@@ -13,7 +13,6 @@ import { roleGuard } from '../../src/middleware/role-guard'
  * - Multiple allowed roles work correctly
  * - Response format matches ApiErrorResponse
  *
- * Requirements: 3.2, 3.3, 3.4, 3.6, 3.9
  */
 describe('Role Guard Middleware', () => {
   let app: FastifyInstance

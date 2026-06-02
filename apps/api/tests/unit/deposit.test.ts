@@ -23,7 +23,6 @@ import { DepositService } from '../../src/services/deposit'
  * - Pagination for adjustment listing (max 50, sorted desc)
  * - Audit event recording with old/new balance values
  *
- * Requirements: 9.1, 9.2, 9.3, 9.4, 9.5, 9.6, 9.7, 9.8, 9.9, 9.10, 9.11
  */
 
 // --- Mock Helpers ---

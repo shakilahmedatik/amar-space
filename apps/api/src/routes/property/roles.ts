@@ -11,7 +11,6 @@ import { errorResponseSchema } from '../../utils/schemas'
  * Provides:
  * - PUT /api/users/:id/role — Assign or change a user's role (Owner only)
  *
- * Requirements: 3.5, 3.7, 3.8
  */
 async function roleRoutes(fastify: FastifyInstance) {
   /**

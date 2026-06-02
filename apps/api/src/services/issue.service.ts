@@ -68,7 +68,6 @@ export interface PaginatedIssues {
  * - Pagination with max 50 per page
  * - Audit events for status changes
  *
- * Requirements: 11.1, 11.2, 11.3, 11.4, 11.5, 11.6, 11.7, 11.8, 11.9, 11.10
  */
 export class IssueService {
   constructor(
@@ -86,7 +85,6 @@ export class IssueService {
    * - Building must exist and belong to the owner's account
    * - Sets initial status to Open
    *
-   * Requirements: 11.1, 11.7
    */
   async createIssue(
     ctx: RequestContext,
@@ -161,7 +159,6 @@ export class IssueService {
    * - Issue exists and belongs to the owner's account
    * - Assignee exists and has the Manager role
    *
-   * Requirements: 11.2, 11.10
    */
   async assignIssue(
     ctx: RequestContext,
@@ -249,7 +246,6 @@ export class IssueService {
    * - Resolution notes are required (max 2000 chars)
    * - resolvedAt timestamp is recorded
    *
-   * Requirements: 11.3, 11.4, 11.8, 11.9
    */
   async updateIssueStatus(
     ctx: RequestContext,

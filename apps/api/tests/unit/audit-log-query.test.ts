@@ -14,7 +14,6 @@ import { AuditLogQueryService } from '../../src/services/audit-log-query.service
  * - Pagination with max 100 per page, sorted by createdAt descending
  * - Tenant isolation via ownerAccountId
  *
- * Requirements: 13.3, 13.4, 13.5, 13.8
  */
 
 // --- Mock Helpers ---

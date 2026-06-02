@@ -79,7 +79,6 @@ export interface PaginatedPayments {
  * - Pagination max 50 per page
  * - Audit events for payment recording
  *
- * Requirements: 8.1, 8.2, 8.3, 8.4, 8.5, 8.6, 8.7, 8.8, 8.9, 8.10, 8.11
  */
 export class PaymentService {
   constructor(
@@ -100,7 +99,6 @@ export class PaymentService {
    * - Records audit event (Requirement 8.7)
    * - Only Owner or Manager can record payments (Requirement 8.6)
    *
-   * Requirements: 8.1, 8.2, 8.3, 8.4, 8.5, 8.6, 8.7, 8.8, 8.10, 8.11
    */
   async recordPayment(
     ctx: RequestContext,
@@ -252,7 +250,6 @@ export class PaymentService {
    * - Enforces tenant isolation and role-based access
    * - Owner sees all, Manager sees assigned buildings, Renter sees own payments
    *
-   * Requirements: 8.6
    */
   async getPayment(
     ctx: RequestContext,
@@ -269,7 +266,6 @@ export class PaymentService {
    * Pagination: max 50 per page (Requirement 8.9)
    * Role-based access: Owner sees all, Manager sees assigned buildings, Renter sees own
    *
-   * Requirements: 8.6, 8.9
    */
   async listPayments(
     ctx: RequestContext,

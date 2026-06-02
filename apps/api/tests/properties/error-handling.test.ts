@@ -20,7 +20,6 @@ type ApiError = { statusCode: number; error: string; message: string }
  * contain any substring matching internal file paths, stack frames, database URLs,
  * or environment variable values.
  *
- * Validates: Requirements 2.8
  */
 
 // --- Generators ---

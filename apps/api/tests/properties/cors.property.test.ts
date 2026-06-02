@@ -11,7 +11,6 @@ import { resolveCorsOrigin } from '../../src/app'
  * `NODE_ENV === 'development'`. In production, only the value of
  * `ALLOWED_ORIGIN` is permitted.
  *
- * **Validates: Requirements 3.1, 3.2, 3.3, 3.4, 3.6**
  */
 
 // ---------------------------------------------------------------------------

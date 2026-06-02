@@ -35,7 +35,6 @@ export interface BulkQrCodeEntry {
  * The QR code encodes the public portal URL using the flat's slug,
  * pointing to the frontend application (not the API server).
  *
- * Requirements: 1.1, 1.2, 1.3, 3.1, 3.2, 3.3, 4.1, 4.2, 4.3, 4.4, 5.1, 5.2, 5.3, 6.1, 6.3
  */
 export class QrCodeService {
   constructor(private frontendUrl: string) {}
@@ -44,7 +43,6 @@ export class QrCodeService {
    * Builds the portal URL to encode in the QR code for a given flat slug.
    * Format: {frontendUrl}/f/{slug}
    *
-   * Requirements: 3.1, 3.2
    */
   buildFlatUrl(slug: string): string {
     return `${this.frontendUrl}/f/${slug}`
@@ -55,7 +53,6 @@ export class QrCodeService {
    * Returns the validated size or the default (300) if not provided.
    * Throws ValidationError if size is outside [100, 1000].
    *
-   * Requirements: 4.1, 4.2, 4.3, 4.4
    */
   validateSize(size?: number): number {
     if (size === undefined || size === null) {
@@ -79,7 +76,6 @@ export class QrCodeService {
    * Generates a QR code PNG buffer for a single flat.
    * Ensures the output image has exact pixel dimensions matching the requested size.
    *
-   * Requirements: 1.1, 1.2, 1.3, 3.1, 3.3
    */
   async generateQrCode(slug: string, options?: QrCodeOptions): Promise<Buffer> {
     const size = this.validateSize(options?.size)
@@ -131,7 +127,6 @@ export class QrCodeService {
   /**
    * Generates a QR code and returns metadata with base64-encoded image.
    *
-   * Requirements: 6.1, 6.3
    */
   async generateQrCodeWithMetadata(
     flat: { id: string; flatNumber: string; slug: string },
@@ -155,7 +150,6 @@ export class QrCodeService {
    * Generates QR codes for multiple flats and returns a ZIP archive stream.
    * Each file is named {building_name}_{flat_number}.png.
    *
-   * Requirements: 5.1, 5.2, 5.3
    */
   async generateBulkZipStream(
     flats: Array<{ id: string; flatNumber: string; slug: string }>,

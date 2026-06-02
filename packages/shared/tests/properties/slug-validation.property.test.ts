@@ -14,7 +14,6 @@ import {
  * hyphens, with a length between 1 and 100 characters inclusive. All other
  * strings SHALL be rejected without triggering a database lookup.
  *
- * **Validates: Requirements 1.3, 1.5**
  */
 describe('Property 1: Flat slug validation', () => {
   it('accepts any string composed of lowercase alphanumeric characters and hyphens with length 1-100', () => {

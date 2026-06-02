@@ -71,7 +71,6 @@ export interface Building {
  * - Pagination with max 50 per page, sorted by createdAt desc
  * - Audit events for create and update operations
  *
- * Requirements: 5.1, 5.2, 5.3, 5.4, 5.6, 5.7, 5.8, 5.9
  */
 export class BuildingService {
   private db: Database
@@ -94,7 +93,6 @@ export class BuildingService {
    * - totalFloors is optional (1-200 if provided)
    * - Building name must be unique within the owner's account
    *
-   * Requirements: 5.1, 5.2, 5.3, 5.7, 5.9
    */
   async createBuilding(
     ctx: RequestContext,
@@ -242,7 +240,6 @@ export class BuildingService {
    * - Same field constraints as creation
    * - If name is being changed, validates uniqueness
    *
-   * Requirements: 5.4, 5.9
    */
   async updateBuilding(
     ctx: RequestContext,

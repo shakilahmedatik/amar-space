@@ -40,7 +40,6 @@ export interface RoleAssignmentResult {
  * - Records role changes in audit log
  * - Invalidates cached permissions on role change
  *
- * Requirements: 3.5, 3.7, 3.8
  */
 export async function assignRole(
   db: Database,

@@ -4,7 +4,6 @@
  * Extracts the notice list formatting logic from the portal API route
  * into a testable pure function.
  *
- * Requirements: 4.1, 4.2
  */
 
 export interface RawNotice {

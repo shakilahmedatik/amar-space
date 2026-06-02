@@ -15,7 +15,6 @@ import { roleGuard } from '../../src/middleware/role-guard'
  * to assigned buildings' operational features, and Renter has access only to
  * their own flat's data.
  *
- * **Validates: Requirements 3.1, 3.2, 3.3, 3.4, 3.6, 3.9**
  */
 
 // --- Types ---

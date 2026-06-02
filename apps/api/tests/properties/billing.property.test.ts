@@ -14,7 +14,6 @@ import { BillingService } from '../../src/services/billing'
  * amount SHALL equal the base rent amount plus the sum of all line item amounts.
  * This invariant holds after any line item addition.
  *
- * **Validates: Requirements 7.3**
  */
 
 /**
@@ -25,7 +24,6 @@ import { BillingService } from '../../src/services/billing'
  * one bill. Attempting to generate a second bill for the same flat and month
  * SHALL be rejected.
  *
- * **Validates: Requirements 7.10**
  */
 
 // --- Helpers ---

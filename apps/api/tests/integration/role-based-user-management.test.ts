@@ -5,7 +5,6 @@
  * using app.inject(). Mocks the auth session layer to simulate different
  * user roles and states, while testing the real middleware chain.
  *
- * Requirements: 2.1, 2.3, 3.1, 4.4, 4.7, 7.4
  */
 
 import type { Database } from '@repo/db'
@@ -271,7 +270,6 @@ describe('Integration: Role-Based User Management End-to-End Flows', () => {
 
   describe('Flow 1: Register owner → pending → approve → access granted', () => {
     /**
-     * Validates: Requirements 2.1, 2.3
      *
      * Tests the owner lifecycle through the middleware pipeline:
      * 1. Pending owner is blocked from resource management (403)
@@ -409,7 +407,6 @@ describe('Integration: Role-Based User Management End-to-End Flows', () => {
 
   describe('Flow 2: Manager creation → login with temp password → access assigned buildings only', () => {
     /**
-     * Validates: Requirements 3.1
      *
      * Tests:
      * 1. Approved owner can access manager creation endpoint
@@ -543,7 +540,6 @@ describe('Integration: Role-Based User Management End-to-End Flows', () => {
 
   describe('Flow 3: Deactivation → session invalidation → login rejected', () => {
     /**
-     * Validates: Requirements 4.4, 4.7
      *
      * Tests:
      * 1. Deactivated user is rejected at auth guard (401)
@@ -646,7 +642,6 @@ describe('Integration: Role-Based User Management End-to-End Flows', () => {
 
   describe('Flow 4: Non-superadmin cannot access admin endpoints', () => {
     /**
-     * Validates: Requirements 7.4
      *
      * Tests that owner, manager, and renter roles are blocked from all admin
      * endpoints with a 403 Forbidden response.

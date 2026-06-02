@@ -23,7 +23,6 @@ import { MaintenanceService } from '../../src/services/maintenance.service'
  * Resolved → Closed, Resolved → In_Progress (re-open).
  * All other transitions (e.g. Open → Resolved, Closed → anything) SHALL be rejected.
  *
- * **Validates: Requirements 10.5, 10.12**
  */
 
 // --- Helpers ---

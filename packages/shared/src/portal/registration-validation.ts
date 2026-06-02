@@ -2,7 +2,6 @@ import { z } from 'zod'
 
 // ─── Portal Registration Form Validation ────────────────────────────────────
 // Validates renter registration form inputs with Bangla error messages.
-// Requirements: 7.2, 7.7
 
 export const portalBloodGroupEnum = z.enum(
   ['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-'],
