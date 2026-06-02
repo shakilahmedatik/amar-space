@@ -90,11 +90,12 @@ async function billRoutes(fastify: FastifyInstance) {
           buildingId: z.string().uuid().optional(),
           flatId: z.string().uuid().optional(),
           renterId: z.string().uuid().optional(),
+          contractId: z.string().uuid().optional(),
           billingMonth: z
             .string()
             .regex(/^\d{4}-(0[1-9]|1[0-2])$/)
             .optional(),
-          status: billStatusEnum.optional(),
+          status: z.union([billStatusEnum, z.array(billStatusEnum)]).optional(),
           page: z.coerce.number().int().min(1).default(1),
           pageSize: z.coerce.number().int().min(1).max(100).default(20),
         }),
@@ -131,6 +132,7 @@ async function billRoutes(fastify: FastifyInstance) {
         buildingId,
         flatId,
         renterId,
+        contractId,
         billingMonth,
         status,
         page,
@@ -139,8 +141,9 @@ async function billRoutes(fastify: FastifyInstance) {
         buildingId?: string
         flatId?: string
         renterId?: string
+        contractId?: string
         billingMonth?: string
-        status?: BillStatus
+        status?: BillStatus | BillStatus[]
         page: number
         pageSize: number
       }
@@ -148,7 +151,7 @@ async function billRoutes(fastify: FastifyInstance) {
 
       const result = await billingService.listBills(
         ctx,
-        { buildingId, flatId, renterId, billingMonth, status },
+        { buildingId, flatId, renterId, contractId, billingMonth, status },
         { page, pageSize },
       )
 

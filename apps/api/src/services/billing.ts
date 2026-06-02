@@ -104,8 +104,9 @@ export interface ListBillsFilters {
   buildingId?: string
   flatId?: string
   renterId?: string
+  contractId?: string
   billingMonth?: string
-  status?: BillStatus
+  status?: BillStatus | BillStatus[]
 }
 
 export interface PaginationInput {
@@ -605,12 +606,20 @@ export class BillingService {
       conditions.push(eq(bills.renterId, filters.renterId))
     }
 
+    if (filters.contractId) {
+      conditions.push(eq(bills.contractId, filters.contractId))
+    }
+
     if (filters.billingMonth) {
       conditions.push(eq(bills.billingMonth, filters.billingMonth))
     }
 
     if (filters.status) {
-      conditions.push(eq(bills.status, filters.status))
+      if (Array.isArray(filters.status)) {
+        conditions.push(inArray(bills.status, filters.status))
+      } else {
+        conditions.push(eq(bills.status, filters.status))
+      }
     }
 
     const whereClause = and(...conditions)

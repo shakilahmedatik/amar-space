@@ -1,7 +1,6 @@
 import type { RequestContext } from '@repo/shared/types'
 import {
   addMaintenanceCommentSchema,
-  createMaintenanceRequestSchema,
   updateMaintenanceStatusSchema,
 } from '@repo/shared/validation'
 import type { FastifyInstance } from 'fastify'
@@ -10,7 +9,10 @@ import { approvalGuard } from '../../middleware/approval-guard'
 import { authGuard } from '../../middleware/auth-guard'
 import { roleGuard } from '../../middleware/role-guard'
 import { tenantScope } from '../../middleware/tenant-scope'
-import { MaintenanceService } from '../../services/maintenance.service'
+import {
+  type FileAttachment,
+  MaintenanceService,
+} from '../../services/maintenance.service'
 import {
   dateTimeResponseSchema,
   errorResponseSchema,
@@ -166,7 +168,16 @@ async function maintenanceRoutes(fastify: FastifyInstance) {
         description:
           "Creates a new maintenance request for the renter's assigned flat.\n\n**Roles: renter**",
         security: [{ BearerAuth: [] }, { CookieAuth: [] }],
-        body: createMaintenanceRequestSchema,
+        consumes: ['multipart/form-data'],
+        body: z
+          .object({
+            title: z.string().describe('Title of the maintenance request'),
+            description: z.string().describe('Description details'),
+            priority: z.enum(['low', 'medium', 'high', 'urgent']),
+            attachments: z.any().optional(),
+          })
+          .nullable()
+          .optional(),
         response: {
           201: z.object({
             id: z.string(),
@@ -187,13 +198,37 @@ async function maintenanceRoutes(fastify: FastifyInstance) {
     },
     async (request, reply) => {
       const ctx = buildRequestContext(request as never)
-      const data = request.body as {
-        title: string
-        description: string
-        priority: string
+
+      // Parse multipart form data
+      const parts = request.parts()
+      const fields: Record<string, string> = {}
+      const attachments: FileAttachment[] = []
+
+      for await (const part of parts) {
+        if (part.type === 'file') {
+          const buffer = await part.toBuffer()
+          attachments.push({
+            fileName: part.filename,
+            buffer,
+            mimeType: part.mimetype,
+            fileSize: buffer.length,
+          })
+        } else {
+          fields[part.fieldname] = part.value as string
+        }
       }
 
-      const result = await maintenanceService.createRequest(ctx, data)
+      const data = {
+        title: fields.title ?? '',
+        description: fields.description ?? '',
+        priority: fields.priority ?? '',
+      }
+
+      const result = await maintenanceService.createRequest(
+        ctx,
+        data,
+        attachments,
+      )
 
       return reply.status(201).send(result)
     },

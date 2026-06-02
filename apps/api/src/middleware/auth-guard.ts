@@ -81,11 +81,13 @@ export async function authGuard(
 
   const headers = toWebHeaders(request, env.AUTH_BASE_URL)
 
-  try {
-    const session = await auth.api.getSession({ headers })
+  const isPortalRequest =
+    request.headers['x-portal-request'] === 'true' ||
+    request.url.startsWith('/api/portal/')
 
-    if (!session?.user) {
-      // Fallback: check portal_session cookie
+  try {
+    if (isPortalRequest) {
+      // Prioritize portal session check for portal requests to avoid conflicts with owner/manager Better Auth sessions
       const sessionId = request.cookies?.portal_session
       if (sessionId && request.server.db) {
         const portalSession =
@@ -115,6 +117,45 @@ export async function authGuard(
             isActive: renterUser.isActive ?? true,
           }
           return
+        }
+      }
+    }
+
+    const session = await auth.api.getSession({ headers })
+
+    if (!session?.user) {
+      // Fallback: check portal_session cookie if not checked already
+      if (!isPortalRequest) {
+        const sessionId = request.cookies?.portal_session
+        if (sessionId && request.server.db) {
+          const portalSession =
+            await request.server.db.query.portalSessions.findFirst({
+              where: eq(portalSessions.id, sessionId),
+              with: {
+                renter: {
+                  with: {
+                    user: true,
+                  },
+                },
+              },
+            })
+
+          if (
+            portalSession &&
+            new Date(portalSession.expiresAt) > new Date() &&
+            portalSession.renter?.user
+          ) {
+            const renterUser = portalSession.renter.user
+            request.user = {
+              id: renterUser.id,
+              role: 'renter',
+              ownerAccountId: renterUser.ownerAccountId ?? '',
+              email: renterUser.email,
+              approvalStatus: 'approved',
+              isActive: renterUser.isActive ?? true,
+            }
+            return
+          }
         }
       }
 

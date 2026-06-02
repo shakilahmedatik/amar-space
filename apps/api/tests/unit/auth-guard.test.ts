@@ -1,8 +1,18 @@
+import fastifyCookie from '@fastify/cookie'
 import type { FastifyInstance } from 'fastify'
 import Fastify from 'fastify'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { AuthUser } from '../../src/middleware/auth-guard'
 import { authGuard } from '../../src/middleware/auth-guard'
+
+vi.mock('@repo/db', () => ({
+  portalSessions: {
+    id: 'id',
+    flatId: 'flat_id',
+    renterId: 'renter_id',
+    expiresAt: 'expires_at',
+  },
+}))
 
 /**
  * Unit tests for the auth guard middleware.
@@ -43,11 +53,14 @@ describe('Auth Guard Middleware', () => {
   }
 
   let mockGetSession: ReturnType<typeof vi.fn>
+  let mockPortalSessionsFindFirst: ReturnType<typeof vi.fn>
 
   beforeEach(async () => {
     mockGetSession = vi.fn()
+    mockPortalSessionsFindFirst = vi.fn()
 
     app = Fastify({ logger: false })
+    await app.register(fastifyCookie)
 
     // Decorate with env (required by auth guard)
     app.decorate('env', {
@@ -67,13 +80,29 @@ describe('Auth Guard Middleware', () => {
       },
     })
 
+    // Decorate with mock db
+    app.decorate('db', {
+      query: {
+        portalSessions: {
+          findFirst: mockPortalSessionsFindFirst,
+        },
+      },
+    })
+
     // Decorate request with user placeholder
     app.decorateRequest('user', null as unknown as AuthUser)
 
-    // Register a protected test route
+    // Register protected test routes
     app.get('/protected', { preHandler: [authGuard] }, async (request) => {
       return { user: request.user }
     })
+    app.get(
+      '/api/portal/protected',
+      { preHandler: [authGuard] },
+      async (request) => {
+        return { user: request.user }
+      },
+    )
 
     await app.ready()
   })
@@ -321,6 +350,137 @@ describe('Auth Guard Middleware', () => {
       expect(callArgs.headers.get('cookie')).toContain(
         'better-auth.session_token=my-bearer-token',
       )
+    })
+  })
+
+  describe('portal session authentication', () => {
+    const mockRenterDbRecord = {
+      id: 'renter-uuid',
+      fullName: 'Portal Renter',
+      phone: '01712345678',
+      nidNumber: '1234567890123',
+      user: {
+        id: 'renter-user-uuid',
+        email: 'renter@example.com',
+        ownerAccountId: 'owner-uuid',
+        isActive: true,
+      },
+    }
+
+    it('should prioritize portal session and inject renter context when x-portal-request header is true', async () => {
+      mockPortalSessionsFindFirst.mockResolvedValue({
+        id: 'portal-session-id',
+        expiresAt: new Date(Date.now() + 1800000), // 30 minutes in future
+        renter: mockRenterDbRecord,
+      })
+
+      const response = await app.inject({
+        method: 'GET',
+        url: '/protected',
+        headers: {
+          'x-portal-request': 'true',
+        },
+        cookies: {
+          portal_session: 'portal-session-id',
+        },
+      })
+
+      expect(response.statusCode).toBe(200)
+      const body = response.json()
+      expect(body.user).toEqual({
+        id: 'renter-user-uuid',
+        role: 'renter',
+        ownerAccountId: 'owner-uuid',
+        email: 'renter@example.com',
+        approvalStatus: 'approved',
+        isActive: true,
+      })
+      // Better Auth getSession should not have been called
+      expect(mockGetSession).not.toHaveBeenCalled()
+    })
+
+    it('should prioritize portal session when request URL starts with /api/portal/', async () => {
+      mockPortalSessionsFindFirst.mockResolvedValue({
+        id: 'portal-session-id',
+        expiresAt: new Date(Date.now() + 1800000),
+        renter: mockRenterDbRecord,
+      })
+
+      const response = await app.inject({
+        method: 'GET',
+        url: '/api/portal/protected',
+        cookies: {
+          portal_session: 'portal-session-id',
+        },
+      })
+
+      expect(response.statusCode).toBe(200)
+      const body = response.json()
+      expect(body.user.role).toBe('renter')
+      expect(body.user.id).toBe('renter-user-uuid')
+      expect(mockGetSession).not.toHaveBeenCalled()
+    })
+
+    it('should fall back to Better Auth if it is a portal request but portal session is invalid or expired', async () => {
+      // Expired portal session
+      mockPortalSessionsFindFirst.mockResolvedValue({
+        id: 'portal-session-id',
+        expiresAt: new Date(Date.now() - 1000), // expired
+        renter: mockRenterDbRecord,
+      })
+
+      // Better Auth returns a valid manager session
+      mockGetSession.mockResolvedValue({
+        user: mockManagerUser,
+        session: {
+          id: 'manager-session',
+          expiresAt: new Date(Date.now() + 86400000),
+        },
+      })
+
+      const response = await app.inject({
+        method: 'GET',
+        url: '/protected',
+        headers: {
+          'x-portal-request': 'true',
+        },
+        cookies: {
+          portal_session: 'portal-session-id',
+          'better-auth.session_token': 'manager-token',
+        },
+      })
+
+      expect(response.statusCode).toBe(200)
+      const body = response.json()
+      expect(body.user.role).toBe('manager')
+      expect(body.user.id).toBe(mockManagerUser.id)
+      expect(mockGetSession).toHaveBeenCalledTimes(1)
+    })
+
+    it('should check Better Auth first for non-portal requests, and fallback to portal_session if Better Auth fails', async () => {
+      // Better Auth fails (no session)
+      mockGetSession.mockResolvedValue(null)
+
+      // Valid portal session exists
+      mockPortalSessionsFindFirst.mockResolvedValue({
+        id: 'portal-session-id',
+        expiresAt: new Date(Date.now() + 1800000),
+        renter: mockRenterDbRecord,
+      })
+
+      const response = await app.inject({
+        method: 'GET',
+        url: '/protected', // not starting with /api/portal/ and no header
+        cookies: {
+          portal_session: 'portal-session-id',
+        },
+      })
+
+      expect(response.statusCode).toBe(200)
+      const body = response.json()
+      expect(body.user.role).toBe('renter')
+      expect(body.user.id).toBe('renter-user-uuid')
+      expect(mockGetSession).toHaveBeenCalledTimes(1)
     })
   })
 })

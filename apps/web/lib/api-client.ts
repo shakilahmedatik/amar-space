@@ -973,9 +973,18 @@ export async function createMaintenanceRequest(
     }
   }
 
+  const headers: Record<string, string> = {}
+  if (
+    typeof window !== 'undefined' &&
+    window.location.pathname.startsWith('/f/')
+  ) {
+    headers['x-portal-request'] = 'true'
+  }
+
   const response = await fetch(`${BASE_URL}/api/maintenance`, {
     method: 'POST',
     credentials: 'include',
+    headers,
     body: formData,
   })
 

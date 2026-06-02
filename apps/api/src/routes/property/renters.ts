@@ -144,7 +144,6 @@ async function renterRoutes(fastify: FastifyInstance) {
         approvalGuard,
         tenantScope,
       ],
-      validatorCompiler: () => () => true,
       schema: {
         tags: ['Renters'],
         summary: 'Register a new renter',
@@ -152,54 +151,57 @@ async function renterRoutes(fastify: FastifyInstance) {
           'Registers a renter with profile data and optional file uploads (NID photo, digital signature). Accepts multipart/form-data.\n\n**Roles: owner, manager**',
         security: [{ BearerAuth: [] }, { CookieAuth: [] }],
         consumes: ['multipart/form-data'],
-        body: z.object({
-          fullName: z.string().describe('Full name of the renter'),
-          phone: z.string().describe('Phone number'),
-          nidNumber: z.string().describe('National ID number'),
-          occupation: z.string().describe('Occupation'),
-          bloodGroup: z.enum([
-            'A+',
-            'A-',
-            'B+',
-            'B-',
-            'AB+',
-            'AB-',
-            'O+',
-            'O-',
-          ]),
-          totalFamilyMembers: z
-            .string()
-            .describe('Total family members (numeric string)'),
-          emergencyContactName: z.string(),
-          emergencyContactNumber: z.string(),
-          emergencyContactRelationship: z.string(),
-          flatId: z.string().describe('UUID of the flat to assign'),
-          monthlyRent: z
-            .string()
-            .describe('Monthly rent amount (numeric string)'),
-          startDate: z.string().describe('Contract start date (YYYY-MM-DD)'),
-          advanceAmount: z
-            .string()
-            .describe('Advance/deposit amount (numeric string)'),
-          dateOfBirth: z
-            .string()
-            .describe('Date of birth (YYYY-MM-DD)')
-            .nullable()
-            .optional(),
-          familyMemberNames: z
-            .string()
-            .describe('JSON array of family member names')
-            .nullable()
-            .optional(),
-          nidPhoto: z
-            .string()
-            .describe('NID photo file (JPEG/PNG, max 5MB)')
-            .optional(),
-          digitalSignature: z
-            .string()
-            .describe('Digital signature file (JPEG/PNG, max 5MB)')
-            .optional(),
-        }),
+        body: z
+          .object({
+            fullName: z.string().describe('Full name of the renter'),
+            phone: z.string().describe('Phone number'),
+            nidNumber: z.string().describe('National ID number'),
+            occupation: z.string().describe('Occupation'),
+            bloodGroup: z.enum([
+              'A+',
+              'A-',
+              'B+',
+              'B-',
+              'AB+',
+              'AB-',
+              'O+',
+              'O-',
+            ]),
+            totalFamilyMembers: z
+              .string()
+              .describe('Total family members (numeric string)'),
+            emergencyContactName: z.string(),
+            emergencyContactNumber: z.string(),
+            emergencyContactRelationship: z.string(),
+            flatId: z.string().describe('UUID of the flat to assign'),
+            monthlyRent: z
+              .string()
+              .describe('Monthly rent amount (numeric string)'),
+            startDate: z.string().describe('Contract start date (YYYY-MM-DD)'),
+            advanceAmount: z
+              .string()
+              .describe('Advance/deposit amount (numeric string)'),
+            dateOfBirth: z
+              .string()
+              .describe('Date of birth (YYYY-MM-DD)')
+              .nullable()
+              .optional(),
+            familyMemberNames: z
+              .string()
+              .describe('JSON array of family member names')
+              .nullable()
+              .optional(),
+            nidPhoto: z
+              .string()
+              .describe('NID photo file (JPEG/PNG, max 5MB)')
+              .optional(),
+            digitalSignature: z
+              .string()
+              .describe('Digital signature file (JPEG/PNG, max 5MB)')
+              .optional(),
+          })
+          .nullable()
+          .optional(),
         response: {
           201: z.object({
             id: z.string(),

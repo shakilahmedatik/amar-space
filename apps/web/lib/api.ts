@@ -27,6 +27,14 @@ export async function apiFetch<T>(
     ...((options?.headers as Record<string, string>) ?? {}),
   }
 
+  // Automatically attach x-portal-request header when fetching from a flat portal page
+  if (
+    typeof window !== 'undefined' &&
+    window.location.pathname.startsWith('/f/')
+  ) {
+    headers['x-portal-request'] = 'true'
+  }
+
   // Only set Content-Type to JSON when there's a body to send
   if (options?.body) {
     headers['Content-Type'] = headers['Content-Type'] ?? 'application/json'
