@@ -28,7 +28,6 @@ interface ConfirmDialogProps {
 /**
  * Confirmation dialog for destructive actions.
  * Uses shadcn AlertDialog. 44x44px minimum touch targets.
- * Validates: Requirement 16.4
  */
 export function ConfirmDialog({
   open,

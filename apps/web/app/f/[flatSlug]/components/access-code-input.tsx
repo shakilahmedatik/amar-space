@@ -4,9 +4,9 @@ import { useMutation } from '@tanstack/react-query'
 import { KeyRound, Lock, ShieldAlert } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { trackEvent } from '@/lib/analytics'
 import { BASE_URL } from '@/lib/api'
 import { cn } from '@/lib/utils'
-import { trackEvent } from '../lib/analytics'
 
 interface AccessCodeInputProps {
   flatSlug: string
@@ -80,8 +80,6 @@ function formatLockoutTime(seconds: number): string {
  * - Tracks "Access Code Attempted" and "Access Granted" analytics events
  * - Submits via TanStack Query mutation to POST /api/portal/flat/:slug/access
  * - Redirects to /renter/dashboard on success
- *
- * Requirements: 8.1, 8.2, 8.3, 8.4, 8.5, 8.6
  */
 export function AccessCodeInput({
   flatSlug,

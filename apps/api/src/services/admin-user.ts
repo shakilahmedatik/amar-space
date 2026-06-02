@@ -23,7 +23,7 @@ export interface PaginatedResult<T> {
 }
 
 export interface DashboardStats {
-  usersByRole: { owner: number; manager: number; renter: number }
+  usersByRole: { owner: number; manager: number }
   pendingApprovals: number
   activeSessions: number
 }
@@ -182,45 +182,35 @@ export class AdminUserService {
   async getDashboardStats(): Promise<DashboardStats> {
     const now = new Date()
 
-    // Count users by role (owner, manager, renter)
-    const [
-      ownerCount,
-      managerCount,
-      renterCount,
-      pendingCount,
-      activeSessionCount,
-    ] = await Promise.all([
-      this.db
-        .select({ count: count() })
-        .from(users)
-        .where(eq(users.role, 'owner')),
-      this.db
-        .select({ count: count() })
-        .from(users)
-        .where(eq(users.role, 'manager')),
-      this.db
-        .select({ count: count() })
-        .from(users)
-        .where(eq(users.role, 'renter')),
-      // Count pending approvals
-      this.db
-        .select({ count: count() })
-        .from(users)
-        .where(
-          and(eq(users.role, 'owner'), eq(users.approvalStatus, 'pending')),
-        ),
-      // Count active sessions (expiresAt > now, per 7-day inactivity policy)
-      this.db
-        .select({ count: count() })
-        .from(sessions)
-        .where(gt(sessions.expiresAt, now)),
-    ])
+    // Count users by role (owner, manager)
+    const [ownerCount, managerCount, pendingCount, activeSessionCount] =
+      await Promise.all([
+        this.db
+          .select({ count: count() })
+          .from(users)
+          .where(eq(users.role, 'owner')),
+        this.db
+          .select({ count: count() })
+          .from(users)
+          .where(eq(users.role, 'manager')),
+        // Count pending approvals
+        this.db
+          .select({ count: count() })
+          .from(users)
+          .where(
+            and(eq(users.role, 'owner'), eq(users.approvalStatus, 'pending')),
+          ),
+        // Count active sessions (expiresAt > now, per 7-day inactivity policy)
+        this.db
+          .select({ count: count() })
+          .from(sessions)
+          .where(gt(sessions.expiresAt, now)),
+      ])
 
     return {
       usersByRole: {
         owner: ownerCount[0]?.count ?? 0,
         manager: managerCount[0]?.count ?? 0,
-        renter: renterCount[0]?.count ?? 0,
       },
       pendingApprovals: pendingCount[0]?.count ?? 0,
       activeSessions: activeSessionCount[0]?.count ?? 0,

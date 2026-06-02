@@ -24,7 +24,6 @@ import { useTranslation } from '@/lib/i18n'
 /**
  * Notice detail page — /notices/[id]
  * Shows notice content with edit/delete (author or Owner) and pin/unpin toggle.
- * Validates: Requirements 12.1, 12.2, 12.9
  */
 export default function NoticeDetailPage() {
   const { user, role } = useSession()

@@ -1,4 +1,4 @@
-import type { RequestContext } from '@repo/shared/types'
+import type { RequestContext, UserRole } from '@repo/shared/types'
 import { createManagerSchema } from '@repo/shared/validation'
 import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
@@ -35,7 +35,7 @@ async function managerRoutes(fastify: FastifyInstance) {
   function buildRequestContext(request: {
     user: {
       id: string
-      role: 'owner' | 'manager' | 'renter'
+      role: UserRole
       ownerAccountId: string
     }
     tenantScope: { ownerAccountId: string; assignedBuildingIds?: string[] }

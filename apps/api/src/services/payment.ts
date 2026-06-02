@@ -12,11 +12,7 @@ import {
   type PaymentMethod,
   ROLES,
 } from '@repo/shared/constants'
-import {
-  ForbiddenError,
-  NotFoundError,
-  ValidationError,
-} from '@repo/shared/errors'
+import { NotFoundError, ValidationError } from '@repo/shared/errors'
 import type { FieldError, RequestContext } from '@repo/shared/types'
 import {
   type RecordPaymentInput,
@@ -110,11 +106,6 @@ export class PaymentService {
     ctx: RequestContext,
     data: RecordPaymentInput,
   ): Promise<PaymentResult> {
-    // Only Owner or Manager can record payments (Requirement 8.6)
-    if (ctx.role === ROLES.RENTER) {
-      throw new ForbiddenError()
-    }
-
     // Validate input using Zod schema
     const parseResult = recordPaymentSchema.safeParse(data)
     if (!parseResult.success) {
@@ -362,46 +353,6 @@ export class PaymentService {
         }
       }
       conditions.push(inArray(payments.billId, assignedBillIds))
-    } else if (ctx.role === ROLES.RENTER) {
-      // Renter can only see payments for their own bills
-      const renter = await this.db.query.renters.findFirst({
-        where: and(
-          eq(renters.userId, ctx.userId),
-          eq(renters.ownerAccountId, ctx.ownerAccountId),
-        ),
-      })
-
-      if (!renter) {
-        return {
-          data: [],
-          total: 0,
-          page,
-          pageSize,
-          totalPages: 0,
-        }
-      }
-
-      const renterBills = await this.db
-        .select({ id: bills.id })
-        .from(bills)
-        .where(
-          and(
-            eq(bills.renterId, renter.id),
-            eq(bills.ownerAccountId, ctx.ownerAccountId),
-          ),
-        )
-
-      const renterBillIds = renterBills.map((b) => b.id)
-      if (renterBillIds.length === 0) {
-        return {
-          data: [],
-          total: 0,
-          page,
-          pageSize,
-          totalPages: 0,
-        }
-      }
-      conditions.push(inArray(payments.billId, renterBillIds))
     }
 
     // Apply filters
@@ -493,11 +444,6 @@ export class PaymentService {
    * Scoped to the owner account and role-based access.
    */
   async deletePayment(ctx: RequestContext, paymentId: string): Promise<void> {
-    // Only Owner or Manager can delete payments (Requirement 8.6)
-    if (ctx.role === ROLES.RENTER) {
-      throw new ForbiddenError()
-    }
-
     // Find the payment and verify access
     const payment = await this.findPaymentWithAccess(ctx, paymentId)
 
@@ -597,26 +543,6 @@ export class PaymentService {
       })
 
       if (!flat || !ctx.assignedBuildingIds.includes(flat.buildingId)) {
-        throw new NotFoundError('Payment')
-      }
-    } else if (ctx.role === ROLES.RENTER) {
-      // Renter can only see payments for their own bills
-      const renter = await this.db.query.renters.findFirst({
-        where: and(
-          eq(renters.userId, ctx.userId),
-          eq(renters.ownerAccountId, ctx.ownerAccountId),
-        ),
-      })
-
-      if (!renter) {
-        throw new NotFoundError('Payment')
-      }
-
-      const bill = await this.db.query.bills.findFirst({
-        where: eq(bills.id, payment.billId),
-      })
-
-      if (!bill || bill.renterId !== renter.id) {
         throw new NotFoundError('Payment')
       }
     }

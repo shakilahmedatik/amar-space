@@ -10,8 +10,6 @@ import { describe, expect, it } from 'vitest'
  * For all color values in migrated component files, no raw hex literals
  * matching `#[0-9a-fA-F]{3,6}` appear — all colors are expressed through
  * Tailwind token classes derived from the `@theme` block in `globals.css`.
- *
- * **Validates: Requirements 5.2, 6.2**
  */
 
 // ---------------------------------------------------------------------------

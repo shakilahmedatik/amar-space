@@ -1,5 +1,5 @@
 import type { BillStatus } from '@repo/shared/constants'
-import type { RequestContext } from '@repo/shared/types'
+import type { RequestContext, UserRole } from '@repo/shared/types'
 import {
   addUtilityChargeSchema,
   billStatusEnum,
@@ -30,8 +30,6 @@ import {
  * - Owner: full access (list, generate, view, add charges)
  * - Manager: list and view bills for assigned buildings, generate and add charges
  * - Renter: list and view own bills only
- *
- * Requirements: 7.6, 7.7, 7.8, 7.14
  */
 async function billRoutes(fastify: FastifyInstance) {
   const billingService = new BillingService(fastify.db, fastify.auditLogger)
@@ -42,7 +40,7 @@ async function billRoutes(fastify: FastifyInstance) {
   function buildRequestContext(request: {
     user: {
       id: string
-      role: 'owner' | 'manager' | 'renter'
+      role: UserRole
       ownerAccountId: string
     }
     tenantScope: {
@@ -68,15 +66,13 @@ async function billRoutes(fastify: FastifyInstance) {
    * GET /api/bills
    * Lists bills with multi-field filters and pagination.
    * Owner sees all, Manager sees assigned buildings, Renter sees own bills.
-   *
-   * Requirements: 7.6, 7.7, 7.8, 7.11
    */
   fastify.get(
     '/',
     {
       preHandler: [
         authGuard,
-        roleGuard(['owner', 'manager', 'renter']),
+        roleGuard(['owner', 'manager']),
         approvalGuard,
         tenantScope,
       ],
@@ -186,8 +182,6 @@ async function billRoutes(fastify: FastifyInstance) {
    * POST /api/bills/generate
    * Generates monthly bills for all occupied flats in a given month.
    * Owner and Manager only.
-   *
-   * Requirements: 7.1, 7.14
    */
   fastify.post(
     '/generate',
@@ -235,15 +229,13 @@ async function billRoutes(fastify: FastifyInstance) {
    * GET /api/bills/:id
    * Gets a bill with its line items and payments.
    * Owner sees all, Manager sees assigned buildings, Renter sees own bills.
-   *
-   * Requirements: 7.6, 7.7, 7.8
    */
   fastify.get(
     '/:id',
     {
       preHandler: [
         authGuard,
-        roleGuard(['owner', 'manager', 'renter']),
+        roleGuard(['owner', 'manager']),
         approvalGuard,
         tenantScope,
       ],
@@ -338,8 +330,6 @@ async function billRoutes(fastify: FastifyInstance) {
    * POST /api/bills/:id/charges
    * Adds a utility charge (line item) to a bill.
    * Owner and Manager only.
-   *
-   * Requirements: 7.2, 7.14
    */
   fastify.post(
     '/:id/charges',

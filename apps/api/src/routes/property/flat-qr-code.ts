@@ -19,8 +19,6 @@ import { errorResponseSchema } from '../../utils/schemas'
  * Access control:
  * - Owner: can generate QR codes for any flat within their ownerAccountId
  * - Manager: can only generate QR codes for flats in their assigned buildings
- *
- * Requirements: 1.1, 1.2, 1.4, 1.5, 2.1, 2.2, 2.3, 2.4, 4.1, 4.2, 4.3, 4.4, 6.1, 6.2, 6.3
  */
 async function flatQrCodeRoutes(fastify: FastifyInstance) {
   const qrCodeService = new QrCodeService(fastify.env.FRONTEND_URL)

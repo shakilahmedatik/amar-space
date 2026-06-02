@@ -24,7 +24,6 @@ import { useTranslation } from '@/lib/i18n'
 /**
  * Payment history page — /payments
  * Displays paginated payment list with filters (bill, renter, date range, method).
- * Validates: Requirements 8.5, 8.6, 8.9
  */
 export default function PaymentsPage() {
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null)
@@ -165,20 +164,16 @@ export default function PaymentsPage() {
         { value: 'mobile_banking', label: t('payments.mobileBanking') },
       ],
     },
-    ...(role !== 'renter'
-      ? [
-          {
-            key: 'renter',
-            label: t('payments.renter'),
-            type: 'select' as const,
-            placeholder: t('payments.allRenters'),
-            options: (renterData?.data || []).map((r) => ({
-              value: r.id,
-              label: r.fullName,
-            })),
-          },
-        ]
-      : []),
+    {
+      key: 'renter',
+      label: t('payments.renter'),
+      type: 'select' as const,
+      placeholder: t('payments.allRenters'),
+      options: (renterData?.data || []).map((r) => ({
+        value: r.id,
+        label: r.fullName,
+      })),
+    },
   ]
 
   return (

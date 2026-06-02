@@ -42,8 +42,6 @@ export type RoleGuardConfig = Role[] | { minRole: Role }
  *   preHandler: [authGuard, roleGuard({ minRole: 'manager' })]
  * }, handler)
  * ```
- *
- * Requirements: 1.3, 5.1, 5.2, 5.3, 5.6
  */
 export function roleGuard(config: RoleGuardConfig) {
   return async (

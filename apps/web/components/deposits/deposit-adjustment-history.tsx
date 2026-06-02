@@ -16,7 +16,6 @@ interface DepositAdjustmentHistoryProps {
 
 /**
  * Adjustment history list, paginated (max 50 per page), sorted by creation timestamp descending.
- * Validates: Requirements 9.11
  */
 export function DepositAdjustmentHistory({
   contractId,

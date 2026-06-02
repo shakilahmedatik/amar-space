@@ -8,8 +8,6 @@ interface BuildingInfoProps {
  * Building information component displaying rich text building rules.
  * Renders HTML content in a scrollable container.
  * Hides the section entirely if no rules are configured.
- *
- * Validates: Requirements 6.1, 6.2, 6.3, 6.4
  */
 export function BuildingInfo({ rules }: BuildingInfoProps) {
   // Hide section entirely if no rules configured (null or empty string)

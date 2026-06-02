@@ -63,8 +63,6 @@ async function getPortalData(slug: string): Promise<PortalFlatResponse | null> {
  * Portal page — server component at /f/[flatSlug].
  * Validates the slug format, fetches portal data from the API,
  * and renders the portal sections.
- *
- * Requirements: 1.1, 1.4, 11.1, 11.5
  */
 export default async function PortalPage({ params }: PortalPageProps) {
   const { flatSlug } = await params

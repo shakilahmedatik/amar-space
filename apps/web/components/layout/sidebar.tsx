@@ -26,8 +26,6 @@ interface SidebarProps {
  * - Bangla labels as primary with English fallback via i18n
  * - 44x44px minimum touch targets (min-h-11 min-w-11)
  * - Settings shown at the bottom, separated by a border
- *
- * Requirements: 16.3, 20.5, 20.6
  */
 export function Sidebar({ role, activePath, onNavigate }: SidebarProps) {
   const { t } = useTranslation()

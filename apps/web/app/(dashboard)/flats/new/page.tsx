@@ -13,7 +13,6 @@ import { useTranslation } from '@/lib/i18n'
 /**
  * Flat creation form page — /flats/new
  * Allows Owner to create a new flat with flat number, floor, and building reference.
- * Validates: Requirements 6.1, 6.2
  */
 export default function CreateFlatPage() {
   const { t } = useTranslation()

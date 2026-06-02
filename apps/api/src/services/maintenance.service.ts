@@ -13,11 +13,7 @@ import {
   type Priority,
   ROLES,
 } from '@repo/shared/constants'
-import {
-  ForbiddenError,
-  NotFoundError,
-  ValidationError,
-} from '@repo/shared/errors'
+import { NotFoundError, ValidationError } from '@repo/shared/errors'
 import type { FieldError, RequestContext } from '@repo/shared/types'
 import {
   addMaintenanceCommentSchema,
@@ -265,11 +261,6 @@ export class MaintenanceService {
     requestId: string,
     newStatus: string,
   ): Promise<MaintenanceRequestResult> {
-    // Only Owner or Manager can update status (Requirement 10.6, 10.7)
-    if (ctx.role === ROLES.RENTER) {
-      throw new ForbiddenError()
-    }
-
     // Validate the new status value
     const parseResult = updateMaintenanceStatusSchema.safeParse({
       status: newStatus,
@@ -451,25 +442,6 @@ export class MaintenanceService {
       conditions.push(
         inArray(maintenanceRequests.buildingId, ctx.assignedBuildingIds),
       )
-    } else if (ctx.role === ROLES.RENTER) {
-      // Renter can only see their own requests
-      const renter = await this.db.query.renters.findFirst({
-        where: and(
-          eq(renters.userId, ctx.userId),
-          eq(renters.ownerAccountId, ctx.ownerAccountId),
-        ),
-      })
-
-      if (!renter) {
-        return {
-          data: [],
-          total: 0,
-          page,
-          pageSize,
-          totalPages: 0,
-        }
-      }
-      conditions.push(eq(maintenanceRequests.renterId, renter.id))
     }
 
     // Apply filters
@@ -613,18 +585,6 @@ export class MaintenanceService {
     // Role-based access check
     if (ctx.role === ROLES.MANAGER && ctx.assignedBuildingIds) {
       if (!ctx.assignedBuildingIds.includes(request.buildingId)) {
-        throw new NotFoundError('Maintenance request')
-      }
-    } else if (ctx.role === ROLES.RENTER) {
-      // Renter can only see their own requests
-      const renter = await this.db.query.renters.findFirst({
-        where: and(
-          eq(renters.userId, ctx.userId),
-          eq(renters.ownerAccountId, ctx.ownerAccountId),
-        ),
-      })
-
-      if (!renter || request.renterId !== renter.id) {
         throw new NotFoundError('Maintenance request')
       }
     }

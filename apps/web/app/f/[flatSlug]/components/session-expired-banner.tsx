@@ -5,7 +5,7 @@ import { useSearchParams } from 'next/navigation'
 import {
   SESSION_EXPIRED_BANGLA_MESSAGE,
   SESSION_EXPIRED_PARAM,
-} from '../lib/use-session-expiry'
+} from '@/hooks/use-session-expiry'
 
 /**
  * Displays a session expired banner when the user is redirected back
@@ -13,8 +13,6 @@ import {
  *
  * The banner is shown when the URL contains `?session_expired=true`.
  * Displays a Bangla message informing the user their session has expired.
- *
- * Requirements: 8.6
  */
 export function SessionExpiredBanner() {
   const searchParams = useSearchParams()

@@ -1,4 +1,4 @@
-import type { RequestContext } from '@repo/shared/types'
+import type { RequestContext, UserRole } from '@repo/shared/types'
 import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
 import { approvalGuard } from '../../middleware/approval-guard'
@@ -42,7 +42,7 @@ async function renterRoutes(fastify: FastifyInstance) {
   function buildRequestContext(request: {
     user: {
       id: string
-      role: 'owner' | 'manager' | 'renter'
+      role: UserRole
       ownerAccountId: string
     }
     tenantScope: {

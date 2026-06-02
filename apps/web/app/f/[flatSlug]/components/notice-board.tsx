@@ -2,8 +2,8 @@
 
 import { ChevronDown, ChevronUp, Megaphone } from 'lucide-react'
 import { useState } from 'react'
+import { trackEvent } from '@/lib/analytics'
 import { cn } from '@/lib/utils'
-import { trackEvent } from '../lib/analytics'
 
 interface Notice {
   id: string
@@ -101,8 +101,6 @@ function truncateText(text: string, maxLength: number): string {
  * - Description truncated to 120 chars with expand/collapse on tap
  * - Empty state message "কোনো নোটিশ নেই" when no notices
  * - Tracks "Notice Viewed" analytics event on expand
- *
- * Requirements: 4.1, 4.2, 4.3, 4.4, 4.5, 4.6
  */
 export function NoticeBoard({
   notices,

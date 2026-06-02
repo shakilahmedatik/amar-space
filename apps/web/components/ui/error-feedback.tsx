@@ -18,7 +18,6 @@ interface ErrorFeedbackProps {
 /**
  * Top-of-viewport feedback message. Auto-dismisses after 5s.
  * Minimum height 48px for accessibility.
- * Validates: Requirement 16.7
  */
 export function ErrorFeedback({
   message,

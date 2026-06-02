@@ -24,7 +24,6 @@ import { useTranslation } from '@/lib/i18n'
 /**
  * Flat detail page — /flats/[id]
  * Shows flat info with status badge, status transition controls, and delete option.
- * Validates: Requirements 6.7, 6.8, 6.9, 6.13
  */
 export default function FlatDetailPage() {
   const { role } = useSession()

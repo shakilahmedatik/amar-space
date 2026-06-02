@@ -15,7 +15,6 @@ import { useTranslation } from '@/lib/i18n'
  * New maintenance request form — /maintenance/new
  * Accessible by Renter role.
  * Title (5-200 chars), description (10-2000 chars), priority, file attachments.
- * Validates: Requirements 10.1, 10.2, 10.3
  */
 export default function NewMaintenanceRequestPage() {
   const { t } = useTranslation()

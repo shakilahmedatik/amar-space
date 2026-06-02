@@ -5,7 +5,7 @@ import {
   type EmergencyContact,
   ROLE_ORDER,
   sortContacts,
-} from '../../app/f/[flatSlug]/lib/sort-emergency-contacts'
+} from '@/lib/sort-emergency-contacts'
 
 /**
  * Property 4: Emergency contact role ordering
@@ -14,8 +14,6 @@ import {
  * {Owner, Manager, Caretaker, Security}, the display order SHALL always follow
  * the sequence Owner → Manager → Caretaker → Security, with contacts of the
  * same role maintaining their original relative order.
- *
- * **Validates: Requirements 5.1**
  */
 
 const BUILDING_ROLES = ['মালিক', 'ম্যানেজার', 'কেয়ারটেকার', 'সিকিউরিটি']

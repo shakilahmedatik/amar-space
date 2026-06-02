@@ -1,4 +1,4 @@
-import type { RequestContext } from '@repo/shared/types'
+import type { RequestContext, UserRole } from '@repo/shared/types'
 import {
   type CreateNoticeInput,
   createNoticeSchema,
@@ -31,8 +31,6 @@ import {
  * Access control:
  * - Owner/Manager: full access (create, edit, delete, pin)
  * - Renter: read-only access (list, get) with role-based visibility
- *
- * Requirements: 12.5, 12.6, 12.9, 12.10
  */
 async function noticeRoutes(fastify: FastifyInstance) {
   const noticeService = new NoticeService(fastify.db, fastify.auditLogger)
@@ -43,7 +41,7 @@ async function noticeRoutes(fastify: FastifyInstance) {
   function buildRequestContext(request: {
     user: {
       id: string
-      role: 'owner' | 'manager' | 'renter'
+      role: UserRole
       ownerAccountId: string
     }
     tenantScope: {
@@ -69,15 +67,13 @@ async function noticeRoutes(fastify: FastifyInstance) {
    * GET /api/notices
    * Lists notices with filtering and pagination.
    * All authenticated users can list (visibility scoped by role in service layer).
-   *
-   * Requirements: 12.5, 12.6
    */
   fastify.get(
     '/',
     {
       preHandler: [
         authGuard,
-        roleGuard(['owner', 'manager', 'renter']),
+        roleGuard(['owner', 'manager']),
         approvalGuard,
         tenantScope,
       ],
@@ -148,8 +144,6 @@ async function noticeRoutes(fastify: FastifyInstance) {
   /**
    * POST /api/notices
    * Creates a new notice. Owner/Manager only.
-   *
-   * Requirements: 12.1, 12.5
    */
   fastify.post(
     '/',
@@ -198,15 +192,13 @@ async function noticeRoutes(fastify: FastifyInstance) {
    * GET /api/notices/:id
    * Gets a notice by ID.
    * All authenticated users can view (visibility enforced by service layer).
-   *
-   * Requirements: 12.5, 12.6
    */
   fastify.get(
     '/:id',
     {
       preHandler: [
         authGuard,
-        roleGuard(['owner', 'manager', 'renter']),
+        roleGuard(['owner', 'manager']),
         approvalGuard,
         tenantScope,
       ],
@@ -252,8 +244,6 @@ async function noticeRoutes(fastify: FastifyInstance) {
    * PUT /api/notices/:id
    * Updates a notice. Owner/Manager only.
    * Service layer enforces that only the author or an Owner can edit.
-   *
-   * Requirements: 12.9, 12.10
    */
   fastify.put(
     '/:id',
@@ -307,8 +297,6 @@ async function noticeRoutes(fastify: FastifyInstance) {
    * DELETE /api/notices/:id
    * Deletes a notice. Owner/Manager only.
    * Service layer enforces that only the author or an Owner can delete.
-   *
-   * Requirements: 12.9, 12.10
    */
   fastify.delete(
     '/:id',
@@ -350,8 +338,6 @@ async function noticeRoutes(fastify: FastifyInstance) {
    * PUT /api/notices/:id/pin
    * Toggles the pinned status of a notice. Owner/Manager only.
    * Enforces max 5 pinned notices per target audience scope.
-   *
-   * Requirements: 12.2
    */
   fastify.put(
     '/:id/pin',

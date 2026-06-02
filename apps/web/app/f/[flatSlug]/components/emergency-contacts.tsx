@@ -1,11 +1,11 @@
 'use client'
 
 import { AlertTriangle, Building2, MapPin, Phone } from 'lucide-react'
-import { trackEvent } from '../lib/analytics'
+import { trackEvent } from '@/lib/analytics'
 import {
   type EmergencyContact,
   sortContacts,
-} from '../lib/sort-emergency-contacts'
+} from '@/lib/sort-emergency-contacts'
 
 interface EmergencyContactsProps {
   contacts: EmergencyContact[]
@@ -17,8 +17,6 @@ interface EmergencyContactsProps {
  * Displays building contacts (Owner, Manager, Caretaker, Security) followed by
  * nearby services (Hospital, Police, Fire Service).
  * Each contact with a phone number shows a "কল করুন" (Call) button.
- *
- * Validates: Requirements 5.1, 5.2, 5.3, 5.4, 5.5, 5.6
  */
 export function EmergencyContacts({
   contacts,

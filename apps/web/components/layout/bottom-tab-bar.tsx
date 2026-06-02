@@ -29,10 +29,8 @@ interface BottomTabBarProps {
  * - "More" menu for overflow items (Flats, Renters, Issues, Audit, Settings)
  * - Role-based item visibility
  * - Active route highlighting
- * - All tabs meet 44x44px minimum touch target (Req 14.3, 16.8)
- * - One click/tap to reach any primary section (Req 20.5)
- *
- * Requirements: 14.3, 16.3, 16.8, 20.5, 20.6
+ * - All tabs meet 44x44px minimum touch target
+ * - One click/tap to reach any primary section
  */
 export function BottomTabBar({
   role,

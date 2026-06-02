@@ -12,35 +12,33 @@ import {
   type UpdateMaintenanceStatusInput,
   updateMaintenanceStatus,
 } from '@/lib/api-client'
+import { DEFAULT_STALE_TIME } from './constants'
 
 /**
  * TanStack Query hook for maintenance request list with filters and pagination.
- * Validates: Requirements 10.6, 10.7, 10.8, 10.10
  */
 export function useMaintenanceRequests(params: MaintenanceListParams = {}) {
   return useQuery({
     queryKey: ['maintenance', params],
     queryFn: () => fetchMaintenanceRequests(params),
-    staleTime: 30 * 1000,
+    staleTime: DEFAULT_STALE_TIME,
   })
 }
 
 /**
  * TanStack Query hook for a single maintenance request detail.
- * Validates: Requirements 10.1, 10.2, 10.5
  */
 export function useMaintenanceRequest(id: string) {
   return useQuery({
     queryKey: ['maintenance', id],
     queryFn: () => fetchMaintenanceRequest(id),
     enabled: !!id,
-    staleTime: 30 * 1000,
+    staleTime: DEFAULT_STALE_TIME,
   })
 }
 
 /**
  * Mutation hook for creating a new maintenance request.
- * Validates: Requirements 10.1, 10.2
  */
 export function useCreateMaintenanceRequest() {
   const queryClient = useQueryClient()
@@ -56,7 +54,6 @@ export function useCreateMaintenanceRequest() {
 
 /**
  * Mutation hook for updating maintenance request status.
- * Validates: Requirements 10.5, 10.6, 10.7
  */
 export function useUpdateMaintenanceStatus(requestId: string) {
   const queryClient = useQueryClient()
@@ -73,7 +70,6 @@ export function useUpdateMaintenanceStatus(requestId: string) {
 
 /**
  * Mutation hook for adding a comment to a maintenance request.
- * Validates: Requirements 10.8
  */
 export function useAddMaintenanceComment(requestId: string) {
   const queryClient = useQueryClient()

@@ -14,7 +14,6 @@ interface BulkQrDownloadButtonProps {
  * Button to download all QR codes for a building as a ZIP file.
  * Only rendered when user role is "owner" or "manager" (visibility controlled by parent).
  * Minimum touch target: 44×44px.
- * Validates: Requirements 6.1, 6.2, 6.3
  */
 export function BulkQrDownloadButton({
   buildingId,

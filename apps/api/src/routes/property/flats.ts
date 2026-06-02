@@ -1,6 +1,6 @@
 import { flats } from '@repo/db'
 import type { FlatStatus } from '@repo/shared/constants'
-import type { RequestContext } from '@repo/shared/types'
+import type { RequestContext, UserRole } from '@repo/shared/types'
 import {
   createFlatSchema,
   flatStatusEnum,
@@ -33,8 +33,6 @@ import {
  * Access control:
  * - Owner: full access (create, read, update, delete, status transition)
  * - Manager: read, update status only (no create/delete)
- *
- * Requirements: 5.5, 6.7, 6.8, 6.9
  */
 async function flatRoutes(fastify: FastifyInstance) {
   const flatService = new FlatService(fastify.db, fastify.auditLogger)
@@ -45,7 +43,7 @@ async function flatRoutes(fastify: FastifyInstance) {
   function buildRequestContext(request: {
     user: {
       id: string
-      role: 'owner' | 'manager' | 'renter'
+      role: UserRole
       ownerAccountId: string
     }
     tenantScope: {

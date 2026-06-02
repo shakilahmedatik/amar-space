@@ -48,7 +48,6 @@ interface DataTableProps<T> {
 
 /**
  * Generic paginated data table with filter support.
- * Validates: Requirement 16.1
  */
 export function DataTable<T>({
   columns,

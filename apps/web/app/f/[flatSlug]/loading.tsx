@@ -1,8 +1,6 @@
 /**
  * Skeleton loading state for the portal page.
  * Displays immediately while the server component fetches data.
- *
- * Requirements: 11.1, 11.5
  */
 export default function PortalLoading() {
   return (

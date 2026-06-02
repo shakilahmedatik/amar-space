@@ -17,7 +17,6 @@ import { useTranslation } from '@/lib/i18n'
  * New notice form — /notices/new
  * Accessible by Owner and Manager roles.
  * Title (max 200 chars), body (max 5000 chars), target audience, building/flat selection.
- * Validates: Requirements 12.1, 12.3, 12.4, 12.11, 12.12
  */
 export default function NewNoticePage() {
   const { t } = useTranslation()

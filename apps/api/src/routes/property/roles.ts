@@ -21,7 +21,7 @@ async function roleRoutes(fastify: FastifyInstance) {
    * Only Owners can perform this action.
    *
    * Request body:
-   * - role: 'owner' | 'manager' | 'renter'
+   * - role: UserRole
    * - buildingIds?: string[] (required for manager role)
    *
    * Returns the updated user with new role.
@@ -40,7 +40,7 @@ async function roleRoutes(fastify: FastifyInstance) {
           id: z.string().uuid('Invalid user ID format'),
         }),
         body: z.object({
-          role: z.enum(['owner', 'manager', 'renter']),
+          role: z.enum(['owner', 'manager']),
           buildingIds: z
             .array(z.string().uuid('Invalid building ID format'))
             .optional(),
@@ -49,7 +49,7 @@ async function roleRoutes(fastify: FastifyInstance) {
           200: z.object({
             id: z.string(),
             email: z.string(),
-            role: z.enum(['owner', 'manager', 'renter']),
+            role: z.enum(['owner', 'manager']),
             ownerAccountId: z.string(),
             buildingIds: z.array(z.string()).nullable(),
           }),
@@ -62,7 +62,7 @@ async function roleRoutes(fastify: FastifyInstance) {
     async (request, reply) => {
       const { id } = request.params as { id: string }
       const { role, buildingIds } = request.body as {
-        role: 'owner' | 'manager' | 'renter'
+        role: 'owner' | 'manager'
         buildingIds?: string[]
       }
 

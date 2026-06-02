@@ -20,8 +20,6 @@ interface SignaturePadProps {
  * - Clear button to reset the canvas
  * - Calls onChange callback with base64 data when user finishes drawing
  * - Mobile-optimized with touch event handling
- *
- * Requirements: 7.2
  */
 export function SignaturePad({
   onChange,

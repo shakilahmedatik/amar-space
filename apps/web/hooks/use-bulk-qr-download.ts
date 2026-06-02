@@ -26,7 +26,6 @@ interface UseBulkQrDownloadReturn {
 /**
  * TanStack Query mutation hook for downloading all QR codes for a building as a ZIP.
  * Handles 30-second timeout, file download trigger, and error feedback.
- * Validates: Requirements 6.3, 6.4, 6.5, 6.6
  */
 export function useBulkQrDownload({
   buildingId,

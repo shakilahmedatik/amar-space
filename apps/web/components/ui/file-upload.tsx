@@ -18,7 +18,6 @@ interface FileUploadProps {
 
 /**
  * File upload with drag-and-drop, 5MB limit, JPEG/PNG/WebP.
- * Validates: Requirement 16.6
  */
 export function FileUpload({
   onFilesSelected,

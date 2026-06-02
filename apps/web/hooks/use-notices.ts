@@ -12,35 +12,33 @@ import {
   type UpdateNoticeInput,
   updateNotice,
 } from '@/lib/api-client'
+import { DEFAULT_STALE_TIME } from './constants'
 
 /**
  * TanStack Query hook for notice list with filters and pagination.
- * Validates: Requirements 12.8
  */
 export function useNotices(params: NoticeListParams = {}) {
   return useQuery({
     queryKey: ['notices', params],
     queryFn: () => fetchNotices(params),
-    staleTime: 30 * 1000,
+    staleTime: DEFAULT_STALE_TIME,
   })
 }
 
 /**
  * TanStack Query hook for a single notice detail.
- * Validates: Requirements 12.1
  */
 export function useNotice(id: string) {
   return useQuery({
     queryKey: ['notices', id],
     queryFn: () => fetchNotice(id),
     enabled: !!id,
-    staleTime: 30 * 1000,
+    staleTime: DEFAULT_STALE_TIME,
   })
 }
 
 /**
  * Mutation hook for creating a notice.
- * Validates: Requirements 12.1, 12.3, 12.4
  */
 export function useCreateNotice() {
   const queryClient = useQueryClient()
@@ -55,7 +53,6 @@ export function useCreateNotice() {
 
 /**
  * Mutation hook for updating a notice.
- * Validates: Requirements 12.9
  */
 export function useUpdateNotice(noticeId: string) {
   const queryClient = useQueryClient()
@@ -71,7 +68,6 @@ export function useUpdateNotice(noticeId: string) {
 
 /**
  * Mutation hook for deleting a notice.
- * Validates: Requirements 12.9
  */
 export function useDeleteNotice(noticeId: string) {
   const queryClient = useQueryClient()
@@ -86,7 +82,6 @@ export function useDeleteNotice(noticeId: string) {
 
 /**
  * Mutation hook for toggling notice pin status.
- * Validates: Requirements 12.2
  */
 export function useToggleNoticePin(noticeId: string) {
   const queryClient = useQueryClient()

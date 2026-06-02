@@ -13,35 +13,33 @@ import {
   type UpdateIssueStatusInput,
   updateIssueStatus,
 } from '@/lib/api-client'
+import { DEFAULT_STALE_TIME, OPTIONS_STALE_TIME } from './constants'
 
 /**
  * TanStack Query hook for issue list with filters and pagination.
- * Validates: Requirements 11.6
  */
 export function useIssues(params: IssueListParams = {}) {
   return useQuery({
     queryKey: ['issues', params],
     queryFn: () => fetchIssues(params),
-    staleTime: 30 * 1000,
+    staleTime: DEFAULT_STALE_TIME,
   })
 }
 
 /**
  * TanStack Query hook for a single issue detail.
- * Validates: Requirements 11.1, 11.4
  */
 export function useIssue(id: string) {
   return useQuery({
     queryKey: ['issues', id],
     queryFn: () => fetchIssue(id),
     enabled: !!id,
-    staleTime: 30 * 1000,
+    staleTime: DEFAULT_STALE_TIME,
   })
 }
 
 /**
  * Mutation hook for creating an issue.
- * Validates: Requirements 11.1, 11.7
  */
 export function useCreateIssue() {
   const queryClient = useQueryClient()
@@ -56,7 +54,6 @@ export function useCreateIssue() {
 
 /**
  * Mutation hook for updating issue status.
- * Validates: Requirements 11.4, 11.5
  */
 export function useUpdateIssueStatus(issueId: string) {
   const queryClient = useQueryClient()
@@ -73,7 +70,6 @@ export function useUpdateIssueStatus(issueId: string) {
 
 /**
  * Mutation hook for assigning an issue.
- * Validates: Requirements 11.2
  */
 export function useAssignIssue(issueId: string) {
   const queryClient = useQueryClient()
@@ -89,12 +85,11 @@ export function useAssignIssue(issueId: string) {
 
 /**
  * TanStack Query hook for manager options (for issue assignment).
- * Validates: Requirements 11.2
  */
 export function useManagerOptions() {
   return useQuery({
-    queryKey: ['managers', 'options'],
+    queryKey: ['managers', { type: 'options' }],
     queryFn: () => fetchManagerOptions(),
-    staleTime: 60 * 1000,
+    staleTime: OPTIONS_STALE_TIME,
   })
 }

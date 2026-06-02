@@ -17,8 +17,6 @@ import { z } from 'zod'
  * - Inserts into analytics_events table asynchronously (fire-and-forget)
  * - Always returns 200 OK regardless of validation or insertion outcome
  * - Never displays errors to the user
- *
- * Requirements: 13.1, 13.2, 13.3, 13.4
  */
 async function portalAnalyticsRoutes(fastify: FastifyInstance) {
   fastify.post(

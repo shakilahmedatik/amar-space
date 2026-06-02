@@ -24,7 +24,6 @@ import { useTranslation } from '@/lib/i18n'
  * Bill list page — /bills
  * Displays paginated list of bills with multi-field filters.
  * Owner/Manager can generate bills.
- * Validates: Requirements 7.1, 7.6, 7.7, 7.8, 7.11
  */
 export default function BillsPage() {
   const { role } = useSession()

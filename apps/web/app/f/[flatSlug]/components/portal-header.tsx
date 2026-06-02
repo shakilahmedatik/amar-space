@@ -1,7 +1,7 @@
 import { Building2 } from 'lucide-react'
 import Image from 'next/image'
+import { StatusBadge } from '@/components/ui/status-badge'
 import { cn } from '@/lib/utils'
-import { PortalStatusBadge } from './status-badge'
 
 const PLACEHOLDER_TEXT = 'তথ্য পাওয়া যায়নি'
 const MAX_BUILDING_NAME_LENGTH = 100
@@ -23,8 +23,6 @@ interface PortalHeaderProps {
  * Truncates a building name to the maximum allowed length.
  * Returns the string unchanged if 100 characters or fewer,
  * otherwise returns the first 100 characters followed by an ellipsis.
- *
- * Validates: Requirements 2.1 (Property 2: Building name truncation)
  */
 export function truncateBuildingName(name: string): string {
   if (name.length <= MAX_BUILDING_NAME_LENGTH) {
@@ -41,8 +39,6 @@ export function truncateBuildingName(name: string): string {
  * - Missing data shows placeholder text "তথ্য পাওয়া যায়নি"
  * - Logo displayed at max 120px width, cover image at full width
  * - Status badge shows flat availability in Bangla
- *
- * Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7
  */
 export function PortalHeader({ building, flat, className }: PortalHeaderProps) {
   const displayName = building.name
@@ -101,7 +97,7 @@ export function PortalHeader({ building, flat, className }: PortalHeaderProps) {
             <p className="text-base text-steel">ফ্ল্যাট: {displayFlatNumber}</p>
           </div>
         </div>
-        <PortalStatusBadge status={flat.status} />
+        <StatusBadge status={flat.status} />
       </div>
     </section>
   )

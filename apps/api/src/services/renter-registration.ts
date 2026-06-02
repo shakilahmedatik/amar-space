@@ -182,7 +182,7 @@ export class RenterRegistrationService {
       ])
     }
 
-    // Step 5: Create user account with Renter role (Requirement 4.8)
+    // Step 5: Create user account (Requirement 4.8)
     // Generate a unique email for the renter based on phone number
     const renterEmail = `renter_${validated.phone}@amarspace.local`
 
@@ -192,7 +192,7 @@ export class RenterRegistrationService {
         id: randomUUID(),
         email: renterEmail,
         name: validated.fullName,
-        role: 'renter',
+        role: 'owner',
         ownerAccountId: ctx.ownerAccountId,
         phone: validated.phone,
         approvalStatus: null,

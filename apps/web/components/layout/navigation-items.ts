@@ -1,7 +1,7 @@
 /**
  * Navigation configuration for AmarSpace.
  *
- * Design constraints (Req 16.3, 20.5, 20.6):
+ * Design constraints:
  * - Max 3 navigation levels from dashboard to any feature
  *   Level 1: Dashboard (home)
  *   Level 2: Primary section (e.g., /buildings)
@@ -12,7 +12,7 @@
  * Used by both Sidebar (desktop ≥768px) and BottomTabBar (mobile <768px).
  */
 
-export type UserRole = 'owner' | 'manager' | 'renter'
+export type UserRole = 'owner' | 'manager'
 
 export interface NavigationItem {
   /** Unique identifier for the navigation item */
@@ -52,7 +52,7 @@ export const navigationItems: NavigationItem[] = [
     labelEn: 'Dashboard',
     href: '/dashboard',
     icon: 'dashboard',
-    roles: ['owner', 'manager', 'renter'],
+    roles: ['owner', 'manager'],
     showInBottomTab: true,
   },
   {
@@ -92,7 +92,7 @@ export const navigationItems: NavigationItem[] = [
     labelEn: 'Bills',
     href: '/bills',
     icon: 'bills',
-    roles: ['owner', 'manager', 'renter'],
+    roles: ['owner', 'manager'],
     showInBottomTab: true,
   },
   {
@@ -102,7 +102,7 @@ export const navigationItems: NavigationItem[] = [
     labelEn: 'Payments',
     href: '/payments',
     icon: 'payments',
-    roles: ['owner', 'manager', 'renter'],
+    roles: ['owner', 'manager'],
     showInBottomTab: false,
   },
   {
@@ -112,7 +112,7 @@ export const navigationItems: NavigationItem[] = [
     labelEn: 'Maintenance',
     href: '/maintenance',
     icon: 'maintenance',
-    roles: ['owner', 'manager', 'renter'],
+    roles: ['owner', 'manager'],
     showInBottomTab: true,
   },
   {
@@ -132,7 +132,7 @@ export const navigationItems: NavigationItem[] = [
     labelEn: 'Notices',
     href: '/notices',
     icon: 'notices',
-    roles: ['owner', 'manager', 'renter'],
+    roles: ['owner', 'manager'],
     showInBottomTab: true,
   },
   {
@@ -152,7 +152,7 @@ export const navigationItems: NavigationItem[] = [
     labelEn: 'Settings',
     href: '/settings',
     icon: 'settings',
-    roles: ['owner', 'manager', 'renter'],
+    roles: ['owner', 'manager'],
     showInBottomTab: false,
   },
 ]

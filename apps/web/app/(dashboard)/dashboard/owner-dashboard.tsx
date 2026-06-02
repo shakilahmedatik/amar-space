@@ -12,7 +12,6 @@ import { useTranslation } from '@/lib/i18n'
  * Owner Dashboard Component
  * Shows: total buildings, total flats, occupancy ratio, unpaid bills (BDT),
  * 5 recent maintenance requests, 5 recent audit log entries.
- * Validates: Requirements 20.1, 20.4, 20.7
  */
 export function OwnerDashboard() {
   const { t } = useTranslation()

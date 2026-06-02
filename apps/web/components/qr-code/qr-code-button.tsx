@@ -14,7 +14,6 @@ interface QrCodeButtonProps {
  * Renders a QR code icon with a localized label and accessible aria-label.
  * Minimum touch target: 44×44px for mobile accessibility.
  * Visibility is controlled by the parent (only rendered for owner/manager roles).
- * Validates: Requirements 1.1, 1.2, 1.4, 8.2, 9.4
  */
 export function QrCodeButton({ flatNumber, onClick }: QrCodeButtonProps) {
   const { t } = useTranslation()

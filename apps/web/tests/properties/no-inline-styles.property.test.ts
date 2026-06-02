@@ -10,8 +10,6 @@ import { describe, expect, it } from 'vitest'
  * For all TSX files in `apps/web/components/**\/*.tsx` and
  * `apps/web/app/**\/*.tsx`, no `style={{` prop exists after the migration
  * is complete.
- *
- * **Validates: Requirements 6.1**
  */
 
 // ---------------------------------------------------------------------------

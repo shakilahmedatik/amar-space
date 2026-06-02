@@ -1,3 +1,4 @@
+/** biome-ignore-all lint/suspicious/noArrayIndexKey: intentionally done */
 'use client'
 
 import { Check, Copy, Eye, EyeOff, KeyRound, RefreshCw } from 'lucide-react'
@@ -24,7 +25,6 @@ import { useTranslation } from '@/lib/i18n'
 /**
  * Renter detail page — /renters/[id]
  * Shows personal info, contract details, deposit balance, adjustment form (Owner only), and adjustment history.
- * Validates: Requirements 4.1, 9.7, 9.8, 9.9, 9.11, 9.12
  */
 export default function RenterDetailPage() {
   const { role } = useSession()
@@ -113,9 +113,9 @@ export default function RenterDetailPage() {
                       {t('renters.familyMemberNames')}
                     </p>
                     <div className="flex flex-wrap gap-2">
-                      {renter.familyMemberNames.map((name) => (
+                      {renter.familyMemberNames.map((name, i) => (
                         <span
-                          key={`member-${name}`}
+                          key={`member-${name}-${i}`}
                           className="px-2 py-1 rounded bg-surface text-sm text-ink"
                         >
                           {name}

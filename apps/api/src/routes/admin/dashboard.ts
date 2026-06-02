@@ -13,8 +13,6 @@ import { AdminUserService } from '../../services/admin-user'
  *
  * Access control:
  * - Superadmin only (enforced via roleGuard(['superadmin']))
- *
- * Requirements: 7.1, 7.2, 7.3, 7.4, 7.5
  */
 async function adminDashboardRoutes(fastify: FastifyInstance) {
   const adminUserService = new AdminUserService(fastify.db, fastify.auditLogger)

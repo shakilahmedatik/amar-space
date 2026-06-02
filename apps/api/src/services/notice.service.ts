@@ -694,34 +694,6 @@ export class NoticeService {
       return or(...conditions)
     }
 
-    if (ctx.role === 'renter') {
-      const conditions = [
-        eq(notices.targetAudience, NOTICE_TARGETS.ALL_RENTERS),
-      ]
-
-      // Renter can see notices for their building
-      if (ctx.assignedBuildingIds && ctx.assignedBuildingIds.length > 0) {
-        conditions.push(
-          and(
-            eq(notices.targetAudience, NOTICE_TARGETS.SPECIFIC_BUILDING),
-            inArray(notices.targetBuildingId, ctx.assignedBuildingIds),
-          )!,
-        )
-      }
-
-      // Renter can see notices for their specific flat
-      if (ctx.assignedFlatId) {
-        conditions.push(
-          and(
-            eq(notices.targetAudience, NOTICE_TARGETS.SPECIFIC_FLAT),
-            eq(notices.targetFlatId, ctx.assignedFlatId),
-          )!,
-        )
-      }
-
-      return or(...conditions)
-    }
-
     // Default: deny all (shouldn't reach here)
     return eq(notices.id, 'impossible-id')
   }
@@ -749,34 +721,6 @@ export class NoticeService {
         notice.targetAudience === NOTICE_TARGETS.SPECIFIC_BUILDING &&
         notice.targetBuildingId &&
         ctx.assignedBuildingIds?.includes(notice.targetBuildingId)
-      ) {
-        return true
-      }
-
-      return false
-    }
-
-    if (ctx.role === 'renter') {
-      if (notice.targetAudience === NOTICE_TARGETS.ALL_RENTERS) {
-        return true
-      }
-
-      if (notice.targetAudience === NOTICE_TARGETS.MANAGERS_ONLY) {
-        return false
-      }
-
-      if (
-        notice.targetAudience === NOTICE_TARGETS.SPECIFIC_BUILDING &&
-        notice.targetBuildingId &&
-        ctx.assignedBuildingIds?.includes(notice.targetBuildingId)
-      ) {
-        return true
-      }
-
-      if (
-        notice.targetAudience === NOTICE_TARGETS.SPECIFIC_FLAT &&
-        notice.targetFlatId &&
-        ctx.assignedFlatId === notice.targetFlatId
       ) {
         return true
       }

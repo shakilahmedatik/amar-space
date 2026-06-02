@@ -72,8 +72,6 @@ function startRateLimitCleanup(): NodeJS.Timeout {
  *
  * Accepts email and password, validates input, creates user with Owner role,
  * and returns session token on success.
- *
- * Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8
  */
 async function registerRoutes(fastify: FastifyInstance) {
   const cleanupTimer = startRateLimitCleanup()

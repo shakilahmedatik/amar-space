@@ -16,7 +16,6 @@ import { useTranslation } from '@/lib/i18n'
  * Notice list page — /notices
  * Displays paginated list of notices with pinned notices at top.
  * Filtered by target audience. Owner/Manager can create new notices.
- * Validates: Requirements 12.1, 12.2, 12.5, 12.6, 12.8, 12.9
  */
 export default function NoticesPage() {
   const { role } = useSession()

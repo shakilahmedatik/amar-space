@@ -20,7 +20,6 @@ interface DepositAdjustmentFormProps {
  * Adjustment form (Owner only) with amount, optional bill link, and note.
  * Amount must be min 0.01 and must not exceed remaining balance.
  * Note max 500 chars.
- * Validates: Requirements 9.7, 9.8, 9.9
  */
 export function DepositAdjustmentForm({
   contractId,
@@ -147,7 +146,7 @@ export function DepositAdjustmentForm({
             {unpaidBills.map((bill) => (
               <option key={bill.id} value={bill.id}>
                 {bill.billingMonth} — {t('deposits.outstanding')}: ৳
-                {bill.outstanding.toFixed(2)}
+                {(bill.outstanding ?? 0).toFixed(2)}
               </option>
             ))}
           </select>

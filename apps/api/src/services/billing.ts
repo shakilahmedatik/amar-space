@@ -15,11 +15,7 @@ import {
   FLAT_STATUS,
   ROLES,
 } from '@repo/shared/constants'
-import {
-  ForbiddenError,
-  NotFoundError,
-  ValidationError,
-} from '@repo/shared/errors'
+import { NotFoundError, ValidationError } from '@repo/shared/errors'
 import type { FieldError, RequestContext } from '@repo/shared/types'
 import {
   type AddUtilityChargeInput,
@@ -162,11 +158,6 @@ export class BillingService {
     ctx: RequestContext,
     month: string,
   ): Promise<GenerateBillsResult> {
-    // Only Owner or Manager can generate bills (Requirement 7.14)
-    if (ctx.role === ROLES.RENTER) {
-      throw new ForbiddenError()
-    }
-
     // Validate month format
     const monthResult = billingMonthSchema.safeParse(month)
     if (!monthResult.success) {
@@ -369,11 +360,6 @@ export class BillingService {
     billId: string,
     charge: AddUtilityChargeInput,
   ): Promise<LineItemResult> {
-    // Only Owner or Manager can add utility charges (Requirement 7.14)
-    if (ctx.role === ROLES.RENTER) {
-      throw new ForbiddenError()
-    }
-
     // Validate input
     const parseResult = addUtilityChargeSchema.safeParse(charge)
     if (!parseResult.success) {
@@ -550,26 +536,6 @@ export class BillingService {
         }
       }
       conditions.push(inArray(bills.flatId, assignedFlatIds))
-    } else if (ctx.role === ROLES.RENTER) {
-      // Renter can only see their own bills
-      // Find the renter record for this user
-      const renter = await this.db.query.renters.findFirst({
-        where: and(
-          eq(renters.userId, ctx.userId),
-          eq(renters.ownerAccountId, ctx.ownerAccountId),
-        ),
-      })
-
-      if (!renter) {
-        return {
-          data: [],
-          total: 0,
-          page,
-          pageSize,
-          totalPages: 0,
-        }
-      }
-      conditions.push(eq(bills.renterId, renter.id))
     }
 
     // Apply filters
@@ -718,11 +684,6 @@ export class BillingService {
    * Scoped to the owner account and role-based access.
    */
   async deleteBill(ctx: RequestContext, billId: string): Promise<void> {
-    // Only Owner or Manager can delete bills
-    if (ctx.role === ROLES.RENTER) {
-      throw new ForbiddenError()
-    }
-
     // Find the bill to verify access
     const bill = await this.findBillWithAccess(ctx, billId)
 
@@ -795,18 +756,6 @@ export class BillingService {
       })
 
       if (!flat || !ctx.assignedBuildingIds.includes(flat.buildingId)) {
-        throw new NotFoundError('Bill')
-      }
-    } else if (ctx.role === ROLES.RENTER) {
-      // Renter can only see their own bills
-      const renter = await this.db.query.renters.findFirst({
-        where: and(
-          eq(renters.userId, ctx.userId),
-          eq(renters.ownerAccountId, ctx.ownerAccountId),
-        ),
-      })
-
-      if (!renter || bill.renterId !== renter.id) {
         throw new NotFoundError('Bill')
       }
     }

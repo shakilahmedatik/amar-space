@@ -12,15 +12,14 @@ import { useTranslation } from '@/lib/i18n'
 
 /**
  * Registration page — /register
- * Validates: Requirements 1.1, 1.5, 1.6, 1.8
  *
  * - Email + password form with Bangla-first labels
  * - Client-side validation: email format (max 254 chars), password strength
  *   (8-128 chars, uppercase, lowercase, digit)
- * - Field-level validation errors (Req 1.6)
- * - Handle duplicate email error (Req 1.3)
- * - Handle rate limit error (Req 1.8)
- * - Redirect to dashboard on success (Req 1.1)
+ * - Field-level validation errors
+ * - Handle duplicate email error
+ * - Handle rate limit error
+ * - Redirect to dashboard on success
  * - Accessible: labels, aria attributes, focus management
  * - Mobile-first, 44x44px touch targets, 16px body text
  */
@@ -43,7 +42,7 @@ export default function RegisterPage() {
   const passwordRef = useRef<HTMLInputElement>(null)
 
   /**
-   * Client-side validation matching Requirement 1.5:
+   * Client-side validation:
    * - Email: standard format, max 254 chars
    * - Password: 8-128 chars, at least one uppercase, one lowercase, one digit
    */
@@ -61,7 +60,7 @@ export default function RegisterPage() {
       errors.email = t('validation.invalidEmail')
     }
 
-    // Password validation (Requirement 1.5)
+    // Password validation
     if (!password) {
       errors.password = t('validation.required')
     } else if (password.length < 8) {
@@ -108,19 +107,19 @@ export default function RegisterPage() {
 
         if (result.error) {
           if (result.error.code === 'RATE_LIMIT_EXCEEDED') {
-            // Requirement 1.8: rate limit feedback
+            // rate limit feedback
             setFeedbackMessage(t('auth.rateLimitError'))
             setFeedbackType('warning')
             setShowFeedback(true)
           } else if (result.error.code === 'EMAIL_EXISTS') {
-            // Requirement 1.3: duplicate email error
+            // duplicate email error
             setFieldErrors({ email: t('auth.emailExists') })
             emailRef.current?.focus()
           } else if (
             result.error.code === 'VALIDATION_ERROR' &&
             result.error.fieldErrors
           ) {
-            // Requirement 1.6: field-level validation errors from server
+            // field-level validation errors from server
             const serverErrors: { email?: string; password?: string } = {}
             for (const fieldError of result.error.fieldErrors) {
               if (fieldError.field === 'email') {
@@ -142,7 +141,7 @@ export default function RegisterPage() {
             setShowFeedback(true)
           }
         } else {
-          // Requirement 1.1: redirect to dashboard on success
+          // redirect to dashboard on success
           router.push('/dashboard')
         }
       } catch {
@@ -157,7 +156,7 @@ export default function RegisterPage() {
       email,
       password,
       validateForm,
-      t, // Requirement 1.1: redirect to dashboard on success
+      t, // redirect to dashboard on success
       router.push,
     ],
   )

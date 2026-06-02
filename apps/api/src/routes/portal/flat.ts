@@ -34,8 +34,6 @@ const STATUS_MAP: Record<string, 'AVAILABLE' | 'OCCUPIED' | 'MAINTENANCE'> = {
  * registration flag for the given flat slug.
  *
  * No private data (NID, payments, contracts) is included in the response.
- *
- * Requirements: 1.1, 1.2, 1.3, 2.1, 5.1, 9.1, 9.2
  */
 async function portalFlatRoutes(fastify: FastifyInstance) {
   const r2BaseUrl = fastify.env.R2_PUBLIC_BASE_URL.replace(/\/$/, '')
@@ -191,8 +189,6 @@ async function portalFlatRoutes(fastify: FastifyInstance) {
    * Returns public notices for the flat's building, sorted by created_at DESC,
    * limited to 20. Notice body is truncated to 120 characters.
    * No authentication required.
-   *
-   * Requirements: 4.1, 4.2
    */
   fastify.get(
     '/:slug/notices',

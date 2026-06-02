@@ -1,4 +1,4 @@
-import { managerAssignments, rentalContracts, renters } from '@repo/db'
+import { managerAssignments } from '@repo/db'
 import { and, eq } from 'drizzle-orm'
 import type { FastifyReply, FastifyRequest } from 'fastify'
 
@@ -10,7 +10,7 @@ export interface TenantScope {
   ownerAccountId: string
   /** For managers: the building IDs they are assigned to */
   assignedBuildingIds?: string[]
-  /** For renters: the flat ID from their active rental contract */
+  /** Optional flat ID for renter-scoped access */
   assignedFlatId?: string
 }
 
@@ -26,7 +26,6 @@ declare module 'fastify' {
  * Resolves the tenant scope for the authenticated user:
  * - For ALL roles: sets ownerAccountId from request.user.ownerAccountId
  * - For managers: queries manager_assignments to resolve assigned building IDs
- * - For renters: queries renters + rental_contracts to resolve the active contract's flat ID
  *
  * Must run AFTER authGuard (requires request.user to be set).
  *
@@ -43,8 +42,6 @@ declare module 'fastify' {
  *   // request.tenantScope.assignedFlatId is set for renters
  * })
  * ```
- *
- * Requirements: 17.2, 17.5, 17.7
  */
 export async function tenantScope(
   request: FastifyRequest,
@@ -76,39 +73,6 @@ export async function tenantScope(
       )
 
     scope.assignedBuildingIds = assignments.map((a) => a.buildingId)
-  }
-
-  if (user.role === 'renter') {
-    // First find the renter record by userId
-    const renterRecords = await db
-      .select({ id: renters.id })
-      .from(renters)
-      .where(
-        and(
-          eq(renters.userId, user.id),
-          eq(renters.ownerAccountId, user.ownerAccountId),
-        ),
-      )
-
-    const renterRecord = renterRecords[0]
-    if (renterRecord) {
-      // Then find the active rental contract for this renter
-      const contracts = await db
-        .select({ flatId: rentalContracts.flatId })
-        .from(rentalContracts)
-        .where(
-          and(
-            eq(rentalContracts.renterId, renterRecord.id),
-            eq(rentalContracts.ownerAccountId, user.ownerAccountId),
-            eq(rentalContracts.status, 'active'),
-          ),
-        )
-
-      const activeContract = contracts[0]
-      if (activeContract) {
-        scope.assignedFlatId = activeContract.flatId
-      }
-    }
   }
 
   request.tenantScope = scope

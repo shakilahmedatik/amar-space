@@ -1,7 +1,7 @@
 // Feature: renter-qr-portal, Property 2: Building name truncation
 import fc from 'fast-check'
 import { describe, expect, it } from 'vitest'
-import { formatBuildingName } from '../../app/f/[flatSlug]/lib/format-building-name'
+import { formatBuildingName } from '@/lib/format-building-name'
 
 /**
  * Property 2: Building name truncation
@@ -9,8 +9,6 @@ import { formatBuildingName } from '../../app/f/[flatSlug]/lib/format-building-n
  * For any building name string, the display formatter SHALL return the string
  * unchanged if its length is 100 characters or fewer, and SHALL return the first
  * 100 characters followed by an ellipsis ("…") if its length exceeds 100 characters.
- *
- * **Validates: Requirements 2.1**
  */
 
 describe('Feature: renter-qr-portal, Property 2: Building name truncation', () => {

@@ -1,4 +1,4 @@
-import type { RequestContext } from '@repo/shared/types'
+import type { RequestContext, UserRole } from '@repo/shared/types'
 import { applyAdjustmentSchema } from '@repo/shared/validation'
 import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
@@ -24,8 +24,6 @@ import {
  * - Owner: full access (view, adjust)
  * - Manager: view deposits for assigned buildings
  * - Renter: view own deposit balance and history
- *
- * Requirements: 9.7, 9.8, 9.9, 9.12
  */
 async function depositRoutes(fastify: FastifyInstance) {
   const depositService = new DepositService(fastify.db, fastify.auditLogger)
@@ -36,7 +34,7 @@ async function depositRoutes(fastify: FastifyInstance) {
   function buildRequestContext(request: {
     user: {
       id: string
-      role: 'owner' | 'manager' | 'renter'
+      role: UserRole
       ownerAccountId: string
     }
     tenantScope: {
@@ -62,15 +60,13 @@ async function depositRoutes(fastify: FastifyInstance) {
    * GET /api/deposits/:contractId
    * Gets the deposit balance for a rental contract.
    * Owner sees all, Manager sees assigned buildings, Renter sees own.
-   *
-   * Requirements: 9.7, 9.8, 9.9
    */
   fastify.get(
     '/:contractId',
     {
       preHandler: [
         authGuard,
-        roleGuard(['owner', 'manager', 'renter']),
+        roleGuard(['owner', 'manager']),
         approvalGuard,
         tenantScope,
       ],
@@ -117,8 +113,6 @@ async function depositRoutes(fastify: FastifyInstance) {
    * POST /api/deposits/:contractId/adjust
    * Applies an advance adjustment against a contract's deposit balance.
    * Owner only.
-   *
-   * Requirements: 9.7
    */
   fastify.post(
     '/:contractId/adjust',
@@ -180,15 +174,13 @@ async function depositRoutes(fastify: FastifyInstance) {
    * GET /api/deposits/:contractId/history
    * Lists all adjustments for a contract with pagination.
    * Owner sees all, Manager sees assigned buildings, Renter sees own.
-   *
-   * Requirements: 9.7, 9.8, 9.9, 9.12
    */
   fastify.get(
     '/:contractId/history',
     {
       preHandler: [
         authGuard,
-        roleGuard(['owner', 'manager', 'renter']),
+        roleGuard(['owner', 'manager']),
         approvalGuard,
         tenantScope,
       ],

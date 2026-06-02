@@ -4,7 +4,6 @@ import {
   type Database,
   flats,
   rentalContracts,
-  renters,
 } from '@repo/db'
 import { BILL_STATUS, ROLES } from '@repo/shared/constants'
 import {
@@ -346,18 +345,6 @@ export class DepositService {
       })
 
       if (!flat || !ctx.assignedBuildingIds.includes(flat.buildingId)) {
-        throw new NotFoundError('Contract')
-      }
-    } else if (ctx.role === ROLES.RENTER) {
-      // Renter can only view their own contract
-      const renter = await this.db.query.renters.findFirst({
-        where: and(
-          eq(renters.userId, ctx.userId),
-          eq(renters.ownerAccountId, ctx.ownerAccountId),
-        ),
-      })
-
-      if (!renter || contract.renterId !== renter.id) {
         throw new NotFoundError('Contract')
       }
     }

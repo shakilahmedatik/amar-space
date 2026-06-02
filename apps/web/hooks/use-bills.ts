@@ -13,35 +13,33 @@ import {
   type GenerateBillsInput,
   generateBills,
 } from '@/lib/api-client'
+import { DEFAULT_STALE_TIME, OPTIONS_STALE_TIME } from './constants'
 
 /**
  * TanStack Query hook for bill list with filters and pagination.
- * Validates: Requirements 7.6, 7.7, 7.8, 7.11
  */
 export function useBills(params: BillListParams = {}) {
   return useQuery({
     queryKey: ['bills', params],
     queryFn: () => fetchBills(params),
-    staleTime: 30 * 1000,
+    staleTime: DEFAULT_STALE_TIME,
   })
 }
 
 /**
  * TanStack Query hook for a single bill detail with line items and payments.
- * Validates: Requirements 7.1, 7.2
  */
 export function useBill(id: string) {
   return useQuery({
     queryKey: ['bills', id],
     queryFn: () => fetchBill(id),
     enabled: !!id,
-    staleTime: 30 * 1000,
+    staleTime: DEFAULT_STALE_TIME,
   })
 }
 
 /**
  * Mutation hook for generating monthly bills.
- * Validates: Requirements 7.1, 7.6
  */
 export function useGenerateBills() {
   const queryClient = useQueryClient()
@@ -56,7 +54,6 @@ export function useGenerateBills() {
 
 /**
  * Mutation hook for adding a utility charge to a bill.
- * Validates: Requirements 7.2, 7.7
  */
 export function useAddUtilityCharge(billId: string) {
   const queryClient = useQueryClient()
@@ -76,9 +73,9 @@ export function useAddUtilityCharge(billId: string) {
  */
 export function useFlatOptions() {
   return useQuery({
-    queryKey: ['flats', 'options'],
+    queryKey: ['flats', { type: 'options' }],
     queryFn: () => fetchFlats({ pageSize: 100 }),
-    staleTime: 60 * 1000,
+    staleTime: OPTIONS_STALE_TIME,
   })
 }
 
@@ -88,9 +85,9 @@ export function useFlatOptions() {
  */
 export function useRenterOptions() {
   return useQuery({
-    queryKey: ['renters', 'options'],
+    queryKey: ['renters', { type: 'options' }],
     queryFn: () => fetchRenterOptions(),
-    staleTime: 60 * 1000,
+    staleTime: OPTIONS_STALE_TIME,
   })
 }
 

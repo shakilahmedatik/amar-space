@@ -9,47 +9,44 @@ import {
   fetchVacantFlats,
   resetRenterAccessCode,
 } from '@/lib/api-client'
+import { DEFAULT_STALE_TIME } from './constants'
 
 /**
  * TanStack Query hook for renter list with pagination.
- * Validates: Requirements 4.1
  */
 export function useRenters(page = 1, pageSize = 50) {
   return useQuery({
-    queryKey: ['renters', page, pageSize],
+    queryKey: ['renters', { page, pageSize }],
     queryFn: () => fetchRenters(page, pageSize),
-    staleTime: 30 * 1000,
+    staleTime: DEFAULT_STALE_TIME,
   })
 }
 
 /**
  * TanStack Query hook for a single renter detail.
- * Validates: Requirements 4.1, 9.12
  */
 export function useRenter(id: string) {
   return useQuery({
     queryKey: ['renters', id],
     queryFn: () => fetchRenter(id),
     enabled: !!id,
-    staleTime: 30 * 1000,
+    staleTime: DEFAULT_STALE_TIME,
   })
 }
 
 /**
  * TanStack Query hook for vacant flats (used in renter registration form).
- * Validates: Requirement 4.9
  */
 export function useVacantFlats() {
   return useQuery({
-    queryKey: ['flats', 'vacant'],
+    queryKey: ['flats', { status: 'vacant' }],
     queryFn: fetchVacantFlats,
-    staleTime: 30 * 1000,
+    staleTime: DEFAULT_STALE_TIME,
   })
 }
 
 /**
  * Mutation hook for registering a new renter.
- * Validates: Requirements 4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 4.9, 4.11, 4.12
  */
 export function useCreateRenter() {
   const queryClient = useQueryClient()

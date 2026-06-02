@@ -15,8 +15,6 @@ import { OwnerApprovalService } from '../../services/owner-approval'
  *
  * Access control:
  * - Superadmin only (enforced via roleGuard(['superadmin']))
- *
- * Requirements: 2.5, 2.6, 2.7
  */
 async function adminOwnerRoutes(fastify: FastifyInstance) {
   const ownerApprovalService = new OwnerApprovalService(

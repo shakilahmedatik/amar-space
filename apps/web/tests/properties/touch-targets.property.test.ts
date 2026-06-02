@@ -10,8 +10,6 @@ import { describe, expect, it } from 'vitest'
  * Primary action buttons (submit buttons, nav items) must have either
  * `min-h-[44px]` or `min-h-11` somewhere in the file to satisfy the
  * WCAG 2.5.5 minimum touch target size requirement.
- *
- * **Validates: Requirements 6.10**
  */
 
 // ---------------------------------------------------------------------------

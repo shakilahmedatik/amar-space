@@ -14,8 +14,6 @@ import { AdminUserService } from '../../services/admin-user'
  *
  * Access control:
  * - Superadmin only (enforced via roleGuard(['superadmin']))
- *
- * Requirements: 4.1, 4.2, 4.3, 4.5, 4.6
  */
 async function adminUserRoutes(fastify: FastifyInstance) {
   const adminUserService = new AdminUserService(fastify.db, fastify.auditLogger)
@@ -39,7 +37,7 @@ async function adminUserRoutes(fastify: FastifyInstance) {
         querystring: z.object({
           page: z.coerce.number().int().min(1).default(1),
           pageSize: z.coerce.number().int().min(1).max(50).default(50),
-          role: z.enum(['superadmin', 'owner', 'manager', 'renter']).optional(),
+          role: z.enum(['superadmin', 'owner', 'manager']).optional(),
         }),
         response: {
           200: z.object({

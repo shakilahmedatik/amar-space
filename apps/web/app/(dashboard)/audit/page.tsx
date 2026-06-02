@@ -23,7 +23,6 @@ import { useTranslation } from '@/lib/i18n'
  * Audit log viewer page — /audit
  * Displays paginated audit logs with filters and expandable rows.
  * Owner-only access.
- * Validates: Requirements 13.3, 13.4, 13.5
  */
 export default function AuditPage() {
   const { role } = useSession()

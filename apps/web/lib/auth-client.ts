@@ -5,8 +5,6 @@
 
 import { BASE_URL } from './api'
 
-const API_URL = BASE_URL
-
 interface SignInResponse {
   user?: {
     id: string
@@ -33,7 +31,7 @@ interface SignInCredentials {
 export async function signIn(
   credentials: SignInCredentials,
 ): Promise<SignInResponse> {
-  const response = await fetch(`${API_URL}/api/auth/sign-in/email`, {
+  const response = await fetch(`${BASE_URL}/api/auth/sign-in/email`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
@@ -84,7 +82,7 @@ export async function signIn(
  */
 export async function getSession(): Promise<SignInResponse['user'] | null> {
   try {
-    const response = await fetch(`${API_URL}/api/auth/get-session`, {
+    const response = await fetch(`${BASE_URL}/api/auth/get-session`, {
       method: 'GET',
       credentials: 'include',
     })
@@ -110,7 +108,7 @@ export async function getSession(): Promise<SignInResponse['user'] | null> {
 export async function signUp(
   credentials: SignInCredentials,
 ): Promise<SignUpResponse> {
-  const response = await fetch(`${API_URL}/api/register`, {
+  const response = await fetch(`${BASE_URL}/api/register`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
@@ -203,7 +201,7 @@ interface SignUpResponse {
  * Sign out the current user.
  */
 export async function signOut(): Promise<void> {
-  await fetch(`${API_URL}/api/auth/sign-out`, {
+  await fetch(`${BASE_URL}/api/auth/sign-out`, {
     method: 'POST',
     credentials: 'include',
   })

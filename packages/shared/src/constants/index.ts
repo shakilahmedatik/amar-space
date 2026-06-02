@@ -2,7 +2,6 @@
 export const ROLES = {
   OWNER: 'owner',
   MANAGER: 'manager',
-  RENTER: 'renter',
 } as const
 
 export type Role = (typeof ROLES)[keyof typeof ROLES]
@@ -195,15 +194,6 @@ export const ROLE_PERMISSIONS = {
     'issues:write',
     'notices:read',
     'notices:write',
-  ],
-  [ROLES.RENTER]: [
-    'flats:read',
-    'bills:read',
-    'payments:read',
-    'deposits:read',
-    'maintenance:read',
-    'maintenance:write',
-    'notices:read',
   ],
 } as const
 

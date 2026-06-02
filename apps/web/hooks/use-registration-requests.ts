@@ -7,6 +7,7 @@ import {
   fetchRegistrationRequests,
   rejectRegistration,
 } from '@/lib/api-client'
+import { DEFAULT_STALE_TIME } from './constants'
 
 /**
  * Hook for fetching pending registration requests.
@@ -15,7 +16,7 @@ export function useRegistrationRequests() {
   return useQuery({
     queryKey: ['registration-requests'],
     queryFn: fetchRegistrationRequests,
-    staleTime: 30 * 1000,
+    staleTime: DEFAULT_STALE_TIME,
   })
 }
 

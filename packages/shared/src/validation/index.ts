@@ -353,7 +353,7 @@ export const auditLogQuerySchema = z.object({
 
 export const approvalStatusEnum = z.enum(['pending', 'approved', 'rejected'])
 
-export const userRoleEnum = z.enum(['superadmin', 'owner', 'manager', 'renter'])
+export const userRoleEnum = z.enum(['superadmin', 'owner', 'manager'])
 
 export const createManagerSchema = z.object({
   email: emailSchema,

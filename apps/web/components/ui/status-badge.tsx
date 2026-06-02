@@ -19,6 +19,9 @@ type StatusVariant =
   | 'active'
   | 'terminated'
   | 'expired'
+  | 'AVAILABLE'
+  | 'OCCUPIED'
+  | 'MAINTENANCE'
 
 interface StatusBadgeProps {
   status: StatusVariant | string
@@ -28,7 +31,6 @@ interface StatusBadgeProps {
 
 /**
  * Color-coded status indicator badge built on shadcn Badge.
- * Validates: Requirement 6.1, 6.2, 6.4
  */
 export function StatusBadge({ status, label, className }: StatusBadgeProps) {
   const { t } = useTranslation()
@@ -87,6 +89,21 @@ function getStatusConfig(status: string): {
         colorClasses: 'bg-error-bg text-error-text',
         dotClass: 'bg-error-text',
       }
+    case 'AVAILABLE':
+      return {
+        colorClasses: 'bg-success-bg text-success-text',
+        dotClass: 'bg-success-text',
+      }
+    case 'OCCUPIED':
+      return {
+        colorClasses: 'bg-brand-blue-200 text-brand-blue-deep',
+        dotClass: 'bg-brand-blue-deep',
+      }
+    case 'MAINTENANCE':
+      return {
+        colorClasses: 'bg-warning-bg text-warning-text',
+        dotClass: 'bg-warning-text',
+      }
     default:
       return {
         colorClasses: 'bg-surface text-steel',
@@ -111,6 +128,9 @@ function getStatusLabel(status: string, t: (key: string) => string): string {
     active: 'Active',
     terminated: 'Terminated',
     expired: 'Expired',
+    AVAILABLE: 'খালি',
+    OCCUPIED: 'ভাড়া হয়েছে',
+    MAINTENANCE: 'রক্ষণাবেক্ষণ',
   }
   return labelMap[status] || status
 }

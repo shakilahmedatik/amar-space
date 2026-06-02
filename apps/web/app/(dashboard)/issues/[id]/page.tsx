@@ -29,7 +29,6 @@ const VALID_TRANSITIONS: Record<IssueStatus, IssueStatus[]> = {
  * Issue detail page — /issues/[id]
  * Shows issue info with status, assignee, resolution notes.
  * Owner/Manager can update status and assign.
- * Validates: Requirements 11.1, 11.2, 11.4, 11.5
  */
 export default function IssueDetailPage() {
   const { user, role } = useSession()

@@ -1,5 +1,7 @@
 import type { UserRole } from '../roles'
 
+export type { UserRole }
+
 /** Service context injected into domain services */
 export interface ServiceContext {
   db: unknown

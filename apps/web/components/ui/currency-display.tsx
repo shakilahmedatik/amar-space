@@ -10,7 +10,6 @@ interface CurrencyDisplayProps {
 
 /**
  * Displays a monetary amount in BDT with Bangladeshi numbering.
- * Validates: Requirement 15.3
  */
 export function CurrencyDisplay({
   amount,

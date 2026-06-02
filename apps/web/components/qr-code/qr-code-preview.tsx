@@ -19,7 +19,6 @@ interface QrCodePreviewProps {
 /**
  * QR code preview component that displays the generated QR code image
  * with loading and error states.
- * Validates: Requirements 3.1, 3.2, 3.3, 3.5, 3.6, 7.7, 8.4
  */
 export function QrCodePreview({
   blobUrl,

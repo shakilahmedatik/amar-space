@@ -14,7 +14,6 @@ import { useTranslation } from '@/lib/i18n'
 /**
  * New issue form page — /issues/new
  * Allows Owner/Manager to create a building-level issue.
- * Validates: Requirements 11.1, 11.7
  */
 export default function NewIssuePage() {
   const { t } = useTranslation()

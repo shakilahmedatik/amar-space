@@ -10,8 +10,6 @@ interface ErrorProps {
 /**
  * Error boundary for the portal page.
  * Displays Bangla error messages with a retry button.
- *
- * Requirements: 11.3, 11.5
  */
 export default function PortalError({ error, reset }: ErrorProps) {
   return (

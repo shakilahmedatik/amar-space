@@ -1,4 +1,4 @@
-import type { RequestContext } from '@repo/shared/types'
+import type { RequestContext, UserRole } from '@repo/shared/types'
 import {
   assignIssueSchema,
   createIssueSchema,
@@ -28,9 +28,7 @@ import {
  *
  * Access control:
  * - Owner/Manager: full access (create, view, update status, assign)
- * - Renter: denied access (403) per Requirement 11.5
- *
- * Requirements: 11.5, 11.6
+ * - Renter: denied access (403)
  */
 async function issueRoutes(fastify: FastifyInstance) {
   const issueService = new IssueService(fastify.db, fastify.auditLogger)
@@ -41,7 +39,7 @@ async function issueRoutes(fastify: FastifyInstance) {
   function buildRequestContext(request: {
     user: {
       id: string
-      role: 'owner' | 'manager' | 'renter'
+      role: UserRole
       ownerAccountId: string
     }
     tenantScope: {
@@ -67,8 +65,6 @@ async function issueRoutes(fastify: FastifyInstance) {
    * GET /api/issues
    * Lists building-level issues with filtering and pagination.
    * Owner/Manager only — Renter is denied access.
-   *
-   * Requirements: 11.5, 11.6
    */
   fastify.get(
     '/',
@@ -174,8 +170,6 @@ async function issueRoutes(fastify: FastifyInstance) {
   /**
    * POST /api/issues
    * Creates a new building-level issue. Owner/Manager only.
-   *
-   * Requirements: 11.1, 11.5
    */
   fastify.post(
     '/',
@@ -244,8 +238,6 @@ async function issueRoutes(fastify: FastifyInstance) {
   /**
    * GET /api/issues/:id
    * Gets an issue by ID. Owner/Manager only.
-   *
-   * Requirements: 11.5
    */
   fastify.get(
     '/:id',
@@ -304,8 +296,6 @@ async function issueRoutes(fastify: FastifyInstance) {
   /**
    * PUT /api/issues/:id/status
    * Updates the status of an issue. Owner/Manager only.
-   *
-   * Requirements: 11.3, 11.4, 11.5, 11.8, 11.9
    */
   fastify.put(
     '/:id/status',
@@ -370,8 +360,6 @@ async function issueRoutes(fastify: FastifyInstance) {
   /**
    * PUT /api/issues/:id/assign
    * Assigns an issue to a manager. Owner/Manager only.
-   *
-   * Requirements: 11.2, 11.5, 11.10
    */
   fastify.put(
     '/:id/assign',

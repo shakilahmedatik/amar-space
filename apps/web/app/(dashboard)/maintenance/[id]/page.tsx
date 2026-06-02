@@ -57,7 +57,6 @@ function getStatusButtonClasses(status: MaintenanceStatus): string {
  * Shows status badge, comments, attachments.
  * Owner/Manager can update status.
  * All roles can add comments.
- * Validates: Requirements 10.1, 10.2, 10.5, 10.6, 10.7, 10.8
  */
 export default function MaintenanceDetailPage() {
   const { role } = useSession()

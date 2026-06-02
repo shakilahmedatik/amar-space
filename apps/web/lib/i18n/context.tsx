@@ -19,8 +19,6 @@ import {
   type TranslationDictionary,
 } from './types'
 
-const dictionaries: Record<Locale, TranslationDictionary> = { bn, en }
-
 /**
  * Flatten a nested translation dictionary into dot-notation keys.
  * e.g. { common: { save: 'Save' } } → { 'common.save': 'Save' }
@@ -46,8 +44,8 @@ function flattenDictionary(
 
 // Pre-flatten dictionaries for fast lookup
 const flatDictionaries: Record<Locale, FlatTranslations> = {
-  bn: flattenDictionary(dictionaries.bn),
-  en: flattenDictionary(dictionaries.en),
+  bn: flattenDictionary(bn),
+  en: flattenDictionary(en),
 }
 
 interface I18nContextValue {

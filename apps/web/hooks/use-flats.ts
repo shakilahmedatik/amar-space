@@ -13,29 +13,28 @@ import {
   type UpdateFlatInput,
   updateFlat,
 } from '@/lib/api-client'
+import { DEFAULT_STALE_TIME, OPTIONS_STALE_TIME } from './constants'
 
 /**
  * TanStack Query hook for flat list with filters and pagination.
- * Validates: Requirements 6.1, 6.11
  */
 export function useFlats(params: FlatListParams = {}) {
   return useQuery({
     queryKey: ['flats', params],
     queryFn: () => fetchFlats(params),
-    staleTime: 30 * 1000,
+    staleTime: DEFAULT_STALE_TIME,
   })
 }
 
 /**
  * TanStack Query hook for a single flat detail.
- * Validates: Requirement 6.1
  */
 export function useFlat(id: string) {
   return useQuery({
     queryKey: ['flats', id],
     queryFn: () => fetchFlat(id),
     enabled: !!id,
-    staleTime: 30 * 1000,
+    staleTime: DEFAULT_STALE_TIME,
   })
 }
 
@@ -44,15 +43,14 @@ export function useFlat(id: string) {
  */
 export function useBuildings() {
   return useQuery({
-    queryKey: ['buildings', 'list'],
+    queryKey: ['buildings', { type: 'list' }],
     queryFn: fetchBuildingsList,
-    staleTime: 60 * 1000,
+    staleTime: OPTIONS_STALE_TIME,
   })
 }
 
 /**
  * Mutation hook for creating a flat.
- * Validates: Requirement 6.1
  */
 export function useCreateFlat() {
   const queryClient = useQueryClient()
@@ -66,7 +64,6 @@ export function useCreateFlat() {
 
 /**
  * Mutation hook for updating a flat (including status transitions).
- * Validates: Requirements 6.7, 6.8
  */
 export function useUpdateFlat() {
   const queryClient = useQueryClient()
@@ -82,7 +79,6 @@ export function useUpdateFlat() {
 
 /**
  * Mutation hook for deleting a flat (only Vacant flats).
- * Validates: Requirement 6.13
  */
 export function useDeleteFlat() {
   const queryClient = useQueryClient()
@@ -96,8 +92,6 @@ export function useDeleteFlat() {
 
 /**
  * Helper: Get valid status transitions for a flat.
- * Validates: Requirement 6.14
- *
  * Valid transitions:
  * - Vacant → Occupied (via renter assignment, not manual)
  * - Vacant → Maintenance

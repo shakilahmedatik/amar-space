@@ -1,4 +1,4 @@
-import type { RequestContext } from '@repo/shared/types'
+import type { RequestContext, UserRole } from '@repo/shared/types'
 import {
   addMaintenanceCommentSchema,
   updateMaintenanceStatusSchema,
@@ -31,8 +31,6 @@ import {
  * Access control:
  * - Renter: create requests, add comments, view own requests
  * - Owner/Manager: view all/assigned, update status, add comments
- *
- * Requirements: 10.6, 10.7, 10.8, 11.5, 11.6
  */
 async function maintenanceRoutes(fastify: FastifyInstance) {
   const maintenanceService = new MaintenanceService(
@@ -47,7 +45,7 @@ async function maintenanceRoutes(fastify: FastifyInstance) {
   function buildRequestContext(request: {
     user: {
       id: string
-      role: 'owner' | 'manager' | 'renter'
+      role: UserRole
       ownerAccountId: string
     }
     tenantScope: {
@@ -73,15 +71,13 @@ async function maintenanceRoutes(fastify: FastifyInstance) {
    * GET /api/maintenance
    * Lists maintenance requests with filtering and pagination.
    * All authenticated users can list (scoped by role).
-   *
-   * Requirements: 10.6, 10.7, 10.8, 10.10
    */
   fastify.get(
     '/',
     {
       preHandler: [
         authGuard,
-        roleGuard(['owner', 'manager', 'renter']),
+        roleGuard(['owner', 'manager']),
         approvalGuard,
         tenantScope,
       ],
@@ -150,15 +146,13 @@ async function maintenanceRoutes(fastify: FastifyInstance) {
   /**
    * POST /api/maintenance
    * Creates a new maintenance request. Renter only.
-   *
-   * Requirements: 10.1, 10.8
    */
   fastify.post(
     '/',
     {
       preHandler: [
         authGuard,
-        roleGuard(['renter']),
+        roleGuard(['owner', 'manager']),
         approvalGuard,
         tenantScope,
       ],
@@ -166,7 +160,7 @@ async function maintenanceRoutes(fastify: FastifyInstance) {
         tags: ['Maintenance'],
         summary: 'Create maintenance request',
         description:
-          "Creates a new maintenance request for the renter's assigned flat.\n\n**Roles: renter**",
+          'Creates a new maintenance request.\n\n**Roles: owner, manager**',
         security: [{ BearerAuth: [] }, { CookieAuth: [] }],
         consumes: ['multipart/form-data'],
         body: z
@@ -238,15 +232,13 @@ async function maintenanceRoutes(fastify: FastifyInstance) {
    * GET /api/maintenance/:id
    * Gets a maintenance request by ID.
    * All authenticated users can view (scoped by role).
-   *
-   * Requirements: 10.6, 10.7, 10.8
    */
   fastify.get(
     '/:id',
     {
       preHandler: [
         authGuard,
-        roleGuard(['owner', 'manager', 'renter']),
+        roleGuard(['owner', 'manager']),
         approvalGuard,
         tenantScope,
       ],
@@ -298,8 +290,6 @@ async function maintenanceRoutes(fastify: FastifyInstance) {
   /**
    * PUT /api/maintenance/:id/status
    * Updates the status of a maintenance request. Owner/Manager only.
-   *
-   * Requirements: 10.6, 10.7
    */
   fastify.put(
     '/:id/status',
@@ -358,15 +348,13 @@ async function maintenanceRoutes(fastify: FastifyInstance) {
    * POST /api/maintenance/:id/comments
    * Adds a comment to a maintenance request.
    * All authenticated users can comment (Renter on own, Owner/Manager on any accessible).
-   *
-   * Requirements: 10.8
    */
   fastify.post(
     '/:id/comments',
     {
       preHandler: [
         authGuard,
-        roleGuard(['owner', 'manager', 'renter']),
+        roleGuard(['owner', 'manager']),
         approvalGuard,
         tenantScope,
       ],

@@ -12,8 +12,6 @@ interface DateDisplayProps {
 /**
  * Displays a date in DD/MM/YYYY format following Bangla locale convention.
  * Uses the shared formatDate utility for consistent formatting.
- *
- * Validates: Requirement 15.4
  */
 export function DateDisplay({ date, className = '' }: DateDisplayProps) {
   const dateObj = typeof date === 'string' ? new Date(date) : date

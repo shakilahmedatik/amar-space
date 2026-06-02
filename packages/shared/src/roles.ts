@@ -1,5 +1,5 @@
 /** Extended user roles including superadmin */
-export type UserRole = 'superadmin' | 'owner' | 'manager' | 'renter'
+export type UserRole = 'superadmin' | 'owner' | 'manager'
 
 /** Approval status for owner accounts */
 export type ApprovalStatus = 'pending' | 'approved' | 'rejected'
@@ -12,7 +12,6 @@ export const ROLE_ORDINALS: Record<UserRole, number> = {
   superadmin: 4,
   owner: 3,
   manager: 2,
-  renter: 1,
 }
 
 /**

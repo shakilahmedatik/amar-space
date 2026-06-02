@@ -13,11 +13,12 @@ interface FormFieldProps {
   children: ReactNode
   helpText?: string
   htmlFor?: string
+  /** Optional icon rendered before the label text */
+  icon?: ReactNode
 }
 
 /**
  * Form field wrapper with label-above-input pattern.
- * Validates: Requirement 16.3
  */
 export function FormField({
   label,
@@ -27,6 +28,7 @@ export function FormField({
   children,
   helpText,
   htmlFor,
+  icon,
 }: FormFieldProps) {
   const generatedId = useId()
   const fieldId = htmlFor || generatedId
@@ -35,7 +37,8 @@ export function FormField({
 
   return (
     <div className={cn('mb-4', className)}>
-      <Label htmlFor={fieldId} className="block mb-1.5">
+      <Label htmlFor={fieldId} className="flex items-center gap-1.5 mb-1.5">
+        {icon && <span className="shrink-0">{icon}</span>}
         {label}
         {required && (
           <span aria-hidden="true" className="text-error-text ml-1">

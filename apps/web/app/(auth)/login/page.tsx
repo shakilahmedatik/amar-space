@@ -12,12 +12,11 @@ import { useTranslation } from '@/lib/i18n'
 
 /**
  * Login page — /login
- * Validates: Requirements 2.1, 2.2, 2.3, 20.5
  *
  * - Email + password form with Bangla-first labels
- * - Generic error message on auth failure (Req 2.2)
- * - Rate limit feedback (Req 2.3)
- * - Redirect to dashboard on success (Req 2.1)
+ * - Generic error message on auth failure
+ * - Rate limit feedback
+ * - Redirect to dashboard on success
  * - Accessible: labels, aria attributes, focus management
  * - Mobile-first, 44x44px touch targets, 16px body text
  */
@@ -84,11 +83,11 @@ export default function LoginPage() {
 
         if (result.error) {
           if (result.error.code === 'RATE_LIMIT_EXCEEDED') {
-            // Requirement 2.3: rate limit feedback
+            // rate limit feedback
             setFeedbackMessage(t('auth.rateLimitError'))
             setFeedbackType('warning')
           } else {
-            // Requirement 2.2: generic auth failure message
+            // generic auth failure message
             setFeedbackMessage(t('auth.loginError'))
             setFeedbackType('error')
           }
@@ -96,7 +95,7 @@ export default function LoginPage() {
           // Focus email field for retry
           emailRef.current?.focus()
         } else {
-          // Requirement 2.1: redirect to dashboard on success
+          // redirect to dashboard on success
           router.push('/dashboard')
         }
       } catch {
@@ -111,7 +110,7 @@ export default function LoginPage() {
       email,
       password,
       validateForm,
-      t, // Requirement 2.1: redirect to dashboard on success
+      t, // redirect to dashboard on success
       router.push,
     ],
   )

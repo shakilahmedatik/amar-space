@@ -1,7 +1,6 @@
 'use client'
 
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 import { useCallback, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { DataTable, type DataTableColumn } from '@/components/ui/data-table'
@@ -23,12 +22,10 @@ import { useTranslation } from '@/lib/i18n'
  * Issue list page — /issues
  * Displays paginated list of building-level issues with multi-field filters.
  * Owner/Manager can create new issues.
- * Validates: Requirements 11.1, 11.5, 11.6
  */
 export default function IssuesPage() {
   const { role } = useSession()
   const { t } = useTranslation()
-  const _router = useRouter()
   const [page, setPage] = useState(1)
 
   // Filter state

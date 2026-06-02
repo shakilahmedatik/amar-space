@@ -21,7 +21,6 @@ import { useTranslation } from '@/lib/i18n'
  * Bill detail page — /bills/[id]
  * Shows bill info with line items and payment history.
  * Owner/Manager can add utility charges (max 20 line items).
- * Validates: Requirements 7.1, 7.2, 7.7, 7.8
  */
 export default function BillDetailPage() {
   const { role } = useSession()

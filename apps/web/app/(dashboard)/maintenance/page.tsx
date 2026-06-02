@@ -8,7 +8,6 @@ import { DataTable, type DataTableColumn } from '@/components/ui/data-table'
 import { ErrorFeedback } from '@/components/ui/error-feedback'
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton'
 import { StatusBadge } from '@/components/ui/status-badge'
-import { useSession } from '@/contexts/session-context'
 import { useBuildings } from '@/hooks/use-buildings'
 import { useMaintenanceRequests } from '@/hooks/use-maintenance'
 import type {
@@ -22,10 +21,8 @@ import { useTranslation } from '@/lib/i18n'
  * Maintenance request list page — /maintenance
  * Displays paginated list of maintenance requests with filters.
  * Renter can create new requests.
- * Validates: Requirements 10.6, 10.7, 10.8, 10.10
  */
 export default function MaintenancePage() {
-  const { role } = useSession()
   const { t } = useTranslation()
   const _router = useRouter()
   const [page, setPage] = useState(1)
@@ -65,7 +62,7 @@ export default function MaintenancePage() {
         break
     }
   }, [])
-  const canCreate = role === 'renter'
+  const canCreate = true
 
   const filters = [
     {

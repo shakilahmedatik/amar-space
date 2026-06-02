@@ -22,7 +22,6 @@ interface UseQrCodeReturn {
 /**
  * TanStack Query hook for fetching a QR code image as a blob.
  * Handles timeout (15s), retry tracking, and blob URL cleanup.
- * Validates: Requirements 1.3, 2.3, 3.3, 3.4, 7.1, 7.5, 7.6, 7.7
  */
 export function useQrCode({
   flatId,

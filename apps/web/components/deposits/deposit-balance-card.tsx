@@ -12,7 +12,6 @@ interface DepositBalanceCardProps {
 /**
  * Displays the deposit balance prominently on the renter detail page.
  * Visible without scrolling/navigation to sub-page.
- * Validates: Requirements 9.12
  */
 export function DepositBalanceCard({
   securityDepositAmount,

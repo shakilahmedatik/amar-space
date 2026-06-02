@@ -12,7 +12,6 @@ import { useTranslation } from '@/lib/i18n'
  * Manager Dashboard Component
  * Shows: assigned buildings, flats with occupancy (max 20), unpaid bills (BDT),
  * 10 pending maintenance requests.
- * Validates: Requirements 20.2, 20.4, 20.7
  */
 export function ManagerDashboard() {
   const { t } = useTranslation()

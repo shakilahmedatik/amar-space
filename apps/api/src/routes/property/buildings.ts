@@ -1,4 +1,4 @@
-import type { RequestContext } from '@repo/shared/types'
+import type { RequestContext, UserRole } from '@repo/shared/types'
 import {
   createBuildingSchema,
   updateBuildingSchema,
@@ -27,8 +27,6 @@ import {
  * Access control:
  * - Owner: full access (create, read, update)
  * - Manager: read-only access (GET only)
- *
- * Requirements: 5.5, 6.7, 6.8
  */
 async function buildingRoutes(fastify: FastifyInstance) {
   const buildingService = new BuildingService(
@@ -43,7 +41,7 @@ async function buildingRoutes(fastify: FastifyInstance) {
   function buildRequestContext(request: {
     user: {
       id: string
-      role: 'owner' | 'manager' | 'renter'
+      role: UserRole
       ownerAccountId: string
     }
     tenantScope: { ownerAccountId: string; assignedBuildingIds?: string[] }

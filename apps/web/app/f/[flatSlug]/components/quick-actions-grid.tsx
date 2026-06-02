@@ -1,7 +1,7 @@
 'use client'
 
 import { MessageCircle, Phone } from 'lucide-react'
-import { trackEvent } from '../lib/analytics'
+import { trackEvent } from '@/lib/analytics'
 
 interface QuickActionsGridProps {
   whatsappGroupLink: string | null
@@ -18,8 +18,6 @@ interface QuickActionsGridProps {
  *
  * All buttons meet the 48×48px minimum touch target requirement.
  * Tracks "WhatsApp Clicked" analytics event on WhatsApp button tap.
- *
- * Validates: Requirements 3.1, 3.2, 3.3, 3.6, 3.7
  */
 export function QuickActionsGrid({
   whatsappGroupLink,

@@ -19,8 +19,6 @@ import type { FastifyReply, FastifyRequest } from 'fastify'
  *   preHandler: [authGuard, roleGuard(['owner']), approvalGuard, tenantScope]
  * }, handler)
  * ```
- *
- * Requirements: 2.2, 5.4, 5.5
  */
 export async function approvalGuard(
   request: FastifyRequest,

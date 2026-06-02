@@ -11,41 +11,39 @@ import {
   type RecordPaymentInput,
   recordPayment,
 } from '@/lib/api-client'
+import { DEFAULT_STALE_TIME, OPTIONS_STALE_TIME } from './constants'
 
 /**
  * TanStack Query hook for payment list with filters and pagination.
- * Validates: Requirements 8.5, 8.9
  */
 export function usePayments(params: PaymentListParams = {}) {
   return useQuery({
     queryKey: ['payments', params],
     queryFn: () => fetchPayments(params),
-    staleTime: 30 * 1000,
+    staleTime: DEFAULT_STALE_TIME,
   })
 }
 
 /**
  * TanStack Query hook for a single payment receipt.
- * Validates: Requirement 8.8
  */
 export function usePaymentReceipt(id: string) {
   return useQuery({
     queryKey: ['payments', id],
     queryFn: () => fetchPayment(id),
     enabled: !!id,
-    staleTime: 30 * 1000,
+    staleTime: DEFAULT_STALE_TIME,
   })
 }
 
 /**
  * TanStack Query hook for unpaid bills (used in payment recording form).
- * Validates: Requirement 8.1
  */
 export function useUnpaidBills() {
   return useQuery({
-    queryKey: ['bills', 'unpaid'],
+    queryKey: ['bills', { status: 'unpaid' }],
     queryFn: fetchUnpaidBills,
-    staleTime: 30 * 1000,
+    staleTime: DEFAULT_STALE_TIME,
   })
 }
 
@@ -54,15 +52,14 @@ export function useUnpaidBills() {
  */
 export function useRenterOptions() {
   return useQuery({
-    queryKey: ['renters', 'options'],
+    queryKey: ['renters', { type: 'options' }],
     queryFn: fetchRenterOptions,
-    staleTime: 60 * 1000,
+    staleTime: OPTIONS_STALE_TIME,
   })
 }
 
 /**
  * Mutation hook for recording a payment.
- * Validates: Requirements 8.1, 8.2, 8.3
  */
 export function useRecordPayment() {
   const queryClient = useQueryClient()

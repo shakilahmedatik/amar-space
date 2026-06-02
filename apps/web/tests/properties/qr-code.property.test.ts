@@ -14,8 +14,6 @@ import { sanitizeFilename } from '../../lib/qr-code-utils'
  *
  * For any translation key used by the QR code feature, the key resolves to
  * a non-empty string in both the Bangla (bn) and English (en) locale dictionaries.
- *
- * **Validates: Requirements 10.1, 10.3**
  */
 
 // ---------------------------------------------------------------------------

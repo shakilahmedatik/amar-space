@@ -10,7 +10,7 @@ import {
 } from 'react'
 import { getSession } from '@/lib/auth-client'
 
-export type UserRole = 'owner' | 'manager' | 'renter'
+export type UserRole = 'owner' | 'manager'
 
 export interface SessionUser {
   id: string

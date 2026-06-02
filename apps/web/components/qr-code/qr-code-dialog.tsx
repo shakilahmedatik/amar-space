@@ -26,8 +26,6 @@ const MAX_RETRIES = 3
  * QR Code Dialog component for previewing, downloading, and printing QR codes.
  * Built on @radix-ui/react-dialog with full accessibility support.
  * Responsive: full-screen sheet below 640px, centered modal above.
- * Validates: Requirements 1.3, 1.5, 1.6, 3.1, 4.1, 4.2, 4.3, 4.4, 4.5, 4.6,
- * 5.1, 5.2, 5.3, 5.4, 5.5, 7.1, 7.4, 7.5, 7.6, 7.7, 8.1, 8.5, 9.1, 9.2, 9.3, 9.7, 9.8
  */
 export function QrCodeDialog({
   open,

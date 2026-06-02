@@ -1,6 +1,4 @@
-import { portalSessions } from '@repo/db'
 import type { ApiErrorResponse } from '@repo/shared/types'
-import { eq } from 'drizzle-orm'
 import type { FastifyReply, FastifyRequest } from 'fastify'
 
 /**
@@ -8,7 +6,7 @@ import type { FastifyReply, FastifyRequest } from 'fastify'
  */
 export interface AuthUser {
   id: string
-  role: 'superadmin' | 'owner' | 'manager' | 'renter'
+  role: 'superadmin' | 'owner' | 'manager'
   ownerAccountId: string
   email: string
   approvalStatus?: 'pending' | 'approved' | 'rejected'
@@ -70,8 +68,6 @@ function toWebHeaders(request: FastifyRequest, _baseURL: string): Headers {
  * import { authGuard } from '../middleware/auth-guard'
  * app.get('/protected', { preHandler: [authGuard] }, handler)
  * ```
- *
- * Requirements: 2.4, 2.6, 17.2
  */
 export async function authGuard(
   request: FastifyRequest,
@@ -81,84 +77,10 @@ export async function authGuard(
 
   const headers = toWebHeaders(request, env.AUTH_BASE_URL)
 
-  const isPortalRequest =
-    request.headers['x-portal-request'] === 'true' ||
-    request.url.startsWith('/api/portal/')
-
   try {
-    if (isPortalRequest) {
-      // Prioritize portal session check for portal requests to avoid conflicts with owner/manager Better Auth sessions
-      const sessionId = request.cookies?.portal_session
-      if (sessionId && request.server.db) {
-        const portalSession =
-          await request.server.db.query.portalSessions.findFirst({
-            where: eq(portalSessions.id, sessionId),
-            with: {
-              renter: {
-                with: {
-                  user: true,
-                },
-              },
-            },
-          })
-
-        if (
-          portalSession &&
-          new Date(portalSession.expiresAt) > new Date() &&
-          portalSession.renter?.user
-        ) {
-          const renterUser = portalSession.renter.user
-          request.user = {
-            id: renterUser.id,
-            role: 'renter',
-            ownerAccountId: renterUser.ownerAccountId ?? '',
-            email: renterUser.email,
-            approvalStatus: 'approved',
-            isActive: renterUser.isActive ?? true,
-          }
-          return
-        }
-      }
-    }
-
     const session = await auth.api.getSession({ headers })
 
     if (!session?.user) {
-      // Fallback: check portal_session cookie if not checked already
-      if (!isPortalRequest) {
-        const sessionId = request.cookies?.portal_session
-        if (sessionId && request.server.db) {
-          const portalSession =
-            await request.server.db.query.portalSessions.findFirst({
-              where: eq(portalSessions.id, sessionId),
-              with: {
-                renter: {
-                  with: {
-                    user: true,
-                  },
-                },
-              },
-            })
-
-          if (
-            portalSession &&
-            new Date(portalSession.expiresAt) > new Date() &&
-            portalSession.renter?.user
-          ) {
-            const renterUser = portalSession.renter.user
-            request.user = {
-              id: renterUser.id,
-              role: 'renter',
-              ownerAccountId: renterUser.ownerAccountId ?? '',
-              email: renterUser.email,
-              approvalStatus: 'approved',
-              isActive: renterUser.isActive ?? true,
-            }
-            return
-          }
-        }
-      }
-
       const response: ApiErrorResponse = {
         requestId: request.id,
         statusCode: 401,
@@ -172,7 +94,6 @@ export async function authGuard(
 
     // Check if the user account is deactivated
     if (user.isActive === false) {
-      // Invalidate the current session via better-auth API
       const sessionToken = (session.session as Record<string, unknown>)
         ?.token as string | undefined
       if (sessionToken) {
@@ -195,7 +116,6 @@ export async function authGuard(
       return reply.status(401).send(response)
     }
 
-    // For owners, ownerAccountId is their own ID (they ARE the owner account)
     const role = (user.role as string) || 'owner'
     const ownerAccountId =
       role === 'owner'

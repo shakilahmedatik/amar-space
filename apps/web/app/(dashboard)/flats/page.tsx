@@ -18,7 +18,6 @@ import { useTranslation } from '@/lib/i18n'
 /**
  * Flat list page — /flats
  * Displays paginated flat list with status and building filters.
- * Validates: Requirements 6.1, 6.2, 6.7, 6.8, 6.11
  */
 export default function FlatsPage() {
   const { t } = useTranslation()

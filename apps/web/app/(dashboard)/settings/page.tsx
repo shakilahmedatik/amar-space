@@ -17,7 +17,6 @@ import { type Locale, useTranslation } from '@/lib/i18n'
  * User settings page — /settings
  * Provides language preference toggle with server-side persistence
  * and displays current user role and account info.
- * Validates: Requirements 15.5, 15.6
  */
 export default function SettingsPage() {
   const { user } = useSession()
@@ -48,18 +47,18 @@ export default function SettingsPage() {
 
   /**
    * Handle language toggle.
-   * Updates the locale immediately (within 2 seconds, Req 15.6)
-   * and persists server-side for authenticated users (Req 15.5).
+   * Updates the locale immediately (within 2 seconds)
+   * and persists server-side for authenticated users.
    */
   const handleLanguageChange = useCallback(
     async (newLocale: Locale) => {
-      // Update UI immediately — no page reload required (Req 15.6)
+      // Update UI immediately — no page reload required
       setLocale(newLocale)
       setIsSavingLanguage(true)
       setFeedback(null)
 
       try {
-        // Persist server-side for authenticated users (Req 15.5)
+        // Persist server-side for authenticated users
         await updateLanguagePreference(newLocale)
         setFeedback({
           message: t('settings.languageUpdateSuccess'),

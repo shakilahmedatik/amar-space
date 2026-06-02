@@ -11,7 +11,6 @@ import { useTranslation } from '@/lib/i18n'
 /**
  * Payment receipt display page — /payments/[id]
  * Shows payment receipt with unique alphanumeric reference (12-20 chars).
- * Validates: Requirements 8.8
  */
 export default function PaymentReceiptPage() {
   const { t } = useTranslation()

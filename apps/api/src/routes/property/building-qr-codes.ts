@@ -19,8 +19,6 @@ import { errorResponseSchema } from '../../utils/schemas'
  * Access control:
  * - Owner: can generate bulk QR codes for any building within their ownerAccountId
  * - Manager: can only generate bulk QR codes for buildings in their assigned buildings
- *
- * Requirements: 5.1, 5.2, 5.3, 5.4, 5.5, 2.1, 2.2, 2.3
  */
 async function buildingQrCodeRoutes(fastify: FastifyInstance) {
   const qrCodeService = new QrCodeService(fastify.env.FRONTEND_URL)

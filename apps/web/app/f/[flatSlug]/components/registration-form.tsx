@@ -14,16 +14,15 @@ import {
   Heart,
   Loader2,
   Phone,
-  RefreshCw,
   Upload,
   User,
   Users,
-  X,
 } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
+import { FormField } from '@/components/ui/form-field'
+import { ImageCapture } from '@/components/ui/image-capture'
+import { trackEvent } from '@/lib/analytics'
 import { BASE_URL } from '@/lib/api'
-import { cn } from '@/lib/utils'
-import { trackEvent } from '../lib/analytics'
 import { SignaturePad } from './signature-pad'
 
 interface RegistrationFormProps {
@@ -42,209 +41,7 @@ interface RegistrationResponse {
 const BLOOD_GROUPS = ['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-'] as const
 
 /**
- * Generalized image capture component — live webcam stream with fallback to file upload.
- */
-function ImageCapture({
-  value,
-  onChange,
-  onFocus,
-  facingMode = 'user',
-  isCircular = false,
-  previewAlt = 'ছবি প্রিভিউ',
-  cameraButtonLabel = 'ক্যামেরা দিয়ে ছবি তুলুন',
-  uploadButtonLabel = 'ছবি আপলোড করুন',
-  retakeButtonLabel = 'আবার তুলুন / আপলোড করুন',
-}: {
-  value?: string
-  onChange: (base64: string) => void
-  onFocus?: () => void
-  facingMode?: 'user' | 'environment'
-  isCircular?: boolean
-  previewAlt?: string
-  cameraButtonLabel?: string
-  uploadButtonLabel?: string
-  retakeButtonLabel?: string
-  placeholderLabel?: string
-}) {
-  const [isCameraActive, setIsCameraActive] = useState(false)
-  const [cameraError, setCameraError] = useState<string | null>(null)
-  const videoRef = useRef<HTMLVideoElement>(null)
-  const streamRef = useRef<MediaStream | null>(null)
-  const fileInputRef = useRef<HTMLInputElement>(null)
-
-  const startCamera = async () => {
-    onFocus?.()
-    setCameraError(null)
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: {
-          facingMode: facingMode,
-          width: { ideal: 640 },
-          height: { ideal: 480 },
-        },
-        audio: false,
-      })
-      streamRef.current = stream
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream
-      }
-      setIsCameraActive(true)
-    } catch (err) {
-      console.error(err)
-      setCameraError('ক্যামেরা চালু করা যায়নি। অনুগ্রহ করে ফাইল আপলোড করুন।')
-    }
-  }
-
-  const stopCamera = () => {
-    if (streamRef.current) {
-      for (const track of streamRef.current.getTracks()) {
-        track.stop()
-      }
-      streamRef.current = null
-    }
-    setIsCameraActive(false)
-  }
-
-  const capturePhoto = () => {
-    const video = videoRef.current
-    if (!video) return
-    const canvas = document.createElement('canvas')
-    canvas.width = video.videoWidth || 640
-    canvas.height = video.videoHeight || 480
-    const ctx = canvas.getContext('2d')
-    if (ctx) {
-      ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
-      const base64 = canvas.toDataURL('image/jpeg', 0.8)
-      onChange(base64)
-      stopCamera()
-    }
-  }
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    onFocus?.()
-    const file = e.target.files?.[0]
-    if (!file) return
-    if (!['image/jpeg', 'image/png'].includes(file.type)) {
-      alert('শুধুমাত্র JPEG বা PNG ছবি গ্রহণযোগ্য')
-      return
-    }
-    if (file.size > 5 * 1024 * 1024) {
-      alert('ফাইলের আকার সর্বোচ্চ ৫ MB হতে হবে')
-      return
-    }
-    const reader = new FileReader()
-    reader.onload = () => {
-      onChange(reader.result as string)
-    }
-    reader.readAsDataURL(file)
-  }
-
-  useEffect(() => {
-    return () => {
-      if (streamRef.current) {
-        for (const track of streamRef.current.getTracks()) {
-          track.stop()
-        }
-      }
-    }
-  }, [])
-
-  return (
-    <div className="flex flex-col gap-3">
-      {value ? (
-        <div className="relative overflow-hidden rounded-lg border border-hairline bg-surface p-4 flex flex-col items-center">
-          {/* biome-ignore lint/performance/noImgElement: R2 base64 and dynamic image urls */}
-          <img
-            src={value}
-            alt={previewAlt}
-            className={cn(
-              'object-cover border-4 border-white shadow-md bg-white',
-              isCircular
-                ? 'h-40 w-40 rounded-full'
-                : 'w-full max-w-sm aspect-3/2 rounded-lg',
-            )}
-          />
-          <button
-            type="button"
-            onClick={() => onChange('')}
-            className="mt-3 flex min-h-[48px] items-center gap-2 rounded-lg border border-hairline bg-white px-4 py-2 text-base font-medium text-ink transition-colors hover:bg-surface active:bg-surface-dark"
-          >
-            <RefreshCw className="h-4 w-4" />
-            {retakeButtonLabel}
-          </button>
-        </div>
-      ) : isCameraActive ? (
-        <div className="relative overflow-hidden rounded-lg border border-hairline bg-black flex flex-col items-center p-2">
-          {/* biome-ignore lint/a11y/useMediaCaption: Live camera preview needs no captions */}
-          <video
-            ref={videoRef}
-            autoPlay
-            playsInline
-            className="w-full max-w-sm rounded-lg aspect-video object-cover"
-          />
-          <div className="mt-3 flex gap-3 w-full max-w-sm justify-center">
-            <button
-              type="button"
-              onClick={capturePhoto}
-              className="flex-1 flex min-h-[48px] items-center justify-center gap-2 rounded-lg bg-brand-blue-deep px-4 py-2 text-base font-semibold text-white transition-colors hover:bg-brand-blue-deep/90 active:bg-brand-blue-deep/80"
-            >
-              <Camera className="h-5 w-5" />
-              ছবি তুলুন
-            </button>
-            <button
-              type="button"
-              onClick={stopCamera}
-              className="flex min-h-[48px] items-center justify-center gap-2 rounded-lg border border-hairline bg-white px-4 py-2 text-base font-medium text-ink transition-colors hover:bg-surface active:bg-surface-dark"
-            >
-              <X className="h-5 w-5" />
-              বাতিল
-            </button>
-          </div>
-        </div>
-      ) : (
-        <div className="flex flex-col gap-2">
-          <div className="grid grid-cols-2 gap-3">
-            <button
-              type="button"
-              onClick={startCamera}
-              className="flex flex-col items-center justify-center gap-2 rounded-lg border border-hairline bg-white p-4 text-center hover:border-brand-blue-deep hover:text-brand-blue-deep transition-colors active:bg-surface min-h-[100px]"
-            >
-              <Camera className="h-6 w-6 text-steel" />
-              <span className="text-base font-medium">{cameraButtonLabel}</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              className="flex flex-col items-center justify-center gap-2 rounded-lg border border-hairline bg-white p-4 text-center hover:border-brand-blue-deep hover:text-brand-blue-deep transition-colors active:bg-surface min-h-[100px]"
-            >
-              <Upload className="h-6 w-6 text-steel" />
-              <span className="text-base font-medium">{uploadButtonLabel}</span>
-            </button>
-          </div>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/jpeg,image/png"
-            capture={facingMode === 'user' ? 'user' : 'environment'}
-            onChange={handleFileChange}
-            className="hidden"
-          />
-          {cameraError && (
-            <p className="text-base text-warning-text bg-warning-bg p-2 rounded-lg border border-hairline flex items-center gap-1.5">
-              <AlertCircle className="h-4 w-4 shrink-0" />
-              {cameraError}
-            </p>
-          )}
-        </div>
-      )}
-    </div>
-  )
-}
-
-/**
  * Registration form component — multi-field renter registration form.
- *
- * Requirements: 7.1, 7.2, 7.3, 7.4, 7.5, 7.6, 7.7, 7.8
  */
 export function RegistrationForm({
   flatSlug,
@@ -583,7 +380,7 @@ export function RegistrationForm({
           label="পূর্ণ নাম"
           icon={<User className="h-4 w-4" aria-hidden />}
           error={fieldErrors.fullName}
-          fieldId="reg-fullName"
+          htmlFor="reg-fullName"
         >
           <input
             id="reg-fullName"
@@ -607,7 +404,7 @@ export function RegistrationForm({
           label="ফোন নম্বর"
           icon={<Phone className="h-4 w-4" aria-hidden />}
           error={fieldErrors.phone}
-          fieldId="reg-phone"
+          htmlFor="reg-phone"
         >
           <input
             id="reg-phone"
@@ -629,7 +426,7 @@ export function RegistrationForm({
           label="জাতীয় পরিচয়পত্র নম্বর"
           icon={<CreditCard className="h-4 w-4" aria-hidden />}
           error={fieldErrors.nidNumber}
-          fieldId="reg-nidNumber"
+          htmlFor="reg-nidNumber"
         >
           <input
             id="reg-nidNumber"
@@ -654,7 +451,7 @@ export function RegistrationForm({
           label="NID ছবি (বাধ্যতামূলক)"
           icon={<Upload className="h-4 w-4" aria-hidden />}
           error={fieldErrors.nidPhoto || nidPhotoError}
-          fieldId="reg-nidPhoto"
+          htmlFor="reg-nidPhoto"
         >
           <ImageCapture
             value={nidPhoto}
@@ -666,7 +463,6 @@ export function RegistrationForm({
             cameraButtonLabel="ক্যামেরা দিয়ে NID-র ছবি তুলুন"
             uploadButtonLabel="NID ছবি আপলোড করুন"
             retakeButtonLabel="আবার তুলুন / আপলোড করুন"
-            placeholderLabel="NID-এর ছবি আপলোড করুন (সর্বোচ্চ ৫ MB)"
           />
         </FormField>
 
@@ -675,7 +471,7 @@ export function RegistrationForm({
           label="সেলফি ছবি (বাধ্যতামূলক)"
           icon={<Camera className="h-4 w-4" aria-hidden />}
           error={fieldErrors.selfiePhoto}
-          fieldId="reg-selfiePhoto"
+          htmlFor="reg-selfiePhoto"
         >
           <ImageCapture
             value={selfiePhoto}
@@ -687,7 +483,6 @@ export function RegistrationForm({
             cameraButtonLabel="ক্যামেরা দিয়ে সেলফি তুলুন"
             uploadButtonLabel="সেলফি আপলোড করুন"
             retakeButtonLabel="আবার তুলুন / আপলোড করুন"
-            placeholderLabel="সেলফি ছবি আপলোড করুন (সর্বোচ্চ ৫ MB)"
           />
         </FormField>
 
@@ -696,7 +491,7 @@ export function RegistrationForm({
           label="রক্তের গ্রুপ"
           icon={<Heart className="h-4 w-4" aria-hidden />}
           error={fieldErrors.bloodGroup}
-          fieldId="reg-bloodGroup"
+          htmlFor="reg-bloodGroup"
         >
           <select
             id="reg-bloodGroup"
@@ -724,7 +519,7 @@ export function RegistrationForm({
           label="পেশা"
           icon={<User className="h-4 w-4" aria-hidden />}
           error={fieldErrors.occupation}
-          fieldId="reg-occupation"
+          htmlFor="reg-occupation"
         >
           <input
             id="reg-occupation"
@@ -748,7 +543,7 @@ export function RegistrationForm({
           label="পরিবারের সদস্য সংখ্যা"
           icon={<Users className="h-4 w-4" aria-hidden />}
           error={fieldErrors.familyMembers}
-          fieldId="reg-familyMembers"
+          htmlFor="reg-familyMembers"
         >
           <input
             id="reg-familyMembers"
@@ -783,7 +578,7 @@ export function RegistrationForm({
                 label={`সদস্য ${index + 1}`}
                 icon={<User className="h-4 w-4 text-steel" />}
                 error={fieldErrors[errorKey]}
-                fieldId={`reg-familyMemberNames-${index}`}
+                htmlFor={`reg-familyMemberNames-${index}`}
               >
                 <input
                   id={`reg-familyMemberNames-${index}`}
@@ -814,7 +609,7 @@ export function RegistrationForm({
           label="জরুরি যোগাযোগের ব্যক্তির নাম"
           icon={<User className="h-4 w-4" aria-hidden />}
           error={fieldErrors.emergencyContactName}
-          fieldId="reg-emergencyContactName"
+          htmlFor="reg-emergencyContactName"
         >
           <input
             id="reg-emergencyContactName"
@@ -835,7 +630,7 @@ export function RegistrationForm({
           label="জরুরি যোগাযোগ নম্বর"
           icon={<Phone className="h-4 w-4" aria-hidden />}
           error={fieldErrors.emergencyContact}
-          fieldId="reg-emergencyContact"
+          htmlFor="reg-emergencyContact"
         >
           <input
             id="reg-emergencyContact"
@@ -861,7 +656,7 @@ export function RegistrationForm({
           label="সম্পর্ক"
           icon={<Users className="h-4 w-4" aria-hidden />}
           error={fieldErrors.emergencyContactRelationship}
-          fieldId="reg-emergencyContactRelationship"
+          htmlFor="reg-emergencyContactRelationship"
         >
           <input
             id="reg-emergencyContactRelationship"
@@ -882,7 +677,7 @@ export function RegistrationForm({
           label="ভাড়া শুরুর তারিখ"
           icon={<Calendar className="h-4 w-4" aria-hidden />}
           error={fieldErrors.rentalStartDate}
-          fieldId="reg-rentalStartDate"
+          htmlFor="reg-rentalStartDate"
         >
           <input
             id="reg-rentalStartDate"
@@ -910,7 +705,7 @@ export function RegistrationForm({
           label="অগ্রিম পরিমাণ (টাকা)"
           icon={<CreditCard className="h-4 w-4" aria-hidden />}
           error={fieldErrors.advanceAmount}
-          fieldId="reg-advanceAmount"
+          htmlFor="reg-advanceAmount"
         >
           <input
             id="reg-advanceAmount"
@@ -936,7 +731,7 @@ export function RegistrationForm({
           label="ডিজিটাল স্বাক্ষর"
           icon={<FileText className="h-4 w-4" aria-hidden />}
           error={fieldErrors.digitalSignature}
-          fieldId="reg-digitalSignature"
+          htmlFor="reg-digitalSignature"
         >
           <div className="overflow-hidden rounded-lg border border-hairline bg-white">
             <SignaturePad
@@ -982,42 +777,5 @@ export function RegistrationForm({
         </button>
       </form>
     </section>
-  )
-}
-
-// ─── Helper Components ──────────────────────────────────────────────────────
-
-interface FormFieldProps {
-  label: string
-  icon: React.ReactNode
-  error?: string
-  fieldId?: string
-  children: React.ReactNode
-}
-
-/**
- * Reusable form field wrapper with label, icon, and error display.
- */
-function FormField({ label, icon, error, fieldId, children }: FormFieldProps) {
-  return (
-    <div className="flex flex-col gap-1.5 w-full">
-      <label
-        htmlFor={fieldId}
-        className="flex items-center gap-1.5 text-base font-medium text-ink"
-      >
-        {icon}
-        {label}
-      </label>
-      {children}
-      {error && (
-        <p
-          className="flex items-center gap-1 text-base text-error-text"
-          role="alert"
-        >
-          <AlertCircle className="h-4 w-4 shrink-0" aria-hidden />
-          {error}
-        </p>
-      )}
-    </div>
   )
 }

@@ -20,7 +20,6 @@ interface FormErrors {
 /**
  * Payment recording form page — /payments/new
  * Form with amount, date, method, note fields.
- * Validates: Requirements 8.1, 8.5, 8.6
  */
 export default function RecordPaymentPage() {
   const { t } = useTranslation()

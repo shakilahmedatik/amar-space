@@ -1,7 +1,6 @@
 'use client'
 
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { DataTable, type DataTableColumn } from '@/components/ui/data-table'
@@ -16,12 +15,10 @@ import { useTranslation } from '@/lib/i18n'
  * Building list page — /buildings
  * Displays paginated list of buildings (max 50 per page).
  * Owner can create/edit, Manager can only view.
- * Validates: Requirements 5.5, 5.7, 5.8
  */
 export default function BuildingsPage() {
   const { role } = useSession()
   const { t } = useTranslation()
-  const _router = useRouter()
   const [page, setPage] = useState(1)
   const { data, isLoading, isError, error } = useBuildings(page, 50)
   const isOwner = role === 'owner'

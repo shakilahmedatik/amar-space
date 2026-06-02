@@ -1,5 +1,5 @@
 import type { PaymentMethod } from '@repo/shared/constants'
-import type { RequestContext } from '@repo/shared/types'
+import type { RequestContext, UserRole } from '@repo/shared/types'
 import { paymentMethodEnum, recordPaymentSchema } from '@repo/shared/validation'
 import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
@@ -25,8 +25,6 @@ import {
  * - Owner: full access (list, record, view)
  * - Manager: list and view payments for assigned buildings, record payments
  * - Renter: list and view own payments only (cannot record)
- *
- * Requirements: 8.6, 8.9
  */
 async function paymentRoutes(fastify: FastifyInstance) {
   const paymentService = new PaymentService(fastify.db, fastify.auditLogger)
@@ -37,7 +35,7 @@ async function paymentRoutes(fastify: FastifyInstance) {
   function buildRequestContext(request: {
     user: {
       id: string
-      role: 'owner' | 'manager' | 'renter'
+      role: UserRole
       ownerAccountId: string
     }
     tenantScope: {
@@ -63,15 +61,13 @@ async function paymentRoutes(fastify: FastifyInstance) {
    * GET /api/payments
    * Lists payments with filters and pagination.
    * Owner sees all, Manager sees assigned buildings, Renter sees own payments.
-   *
-   * Requirements: 8.6, 8.9
    */
   fastify.get(
     '/',
     {
       preHandler: [
         authGuard,
-        roleGuard(['owner', 'manager', 'renter']),
+        roleGuard(['owner', 'manager']),
         approvalGuard,
         tenantScope,
       ],
@@ -184,8 +180,6 @@ async function paymentRoutes(fastify: FastifyInstance) {
    * POST /api/payments
    * Records a payment against a bill.
    * Owner and Manager only.
-   *
-   * Requirements: 8.1, 8.6
    */
   fastify.post(
     '/',
@@ -259,15 +253,13 @@ async function paymentRoutes(fastify: FastifyInstance) {
    * GET /api/payments/:id
    * Gets a payment receipt by ID.
    * Owner sees all, Manager sees assigned buildings, Renter sees own payments.
-   *
-   * Requirements: 8.6, 8.8
    */
   fastify.get(
     '/:id',
     {
       preHandler: [
         authGuard,
-        roleGuard(['owner', 'manager', 'renter']),
+        roleGuard(['owner', 'manager']),
         approvalGuard,
         tenantScope,
       ],
