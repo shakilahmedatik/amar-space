@@ -73,8 +73,9 @@ function createSequentialMockDb(querySequence: unknown[][]) {
     const result = nextResult()
     return {
       limit: vi.fn().mockReturnValue(result),
-      then: (onfulfilled: (value: unknown[]) => unknown) =>
-        Promise.resolve(onfulfilled(result)),
+      // biome-ignore lint/suspicious/noThenProperty: intentionally thenable for query result mock
+      then: <T>(onfulfilled: (value: unknown[]) => T) =>
+        Promise.resolve(onfulfilled(result)) as Promise<T>,
     }
   }
 
@@ -98,12 +99,7 @@ describe('Feature: amarspace-full-implementation, Property 17: Tenant data isola
   })
 
   function setupApp(
-    user: {
-      id: string
-      role: 'owner' | 'manager' | 'renter'
-      ownerAccountId: string
-      email: string
-    },
+    user: AuthUser,
     querySequence: unknown[][] = [],
   ) {
     const mockDb = createSequentialMockDb(querySequence)
@@ -112,7 +108,7 @@ describe('Feature: amarspace-full-implementation, Property 17: Tenant data isola
     app.decorateRequest('tenantScope', null as unknown as TenantScope)
     app.decorate('db', mockDb as unknown as Database)
 
-    const fakeAuthGuard = async (request: { user: typeof user }) => {
+    const fakeAuthGuard = async (request: { user: AuthUser }) => {
       request.user = user
     }
 
