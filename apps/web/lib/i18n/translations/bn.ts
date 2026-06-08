@@ -26,6 +26,11 @@ const bn: TranslationDictionary = {
     language: 'ভাষা',
     bangla: 'বাংলা',
     english: 'English',
+    name: 'নাম',
+    role: 'ভূমিকা',
+    status: 'অবস্থা',
+    password: 'পাসওয়ার্ড',
+    phone: 'ফোন',
   },
   nav: {
     dashboard: 'ড্যাশবোর্ড',
@@ -38,6 +43,7 @@ const bn: TranslationDictionary = {
     issues: 'সমস্যা',
     notices: 'নোটিশ',
     audit: 'অডিট লগ',
+    staff: 'স্টাফ ব্যবস্থাপনা',
   },
   auth: {
     login: 'লগ ইন',
@@ -600,6 +606,26 @@ const bn: TranslationDictionary = {
     noQrCodesAvailable: 'কোনো কিউআর কোড নেই',
     generateAriaLabel: 'ফ্ল্যাট {{flatNumber}} এর জন্য কিউআর কোড তৈরি করুন',
     imageAlt: '{{buildingName}} এ ফ্ল্যাট {{flatNumber}} এর কিউআর কোড',
+  },
+  staff: {
+    title: 'স্টাফ ব্যবস্থাপনা',
+    createStaff: 'স্টাফ যোগ করুন',
+    noStaff: 'কোনো স্টাফ সদস্য পাওয়া যায়নি',
+    deactivate: 'নিষ্ক্রিয় করুন',
+    deactivateConfirmTitle: 'স্টাফ সদস্য নিষ্ক্রিয় করুন',
+    deactivateConfirmDescription:
+      'এই স্টাফ সদস্য আর লগইন করতে পারবেন না। আপনি পরে তাদের পুনরায় সক্রিয় করতে পারেন।',
+    reactivate: 'পুনরায় সক্রিয় করুন',
+    deactivateSuccess: 'স্টাফ সদস্য নিষ্ক্রিয় করা হয়েছে',
+    reactivateSuccess: 'স্টাফ সদস্য পুনরায় সক্রিয় করা হয়েছে',
+    createSuccess: 'স্টাফ সদস্য তৈরি হয়েছে',
+    staffCreatedMessage:
+      'স্টাফ সদস্য তৈরি হয়েছে। তারা আপনার সেট করা পাসওয়ার্ড দিয়ে লগইন করতে পারবেন।',
+    updateSuccess: 'স্টাফ সদস্য আপডেট করা হয়েছে',
+    permissions: 'অনুমতি',
+    permissionsDescription:
+      'রোল ডিফল্টের বাইরে নির্দিষ্ট অনুমতি দিন বা অস্বীকার করুন। Grant বা Deny বাটনে ক্লিক করে ওভাররাইড সেট করুন। আবার ক্লিক করুন বা ✕ চিহ্নে ক্লিক করে ওভাররাইড সরিয়ে ডিফল্টে ফিরে যান।',
+    permissionsUpdateSuccess: 'অনুমতি আপডেট করা হয়েছে',
   },
   validation: {
     required: 'এই ক্ষেত্রটি আবশ্যক',

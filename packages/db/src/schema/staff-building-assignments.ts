@@ -2,14 +2,14 @@ import { pgTable, text, timestamp, unique, uuid } from 'drizzle-orm/pg-core'
 import { buildings } from './buildings'
 import { users } from './users'
 
-export const managerAssignments = pgTable(
-  'manager_assignments',
+export const staffBuildingAssignments = pgTable(
+  'staff_building_assignments',
   {
     id: uuid('id').primaryKey().defaultRandom(),
     ownerAccountId: text('owner_account_id')
       .notNull()
       .references(() => users.id),
-    managerId: text('manager_id')
+    staffId: text('staff_id')
       .notNull()
       .references(() => users.id, { onDelete: 'cascade' }),
     buildingId: uuid('building_id')
@@ -20,8 +20,9 @@ export const managerAssignments = pgTable(
       .defaultNow(),
   },
   (table) => ({
-    managerBuildingUnique: unique(
-      'manager_assignments_manager_building_unique',
-    ).on(table.managerId, table.buildingId),
+    staffBuildingUnique: unique('staff_building_unique').on(
+      table.staffId,
+      table.buildingId,
+    ),
   }),
 )

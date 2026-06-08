@@ -35,19 +35,42 @@ describe('Tenant Scope Middleware', () => {
   function createSequentialMockDb(querySequence: unknown[][]) {
     let callIndex = 0
 
-    const mockWhere = vi.fn().mockImplementation(() => {
+    /**
+     * Returns the next value from the query sequence.
+     */
+    function nextResult(): unknown[] {
       const result = querySequence[callIndex] || []
       callIndex++
       return result
-    })
+    }
 
-    const mockFrom = vi.fn().mockImplementation(() => {
-      return { where: mockWhere }
-    })
+    // Creates a thenable query result that supports .limit()
+    function createQueryResult(): {
+      limit: ReturnType<typeof vi.fn>
+      then: <T>(onfulfilled: (value: unknown[]) => T) => Promise<T>
+    } & PromiseLike<unknown[]> {
+      const result = nextResult()
+      return {
+        // .limit(n) — returns another query result (same array for simplicity)
+        limit: vi.fn().mockReturnValue(result),
+        // .then() — makes the object thenable so await works
+        then: (onfulfilled: (value: unknown[]) => unknown) =>
+          Promise.resolve(onfulfilled(result)),
+      }
+    }
 
-    const mockSelect = vi.fn().mockImplementation(() => {
-      return { from: mockFrom }
-    })
+    // Mock for .where(condition)
+    const mockWhere = vi.fn().mockImplementation(createQueryResult)
+
+    // Mock for .from(table)
+    const mockFrom = vi.fn().mockImplementation(() => ({
+      where: mockWhere,
+    }))
+
+    // Mock for .select(fields)
+    const mockSelect = vi.fn().mockImplementation(() => ({
+      from: mockFrom,
+    }))
 
     return { select: mockSelect }
   }

@@ -349,6 +349,38 @@ export const auditLogQuerySchema = z.object({
   pageSize: z.number().int().min(1).max(100).default(100),
 })
 
+// ─── Staff Schemas ─────────────────────────────────────────────────────────
+
+export const staffRoleEnum = z.enum(['manager', 'security_guard', 'care_taker'])
+
+export const permissionEffectEnum = z.enum(['grant', 'deny'])
+
+export const createStaffSchema = z.object({
+  email: emailSchema,
+  password: z.string().min(6).max(128),
+  name: z.string().min(1).max(200),
+  phone: bdPhoneSchema.optional().nullable(),
+  role: staffRoleEnum,
+  buildingIds: z.array(uuidSchema).max(100).default([]),
+})
+
+export const updateStaffSchema = z.object({
+  name: z.string().min(1).max(200).optional(),
+  phone: bdPhoneSchema.optional().nullable(),
+  role: staffRoleEnum.optional(),
+  buildingIds: z.array(uuidSchema).max(100).optional(),
+  isActive: z.boolean().optional(),
+})
+
+export const updateStaffPermissionsSchema = z.object({
+  overrides: z.array(
+    z.object({
+      permissionKey: z.string().min(1),
+      effect: permissionEffectEnum,
+    }),
+  ),
+})
+
 // ─── Admin & Manager Schemas ────────────────────────────────────────────────
 
 export const approvalStatusEnum = z.enum(['pending', 'approved', 'rejected'])
@@ -407,6 +439,11 @@ export type CreateNoticeInput = z.infer<typeof createNoticeSchema>
 export type UpdateNoticeInput = z.infer<typeof updateNoticeSchema>
 export type FileUploadInput = z.infer<typeof fileUploadSchema>
 export type AuditLogQueryInput = z.infer<typeof auditLogQuerySchema>
+export type CreateStaffInput = z.infer<typeof createStaffSchema>
+export type UpdateStaffInput = z.infer<typeof updateStaffSchema>
+export type UpdateStaffPermissionsInput = z.infer<
+  typeof updateStaffPermissionsSchema
+>
 export type CreateManagerInput = z.infer<typeof createManagerSchema>
 export type UpdateApprovalStatusInput = z.infer<
   typeof updateApprovalStatusSchema

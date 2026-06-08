@@ -10,11 +10,16 @@ import { maintenanceComments } from './maintenance-comments'
 import { maintenanceRequests } from './maintenance-requests'
 import { managerAssignments } from './manager-assignments'
 import { notices } from './notices'
+import { permissions } from './permissions'
 import { portalSessions } from './portal-sessions'
 import { registrationRequests } from './registration-requests'
 import { rentalContracts } from './rental-contracts'
 import { renterAccessCodes } from './renter-access-codes'
 import { renters } from './renters'
+import { rolePermissions } from './role-permissions'
+import { staffBuildingAssignments } from './staff-building-assignments'
+import { staffRoles } from './staff-roles'
+import { userPermissionOverrides } from './user-permission-overrides'
 import { users } from './users'
 
 /**
@@ -42,6 +47,22 @@ export const usersRelations = relations(users, ({ one, many }) => ({
   renterProfile: many(renters, {
     relationName: 'renterUser',
   }),
+  // Staff roles owned by this user
+  staffRoles: many(staffRoles, {
+    relationName: 'ownerStaffRoles',
+  }),
+  // Permission overrides for this user
+  permissionOverrides: many(userPermissionOverrides, {
+    relationName: 'userPermissionOverrides',
+  }),
+  // Staff building assignments (as the staff member)
+  staffAssignments: many(staffBuildingAssignments, {
+    relationName: 'staffBuildingAssignments',
+  }),
+  // Staff building assignments (as the owner)
+  ownedStaffAssignments: many(staffBuildingAssignments, {
+    relationName: 'ownerStaffAssignments',
+  }),
 }))
 
 export const buildingsRelations = relations(buildings, ({ one, many }) => ({
@@ -51,6 +72,7 @@ export const buildingsRelations = relations(buildings, ({ one, many }) => ({
   }),
   flats: many(flats),
   managerAssignments: many(managerAssignments),
+  staffAssignments: many(staffBuildingAssignments),
   issues: many(issues),
   maintenanceRequests: many(maintenanceRequests),
   emergencyContacts: many(emergencyContacts),
@@ -265,6 +287,69 @@ export const portalSessionsRelations = relations(portalSessions, ({ one }) => ({
     references: [renters.id],
   }),
 }))
+
+export const staffRolesRelations = relations(staffRoles, ({ one, many }) => ({
+  owner: one(users, {
+    fields: [staffRoles.ownerAccountId],
+    references: [users.id],
+    relationName: 'ownerStaffRoles',
+  }),
+  rolePermissions: many(rolePermissions),
+}))
+
+export const permissionsRelations = relations(permissions, ({ many }) => ({
+  rolePermissions: many(rolePermissions),
+  userOverrides: many(userPermissionOverrides),
+}))
+
+export const rolePermissionsRelations = relations(
+  rolePermissions,
+  ({ one }) => ({
+    role: one(staffRoles, {
+      fields: [rolePermissions.roleId],
+      references: [staffRoles.id],
+    }),
+    permission: one(permissions, {
+      fields: [rolePermissions.permissionId],
+      references: [permissions.id],
+    }),
+  }),
+)
+
+export const userPermissionOverridesRelations = relations(
+  userPermissionOverrides,
+  ({ one }) => ({
+    user: one(users, {
+      fields: [userPermissionOverrides.userId],
+      references: [users.id],
+      relationName: 'userPermissionOverrides',
+    }),
+    permission: one(permissions, {
+      fields: [userPermissionOverrides.permissionId],
+      references: [permissions.id],
+    }),
+  }),
+)
+
+export const staffBuildingAssignmentsRelations = relations(
+  staffBuildingAssignments,
+  ({ one }) => ({
+    owner: one(users, {
+      fields: [staffBuildingAssignments.ownerAccountId],
+      references: [users.id],
+      relationName: 'ownerStaffAssignments',
+    }),
+    staff: one(users, {
+      fields: [staffBuildingAssignments.staffId],
+      references: [users.id],
+      relationName: 'staffBuildingAssignments',
+    }),
+    building: one(buildings, {
+      fields: [staffBuildingAssignments.buildingId],
+      references: [buildings.id],
+    }),
+  }),
+)
 
 export const registrationRequestsRelations = relations(
   registrationRequests,

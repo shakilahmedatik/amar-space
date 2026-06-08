@@ -318,6 +318,11 @@ export function buildApp(opts: Record<string, unknown> = {}) {
             'Manager creation and building assignment management by owners',
         },
         {
+          name: 'Staff',
+          description:
+            'Staff management — create, update, deactivate staff members and manage their permissions',
+        },
+        {
           name: 'QR Codes',
           description: 'QR code generation for flats and buildings',
         },
@@ -376,6 +381,9 @@ export function buildApp(opts: Record<string, unknown> = {}) {
   })
   app.register(import('./routes/property/managers'), {
     prefix: '/api/managers',
+  })
+  app.register(import('./routes/property/staff'), {
+    prefix: '/api/staff',
   })
   app.register(import('./routes/property/flat-qr-code'), {
     prefix: '/api/flats',

@@ -59,19 +59,28 @@ const optionalFlatIdArb = fc.option(fc.uuid({ version: 4 }), { nil: undefined })
 function createSequentialMockDb(querySequence: unknown[][]) {
   let callIndex = 0
 
-  const mockWhere = vi.fn().mockImplementation(() => {
+  function nextResult(): unknown[] {
     const result = querySequence[callIndex] || []
     callIndex++
     return result
-  })
+  }
 
-  const mockFrom = vi.fn().mockImplementation(() => {
-    return { where: mockWhere }
-  })
+  // Creates a thenable query result that supports .limit()
+  function createQueryResult(): {
+    limit: ReturnType<typeof vi.fn>
+    then: <T>(onfulfilled: (value: unknown[]) => T) => Promise<T>
+  } {
+    const result = nextResult()
+    return {
+      limit: vi.fn().mockReturnValue(result),
+      then: (onfulfilled: (value: unknown[]) => unknown) =>
+        Promise.resolve(onfulfilled(result)),
+    }
+  }
 
-  const mockSelect = vi.fn().mockImplementation(() => {
-    return { from: mockFrom }
-  })
+  const mockWhere = vi.fn().mockImplementation(createQueryResult)
+  const mockFrom = vi.fn().mockImplementation(() => ({ where: mockWhere }))
+  const mockSelect = vi.fn().mockImplementation(() => ({ from: mockFrom }))
 
   return { select: mockSelect }
 }

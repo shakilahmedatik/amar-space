@@ -12,7 +12,7 @@
  * Used by both Sidebar (desktop ≥768px) and BottomTabBar (mobile <768px).
  */
 
-export type UserRole = 'owner' | 'manager'
+export type UserRole = 'owner' | 'manager' | 'security_guard' | 'care_taker'
 
 export interface NavigationItem {
   /** Unique identifier for the navigation item */
@@ -134,6 +134,16 @@ export const navigationItems: NavigationItem[] = [
     icon: 'notices',
     roles: ['owner', 'manager'],
     showInBottomTab: true,
+  },
+  {
+    id: 'staff',
+    labelKey: 'nav.staff',
+    labelBn: 'স্টাফ ব্যবস্থাপনা',
+    labelEn: 'Manage Staff',
+    href: '/staff',
+    icon: 'users',
+    roles: ['owner'],
+    showInBottomTab: false,
   },
   {
     id: 'audit',

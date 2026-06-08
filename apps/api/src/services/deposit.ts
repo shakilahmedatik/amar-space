@@ -4,6 +4,7 @@ import {
   type Database,
   flats,
   rentalContracts,
+  renters,
 } from '@repo/db'
 import { BILL_STATUS, ROLES } from '@repo/shared/constants'
 import {
@@ -322,6 +323,34 @@ export class DepositService {
     ctx: RequestContext,
     contractId: string,
   ): Promise<typeof rentalContracts.$inferSelect> {
+    // Renters can only see their own contract
+    if (ctx.role === 'renter') {
+      // Look up the renter record for this user
+      const renterRecord = await this.db.query.renters.findFirst({
+        where: eq(renters.userId, ctx.userId),
+      })
+
+      if (!renterRecord) {
+        throw new NotFoundError('Contract')
+      }
+
+      // Find the active contract for this renter
+      const contract = await this.db.query.rentalContracts.findFirst({
+        where: and(
+          eq(rentalContracts.id, contractId),
+          eq(rentalContracts.renterId, renterRecord.id),
+          eq(rentalContracts.ownerAccountId, ctx.ownerAccountId),
+          eq(rentalContracts.status, 'active'),
+        ),
+      })
+
+      if (!contract) {
+        throw new NotFoundError('Contract')
+      }
+
+      return contract
+    }
+
     const contract = await this.db.query.rentalContracts.findFirst({
       where: and(
         eq(rentalContracts.id, contractId),

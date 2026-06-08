@@ -819,6 +819,9 @@ describe('MaintenanceService', () => {
           maintenanceRequests: { findFirst: vi.fn() },
           flats: { findFirst: vi.fn() },
           renters: { findFirst: vi.fn().mockResolvedValue(defaultRenter) },
+          rentalContracts: {
+            findFirst: vi.fn().mockResolvedValue({ flatId: 'flat-1' }),
+          },
         },
         select: vi.fn().mockImplementation(() => {
           selectCallCount++
@@ -865,6 +868,7 @@ describe('MaintenanceService', () => {
           maintenanceRequests: { findFirst: vi.fn() },
           flats: { findFirst: vi.fn() },
           renters: { findFirst: vi.fn().mockResolvedValue(null) },
+          rentalContracts: { findFirst: vi.fn() },
         },
         select: vi.fn(),
       }

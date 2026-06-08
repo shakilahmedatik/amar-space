@@ -13,6 +13,7 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:seed": "bun run src/seed.ts",
+    "db:seed-staff": "bun run src/seed-staff.ts",
     "lint": "biome lint .",
     "format": "biome format --write .",
     "check": "biome check --write .",

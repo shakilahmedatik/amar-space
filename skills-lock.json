@@ -1,11 +1,11 @@
 {
   "version": 1,
   "skills": {
-    "biome-best-practices": {
-      "source": "biomejs/biome",
+    "architect": {
+      "source": "JavaScript-Mastery-Pro/skills",
       "sourceType": "github",
-      "skillPath": ".claude/skills/biome-developer/SKILL.md",
-      "computedHash": "b8f2a1c4d6e9f0a3b5c7d8e1f2a4b6c8d0e2f4a6b8c0d2e4f6a8b0c2d4e6f8a0"
+      "skillPath": "skills/architect/SKILL.md",
+      "computedHash": "62908472db7bd81004ab9abe0810bac166cee1b6e08aaf5793175bb90c4916f7"
     },
     "better-auth-best-practices": {
       "source": "better-auth/skills",
@@ -18,6 +18,12 @@
       "sourceType": "github",
       "skillPath": "security/SKILL.md",
       "computedHash": "5717187bba9c22030c7174c74012f01c359f21e2ce87e0eb80e24244d8b8c915"
+    },
+    "biome-best-practices": {
+      "source": "biomejs/biome",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/biome-developer/SKILL.md",
+      "computedHash": "b8f2a1c4d6e9f0a3b5c7d8e1f2a4b6c8d0e2f4a6b8c0d2e4f6a8b0c2d4e6f8a0"
     },
     "docker-expert": {
       "source": "sickn33/antigravity-awesome-skills",
@@ -55,11 +61,35 @@
       "skillPath": "skills/frontend-design/SKILL.md",
       "computedHash": "063a0e6448123cd359ad0044cc46b0e490cc7964d45ef4bb9fd842bd2ffbca67"
     },
+    "imprint": {
+      "source": "JavaScript-Mastery-Pro/skills",
+      "sourceType": "github",
+      "skillPath": "skills/imprint/SKILL.md",
+      "computedHash": "1690b7e280208914a8c950d414d47a7ccdc0278aacf4e04b127830db696c4f01"
+    },
     "nextjs": {
       "source": "vercel-labs/vercel-plugin",
       "sourceType": "github",
       "skillPath": "skills/nextjs/SKILL.md",
       "computedHash": "d3a48eada4dbae95856d643a0c9c54a38974ee7896a4d34f93aead13d26c343a"
+    },
+    "recover": {
+      "source": "JavaScript-Mastery-Pro/skills",
+      "sourceType": "github",
+      "skillPath": "skills/recover/SKILL.md",
+      "computedHash": "3eea3552368d8131362187e3dcce7d3c8477dbbc986fec2dc34b711f37144e33"
+    },
+    "remember": {
+      "source": "JavaScript-Mastery-Pro/skills",
+      "sourceType": "github",
+      "skillPath": "skills/remember/SKILL.md",
+      "computedHash": "dd96448335d44c5ffd0202e412cd633a7a5204d06f7151d332c54b167e19970c"
+    },
+    "review": {
+      "source": "JavaScript-Mastery-Pro/skills",
+      "sourceType": "github",
+      "skillPath": "skills/review/SKILL.md",
+      "computedHash": "1b0bfd542962466b53935c1a992542564d0216d508610645ee9a5432f937c112"
     },
     "shadcn": {
       "source": "shadcn/ui",

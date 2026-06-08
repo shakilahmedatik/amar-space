@@ -4,6 +4,7 @@ import {
   type Database,
   flats,
   payments,
+  rentalContracts,
   renters,
 } from '@repo/db'
 import {
@@ -12,7 +13,7 @@ import {
   type PaymentMethod,
   ROLES,
 } from '@repo/shared/constants'
-import { NotFoundError, ValidationError } from '@repo/shared/errors'
+import { ForbiddenError, NotFoundError, ValidationError } from '@repo/shared/errors'
 import type { FieldError, RequestContext } from '@repo/shared/types'
 import {
   type RecordPaymentInput,
@@ -104,6 +105,11 @@ export class PaymentService {
     ctx: RequestContext,
     data: RecordPaymentInput,
   ): Promise<PaymentResult> {
+    // Renters cannot record payments
+    if (ctx.role === 'renter') {
+      throw new ForbiddenError()
+    }
+
     // Validate input using Zod schema
     const parseResult = recordPaymentSchema.safeParse(data)
     if (!parseResult.success) {
@@ -304,6 +310,64 @@ export class PaymentService {
     const conditions = [eq(payments.ownerAccountId, ctx.ownerAccountId)]
 
     // Role-based filtering
+    if (ctx.role === 'renter') {
+      // Look up the renter record for this user
+      const renterRecord = await this.db.query.renters.findFirst({
+        where: eq(renters.userId, ctx.userId),
+      })
+
+      if (!renterRecord) {
+        return {
+          data: [],
+          total: 0,
+          page,
+          pageSize,
+          totalPages: 0,
+        }
+      }
+
+      // Find the active contract for this renter
+      const activeContract = await this.db.query.rentalContracts.findFirst({
+        where: and(
+          eq(rentalContracts.renterId, renterRecord.id),
+          eq(rentalContracts.status, 'active'),
+        ),
+      })
+
+      if (!activeContract) {
+        return {
+          data: [],
+          total: 0,
+          page,
+          pageSize,
+          totalPages: 0,
+        }
+      }
+
+      // Filter payments by bills linked to the renter's flat
+      const renterBills = await this.db
+        .select({ id: bills.id })
+        .from(bills)
+        .where(
+          and(
+            eq(bills.ownerAccountId, ctx.ownerAccountId),
+            eq(bills.flatId, activeContract.flatId),
+          ),
+        )
+
+      const billIds = renterBills.map((b) => b.id)
+      if (billIds.length === 0) {
+        return {
+          data: [],
+          total: 0,
+          page,
+          pageSize,
+          totalPages: 0,
+        }
+      }
+      conditions.push(inArray(payments.billId, billIds))
+    }
+
     if (ctx.role === ROLES.MANAGER && ctx.assignedBuildingIds) {
       // Manager can only see payments for bills in assigned buildings
       const assignedFlats = await this.db
@@ -512,6 +576,51 @@ export class PaymentService {
     ctx: RequestContext,
     paymentId: string,
   ): Promise<PaymentResult> {
+    // Renters can only see payments for their assigned flat
+    if (ctx.role === 'renter') {
+      // Look up the renter record for this user
+      const renterRecord = await this.db.query.renters.findFirst({
+        where: eq(renters.userId, ctx.userId),
+      })
+
+      if (!renterRecord) {
+        throw new NotFoundError('Payment')
+      }
+
+      // Find the active contract for this renter
+      const activeContract = await this.db.query.rentalContracts.findFirst({
+        where: and(
+          eq(rentalContracts.renterId, renterRecord.id),
+          eq(rentalContracts.status, 'active'),
+        ),
+      })
+
+      if (!activeContract) {
+        throw new NotFoundError('Payment')
+      }
+
+      const payment = await this.db.query.payments.findFirst({
+        where: and(
+          eq(payments.id, paymentId),
+          eq(payments.ownerAccountId, ctx.ownerAccountId),
+        ),
+        with: {
+          bill: true,
+        },
+      })
+
+      if (!payment) {
+        throw new NotFoundError('Payment')
+      }
+
+      const bill = payment.bill as { flatId?: string } | null
+      if (!bill || bill.flatId !== activeContract.flatId) {
+        throw new NotFoundError('Payment')
+      }
+
+      return this.mapToPaymentResult(payment)
+    }
+
     const payment = await this.db.query.payments.findFirst({
       where: and(
         eq(payments.id, paymentId),

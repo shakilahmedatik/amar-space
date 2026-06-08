@@ -26,6 +26,11 @@ const en: TranslationDictionary = {
     language: 'Language',
     bangla: 'বাংলা',
     english: 'English',
+    name: 'Name',
+    role: 'Role',
+    status: 'Status',
+    password: 'Password',
+    phone: 'Phone',
   },
   nav: {
     dashboard: 'Dashboard',
@@ -38,6 +43,7 @@ const en: TranslationDictionary = {
     issues: 'Issues',
     notices: 'Notices',
     audit: 'Audit Log',
+    staff: 'Manage Staff',
   },
   auth: {
     login: 'Log In',
@@ -601,6 +607,26 @@ const en: TranslationDictionary = {
     noQrCodesAvailable: 'No QR codes available',
     generateAriaLabel: 'Generate QR code for flat {{flatNumber}}',
     imageAlt: 'QR code for flat {{flatNumber}} in {{buildingName}}',
+  },
+  staff: {
+    title: 'Staff Management',
+    createStaff: 'Add Staff Member',
+    noStaff: 'No staff members found',
+    deactivate: 'Deactivate',
+    deactivateConfirmTitle: 'Deactivate Staff Member',
+    deactivateConfirmDescription:
+      'This staff member will no longer be able to log in. You can reactivate them later.',
+    reactivate: 'Reactivate',
+    deactivateSuccess: 'Staff member deactivated',
+    reactivateSuccess: 'Staff member reactivated',
+    createSuccess: 'Staff Member Created',
+    staffCreatedMessage:
+      'Staff member created. They can log in with the password you set.',
+    updateSuccess: 'Staff member updated successfully',
+    permissions: 'Permissions',
+    permissionsDescription:
+      'Grant or deny specific permissions beyond the role defaults. Click the Grant or Deny buttons to override. Click again or use ✕ to remove the override and revert to default.',
+    permissionsUpdateSuccess: 'Permissions updated successfully',
   },
   validation: {
     required: 'This field is required',

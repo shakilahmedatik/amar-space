@@ -2,6 +2,8 @@
 export const ROLES = {
   OWNER: 'owner',
   MANAGER: 'manager',
+  SECURITY_GUARD: 'security_guard',
+  CARE_TAKER: 'care_taker',
 } as const
 
 export type Role = (typeof ROLES)[keyof typeof ROLES]
@@ -176,6 +178,8 @@ export const ROLE_PERMISSIONS = {
     'notices:delete',
     'audit:read',
     'roles:write',
+    'staff:read',
+    'staff:write',
   ],
   [ROLES.MANAGER]: [
     'buildings:read',
@@ -195,9 +199,24 @@ export const ROLE_PERMISSIONS = {
     'notices:read',
     'notices:write',
   ],
-} as const
+  [ROLES.SECURITY_GUARD]: [
+    'buildings:read',
+    'flats:read',
+    'issues:read',
+    'issues:write',
+    'notices:read',
+  ],
+  [ROLES.CARE_TAKER]: [
+    'buildings:read',
+    'flats:read',
+    'maintenance:read',
+    'maintenance:write',
+    'notices:read',
+  ],
+} as const satisfies Record<string, readonly string[]>
 
-export type Permission = (typeof ROLE_PERMISSIONS)[Role][number]
+export type Permission =
+  (typeof ROLE_PERMISSIONS)[keyof typeof ROLE_PERMISSIONS][number]
 
 /** Pagination defaults */
 export const PAGINATION = {

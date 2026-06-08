@@ -1,4 +1,4 @@
-import { managerAssignments } from '@repo/db'
+import { managerAssignments, rentalContracts, renters } from '@repo/db'
 import { and, eq } from 'drizzle-orm'
 import type { FastifyReply, FastifyRequest } from 'fastify'
 
@@ -26,6 +26,7 @@ declare module 'fastify' {
  * Resolves the tenant scope for the authenticated user:
  * - For ALL roles: sets ownerAccountId from request.user.ownerAccountId
  * - For managers: queries manager_assignments to resolve assigned building IDs
+ * - For renters: queries renters and rental_contracts to resolve assigned flat ID
  *
  * Must run AFTER authGuard (requires request.user to be set).
  *
@@ -73,6 +74,35 @@ export async function tenantScope(
       )
 
     scope.assignedBuildingIds = assignments.map((a) => a.buildingId)
+  }
+
+  if (user.role === 'renter') {
+    // Find the renter record for this user
+    const renterRows = await db
+      .select({ id: renters.id })
+      .from(renters)
+      .where(eq(renters.userId, user.id))
+      .limit(1)
+    const renterRecord = renterRows[0] ?? null
+
+    if (renterRecord) {
+      // Find the active rental contract
+      const contractRows = await db
+        .select({ flatId: rentalContracts.flatId })
+        .from(rentalContracts)
+        .where(
+          and(
+            eq(rentalContracts.renterId, renterRecord.id),
+            eq(rentalContracts.status, 'active'),
+          ),
+        )
+        .limit(1)
+      const activeContract = contractRows[0] ?? null
+
+      if (activeContract) {
+        scope.assignedFlatId = activeContract.flatId
+      }
+    }
   }
 
   request.tenantScope = scope

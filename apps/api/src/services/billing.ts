@@ -15,7 +15,7 @@ import {
   FLAT_STATUS,
   ROLES,
 } from '@repo/shared/constants'
-import { NotFoundError, ValidationError } from '@repo/shared/errors'
+import { ForbiddenError, NotFoundError, ValidationError } from '@repo/shared/errors'
 import type { FieldError, RequestContext } from '@repo/shared/types'
 import {
   type AddUtilityChargeInput,
@@ -156,6 +156,11 @@ export class BillingService {
     ctx: RequestContext,
     month: string,
   ): Promise<GenerateBillsResult> {
+    // Renters cannot generate bills
+    if (ctx.role === 'renter') {
+      throw new ForbiddenError()
+    }
+
     // Validate month format
     const monthResult = billingMonthSchema.safeParse(month)
     if (!monthResult.success) {
@@ -357,6 +362,11 @@ export class BillingService {
     billId: string,
     charge: AddUtilityChargeInput,
   ): Promise<LineItemResult> {
+    // Renters cannot add utility charges
+    if (ctx.role === 'renter') {
+      throw new ForbiddenError()
+    }
+
     // Validate input
     const parseResult = addUtilityChargeSchema.safeParse(charge)
     if (!parseResult.success) {
@@ -507,6 +517,45 @@ export class BillingService {
     const conditions = [eq(bills.ownerAccountId, ctx.ownerAccountId)]
 
     // Role-based filtering
+    if (ctx.role === 'renter') {
+      // Look up the renter record for this user
+      const renterRecord = await this.db.query.renters.findFirst({
+        where: eq(renters.userId, ctx.userId),
+      })
+
+      if (!renterRecord) {
+        // No renter record found — return empty
+        return {
+          data: [],
+          total: 0,
+          page,
+          pageSize,
+          totalPages: 0,
+        }
+      }
+
+      // Find the active contract for this renter
+      const activeContract = await this.db.query.rentalContracts.findFirst({
+        where: and(
+          eq(rentalContracts.renterId, renterRecord.id),
+          eq(rentalContracts.status, 'active'),
+        ),
+      })
+
+      if (!activeContract) {
+        return {
+          data: [],
+          total: 0,
+          page,
+          pageSize,
+          totalPages: 0,
+        }
+      }
+
+      // Filter bills by the renter's assigned flat
+      conditions.push(eq(bills.flatId, activeContract.flatId))
+    }
+
     if (ctx.role === ROLES.MANAGER && ctx.assignedBuildingIds) {
       // Manager can only see bills for flats in assigned buildings
       // We need to join with flats to filter by building
@@ -724,6 +773,52 @@ export class BillingService {
     ctx: RequestContext,
     billId: string,
   ): Promise<BillResult> {
+    // Renters can only see bills for their assigned flat
+    if (ctx.role === 'renter') {
+      // Look up the renter record for this user
+      const renterRecord = await this.db.query.renters.findFirst({
+        where: eq(renters.userId, ctx.userId),
+      })
+
+      if (!renterRecord) {
+        throw new NotFoundError('Bill')
+      }
+
+      // Find the active contract for this renter
+      const activeContract = await this.db.query.rentalContracts.findFirst({
+        where: and(
+          eq(rentalContracts.renterId, renterRecord.id),
+          eq(rentalContracts.status, 'active'),
+        ),
+      })
+
+      if (!activeContract) {
+        throw new NotFoundError('Bill')
+      }
+
+      const bill = await this.db.query.bills.findFirst({
+        where: and(
+          eq(bills.id, billId),
+          eq(bills.ownerAccountId, ctx.ownerAccountId),
+          eq(bills.flatId, activeContract.flatId),
+        ),
+        with: {
+          flat: {
+            with: {
+              building: true,
+            },
+          },
+          renter: true,
+        },
+      })
+
+      if (!bill) {
+        throw new NotFoundError('Bill')
+      }
+
+      return this.mapToBillResult(bill)
+    }
+
     const bill = await this.db.query.bills.findFirst({
       where: and(
         eq(bills.id, billId),

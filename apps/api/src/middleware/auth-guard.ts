@@ -1,4 +1,6 @@
+import { portalSessions } from '@repo/db'
 import type { ApiErrorResponse } from '@repo/shared/types'
+import { eq } from 'drizzle-orm'
 import type { FastifyReply, FastifyRequest } from 'fastify'
 
 /**
@@ -6,7 +8,7 @@ import type { FastifyReply, FastifyRequest } from 'fastify'
  */
 export interface AuthUser {
   id: string
-  role: 'superadmin' | 'owner' | 'manager'
+  role: 'superadmin' | 'owner' | 'manager' | 'renter'
   ownerAccountId: string
   email: string
   approvalStatus?: 'pending' | 'approved' | 'rejected'
@@ -55,11 +57,83 @@ function toWebHeaders(request: FastifyRequest, _baseURL: string): Headers {
 }
 
 /**
+ * Attempt portal session authentication.
+ * Checks for a portal_session cookie and validates it against the database.
+ * Returns the user context if valid, or null if no valid portal session exists.
+ */
+async function authenticatePortalSession(
+  request: FastifyRequest,
+): Promise<AuthUser | null> {
+  const portalSessionId = request.cookies?.portal_session
+  if (!portalSessionId) return null
+
+  const db = request.server.db
+
+  try {
+    const portalSession = await db.query.portalSessions.findFirst({
+      where: eq(portalSessions.id, portalSessionId),
+      with: {
+        renter: {
+          with: {
+            user: true,
+          },
+        },
+      },
+    })
+
+    if (!portalSession) return null
+
+    // Check if session has expired
+    const now = new Date()
+    if (portalSession.expiresAt <= now) return null
+
+    const renter = portalSession.renter as {
+      user: {
+        id: string
+        email: string
+        ownerAccountId: string
+        isActive?: boolean
+      }
+    }
+
+    if (!renter?.user) return null
+
+    return {
+      id: renter.user.id,
+      role: 'renter',
+      ownerAccountId: renter.user.ownerAccountId,
+      email: renter.user.email,
+      approvalStatus: 'approved',
+      isActive: renter.user.isActive ?? true,
+    }
+  } catch {
+    return null
+  }
+}
+
+/**
+ * Checks if the request should be treated as a portal request.
+ * A request is a portal request if:
+ * - The x-portal-request header is set to 'true', OR
+ * - The URL starts with /api/portal/
+ */
+function isPortalRequest(request: FastifyRequest): boolean {
+  if (request.headers['x-portal-request'] === 'true') return true
+  if (request.url.startsWith('/api/portal/')) return true
+  return false
+}
+
+/**
  * Auth guard preHandler middleware.
  *
  * Extracts the session token from cookie or Authorization header,
  * validates the session via Better Auth, and injects user context
  * (id, role, ownerAccountId, email) into the request.
+ *
+ * Portal session support:
+ * - If the request is a portal request (x-portal-request header or /api/portal/ URL),
+ *   portal session authentication takes priority over Better Auth.
+ * - If Better Auth fails for a non-portal request, portal session is tried as fallback.
  *
  * Returns 401 for invalid, expired, or missing sessions.
  *
@@ -75,12 +149,34 @@ export async function authGuard(
 ): Promise<FastifyReply | undefined> {
   const { auth, env } = request.server
 
+  // ── Portal request path ──────────────────────────────────────────────
+  // If this is explicitly a portal request, try portal session first
+  if (isPortalRequest(request)) {
+    const portalUser = await authenticatePortalSession(request)
+    if (portalUser) {
+      request.user = portalUser
+      return
+    }
+    // Portal session not found/expired — fall through to Better Auth
+  }
+
   const headers = toWebHeaders(request, env.AUTH_BASE_URL)
 
   try {
     const session = await auth.api.getSession({ headers })
 
     if (!session?.user) {
+      // ── Fallback: try portal session if Better Auth fails ──────
+      // This handles non-portal-prefixed requests that carry a portal_session cookie
+      // but don't have a valid Better Auth session (e.g. renter accessing via portal)
+      if (!isPortalRequest(request)) {
+        const portalUser = await authenticatePortalSession(request)
+        if (portalUser) {
+          request.user = portalUser
+          return
+        }
+      }
+
       const response: ApiErrorResponse = {
         requestId: request.id,
         statusCode: 401,

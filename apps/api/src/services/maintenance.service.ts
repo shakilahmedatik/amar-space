@@ -4,6 +4,7 @@ import {
   maintenanceAttachments,
   maintenanceComments,
   maintenanceRequests,
+  rentalContracts,
   renters,
 } from '@repo/db'
 import {
@@ -13,7 +14,7 @@ import {
   type Priority,
   ROLES,
 } from '@repo/shared/constants'
-import { NotFoundError, ValidationError } from '@repo/shared/errors'
+import { ForbiddenError, NotFoundError, ValidationError } from '@repo/shared/errors'
 import type { FieldError, RequestContext } from '@repo/shared/types'
 import {
   addMaintenanceCommentSchema,
@@ -258,6 +259,11 @@ export class MaintenanceService {
     requestId: string,
     newStatus: string,
   ): Promise<MaintenanceRequestResult> {
+    // Renters cannot update maintenance request status
+    if (ctx.role === 'renter') {
+      throw new ForbiddenError()
+    }
+
     // Validate the new status value
     const parseResult = updateMaintenanceStatusSchema.safeParse({
       status: newStatus,
@@ -422,6 +428,44 @@ export class MaintenanceService {
     ]
 
     // Role-based filtering
+    if (ctx.role === 'renter') {
+      // Look up the renter record for this user
+      const renterRecord = await this.db.query.renters.findFirst({
+        where: eq(renters.userId, ctx.userId),
+      })
+
+      if (!renterRecord) {
+        return {
+          data: [],
+          total: 0,
+          page,
+          pageSize,
+          totalPages: 0,
+        }
+      }
+
+      // Find the active contract for this renter
+      const activeContract = await this.db.query.rentalContracts.findFirst({
+        where: and(
+          eq(rentalContracts.renterId, renterRecord.id),
+          eq(rentalContracts.status, 'active'),
+        ),
+      })
+
+      if (!activeContract) {
+        return {
+          data: [],
+          total: 0,
+          page,
+          pageSize,
+          totalPages: 0,
+        }
+      }
+
+      // Filter maintenance requests by the renter's assigned flat
+      conditions.push(eq(maintenanceRequests.flatId, activeContract.flatId))
+    }
+
     if (ctx.role === ROLES.MANAGER && ctx.assignedBuildingIds) {
       // Manager can only see requests for assigned buildings
       if (ctx.assignedBuildingIds.length === 0) {

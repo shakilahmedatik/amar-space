@@ -722,6 +722,33 @@ export class NoticeService {
       return false
     }
 
+    if (ctx.role === 'renter') {
+      // Renters can see notices targeted at all renters
+      if (notice.targetAudience === NOTICE_TARGETS.ALL_RENTERS) {
+        return true
+      }
+
+      // Renters can see notices for their building
+      if (
+        notice.targetAudience === NOTICE_TARGETS.SPECIFIC_BUILDING &&
+        notice.targetBuildingId &&
+        ctx.assignedBuildingIds?.includes(notice.targetBuildingId)
+      ) {
+        return true
+      }
+
+      // Renters can see notices for their flat
+      if (
+        notice.targetAudience === NOTICE_TARGETS.SPECIFIC_FLAT &&
+        notice.targetFlatId &&
+        notice.targetFlatId === ctx.assignedFlatId
+      ) {
+        return true
+      }
+
+      return false
+    }
+
     return false
   }
 

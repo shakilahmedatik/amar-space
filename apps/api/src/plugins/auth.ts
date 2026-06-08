@@ -53,7 +53,12 @@ export function createAuth(config: AuthConfig) {
           type: 'string',
           required: false,
           defaultValue: 'owner',
-          input: false, // not settable by the client during sign-up
+          input: false,
+        },
+        ownerAccountId: {
+          type: 'string',
+          required: false,
+          input: false,
         },
       },
     },

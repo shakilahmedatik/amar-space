@@ -262,7 +262,7 @@ describe('DepositService', () => {
       const db = {
         query: {
           rentalContracts: {
-            findFirst: vi.fn().mockResolvedValue(defaultContract),
+            findFirst: vi.fn().mockResolvedValue(null),
           },
           flats: { findFirst: vi.fn() },
           renters: { findFirst: vi.fn().mockResolvedValue(renter) },

@@ -6,6 +6,7 @@ import {
   maintenanceRequests,
   managerAssignments,
 } from '@repo/db'
+import { ForbiddenError } from '@repo/shared/errors'
 import type { RequestContext } from '@repo/shared/types'
 import { and, count, desc, eq, gte, inArray, lte } from 'drizzle-orm'
 
@@ -83,6 +84,11 @@ export class AuditLogQueryService {
     filters: AuditLogQueryFilters,
     pagination: PaginationInput,
   ): Promise<PaginatedAuditLogs> {
+    // Renters cannot access audit logs (Requirement 13.5)
+    if (ctx.role === 'renter') {
+      throw new ForbiddenError()
+    }
+
     const pageSize = Math.min(Math.max(pagination.pageSize, 1), 100)
     const page = Math.max(pagination.page, 1)
     const offset = (page - 1) * pageSize
