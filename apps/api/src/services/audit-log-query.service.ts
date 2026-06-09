@@ -5,6 +5,7 @@ import {
   issues,
   maintenanceRequests,
   managerAssignments,
+  users,
 } from '@repo/db'
 import { ForbiddenError } from '@repo/shared/errors'
 import type { RequestContext } from '@repo/shared/types'
@@ -30,6 +31,7 @@ export interface AuditLogEntry {
   id: string
   ownerAccountId: string
   actorId: string
+  actorName: string
   action: string
   entityType: string
   entityId: string
@@ -137,8 +139,21 @@ export class AuditLogQueryService {
 
     const [data, totalResult] = await Promise.all([
       this.db
-        .select()
+        .select({
+          id: auditLogs.id,
+          ownerAccountId: auditLogs.ownerAccountId,
+          actorId: auditLogs.actorId,
+          actorName: users.name,
+          action: auditLogs.action,
+          entityType: auditLogs.entityType,
+          entityId: auditLogs.entityId,
+          oldValues: auditLogs.oldValues,
+          newValues: auditLogs.newValues,
+          metadata: auditLogs.metadata,
+          createdAt: auditLogs.createdAt,
+        })
         .from(auditLogs)
+        .leftJoin(users, eq(auditLogs.actorId, users.id))
         .where(whereClause)
         .orderBy(desc(auditLogs.createdAt))
         .limit(pageSize)
@@ -153,6 +168,7 @@ export class AuditLogQueryService {
         id: row.id,
         ownerAccountId: row.ownerAccountId,
         actorId: row.actorId,
+        actorName: row.actorName ?? 'Unknown',
         action: row.action,
         entityType: row.entityType,
         entityId: row.entityId,

@@ -120,12 +120,12 @@ async function staffRoutes(fastify: FastifyInstance) {
   fastify.get(
     '/',
     {
-      preHandler: [authGuard, roleGuard(['owner']), approvalGuard, tenantScope],
+      preHandler: [authGuard, roleGuard(['owner', 'manager']), approvalGuard, tenantScope],
       schema: {
         tags: ['Staff'],
         summary: 'List staff members',
         description:
-          "Returns a paginated list of staff members within the owner's account.\n\n**Roles: owner**",
+          "Returns a paginated list of staff members within the owner's account.\n\n**Roles: owner, manager**",
         security: [{ BearerAuth: [] }, { CookieAuth: [] }],
         querystring: z.object({
           page: z.coerce.number().int().min(1).default(1),

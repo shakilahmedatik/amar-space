@@ -35,8 +35,8 @@ export async function apiFetch<T>(
     headers['x-portal-request'] = 'true'
   }
 
-  // Only set Content-Type to JSON when there's a body to send
-  if (options?.body) {
+  // Only set Content-Type to JSON when body is plain data (not FormData/blob)
+  if (options?.body && typeof options.body === 'string') {
     headers['Content-Type'] = headers['Content-Type'] ?? 'application/json'
   }
 

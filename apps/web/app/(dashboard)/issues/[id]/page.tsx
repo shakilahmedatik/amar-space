@@ -62,7 +62,7 @@ export default function IssueDetailPage() {
     async function loadManagers() {
       try {
         const response = await fetch(
-          `${BASE_URL}/api/renters?role=manager&pageSize=100`,
+          `${BASE_URL}/api/staff?role=manager&pageSize=100`,
           { credentials: 'include' },
         )
         if (response.ok) {
@@ -144,7 +144,7 @@ export default function IssueDetailPage() {
       })
     }
   }
-  const canManage = role === 'owner' || role === 'manager'
+  const canManage = role === 'owner' || role === 'manager' || role === 'security_guard' || role === 'care_taker'
   const availableTransitions = issue
     ? (VALID_TRANSITIONS[issue.status] ?? [])
     : []
@@ -257,6 +257,37 @@ export default function IssueDetailPage() {
                 <p className="text-sm text-success-text leading-relaxed whitespace-pre-wrap">
                   {issue.resolutionNotes}
                 </p>
+              </div>
+            )}
+
+            {/* Attachments */}
+            {issue.attachments && issue.attachments.length > 0 && (
+              <div>
+                <p className="text-xs font-medium text-steel mb-3">
+                  {t('issues.photoUpload') || 'Attachments'}
+                </p>
+                <div className="flex flex-wrap gap-3">
+                  {issue.attachments.map((att) => (
+                    <a
+                      key={att.id}
+                      href={att.fileUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="group relative w-28 h-28 rounded-lg overflow-hidden border border-hairline bg-surface hover:shadow-md transition-shadow"
+                    >
+                      <img
+                        src={att.fileUrl}
+                        alt={att.fileName}
+                        className="w-full h-full object-cover"
+                      />
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <span className="text-white text-xs font-medium">
+                          View
+                        </span>
+                      </div>
+                    </a>
+                  ))}
+                </div>
               </div>
             )}
           </div>

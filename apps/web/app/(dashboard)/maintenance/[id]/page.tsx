@@ -125,7 +125,7 @@ export default function MaintenanceDetailPage() {
         return status
     }
   }
-  const canUpdateStatus = role === 'owner' || role === 'manager'
+  const canUpdateStatus = role === 'owner' || role === 'manager' || role === 'security_guard' || role === 'care_taker'
 
   return (
     <>

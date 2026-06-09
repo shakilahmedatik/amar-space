@@ -6,6 +6,7 @@ import {
   assignIssue,
   type CreateIssueInput,
   createIssue,
+  deleteIssue,
   fetchIssue,
   fetchIssues,
   fetchManagerOptions,
@@ -78,6 +79,20 @@ export function useAssignIssue(issueId: string) {
     mutationFn: (data: AssignIssueInput) => assignIssue(issueId, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['issues', issueId] })
+      queryClient.invalidateQueries({ queryKey: ['issues'] })
+    },
+  })
+}
+
+/**
+ * Mutation hook for deleting an issue. Owner only.
+ */
+export function useDeleteIssue() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (id: string) => deleteIssue(id),
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['issues'] })
     },
   })

@@ -1,6 +1,7 @@
 import { randomBytes, scrypt } from 'node:crypto'
 import {
   accounts,
+  auditLogs,
   buildings,
   type Database,
   managerAssignments,
@@ -464,6 +465,23 @@ export class StaffService {
 
         await this.db.insert(staffBuildingAssignments).values(assignmentValues)
       }
+
+      // Sync manager_assignments — tenantScope relies on this for manager scoping
+      const effectiveRole = validated.role ?? staff.role
+      if (effectiveRole === 'manager') {
+        await this.db
+          .delete(managerAssignments)
+          .where(eq(managerAssignments.managerId, staffId))
+
+        if (validated.buildingIds.length > 0) {
+          const managerValues = validated.buildingIds.map((buildingId) => ({
+            ownerAccountId: ctx.ownerAccountId,
+            managerId: staffId,
+            buildingId,
+          }))
+          await this.db.insert(managerAssignments).values(managerValues)
+        }
+      }
     }
 
     const updateValues: Record<string, unknown> = {}
@@ -587,18 +605,24 @@ export class StaffService {
       throw new NotFoundError('Staff member')
     }
 
-    await this.db.execute(
-      sql`DELETE FROM staff_building_assignments WHERE staff_id = ${staffId}`,
-    )
-    await this.db.execute(
-      sql`DELETE FROM user_permission_overrides WHERE user_id = ${staffId}`,
-    )
-    await this.db.execute(
-      sql`DELETE FROM manager_assignments WHERE manager_id = ${staffId}`,
-    )
-    await this.db.execute(sql`DELETE FROM accounts WHERE user_id = ${staffId}`)
-    await this.db.execute(sql`DELETE FROM sessions WHERE user_id = ${staffId}`)
-    await this.db.execute(sql`DELETE FROM users WHERE id = ${staffId}`)
+    await this.db.transaction(async (tx) => {
+      await tx.execute(
+        sql`DELETE FROM staff_building_assignments WHERE staff_id = ${staffId}`,
+      )
+      await tx.execute(
+        sql`DELETE FROM user_permission_overrides WHERE user_id = ${staffId}`,
+      )
+      await tx.execute(
+        sql`DELETE FROM manager_assignments WHERE manager_id = ${staffId}`,
+      )
+      await tx.execute(sql`DELETE FROM audit_logs WHERE actor_id = ${staffId}`)
+      await tx.execute(
+        sql`DELETE FROM audit_logs WHERE owner_account_id = ${staffId}`,
+      )
+      await tx.execute(sql`DELETE FROM accounts WHERE user_id = ${staffId}`)
+      await tx.execute(sql`DELETE FROM sessions WHERE user_id = ${staffId}`)
+      await tx.execute(sql`DELETE FROM users WHERE id = ${staffId}`)
+    })
 
     this.auditLogger.log({
       actorId: ctx.userId,

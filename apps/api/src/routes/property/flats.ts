@@ -32,7 +32,7 @@ import {
  *
  * Access control:
  * - Owner: full access (create, read, update, delete, status transition)
- * - Manager: read, update status only (no create/delete)
+ * - Manager: create, read, update status only (no update/delete)
  */
 async function flatRoutes(fastify: FastifyInstance) {
   const flatService = new FlatService(fastify.db, fastify.auditLogger)
@@ -142,16 +142,16 @@ async function flatRoutes(fastify: FastifyInstance) {
 
   /**
    * POST /api/flats
-   * Creates a new flat. Owner only.
+   * Creates a new flat. Owner and Manager.
    */
   fastify.post(
     '/',
     {
-      preHandler: [authGuard, roleGuard(['owner']), approvalGuard, tenantScope],
+      preHandler: [authGuard, roleGuard(['owner', 'manager']), approvalGuard, tenantScope],
       schema: {
         tags: ['Flats'],
         summary: 'Create a flat',
-        description: 'Creates a new flat in a building.\n\n**Roles: owner**',
+        description: 'Creates a new flat in a building.\n\n**Roles: owner, manager**',
         security: [{ BearerAuth: [] }, { CookieAuth: [] }],
         body: createFlatSchema,
         response: {

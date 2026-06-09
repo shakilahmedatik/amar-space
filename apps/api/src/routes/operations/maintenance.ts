@@ -23,14 +23,13 @@ import {
  *
  * Provides:
  * - GET /api/maintenance — List maintenance requests with filters and pagination
- * - POST /api/maintenance — Create a new maintenance request (Renter only)
+ * - POST /api/maintenance — Create a new maintenance request
  * - GET /api/maintenance/:id — Get a maintenance request by ID
- * - PUT /api/maintenance/:id/status — Update maintenance request status (Owner/Manager only)
+ * - PUT /api/maintenance/:id/status — Update maintenance request status
  * - POST /api/maintenance/:id/comments — Add a comment to a maintenance request
  *
  * Access control:
- * - Renter: create requests, add comments, view own requests
- * - Owner/Manager: view all/assigned, update status, add comments
+ * - Owner/Manager/SecurityGuard/CareTaker: full access (create, view, update status, add comments)
  */
 async function maintenanceRoutes(fastify: FastifyInstance) {
   const maintenanceService = new MaintenanceService(
@@ -77,7 +76,7 @@ async function maintenanceRoutes(fastify: FastifyInstance) {
     {
       preHandler: [
         authGuard,
-        roleGuard(['owner', 'manager']),
+        roleGuard(['owner', 'manager', 'security_guard', 'care_taker']),
         approvalGuard,
         tenantScope,
       ],
@@ -85,7 +84,7 @@ async function maintenanceRoutes(fastify: FastifyInstance) {
         tags: ['Maintenance'],
         summary: 'List maintenance requests',
         description:
-          'Returns paginated maintenance requests with optional filters by building, flat, status, and priority.\n\n**Roles: owner, manager, renter**',
+          'Returns paginated maintenance requests with optional filters by building, flat, status, and priority.\n\n**Roles: owner, manager, security_guard, care_taker**',
         security: [{ BearerAuth: [] }, { CookieAuth: [] }],
         querystring: z.object({
           page: z.coerce.number().int().min(1).default(1),
@@ -145,14 +144,14 @@ async function maintenanceRoutes(fastify: FastifyInstance) {
 
   /**
    * POST /api/maintenance
-   * Creates a new maintenance request. Renter only.
+   * Creates a new maintenance request.
    */
   fastify.post(
     '/',
     {
       preHandler: [
         authGuard,
-        roleGuard(['owner', 'manager']),
+        roleGuard(['owner', 'manager', 'security_guard', 'care_taker']),
         approvalGuard,
         tenantScope,
       ],
@@ -160,7 +159,7 @@ async function maintenanceRoutes(fastify: FastifyInstance) {
         tags: ['Maintenance'],
         summary: 'Create maintenance request',
         description:
-          'Creates a new maintenance request.\n\n**Roles: owner, manager**',
+          'Creates a new maintenance request.\n\n**Roles: owner, manager, security_guard, care_taker**',
         security: [{ BearerAuth: [] }, { CookieAuth: [] }],
         consumes: ['multipart/form-data'],
         body: z
@@ -231,14 +230,13 @@ async function maintenanceRoutes(fastify: FastifyInstance) {
   /**
    * GET /api/maintenance/:id
    * Gets a maintenance request by ID.
-   * All authenticated users can view (scoped by role).
    */
   fastify.get(
     '/:id',
     {
       preHandler: [
         authGuard,
-        roleGuard(['owner', 'manager']),
+        roleGuard(['owner', 'manager', 'security_guard', 'care_taker']),
         approvalGuard,
         tenantScope,
       ],
@@ -246,7 +244,7 @@ async function maintenanceRoutes(fastify: FastifyInstance) {
         tags: ['Maintenance'],
         summary: 'Get a maintenance request',
         description:
-          'Returns a maintenance request by ID with its comments.\n\n**Roles: owner, manager, renter**',
+          'Returns a maintenance request by ID with its comments.\n\n**Roles: owner, manager, security_guard, care_taker**',
         security: [{ BearerAuth: [] }, { CookieAuth: [] }],
         params: z.object({
           id: z.string().uuid('Invalid maintenance request ID format'),
@@ -289,14 +287,14 @@ async function maintenanceRoutes(fastify: FastifyInstance) {
 
   /**
    * PUT /api/maintenance/:id/status
-   * Updates the status of a maintenance request. Owner/Manager only.
+   * Updates the status of a maintenance request.
    */
   fastify.put(
     '/:id/status',
     {
       preHandler: [
         authGuard,
-        roleGuard(['owner', 'manager']),
+        roleGuard(['owner', 'manager', 'security_guard', 'care_taker']),
         approvalGuard,
         tenantScope,
       ],
@@ -304,7 +302,7 @@ async function maintenanceRoutes(fastify: FastifyInstance) {
         tags: ['Maintenance'],
         summary: 'Update maintenance status',
         description:
-          'Updates the status of a maintenance request (open → in_progress → resolved → closed).\n\n**Roles: owner, manager**',
+          'Updates the status of a maintenance request (open → in_progress → resolved → closed).\n\n**Roles: owner, manager, security_guard, care_taker**',
         security: [{ BearerAuth: [] }, { CookieAuth: [] }],
         params: z.object({
           id: z.string().uuid('Invalid maintenance request ID format'),
@@ -347,14 +345,13 @@ async function maintenanceRoutes(fastify: FastifyInstance) {
   /**
    * POST /api/maintenance/:id/comments
    * Adds a comment to a maintenance request.
-   * All authenticated users can comment (Renter on own, Owner/Manager on any accessible).
    */
   fastify.post(
     '/:id/comments',
     {
       preHandler: [
         authGuard,
-        roleGuard(['owner', 'manager']),
+        roleGuard(['owner', 'manager', 'security_guard', 'care_taker']),
         approvalGuard,
         tenantScope,
       ],
@@ -362,7 +359,7 @@ async function maintenanceRoutes(fastify: FastifyInstance) {
         tags: ['Maintenance'],
         summary: 'Add comment',
         description:
-          'Adds a comment to a maintenance request. All authenticated users can comment on requests they can access.\n\n**Roles: owner, manager, renter**',
+          'Adds a comment to a maintenance request.\n\n**Roles: owner, manager, security_guard, care_taker**',
         security: [{ BearerAuth: [] }, { CookieAuth: [] }],
         params: z.object({
           id: z.string().uuid('Invalid maintenance request ID format'),

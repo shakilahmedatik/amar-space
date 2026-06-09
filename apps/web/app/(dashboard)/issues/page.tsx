@@ -3,13 +3,14 @@
 import Link from 'next/link'
 import { useCallback, useState } from 'react'
 import { Button } from '@/components/ui/button'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { DataTable, type DataTableColumn } from '@/components/ui/data-table'
 import { ErrorFeedback } from '@/components/ui/error-feedback'
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton'
 import { StatusBadge } from '@/components/ui/status-badge'
 import { useSession } from '@/contexts/session-context'
 import { useBuildings } from '@/hooks/use-buildings'
-import { useIssues } from '@/hooks/use-issues'
+import { useDeleteIssue, useIssues } from '@/hooks/use-issues'
 import type {
   IssueCategory,
   IssueListItem,
@@ -27,6 +28,9 @@ export default function IssuesPage() {
   const { role } = useSession()
   const { t } = useTranslation()
   const [page, setPage] = useState(1)
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null)
+  const [successMessage, setSuccessMessage] = useState('')
+  const deleteMutation = useDeleteIssue()
 
   // Filter state
   const [buildingFilter, setBuildingFilter] = useState('')
@@ -66,8 +70,6 @@ export default function IssuesPage() {
         break
     }
   }, [])
-  const canCreate = role === 'owner' || role === 'manager'
-
   const filters = [
     {
       key: 'building',
@@ -185,6 +187,25 @@ export default function IssuesPage() {
       ),
       width: '110px',
     },
+    ...(role === 'owner'
+      ? [
+          {
+            key: 'actions' as const,
+            header: t('flats.actions'),
+            width: '100px' as const,
+            render: (row: IssueListItem) => (
+              <Button
+                variant="outline"
+                size="sm"
+                className="rounded-full text-xs h-8 text-error-text border-error-text cursor-pointer"
+                onClick={() => setDeleteTarget(row.id)}
+              >
+                {t('common.delete') || 'Delete'}
+              </Button>
+            ),
+          },
+        ]
+      : []),
   ]
 
   return (
@@ -197,17 +218,18 @@ export default function IssuesPage() {
         />
       )}
 
+      {successMessage && (
+        <ErrorFeedback
+          message={successMessage}
+          type="success"
+          visible
+          onDismiss={() => setSuccessMessage('')}
+        />
+      )}
+
       <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
         <h1 className="text-2xl font-bold text-ink">{t('issues.title')}</h1>
 
-        {canCreate && (
-          <Button
-            asChild
-            className="min-h-[44px] rounded-full bg-primary text-on-primary font-semibold"
-          >
-            <Link href="/issues/new">{t('issues.createIssue')}</Link>
-          </Button>
-        )}
       </div>
 
       {isLoading ? (
@@ -230,6 +252,28 @@ export default function IssuesPage() {
           emptyMessage={t('issues.noIssues')}
         />
       )}
+
+      <ConfirmDialog
+        open={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        title={t('issues.deleteConfirmTitle') || 'Delete Issue'}
+        description={
+          t('issues.deleteConfirmDescription') ||
+          'Are you sure you want to delete this issue? This action cannot be undone.'
+        }
+        confirmLabel={t('common.delete') || 'Delete'}
+        onConfirm={async () => {
+          if (deleteTarget) {
+            try {
+              await deleteMutation.mutateAsync(deleteTarget)
+              setSuccessMessage(t('issues.deleteSuccess') || 'Issue deleted successfully')
+            } catch {
+              setSuccessMessage('')
+            }
+            setDeleteTarget(null)
+          }
+        }}
+      />
     </>
   )
 }

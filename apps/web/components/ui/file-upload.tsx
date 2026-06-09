@@ -14,6 +14,7 @@ interface FileUploadProps {
   className?: string
   accept?: string
   maxSize?: number
+  capture?: 'environment' | 'user'
 }
 
 /**
@@ -27,6 +28,7 @@ export function FileUpload({
   className = '',
   accept = ACCEPTED_EXTENSIONS,
   maxSize = MAX_FILE_SIZE,
+  capture,
 }: FileUploadProps) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [isDragOver, setIsDragOver] = useState(false)
@@ -180,6 +182,7 @@ export function FileUpload({
         disabled={disabled}
         className="hidden"
         tabIndex={-1}
+        capture={capture}
       />
 
       {displayError && (

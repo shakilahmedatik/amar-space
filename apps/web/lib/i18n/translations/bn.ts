@@ -482,6 +482,11 @@ const bn: TranslationDictionary = {
     statusUpdateError: 'অবস্থা আপডেট করা যায়নি',
     assignSuccess: 'সমস্যা সফলভাবে দায়িত্ব দেওয়া হয়েছে',
     assignError: 'দায়িত্ব দেওয়া যায়নি',
+    deleteConfirmTitle: 'সমস্যা মুছুন',
+    deleteConfirmDescription:
+      'আপনি কি এই সমস্যাটি মুছতে চান? এই ক্রিয়াটি পূর্বাবস্থায় ফেরানো যাবে না।',
+    deleteSuccess: 'সমস্যা সফলভাবে মুছে ফেলা হয়েছে',
+    deleteError: 'সমস্যা মুছে ফেলা যায়নি',
   },
   notices: {
     title: 'নোটিশ',
@@ -626,6 +631,10 @@ const bn: TranslationDictionary = {
     permissionsDescription:
       'রোল ডিফল্টের বাইরে নির্দিষ্ট অনুমতি দিন বা অস্বীকার করুন। Grant বা Deny বাটনে ক্লিক করে ওভাররাইড সেট করুন। আবার ক্লিক করুন বা ✕ চিহ্নে ক্লিক করে ওভাররাইড সরিয়ে ডিফল্টে ফিরে যান।',
     permissionsUpdateSuccess: 'অনুমতি আপডেট করা হয়েছে',
+    deleteConfirmTitle: 'স্টাফ সদস্য স্থায়ীভাবে মুছুন',
+    deleteConfirmDescription:
+      'এই ক্রিয়াটি স্থায়ীভাবে এই স্টাফ সদস্য এবং সমস্ত সম্পর্কিত ডেটা মুছে ফেলে। এটি পূর্বাবস্থায় ফেরানো যাবে না।',
+    deleteSuccess: 'স্টাফ সদস্য স্থায়ীভাবে মুছে ফেলা হয়েছে',
   },
   validation: {
     required: 'এই ক্ষেত্রটি আবশ্যক',

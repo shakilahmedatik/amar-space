@@ -4,6 +4,7 @@ import { emergencyContacts } from './emergency-contacts'
 import { fileReferences } from './file-references'
 import { flatSlugs } from './flat-slugs'
 import { flats } from './flats'
+import { issueAttachments } from './issue-attachments'
 import { issues } from './issues'
 import { maintenanceAttachments } from './maintenance-attachments'
 import { maintenanceComments } from './maintenance-comments'
@@ -156,7 +157,7 @@ export const rentalContractsRelations = relations(
   }),
 )
 
-export const issuesRelations = relations(issues, ({ one }) => ({
+export const issuesRelations = relations(issues, ({ one, many }) => ({
   owner: one(users, {
     fields: [issues.ownerAccountId],
     references: [users.id],
@@ -171,7 +172,18 @@ export const issuesRelations = relations(issues, ({ one }) => ({
     references: [users.id],
     relationName: 'assignedIssues',
   }),
+  attachments: many(issueAttachments),
 }))
+
+export const issueAttachmentsRelations = relations(
+  issueAttachments,
+  ({ one }) => ({
+    issue: one(issues, {
+      fields: [issueAttachments.issueId],
+      references: [issues.id],
+    }),
+  }),
+)
 
 export const noticesRelations = relations(notices, ({ one }) => ({
   owner: one(users, {

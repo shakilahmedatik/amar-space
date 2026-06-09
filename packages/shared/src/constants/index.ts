@@ -202,6 +202,8 @@ export const ROLE_PERMISSIONS = {
   [ROLES.SECURITY_GUARD]: [
     'buildings:read',
     'flats:read',
+    'maintenance:read',
+    'maintenance:write',
     'issues:read',
     'issues:write',
     'notices:read',
@@ -211,6 +213,8 @@ export const ROLE_PERMISSIONS = {
     'flats:read',
     'maintenance:read',
     'maintenance:write',
+    'issues:read',
+    'issues:write',
     'notices:read',
   ],
 } as const satisfies Record<string, readonly string[]>

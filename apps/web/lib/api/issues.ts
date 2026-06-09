@@ -12,31 +12,45 @@ export type IssuePriority = 'low' | 'medium' | 'high' | 'urgent'
 
 export type IssueStatus = 'open' | 'in_progress' | 'resolved' | 'closed'
 
+export interface IssueAttachment {
+  id: string
+  fileName: string
+  fileUrl: string
+  fileSize: number
+  mimeType: string
+  createdAt: string
+}
+
 export interface Issue {
   id: string
   buildingId: string
-  buildingName?: string
+  buildingName: string
   title: string
   description: string
   category: IssueCategory
   priority: IssuePriority
   status: IssueStatus
   assigneeId: string | null
-  assigneeName?: string | null
+  assigneeName: string | null
   resolutionNotes: string | null
   resolvedAt: string | null
   createdAt: string
   updatedAt: string
+  attachments: IssueAttachment[]
 }
 
 export interface IssueListItem {
   id: string
+  buildingId: string
   buildingName: string
   title: string
+  description: string
   category: IssueCategory
   priority: IssuePriority
   status: IssueStatus
+  assigneeId: string | null
   assigneeName: string | null
+  ownerAccountId: string
   createdAt: string
 }
 
@@ -63,6 +77,7 @@ export interface CreateIssueInput {
   description: string
   category: IssueCategory
   priority: IssuePriority
+  attachments?: File[]
 }
 
 export interface UpdateIssueStatusInput {
@@ -107,6 +122,22 @@ export function fetchIssue(id: string): Promise<Issue> {
 }
 
 export function createIssue(data: CreateIssueInput): Promise<Issue> {
+  if (data.attachments && data.attachments.length > 0) {
+    const formData = new FormData()
+    formData.append('buildingId', data.buildingId)
+    formData.append('title', data.title)
+    formData.append('description', data.description)
+    formData.append('category', data.category)
+    formData.append('priority', data.priority)
+    for (const file of data.attachments) {
+      formData.append('attachments', file)
+    }
+    return apiFetch<Issue>('/api/issues', {
+      method: 'POST',
+      body: formData,
+    })
+  }
+
   return apiFetch<Issue>('/api/issues', {
     method: 'POST',
     body: JSON.stringify(data),
@@ -130,6 +161,12 @@ export function assignIssue(
   return apiFetch<Issue>(`/api/issues/${id}/assign`, {
     method: 'PUT',
     body: JSON.stringify(data),
+  })
+}
+
+export function deleteIssue(id: string): Promise<void> {
+  return apiFetch<void>(`/api/issues/${id}`, {
+    method: 'DELETE',
   })
 }
 

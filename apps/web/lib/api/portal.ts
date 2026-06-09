@@ -46,6 +46,7 @@ export interface PortalRenterData {
     createdAt: string
   }>
   flat: {
+    buildingId: string
     flatNumber: string
     floor: number
     buildingName: string

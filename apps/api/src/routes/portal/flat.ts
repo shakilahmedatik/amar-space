@@ -856,6 +856,7 @@ async function portalFlatRoutes(fastify: FastifyInstance) {
               }),
             ),
             flat: z.object({
+              buildingId: z.string(),
               flatNumber: z.string(),
               floor: z.number(),
               buildingName: z.string(),
@@ -1021,6 +1022,7 @@ async function portalFlatRoutes(fastify: FastifyInstance) {
           createdAt: p.createdAt.toISOString(),
         })),
         flat: {
+          buildingId: flat.buildingId,
           flatNumber: flat.flatNumber,
           floor: flat.floor,
           buildingName: building.name,

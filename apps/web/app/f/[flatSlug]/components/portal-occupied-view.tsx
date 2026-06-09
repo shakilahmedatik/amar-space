@@ -4,25 +4,26 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   AlertTriangle,
+  Bug,
   CreditCard,
   FileText,
+  Image,
   LogOut,
   Megaphone,
-  MessageSquare,
   Phone,
   ShieldCheck,
   Upload,
   User,
   Users,
 } from 'lucide-react'
-import { type FormEvent, useState } from 'react'
+import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { CurrencyDisplay } from '@/components/ui/currency-display'
 import { ErrorFeedback } from '@/components/ui/error-feedback'
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton'
 import {
-  createMaintenanceRequest,
+  createIssue,
   fetchPortalRenterData,
   portalLogout,
 } from '@/lib/api-client'
@@ -46,7 +47,7 @@ interface PortalOccupiedViewProps {
   rules?: string | null
 }
 
-type TabType = 'profile' | 'bills' | 'notices' | 'contacts' | 'maintenance'
+type TabType = 'profile' | 'bills' | 'notices' | 'contacts' | 'issues'
 
 export default function PortalOccupiedView({
   flatSlug,
@@ -61,15 +62,6 @@ export default function PortalOccupiedView({
     message: string
     type: 'success' | 'error'
   } | null>(null)
-
-  // Maintenance form states
-  const [mTitle, setMTitle] = useState('')
-  const [mDescription, setMDescription] = useState('')
-  const [mPriority, setMPriority] = useState<
-    'low' | 'medium' | 'high' | 'urgent'
-  >('medium')
-  const [mAttachments, setMAttachments] = useState<File[]>([])
-  const [mErrors, setMErrors] = useState<Record<string, string>>({})
 
   // Query authenticated renter data
   const {
@@ -102,33 +94,84 @@ export default function PortalOccupiedView({
     },
   })
 
-  // Maintenance request creation mutation
-  const maintenanceMutation = useMutation({
-    mutationFn: (fd: {
-      title: string
-      description: string
-      priority: 'low' | 'medium' | 'high' | 'urgent'
-      attachments?: File[]
-    }) => createMaintenanceRequest(fd),
+  // Issues form state — placed before early returns to keep hook order stable
+  const [issueTitle, setIssueTitle] = useState('')
+  const [issueDescription, setIssueDescription] = useState('')
+  const [issueCategory, setIssueCategory] = useState<
+    'plumbing' | 'electrical' | 'structural' | 'cleaning' | 'security' | 'other'
+  >('other')
+  const [issuePriority, setIssuePriority] = useState<
+    'low' | 'medium' | 'high' | 'urgent'
+  >('medium')
+  const [issueAttachments, setIssueAttachments] = useState<File[]>([])
+  const [issueErrors, setIssueErrors] = useState<Record<string, string>>({})
+
+  const issueMutation = useMutation({
+    mutationFn: () => {
+      const buildingId = portalData?.flat.buildingId ?? ''
+      return createIssue({
+        buildingId,
+        title: issueTitle.trim(),
+        description: issueDescription.trim(),
+        category: issueCategory,
+        priority: issuePriority,
+        attachments: issueAttachments.length > 0 ? issueAttachments : undefined,
+      })
+    },
     onSuccess: () => {
       setFeedback({
-        message: t('maintenance.createSuccess') || 'অনুরোধটি সফলভাবে পাঠানো হয়েছে',
+        message: t('issues.createSuccess') || 'Issue submitted successfully',
         type: 'success',
       })
-      setMTitle('')
-      setMDescription('')
-      setMPriority('medium')
-      setMAttachments([])
-      setMErrors({})
+      setIssueTitle('')
+      setIssueDescription('')
+      setIssueCategory('other')
+      setIssuePriority('medium')
+      setIssueAttachments([])
+      setIssueErrors({})
     },
     onError: (err) => {
       setFeedback({
         message:
-          err instanceof Error ? err.message : t('maintenance.createError'),
+          err instanceof Error ? err.message : t('common.error'),
         type: 'error',
       })
     },
   })
+
+  function handleIssueSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    const errors: Record<string, string> = {}
+
+    if (!issueTitle.trim()) {
+      errors.title = 'শিরোনাম প্রয়োজন'
+    } else if (issueTitle.trim().length < 5) {
+      errors.title = 'শিরোনাম কমপক্ষে ৫ অক্ষরের হতে হবে'
+    } else if (issueTitle.trim().length > 200) {
+      errors.title = 'শিরোনাম সর্বোচ্চ ২০০ অক্ষরের হতে হবে'
+    }
+
+    if (!issueDescription.trim()) {
+      errors.description = 'বিবরণ প্রয়োজন'
+    } else if (issueDescription.trim().length < 10) {
+      errors.description = 'বিবরণ কমপক্ষে ১০ অক্ষরের হতে হবে'
+    } else if (issueDescription.trim().length > 2000) {
+      errors.description = 'বিবরণ সর্বোচ্চ ২০০০ অক্ষরের হতে হবে'
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setIssueErrors(errors)
+      return
+    }
+
+    issueMutation.mutate()
+  }
+
+  function handleIssueFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    if (e.target.files) {
+      setIssueAttachments(Array.from(e.target.files))
+    }
+  }
 
   // Check if we are unauthorized (HTTP 401)
   const isUnauthorized =
@@ -157,52 +200,6 @@ export default function PortalOccupiedView({
   }
 
   const { renter, contract, bills, payments, flat } = portalData
-
-  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-    if (e.target.files) {
-      setMAttachments(Array.from(e.target.files))
-    }
-  }
-
-  function handleMaintenanceSubmit(e: FormEvent) {
-    e.preventDefault()
-    const errors: Record<string, string> = {}
-
-    if (!mTitle.trim()) {
-      errors.title = t('maintenance.titleRequired') || 'শিরোনাম প্রয়োজন'
-    } else if (mTitle.trim().length < 5) {
-      errors.title =
-        t('maintenance.titleMinLength') || 'শিরোনাম কমপক্ষে ৫ অক্ষরের হতে হবে'
-    } else if (mTitle.trim().length > 200) {
-      errors.title =
-        t('maintenance.titleMaxLength') || 'শিরোনাম সর্বোচ্চ ২০০ অক্ষরের হতে হবে'
-    }
-
-    if (!mDescription.trim()) {
-      errors.description =
-        t('maintenance.descriptionRequired') || 'বিবরণ প্রয়োজন'
-    } else if (mDescription.trim().length < 10) {
-      errors.description =
-        t('maintenance.descriptionMinLength') ||
-        'বিবরণ কমপক্ষে ১০ অক্ষরের হতে হবে'
-    } else if (mDescription.trim().length > 2000) {
-      errors.description =
-        t('maintenance.descriptionMaxLength') ||
-        'বিবরণ সর্বোচ্চ ২০০০ অক্ষরের হতে হবে'
-    }
-
-    if (Object.keys(errors).length > 0) {
-      setMErrors(errors)
-      return
-    }
-
-    maintenanceMutation.mutate({
-      title: mTitle.trim(),
-      description: mDescription.trim(),
-      priority: mPriority,
-      attachments: mAttachments,
-    })
-  }
 
   return (
     <div className={cn('flex flex-col gap-6', className)}>
@@ -296,16 +293,16 @@ export default function PortalOccupiedView({
         </button>
         <button
           type="button"
-          onClick={() => setActiveTab('maintenance')}
+          onClick={() => setActiveTab('issues')}
           className={cn(
             'px-5 py-3 text-sm font-semibold border-b-2 transition-all min-h-[44px] whitespace-nowrap flex items-center gap-2',
-            activeTab === 'maintenance'
+            activeTab === 'issues'
               ? 'border-primary text-primary'
               : 'border-transparent text-steel hover:text-charcoal',
           )}
         >
-          <MessageSquare className="h-4 w-4" />
-          {t('maintenance.title') || 'সমস্যা রিপোর্ট'}
+          <Bug className="h-4 w-4" />
+          {t('issues.title') || 'সমস্যা রিপোর্ট'}
         </button>
       </div>
 
@@ -331,6 +328,155 @@ export default function PortalOccupiedView({
               </div>
             )}
           </div>
+        )}
+
+        {activeTab === 'issues' && (
+          <Card className="bg-canvas border border-hairline rounded-xl max-w-2xl">
+            <CardHeader className="pb-3 border-b border-hairline-soft">
+              <CardTitle className="text-base font-semibold text-ink flex items-center gap-2">
+                <Bug className="h-4 w-4 text-primary" />
+                {'সমস্যা রিপোর্ট করুন'}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-6">
+              <form onSubmit={handleIssueSubmit} className="flex flex-col gap-5">
+                <div>
+                  <label htmlFor="issue-title" className="block text-sm font-semibold text-ink mb-1.5">
+                    সমস্যার শিরোনাম <span className="text-error-text">*</span>
+                  </label>
+                  <input
+                    id="issue-title"
+                    type="text"
+                    value={issueTitle}
+                    onChange={(e) => {
+                      setIssueTitle(e.target.value)
+                      if (issueErrors.title) setIssueErrors((prev) => ({ ...prev, title: '' }))
+                    }}
+                    placeholder="যেমন: বাথরুমের কলের পাইপ লিক করছে"
+                    className={cn(
+                      'w-full px-4 py-2.5 border rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary/40 min-h-[44px]',
+                      issueErrors.title ? 'border-error-text' : 'border-hairline',
+                    )}
+                  />
+                  {issueErrors.title && (
+                    <p className="text-xs text-error-text mt-1">{issueErrors.title}</p>
+                  )}
+                </div>
+
+                <div>
+                  <label htmlFor="issue-description" className="block text-sm font-semibold text-ink mb-1.5">
+                    বিস্তারিত বিবরণ <span className="text-error-text">*</span>
+                  </label>
+                  <textarea
+                    id="issue-description"
+                    rows={4}
+                    value={issueDescription}
+                    onChange={(e) => {
+                      setIssueDescription(e.target.value)
+                      if (issueErrors.description) setIssueErrors((prev) => ({ ...prev, description: '' }))
+                    }}
+                    placeholder="সমস্যাটি বিস্তারিত লিখুন..."
+                    className={cn(
+                      'w-full px-4 py-2.5 border rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary/40 min-h-[100px]',
+                      issueErrors.description ? 'border-error-text' : 'border-hairline',
+                    )}
+                  />
+                  {issueErrors.description && (
+                    <p className="text-xs text-error-text mt-1">{issueErrors.description}</p>
+                  )}
+                </div>
+
+                <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
+                  <div>
+                    <label htmlFor="issue-category" className="block text-sm font-semibold text-ink mb-1.5">
+                      বিষয়
+                    </label>
+                    <select
+                      id="issue-category"
+                      value={issueCategory}
+                      onChange={(e) => setIssueCategory(e.target.value as typeof issueCategory)}
+                      className="w-full px-4 py-2.5 border border-hairline rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary/40 min-h-[44px]"
+                    >
+                      <option value="plumbing">প্লাম্বিং</option>
+                      <option value="electrical">ইলেকট্রিক্যাল</option>
+                      <option value="structural">স্ট্রাকচারাল</option>
+                      <option value="cleaning">পরিষ্কার</option>
+                      <option value="security">নিরাপত্তা</option>
+                      <option value="other">অন্যান্য</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label htmlFor="issue-priority" className="block text-sm font-semibold text-ink mb-1.5">
+                      অগ্রাধিকার
+                    </label>
+                    <select
+                      id="issue-priority"
+                      value={issuePriority}
+                      onChange={(e) => setIssuePriority(e.target.value as typeof issuePriority)}
+                      className="w-full px-4 py-2.5 border border-hairline rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary/40 min-h-[44px]"
+                    >
+                      <option value="low">কম</option>
+                      <option value="medium">মাঝারি</option>
+                      <option value="high">উচ্চ</option>
+                      <option value="urgent">জরুরি</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-ink mb-1.5">
+                    ছবি সংযুক্তি (ঐচ্ছিক)
+                  </label>
+                  <div className="relative">
+                    <input
+                      id="issue-files"
+                      type="file"
+                      multiple
+                      accept="image/jpeg,image/png,image/webp"
+                      capture="environment"
+                      onChange={handleIssueFileChange}
+                      className="hidden"
+                    />
+                    <label
+                      htmlFor="issue-files"
+                      className="flex items-center gap-2 px-4 py-2.5 border border-dashed border-hairline rounded-lg text-sm bg-white cursor-pointer hover:bg-surface/50 transition-colors min-h-[44px] justify-center text-steel font-medium"
+                    >
+                      <Image className="h-4 w-4" />
+                      {issueAttachments.length > 0
+                        ? `${issueAttachments.length}টি ফাইল নির্বাচিত`
+                        : 'ছবি নির্বাচন করুন'}
+                    </label>
+                  </div>
+                  {issueAttachments.length > 0 && (
+                    <div className="bg-surface p-3 rounded-lg border border-hairline mt-2">
+                      <span className="text-xs text-steel font-semibold block mb-1">
+                        সংযুক্ত ফাইল:
+                      </span>
+                      <ul className="text-xs text-ink flex flex-col gap-1.5">
+                        {issueAttachments.map((f, i) => (
+                          <li key={i} className="flex justify-between items-center">
+                            <span className="truncate">{f.name}</span>
+                            <span className="text-steel font-mono">
+                              ({(f.size / 1024).toFixed(1)} KB)
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+
+                <Button
+                  type="submit"
+                  disabled={issueMutation.isPending}
+                  className="w-full bg-primary hover:bg-primary/95 text-white font-semibold rounded-lg py-3 text-sm min-h-[44px]"
+                >
+                  {issueMutation.isPending ? 'জমা দেওয়া হচ্ছে...' : 'রিপোর্ট জমা দিন'}
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
         )}
 
         {activeTab === 'profile' && (
@@ -797,169 +943,7 @@ export default function PortalOccupiedView({
           </div>
         )}
 
-        {activeTab === 'maintenance' && (
-          <Card className="bg-canvas border border-hairline rounded-xl max-w-2xl">
-            <CardHeader className="pb-3 border-b border-hairline-soft">
-              <CardTitle className="text-base font-semibold text-ink flex items-center gap-2">
-                <MessageSquare className="h-4 w-4 text-primary" />
-                রক্ষণাবেক্ষণের সমস্যা রিপোর্ট করুন
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-6">
-              <form
-                onSubmit={handleMaintenanceSubmit}
-                className="flex flex-col gap-5"
-              >
-                <div>
-                  <label
-                    htmlFor="m-title"
-                    className="block text-sm font-semibold text-ink mb-1.5"
-                  >
-                    সমস্যার শিরোনাম <span className="text-error-text">*</span>
-                  </label>
-                  <input
-                    id="m-title"
-                    type="text"
-                    value={mTitle}
-                    onChange={(e) => {
-                      setMTitle(e.target.value)
-                      if (mErrors.title)
-                        setMErrors((prev) => ({ ...prev, title: '' }))
-                    }}
-                    placeholder="উদা: ওয়াশরুমের ট্যাপ নষ্ট"
-                    className={cn(
-                      'w-full px-4 py-2.5 border rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary/40 min-h-[44px]',
-                      mErrors.title ? 'border-error-text' : 'border-hairline',
-                    )}
-                  />
-                  {mErrors.title && (
-                    <p className="text-xs text-error-text mt-1">
-                      {mErrors.title}
-                    </p>
-                  )}
-                </div>
 
-                <div>
-                  <label
-                    htmlFor="m-description"
-                    className="block text-sm font-semibold text-ink mb-1.5"
-                  >
-                    বিস্তারিত বিবরণ <span className="text-error-text">*</span>
-                  </label>
-                  <textarea
-                    id="m-description"
-                    rows={4}
-                    value={mDescription}
-                    onChange={(e) => {
-                      setMDescription(e.target.value)
-                      if (mErrors.description)
-                        setMErrors((prev) => ({ ...prev, description: '' }))
-                    }}
-                    placeholder="সমস্যাটি বিস্তারিত লিখুন যাতে সহজে মেরামত করা যায়..."
-                    className={cn(
-                      'w-full px-4 py-2.5 border rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary/40 min-h-[100px]',
-                      mErrors.description
-                        ? 'border-error-text'
-                        : 'border-hairline',
-                    )}
-                  />
-                  {mErrors.description && (
-                    <p className="text-xs text-error-text mt-1">
-                      {mErrors.description}
-                    </p>
-                  )}
-                </div>
-
-                <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
-                  <div>
-                    <label
-                      htmlFor="m-priority"
-                      className="block text-sm font-semibold text-ink mb-1.5"
-                    >
-                      অগ্রাধিকার স্তর
-                    </label>
-                    <select
-                      id="m-priority"
-                      value={mPriority}
-                      onChange={(e) =>
-                        setMPriority(
-                          e.target.value as
-                            | 'low'
-                            | 'medium'
-                            | 'high'
-                            | 'urgent',
-                        )
-                      }
-                      className="w-full px-4 py-2.5 border border-hairline rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary/40 min-h-[44px]"
-                    >
-                      <option value="low">কম</option>
-                      <option value="medium">মাঝারি</option>
-                      <option value="high">উচ্চ</option>
-                      <option value="urgent">জরুরি</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label
-                      htmlFor="m-files"
-                      className="block text-sm font-semibold text-ink mb-1.5"
-                    >
-                      ছবি বা ফাইল সংযুক্তি (ঐচ্ছিক)
-                    </label>
-                    <div className="relative">
-                      <input
-                        id="m-files"
-                        type="file"
-                        multiple
-                        accept="image/*"
-                        onChange={handleFileChange}
-                        className="hidden"
-                      />
-                      <label
-                        htmlFor="m-files"
-                        className="flex items-center gap-2 px-4 py-2.5 border border-dashed border-hairline rounded-lg text-sm bg-white cursor-pointer hover:bg-surface/50 transition-colors min-h-[44px] justify-center text-steel font-medium"
-                      >
-                        <Upload className="h-4 w-4" />
-                        ফাইল আপলোড করুন ({mAttachments.length})
-                      </label>
-                    </div>
-                  </div>
-                </div>
-
-                {mAttachments.length > 0 && (
-                  <div className="bg-surface p-3 rounded-lg border border-hairline">
-                    <span className="text-xs text-steel font-semibold block mb-1">
-                      সংযুক্ত ফাইলসমূহ:
-                    </span>
-                    <ul className="text-xs text-ink flex flex-col gap-1.5">
-                      {mAttachments.map((f, i) => (
-                        <li
-                          key={i}
-                          className="flex justify-between items-center"
-                        >
-                          <span className="truncate">{f.name}</span>
-                          <span className="text-steel font-mono">
-                            ({(f.size / 1024).toFixed(1)} KB)
-                          </span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-
-                <Button
-                  type="submit"
-                  disabled={maintenanceMutation.isPending}
-                  className="w-full bg-primary hover:bg-primary/95 text-white font-semibold rounded-lg py-3 text-sm min-h-[44px] flex items-center justify-center gap-2"
-                >
-                  {maintenanceMutation.isPending
-                    ? 'জমা দেওয়া হচ্ছে...'
-                    : 'অনুরোধ পাঠান'}
-                </Button>
-              </form>
-            </CardContent>
-          </Card>
-        )}
       </div>
     </div>
   )

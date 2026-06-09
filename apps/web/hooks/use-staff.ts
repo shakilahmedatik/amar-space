@@ -8,6 +8,7 @@ import {
   fetchStaff,
   fetchStaffMember,
   fetchStaffRoles,
+  permanentlyDeleteStaff,
   reactivateStaff,
   type UpdateStaffInput,
   type UpdateStaffPermissionsInput,
@@ -80,6 +81,17 @@ export function useReactivateStaff() {
 
   return useMutation({
     mutationFn: (id: string) => reactivateStaff(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['staff'] })
+    },
+  })
+}
+
+export function useDeleteStaff() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (id: string) => permanentlyDeleteStaff(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['staff'] })
     },

@@ -120,7 +120,7 @@ export default function FlatsPage() {
       <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
         <h1 className="text-2xl font-bold text-ink">{t('flats.title')}</h1>
 
-        {role === 'owner' && (
+        {(role === 'owner' || role === 'manager') && (
           <Button asChild className="rounded-full min-h-[44px]">
             <Link href="/flats/new">{t('flats.createFlat')}</Link>
           </Button>

@@ -11,7 +11,7 @@ import { LoadingSkeleton } from '@/components/ui/loading-skeleton'
 import { StatusBadge } from '@/components/ui/status-badge'
 import { useSession } from '@/contexts/session-context'
 import { useBuildings } from '@/hooks/use-buildings'
-import { useDeactivateStaff, useStaff } from '@/hooks/use-staff'
+import { useDeactivateStaff, useDeleteStaff, useStaff } from '@/hooks/use-staff'
 import type { StaffMember } from '@/lib/api-client'
 import { useTranslation } from '@/lib/i18n'
 
@@ -33,10 +33,12 @@ export default function StaffPage() {
   const [page, setPage] = useState(1)
   const [roleFilter, setRoleFilter] = useState<string | undefined>()
   const [deactivateTarget, setDeactivateTarget] = useState<string | null>(null)
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null)
 
   const { data, isLoading, isError, error } = useStaff(page, 20, roleFilter)
   const { data: buildingsData } = useBuildings(1, 100)
   const deactivateMutation = useDeactivateStaff()
+  const deleteMutation = useDeleteStaff()
 
   const isOwner = role === 'owner'
 
@@ -126,6 +128,14 @@ export default function StaffPage() {
               {t('staff.deactivate') || 'Deactivate'}
             </Button>
           )}
+          <Button
+            variant="outline"
+            size="sm"
+            className="rounded-full text-xs h-8 text-error-text border-error-text cursor-pointer"
+            onClick={() => setDeleteTarget(row.id)}
+          >
+            {t('common.delete') || 'Delete'}
+          </Button>
         </div>
       ),
       width: '180px',
@@ -212,6 +222,23 @@ export default function StaffPage() {
           if (deactivateTarget) {
             await deactivateMutation.mutateAsync(deactivateTarget)
             setDeactivateTarget(null)
+          }
+        }}
+      />
+
+      <ConfirmDialog
+        open={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        title={t('staff.deleteConfirmTitle') || 'Permanently Delete Staff Member'}
+        description={
+          t('staff.deleteConfirmDescription') ||
+          'This action permanently deletes this staff member and all associated data. It cannot be undone.'
+        }
+        confirmLabel={t('common.delete') || 'Delete'}
+        onConfirm={async () => {
+          if (deleteTarget) {
+            await deleteMutation.mutateAsync(deleteTarget)
+            setDeleteTarget(null)
           }
         }}
       />

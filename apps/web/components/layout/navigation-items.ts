@@ -112,7 +112,7 @@ export const navigationItems: NavigationItem[] = [
     labelEn: 'Maintenance',
     href: '/maintenance',
     icon: 'maintenance',
-    roles: ['owner', 'manager'],
+    roles: ['owner', 'manager', 'security_guard', 'care_taker'],
     showInBottomTab: true,
   },
   {
@@ -122,7 +122,7 @@ export const navigationItems: NavigationItem[] = [
     labelEn: 'Issues',
     href: '/issues',
     icon: 'issues',
-    roles: ['owner', 'manager'],
+    roles: ['owner', 'manager', 'security_guard', 'care_taker'],
     showInBottomTab: false,
   },
   {

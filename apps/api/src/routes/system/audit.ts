@@ -98,6 +98,7 @@ async function auditRoutes(fastify: FastifyInstance) {
                 entityId: z.string(),
                 action: z.string(),
                 actorId: z.string(),
+                actorName: z.string(),
                 ownerAccountId: z.string(),
                 oldValues: z.unknown().nullable(),
                 newValues: z.unknown().nullable(),

@@ -88,6 +88,11 @@ export default function NewStaffPage() {
       newErrors.role = t('validation.required')
     }
 
+    if (phone.trim() && !/^01\d{9}$/.test(phone.trim())) {
+      newErrors.phone =
+        t('validation.invalidPhone') || 'Phone number must be 11 digits starting with 01'
+    }
+
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
@@ -111,10 +116,16 @@ export default function NewStaffPage() {
         phone: result.phone,
       })
     } catch (err) {
-      setErrors({
-        form:
-          err instanceof Error ? err.message : 'Could not create staff member',
-      })
+      const message =
+        err instanceof Error ? err.message : 'Could not create staff member'
+      // Parse server field validation errors like "body/phone ..."
+      const fieldMatch = message.match(/^body\/(\w+)\s+(.+)/)
+      if (fieldMatch) {
+        const field = fieldMatch[1] as string
+        setErrors({ [field]: fieldMatch[2] ?? message, form: '' })
+      } else {
+        setErrors({ form: message })
+      }
     }
   }
 

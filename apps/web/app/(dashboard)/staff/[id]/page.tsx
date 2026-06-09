@@ -15,6 +15,7 @@ import { useSession } from '@/contexts/session-context'
 import { useBuildings } from '@/hooks/use-buildings'
 import {
   useDeactivateStaff,
+  useDeleteStaff,
   useReactivateStaff,
   useStaffMember,
   useUpdateStaff,
@@ -71,12 +72,14 @@ export default function StaffDetailPage() {
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [successMessage, setSuccessMessage] = useState('')
   const [showDeactivateDialog, setShowDeactivateDialog] = useState(false)
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
 
   const { data: staff, isLoading, isError, error } = useStaffMember(id)
   const { data: buildingsData } = useBuildings(1, 100)
   const updateMutation = useUpdateStaff(id)
   const deactivateMutation = useDeactivateStaff()
   const reactivateMutation = useReactivateStaff()
+  const deleteMutation = useDeleteStaff()
   const permissionsMutation = useUpdateStaffPermissions(id)
 
   const isOwner = userRole === 'owner'
@@ -158,6 +161,21 @@ export default function StaffDetailPage() {
     } catch (err) {
       setErrors({
         form: err instanceof Error ? err.message : 'Could not reactivate staff',
+      })
+    }
+  }
+
+  async function handleDelete() {
+    try {
+      await deleteMutation.mutateAsync(id)
+      setShowDeleteDialog(false)
+      setSuccessMessage(
+        t('staff.deleteSuccess') || 'Staff member permanently deleted',
+      )
+      setTimeout(() => setSuccessMessage(''), 3000)
+    } catch (err) {
+      setErrors({
+        form: err instanceof Error ? err.message : 'Could not delete staff',
       })
     }
   }
@@ -409,6 +427,14 @@ export default function StaffDetailPage() {
                       : t('staff.reactivate') || 'Reactivate'}
                   </Button>
                 )}
+
+                <Button
+                  variant="outline"
+                  onClick={() => setShowDeleteDialog(true)}
+                  className="rounded-full min-h-11 text-error-text border-error-text cursor-pointer"
+                >
+                  {t('common.delete') || 'Delete'}
+                </Button>
               </div>
             )}
           </CardContent>
@@ -536,6 +562,18 @@ export default function StaffDetailPage() {
         }
         confirmLabel={t('staff.deactivate') || 'Deactivate'}
         onConfirm={handleDeactivate}
+      />
+
+      <ConfirmDialog
+        open={showDeleteDialog}
+        onClose={() => setShowDeleteDialog(false)}
+        title={t('staff.deleteConfirmTitle') || 'Permanently Delete Staff Member'}
+        description={
+          t('staff.deleteConfirmDescription') ||
+          'This action permanently deletes this staff member and all associated data. It cannot be undone.'
+        }
+        confirmLabel={t('common.delete') || 'Delete'}
+        onConfirm={handleDelete}
       />
     </>
   )

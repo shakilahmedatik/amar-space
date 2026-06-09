@@ -483,6 +483,11 @@ const en: TranslationDictionary = {
     statusUpdateError: 'Could not update status',
     assignSuccess: 'Issue assigned successfully',
     assignError: 'Could not assign issue',
+    deleteConfirmTitle: 'Delete Issue',
+    deleteConfirmDescription:
+      'Are you sure you want to delete this issue? This action cannot be undone.',
+    deleteSuccess: 'Issue deleted successfully',
+    deleteError: 'Could not delete issue',
   },
   notices: {
     title: 'Notices',
@@ -627,6 +632,10 @@ const en: TranslationDictionary = {
     permissionsDescription:
       'Grant or deny specific permissions beyond the role defaults. Click the Grant or Deny buttons to override. Click again or use ✕ to remove the override and revert to default.',
     permissionsUpdateSuccess: 'Permissions updated successfully',
+    deleteConfirmTitle: 'Permanently Delete Staff Member',
+    deleteConfirmDescription:
+      'This action permanently deletes this staff member and all associated data. It cannot be undone.',
+    deleteSuccess: 'Staff member permanently deleted',
   },
   validation: {
     required: 'This field is required',

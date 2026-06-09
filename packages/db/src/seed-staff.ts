@@ -33,6 +33,8 @@ const STAFF_ROLES_SEED = [
     permissions: [
       'buildings:read',
       'flats:read',
+      'maintenance:read',
+      'maintenance:write',
       'issues:read',
       'issues:write',
       'notices:read',
@@ -47,6 +49,8 @@ const STAFF_ROLES_SEED = [
       'flats:read',
       'maintenance:read',
       'maintenance:write',
+      'issues:read',
+      'issues:write',
       'notices:read',
     ],
   },

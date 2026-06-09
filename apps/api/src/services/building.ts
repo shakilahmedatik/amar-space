@@ -515,9 +515,16 @@ export class BuildingService {
     const pageSize = Math.min(Math.max(pagination.pageSize, 1), 50)
     const page = Math.max(pagination.page, 1)
 
+    const buildingIds =
+      ctx.role === 'manager' ? ctx.assignedBuildingIds : undefined
+
+    if (ctx.role === 'manager' && buildingIds && buildingIds.length === 0) {
+      return { data: [], total: 0, page, pageSize, totalPages: 0 }
+    }
+
     const [data, total] = await Promise.all([
-      this.buildingRepository.list(ctx.ownerAccountId, page, pageSize),
-      this.buildingRepository.count(ctx.ownerAccountId),
+      this.buildingRepository.list(ctx.ownerAccountId, page, pageSize, buildingIds),
+      this.buildingRepository.count(ctx.ownerAccountId, buildingIds),
     ])
 
     return {

@@ -1,10 +1,12 @@
 'use client'
 
+import { Image } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { type FormEvent, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { ErrorFeedback } from '@/components/ui/error-feedback'
+import { FileUpload } from '@/components/ui/file-upload'
 import { FormField, FormInput } from '@/components/ui/form-field'
 import { useBuildings } from '@/hooks/use-buildings'
 import { useCreateIssue } from '@/hooks/use-issues'
@@ -24,6 +26,7 @@ export default function NewIssuePage() {
   const [buildingId, setBuildingId] = useState('')
   const [category, setCategory] = useState<IssueCategory | ''>('')
   const [priority, setPriority] = useState<IssuePriority | ''>('')
+  const [attachments, setAttachments] = useState<File[]>([])
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [successMessage, setSuccessMessage] = useState('')
 
@@ -74,6 +77,7 @@ export default function NewIssuePage() {
         description: description.trim(),
         category: category as IssueCategory,
         priority: priority as IssuePriority,
+        attachments: attachments.length > 0 ? attachments : undefined,
       })
       setSuccessMessage(t('issues.createSuccess'))
       // Redirect after short delay
@@ -240,6 +244,19 @@ export default function NewIssuePage() {
                 <option value="urgent">{t('issues.urgent')}</option>
               </select>
             </FormField>
+          </div>
+
+          {/* Photo Upload */}
+          <div className="mb-6">
+            <label className="block text-sm font-semibold text-ink mb-1.5">
+              {t('issues.photoUpload') || 'ছবি সংযুক্তি (ঐচ্ছিক)'}
+            </label>
+            <FileUpload
+              onFilesSelected={setAttachments}
+              maxFiles={5}
+              disabled={createMutation.isPending}
+              capture="environment"
+            />
           </div>
 
           {/* Submit */}

@@ -78,6 +78,13 @@
       "when": 1780429860529,
       "tag": "0010_worried_talos",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1781005924986,
+      "tag": "0011_stiff_strong_guy",
+      "breakpoints": true
     }
   ]
 }

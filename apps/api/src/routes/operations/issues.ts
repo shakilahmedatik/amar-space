@@ -10,7 +10,7 @@ import { approvalGuard } from '../../middleware/approval-guard'
 import { authGuard } from '../../middleware/auth-guard'
 import { roleGuard } from '../../middleware/role-guard'
 import { tenantScope } from '../../middleware/tenant-scope'
-import { IssueService } from '../../services/issue.service'
+import { type FileAttachment, IssueService } from '../../services/issue.service'
 import {
   dateTimeResponseSchema,
   errorResponseSchema,
@@ -21,17 +21,24 @@ import {
  *
  * Provides:
  * - GET /api/issues — List building-level issues with filters and pagination
- * - POST /api/issues — Create a new issue (Owner/Manager only)
+ * - POST /api/issues — Create a new issue (Renter, Owner, Manager)
  * - GET /api/issues/:id — Get an issue by ID
- * - PUT /api/issues/:id/status — Update issue status (Owner/Manager only)
+ * - PUT /api/issues/:id/status — Update issue status (Staff only)
  * - PUT /api/issues/:id/assign — Assign an issue to a manager (Owner/Manager only)
+ * - DELETE /api/issues/:id — Delete an issue (Owner only)
  *
  * Access control:
- * - Owner/Manager: full access (create, view, update status, assign)
- * - Renter: denied access (403)
+ * - Renter: create issues only
+ * - Owner/Manager/SecurityGuard/CareTaker: view, update status, add comments
+ * - Owner: full access including delete
  */
 async function issueRoutes(fastify: FastifyInstance) {
-  const issueService = new IssueService(fastify.db, fastify.auditLogger)
+  const issueService = new IssueService(fastify.db, fastify.auditLogger, fastify.r2)
+  const r2BaseUrl = fastify.env.R2_PUBLIC_BASE_URL.replace(/\/$/, '')
+  const formatR2Url = (key: string) => {
+    if (key.startsWith('http://') || key.startsWith('https://')) return key
+    return `${r2BaseUrl}/${key}`
+  }
 
   /**
    * Helper to build RequestContext from the Fastify request.
@@ -64,14 +71,13 @@ async function issueRoutes(fastify: FastifyInstance) {
   /**
    * GET /api/issues
    * Lists building-level issues with filtering and pagination.
-   * Owner/Manager only — Renter is denied access.
    */
   fastify.get(
     '/',
     {
       preHandler: [
         authGuard,
-        roleGuard(['owner', 'manager']),
+        roleGuard(['owner', 'manager', 'security_guard', 'care_taker']),
         approvalGuard,
         tenantScope,
       ],
@@ -79,7 +85,7 @@ async function issueRoutes(fastify: FastifyInstance) {
         tags: ['Issues'],
         summary: 'List issues',
         description:
-          'Returns paginated building-level issues with optional filters by building, category, status, priority, and assignee.\n\n**Roles: owner, manager**',
+          'Returns paginated building-level issues with optional filters by building, category, status, priority, and assignee.\n\n**Roles: owner, manager, security_guard, care_taker**',
         security: [{ BearerAuth: [] }, { CookieAuth: [] }],
         querystring: z.object({
           page: z.coerce.number().int().min(1).default(1),
@@ -119,7 +125,9 @@ async function issueRoutes(fastify: FastifyInstance) {
                 priority: z.enum(['low', 'medium', 'high', 'urgent']),
                 status: z.enum(['open', 'in_progress', 'resolved', 'closed']),
                 buildingId: z.string(),
+                buildingName: z.string(),
                 assigneeId: z.string().nullable(),
+                assigneeName: z.string().nullable(),
                 ownerAccountId: z.string(),
                 createdAt: dateTimeResponseSchema,
               }),
@@ -169,14 +177,14 @@ async function issueRoutes(fastify: FastifyInstance) {
 
   /**
    * POST /api/issues
-   * Creates a new building-level issue. Owner/Manager only.
+   * Creates a new building-level issue. Renter only.
    */
   fastify.post(
     '/',
     {
       preHandler: [
         authGuard,
-        roleGuard(['owner', 'manager']),
+        roleGuard(['renter']),
         approvalGuard,
         tenantScope,
       ],
@@ -184,9 +192,26 @@ async function issueRoutes(fastify: FastifyInstance) {
         tags: ['Issues'],
         summary: 'Create issue',
         description:
-          'Creates a new building-level issue with category and priority.\n\n**Roles: owner, manager**',
+          'Creates a new building-level issue with category and priority. Only renters can create issues via the renter portal.\n\n**Roles: renter**',
         security: [{ BearerAuth: [] }, { CookieAuth: [] }],
-        body: createIssueSchema,
+        consumes: ['multipart/form-data'],
+        body: z
+          .object({
+            buildingId: z.string(),
+            title: z.string(),
+            description: z.string(),
+            category: z.enum([
+              'plumbing',
+              'electrical',
+              'structural',
+              'cleaning',
+              'security',
+              'other',
+            ]),
+            priority: z.enum(['low', 'medium', 'high', 'urgent']),
+          })
+          .nullable()
+          .optional(),
         response: {
           201: z.object({
             id: z.string(),
@@ -203,7 +228,9 @@ async function issueRoutes(fastify: FastifyInstance) {
             priority: z.enum(['low', 'medium', 'high', 'urgent']),
             status: z.enum(['open', 'in_progress', 'resolved', 'closed']),
             buildingId: z.string(),
+            buildingName: z.string(),
             assigneeId: z.string().nullable(),
+            assigneeName: z.string().nullable(),
             ownerAccountId: z.string(),
             createdAt: dateTimeResponseSchema,
           }),
@@ -215,21 +242,67 @@ async function issueRoutes(fastify: FastifyInstance) {
     },
     async (request, reply) => {
       const ctx = buildRequestContext(request as never)
-      const data = request.body as {
+
+      let data: {
         buildingId: string
         title: string
         description: string
-        category:
-          | 'plumbing'
-          | 'electrical'
-          | 'structural'
-          | 'cleaning'
-          | 'security'
-          | 'other'
+        category: 'plumbing' | 'electrical' | 'structural' | 'cleaning' | 'security' | 'other'
         priority: 'low' | 'medium' | 'high' | 'urgent'
       }
+      let attachments: FileAttachment[] | undefined
 
-      const result = await issueService.createIssue(ctx, data)
+      const contentType = request.headers['content-type'] ?? ''
+      if (contentType.startsWith('multipart/')) {
+        const fields: Record<string, string> = {}
+        const fileAttachments: FileAttachment[] = []
+
+        const parts = request.parts()
+        for await (const part of parts) {
+          if (part.type === 'file') {
+            const buffer = await part.toBuffer()
+            fileAttachments.push({
+              fileName: part.filename,
+              buffer,
+              mimeType: part.mimetype,
+              fileSize: buffer.length,
+            })
+          } else {
+            fields[part.fieldname] = part.value as string
+          }
+        }
+
+        data = {
+          buildingId: fields.buildingId ?? '',
+          title: fields.title ?? '',
+          description: fields.description ?? '',
+          category: (fields.category ?? 'other') as
+            | 'plumbing'
+            | 'electrical'
+            | 'structural'
+            | 'cleaning'
+            | 'security'
+            | 'other',
+          priority: (fields.priority ?? 'medium') as
+            | 'low'
+            | 'medium'
+            | 'high'
+            | 'urgent',
+        }
+        attachments = fileAttachments.length > 0 ? fileAttachments : undefined
+      } else {
+        const body = request.body as {
+          buildingId: string
+          title: string
+          description: string
+          category: 'plumbing' | 'electrical' | 'structural' | 'cleaning' | 'security' | 'other'
+          priority: 'low' | 'medium' | 'high' | 'urgent'
+        }
+        data = body
+        attachments = undefined
+      }
+
+      const result = await issueService.createIssue(ctx, data, attachments)
 
       return reply.status(201).send(result)
     },
@@ -237,14 +310,14 @@ async function issueRoutes(fastify: FastifyInstance) {
 
   /**
    * GET /api/issues/:id
-   * Gets an issue by ID. Owner/Manager only.
+   * Gets an issue by ID.
    */
   fastify.get(
     '/:id',
     {
       preHandler: [
         authGuard,
-        roleGuard(['owner', 'manager']),
+        roleGuard(['owner', 'manager', 'security_guard', 'care_taker']),
         approvalGuard,
         tenantScope,
       ],
@@ -252,7 +325,7 @@ async function issueRoutes(fastify: FastifyInstance) {
         tags: ['Issues'],
         summary: 'Get an issue',
         description:
-          'Returns a building-level issue by ID.\n\n**Roles: owner, manager**',
+          'Returns a building-level issue by ID.\n\n**Roles: owner, manager, security_guard, care_taker**',
         security: [{ BearerAuth: [] }, { CookieAuth: [] }],
         params: z.object({
           id: z.string().uuid('Invalid issue ID format'),
@@ -273,9 +346,21 @@ async function issueRoutes(fastify: FastifyInstance) {
             priority: z.enum(['low', 'medium', 'high', 'urgent']),
             status: z.enum(['open', 'in_progress', 'resolved', 'closed']),
             buildingId: z.string(),
+            buildingName: z.string(),
             assigneeId: z.string().nullable(),
+            assigneeName: z.string().nullable(),
             ownerAccountId: z.string(),
             createdAt: dateTimeResponseSchema,
+            attachments: z.array(
+              z.object({
+                id: z.string(),
+                fileName: z.string(),
+                fileUrl: z.string(),
+                fileSize: z.number(),
+                mimeType: z.string(),
+                createdAt: dateTimeResponseSchema,
+              }),
+            ),
           }),
           401: errorResponseSchema,
           403: errorResponseSchema,
@@ -289,20 +374,25 @@ async function issueRoutes(fastify: FastifyInstance) {
 
       const result = await issueService.getIssue(ctx, id)
 
+      result.attachments = result.attachments.map((a) => ({
+        ...a,
+        fileUrl: formatR2Url(a.fileUrl),
+      }))
+
       return reply.status(200).send(result)
     },
   )
 
   /**
    * PUT /api/issues/:id/status
-   * Updates the status of an issue. Owner/Manager only.
+   * Updates the status of an issue. Staff only.
    */
   fastify.put(
     '/:id/status',
     {
       preHandler: [
         authGuard,
-        roleGuard(['owner', 'manager']),
+        roleGuard(['owner', 'manager', 'security_guard', 'care_taker']),
         approvalGuard,
         tenantScope,
       ],
@@ -310,7 +400,7 @@ async function issueRoutes(fastify: FastifyInstance) {
         tags: ['Issues'],
         summary: 'Update issue status',
         description:
-          'Updates the status of a building-level issue (open → in_progress → resolved → closed).\n\n**Roles: owner, manager**',
+          'Updates the status of a building-level issue (open → in_progress → resolved → closed).\n\n**Roles: owner, manager, security_guard, care_taker**',
         security: [{ BearerAuth: [] }, { CookieAuth: [] }],
         params: z.object({
           id: z.string().uuid('Invalid issue ID format'),
@@ -332,7 +422,9 @@ async function issueRoutes(fastify: FastifyInstance) {
             priority: z.enum(['low', 'medium', 'high', 'urgent']),
             status: z.enum(['open', 'in_progress', 'resolved', 'closed']),
             buildingId: z.string(),
+            buildingName: z.string(),
             assigneeId: z.string().nullable(),
+            assigneeName: z.string().nullable(),
             ownerAccountId: z.string(),
             createdAt: dateTimeResponseSchema,
           }),
@@ -396,7 +488,9 @@ async function issueRoutes(fastify: FastifyInstance) {
             priority: z.enum(['low', 'medium', 'high', 'urgent']),
             status: z.enum(['open', 'in_progress', 'resolved', 'closed']),
             buildingId: z.string(),
+            buildingName: z.string(),
             assigneeId: z.string().nullable(),
+            assigneeName: z.string().nullable(),
             ownerAccountId: z.string(),
             createdAt: dateTimeResponseSchema,
           }),
@@ -415,6 +509,45 @@ async function issueRoutes(fastify: FastifyInstance) {
       const result = await issueService.assignIssue(ctx, id, data)
 
       return reply.status(200).send(result)
+    },
+  )
+  /**
+   * DELETE /api/issues/:id
+   * Deletes an issue. Owner only.
+   */
+  fastify.delete(
+    '/:id',
+    {
+      preHandler: [
+        authGuard,
+        roleGuard(['owner']),
+        approvalGuard,
+        tenantScope,
+      ],
+      schema: {
+        tags: ['Issues'],
+        summary: 'Delete issue',
+        description:
+          'Permanently deletes a building-level issue.\n\n**Roles: owner**',
+        security: [{ BearerAuth: [] }, { CookieAuth: [] }],
+        params: z.object({
+          id: z.string().uuid('Invalid issue ID format'),
+        }),
+        response: {
+          204: z.null().describe('Issue deleted successfully'),
+          401: errorResponseSchema,
+          403: errorResponseSchema,
+          404: errorResponseSchema,
+        },
+      },
+    },
+    async (request, reply) => {
+      const { id } = request.params as { id: string }
+      const ctx = buildRequestContext(request as never)
+
+      await issueService.deleteIssue(ctx, id)
+
+      return reply.status(204).send()
     },
   )
 }

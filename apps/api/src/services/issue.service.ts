@@ -1,4 +1,4 @@
-import { buildings, type Database, issues, users } from '@repo/db'
+import { buildings, type Database, issueAttachments, issues, users } from '@repo/db'
 import {
   ISSUE_STATUS,
   ISSUE_STATUS_TRANSITIONS,
@@ -16,6 +16,7 @@ import {
 } from '@repo/shared/validation'
 import { and, count, desc, eq } from 'drizzle-orm'
 import type { AuditLogger } from '../plugins/audit-logger'
+import type { R2Client } from '../plugins/r2'
 
 // --- Types ---
 
@@ -29,20 +30,32 @@ export interface ListIssuesInput {
   pageSize: number
 }
 
+export interface AttachmentResult {
+  id: string
+  fileName: string
+  fileUrl: string
+  fileSize: number
+  mimeType: string
+  createdAt: Date
+}
+
 export interface IssueResult {
   id: string
   ownerAccountId: string
   buildingId: string
+  buildingName: string
   title: string
   description: string
   category: string
   priority: string
   status: string
   assigneeId: string | null
+  assigneeName: string | null
   resolutionNotes: string | null
   resolvedAt: Date | null
   createdAt: Date
   updatedAt: Date
+  attachments: AttachmentResult[]
 }
 
 export interface PaginatedIssues {
@@ -52,6 +65,16 @@ export interface PaginatedIssues {
   pageSize: number
   totalPages: number
 }
+
+export interface FileAttachment {
+  fileName: string
+  buffer: Buffer
+  mimeType: string
+  fileSize: number
+}
+
+const MAX_ATTACHMENTS = 5
+const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
 
 // --- Service ---
 
@@ -73,6 +96,7 @@ export class IssueService {
   constructor(
     private db: Database,
     private auditLogger: AuditLogger,
+    private r2: R2Client,
   ) {}
 
   /**
@@ -89,6 +113,7 @@ export class IssueService {
   async createIssue(
     ctx: RequestContext,
     input: CreateIssueInput,
+    attachments?: FileAttachment[],
   ): Promise<IssueResult> {
     // Step 1: Validate input using Zod schema
     const parseResult = createIssueSchema.safeParse(input)
@@ -103,7 +128,12 @@ export class IssueService {
 
     const validated = parseResult.data
 
-    // Step 2: Verify building exists and belongs to the owner's account
+    // Step 2: Validate attachments if provided
+    if (attachments && attachments.length > 0) {
+      this.validateAttachments(attachments)
+    }
+
+    // Step 3: Verify building exists and belongs to the owner's account
     const building = await this.db.query.buildings.findFirst({
       where: and(
         eq(buildings.id, validated.buildingId),
@@ -115,7 +145,7 @@ export class IssueService {
       throw new NotFoundError('Building')
     }
 
-    // Step 3: Insert the issue with status Open
+    // Step 4: Insert the issue with status Open
     const [created] = await this.db
       .insert(issues)
       .values({
@@ -133,7 +163,12 @@ export class IssueService {
       throw new Error('Failed to create issue')
     }
 
-    // Step 4: Record audit event
+    // Step 5: Upload attachments if provided
+    if (attachments && attachments.length > 0) {
+      await this.uploadAttachments(ctx.ownerAccountId, created.id, attachments)
+    }
+
+    // Step 6: Record audit event
     this.auditLogger.log({
       actorId: ctx.userId,
       action: 'issue_created',
@@ -391,8 +426,26 @@ export class IssueService {
 
     const [data, totalResult] = await Promise.all([
       this.db
-        .select()
+        .select({
+          id: issues.id,
+          ownerAccountId: issues.ownerAccountId,
+          buildingId: issues.buildingId,
+          title: issues.title,
+          description: issues.description,
+          category: issues.category,
+          priority: issues.priority,
+          status: issues.status,
+          assigneeId: issues.assigneeId,
+          resolutionNotes: issues.resolutionNotes,
+          resolvedAt: issues.resolvedAt,
+          createdAt: issues.createdAt,
+          updatedAt: issues.updatedAt,
+          buildingName: buildings.name,
+          assigneeName: users.name,
+        })
         .from(issues)
+        .leftJoin(buildings, eq(issues.buildingId, buildings.id))
+        .leftJoin(users, eq(issues.assigneeId, users.id))
         .where(whereClause)
         .orderBy(desc(issues.createdAt))
         .limit(pageSize)
@@ -403,7 +456,12 @@ export class IssueService {
     const total = totalResult[0]?.count ?? 0
 
     return {
-      data: data.map((row) => this.mapToResult(row)),
+      data: data.map((row) => ({
+        ...row,
+        buildingName: row.buildingName ?? '',
+        assigneeName: row.assigneeName ?? null,
+        attachments: [],
+      })),
       total,
       page,
       pageSize,
@@ -417,18 +475,142 @@ export class IssueService {
    * Returns NotFoundError if the issue doesn't exist or belongs to another account.
    */
   async getIssue(ctx: RequestContext, issueId: string): Promise<IssueResult> {
-    const issue = await this.db.query.issues.findFirst({
+    const result = await this.db.query.issues.findFirst({
+      where: and(
+        eq(issues.id, issueId),
+        eq(issues.ownerAccountId, ctx.ownerAccountId),
+      ),
+      with: {
+        building: true,
+        assignee: true,
+        attachments: true,
+      },
+    })
+
+    if (!result) {
+      throw new NotFoundError('Issue')
+    }
+
+    return {
+      id: result.id,
+      ownerAccountId: result.ownerAccountId,
+      buildingId: result.buildingId,
+      buildingName: result.building?.name ?? '',
+      title: result.title,
+      description: result.description,
+      category: result.category,
+      priority: result.priority,
+      status: result.status,
+      assigneeId: result.assigneeId,
+      assigneeName: result.assignee?.name ?? null,
+      resolutionNotes: result.resolutionNotes,
+      resolvedAt: result.resolvedAt,
+      createdAt: result.createdAt,
+      updatedAt: result.updatedAt,
+      attachments: (result.attachments ?? []).map((a) => ({
+        id: a.id,
+        fileName: a.fileName,
+        fileUrl: a.fileUrl,
+        fileSize: a.fileSize,
+        mimeType: a.mimeType,
+        createdAt: a.createdAt,
+      })),
+    }
+  }
+
+  /**
+   * Deletes an issue by ID, scoped to the owner's account.
+   * Owner only.
+   */
+  async deleteIssue(ctx: RequestContext, issueId: string): Promise<void> {
+    const existing = await this.db.query.issues.findFirst({
       where: and(
         eq(issues.id, issueId),
         eq(issues.ownerAccountId, ctx.ownerAccountId),
       ),
     })
 
-    if (!issue) {
+    if (!existing) {
       throw new NotFoundError('Issue')
     }
 
-    return this.mapToResult(issue)
+    await this.db.delete(issues).where(eq(issues.id, issueId))
+
+    this.auditLogger.log({
+      actorId: ctx.userId,
+      action: 'issue_deleted',
+      entityType: 'issue',
+      entityId: issueId,
+      ownerAccountId: ctx.ownerAccountId,
+      oldValues: {
+        title: existing.title,
+        category: existing.category,
+        status: existing.status,
+      },
+    })
+  }
+
+  // --- Attachment Handling ---
+
+  private validateAttachments(attachments: FileAttachment[]): void {
+    if (attachments.length > MAX_ATTACHMENTS) {
+      throw new ValidationError([
+        {
+          field: 'attachments',
+          message: `Maximum ${MAX_ATTACHMENTS} file attachments allowed`,
+          rule: 'max_attachments',
+        },
+      ])
+    }
+
+    const allowedMimes = ['image/jpeg', 'image/png', 'image/webp']
+
+    for (const file of attachments) {
+      if (!allowedMimes.includes(file.mimeType)) {
+        throw new ValidationError([
+          {
+            field: 'attachments',
+            message: `File "${file.fileName}" has unsupported type. Only JPEG, PNG, and WebP images are allowed`,
+            rule: 'invalid_mime_type',
+          },
+        ])
+      }
+
+      if (file.fileSize > MAX_FILE_SIZE) {
+        throw new ValidationError([
+          {
+            field: 'attachments',
+            message: `File "${file.fileName}" exceeds the maximum size of 5MB`,
+            rule: 'file_too_large',
+          },
+        ])
+      }
+    }
+  }
+
+  private async uploadAttachments(
+    ownerAccountId: string,
+    issueId: string,
+    attachments: FileAttachment[],
+  ): Promise<void> {
+    for (const file of attachments) {
+      const storageKey = await this.r2.upload(
+        ownerAccountId,
+        'issues',
+        issueId,
+        file.fileName,
+        file.buffer,
+        file.mimeType,
+      )
+
+      await this.db.insert(issueAttachments).values({
+        issueId,
+        fileUrl: storageKey,
+        fileName: file.fileName,
+        fileSize: file.fileSize,
+        mimeType: file.mimeType,
+      })
+    }
   }
 
   // --- Private Helpers ---
@@ -438,16 +620,19 @@ export class IssueService {
       id: row.id,
       ownerAccountId: row.ownerAccountId,
       buildingId: row.buildingId,
+      buildingName: '',
       title: row.title,
       description: row.description,
       category: row.category,
       priority: row.priority,
       status: row.status,
       assigneeId: row.assigneeId,
+      assigneeName: null,
       resolutionNotes: row.resolutionNotes,
       resolvedAt: row.resolvedAt,
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
+      attachments: [],
     }
   }
 }
