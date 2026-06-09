@@ -200,7 +200,7 @@ export default function NewNoticePage() {
                   rows={8}
                   placeholder={t('notices.bodyPlaceholder')}
                   className={[
-                    'w-full px-3 py-2 text-sm rounded-md border min-h-[44px] resize-y font-[inherit]',
+                    'w-full px-3 py-2 text-sm rounded-md border min-h-11 resize-y font-[inherit]',
                     errors.body
                       ? 'border-error-text bg-error-bg'
                       : 'border-hairline bg-canvas',
@@ -230,7 +230,7 @@ export default function NewNoticePage() {
                     setFlatOptions([])
                   }}
                   className={[
-                    'w-full px-3 py-2 text-sm rounded-md border min-h-[44px] bg-canvas',
+                    'w-full px-3 py-2 text-sm rounded-md border min-h-11 bg-canvas',
                     errors.targetAudience
                       ? 'border-error-text'
                       : 'border-hairline',
@@ -270,7 +270,7 @@ export default function NewNoticePage() {
                       setFlatOptions([])
                     }}
                     className={[
-                      'w-full px-3 py-2 text-sm rounded-md border min-h-[44px] bg-canvas',
+                      'w-full px-3 py-2 text-sm rounded-md border min-h-11 bg-canvas',
                       errors.targetBuildingId
                         ? 'border-error-text'
                         : 'border-hairline',
@@ -302,7 +302,7 @@ export default function NewNoticePage() {
                     onChange={(e) => setTargetFlatId(e.target.value)}
                     disabled={loadingFlats}
                     className={[
-                      'w-full px-3 py-2 text-sm rounded-md border min-h-[44px] bg-canvas',
+                      'w-full px-3 py-2 text-sm rounded-md border min-h-11 bg-canvas',
                       errors.targetFlatId
                         ? 'border-error-text'
                         : 'border-hairline',
@@ -324,14 +324,14 @@ export default function NewNoticePage() {
               <Button
                 asChild
                 variant="outline"
-                className="min-h-[44px] rounded-full"
+                className="min-h-11 rounded-full"
               >
                 <Link href="/notices">{t('common.cancel')}</Link>
               </Button>
               <Button
                 type="submit"
                 disabled={createMutation.isPending}
-                className="min-h-[44px] rounded-full bg-primary text-on-primary font-semibold"
+                className="min-h-11 rounded-full bg-primary text-on-primary font-semibold"
               >
                 {createMutation.isPending
                   ? t('common.loading')

@@ -152,6 +152,7 @@ export default function BillsPage() {
         { value: 'partially_paid', label: t('bills.partiallyPaid') },
         { value: 'paid', label: t('bills.paid') },
         { value: 'overdue', label: t('bills.overdue') },
+        { value: 'cancelled', label: 'Cancelled' },
       ],
     },
   ]
@@ -179,9 +180,30 @@ export default function BillsPage() {
       width: '110px',
     },
     {
+      key: 'dueDate',
+      header: 'Due Date',
+      render: (row) => (
+        <span>
+          {row.dueDate
+            ? new Date(`${row.dueDate}T00:00:00`).toLocaleDateString()
+            : '—'}
+        </span>
+      ),
+      width: '110px',
+    },
+    {
       key: 'renterName',
       header: t('bills.renter'),
-      render: (row) => <span>{row.renterName}</span>,
+      render: (row) => (
+        <span>
+          {row.renterName}
+          {row.rentDays !== null && row.totalDaysInMonth !== null && (
+            <span className="ml-1 text-xs text-steel">
+              ({row.rentDays}/{row.totalDaysInMonth})
+            </span>
+          )}
+        </span>
+      ),
     },
     {
       key: 'flatNumber',
@@ -239,7 +261,7 @@ export default function BillsPage() {
           <Button
             type="button"
             onClick={() => setShowGenerateDialog(true)}
-            className="min-h-[44px] rounded-full bg-primary text-on-primary font-semibold px-6"
+            className="min-h-11 rounded-full bg-primary text-on-primary font-semibold px-6"
           >
             {t('bills.generateBills')}
           </Button>
@@ -267,7 +289,7 @@ export default function BillsPage() {
                   type="month"
                   value={generateMonth}
                   onChange={(e) => setGenerateMonth(e.target.value)}
-                  className="w-full px-3 py-2 text-sm rounded-md border border-hairline min-h-[44px] bg-canvas text-ink focus:outline-none focus:ring-2 focus:ring-brand-blue"
+                  className="w-full px-3 py-2 text-sm rounded-md border border-hairline min-h-11 bg-canvas text-ink focus:outline-none focus:ring-2 focus:ring-brand-blue"
                 />
                 {generateError && (
                   <p className="text-xs text-error-text mt-1">
@@ -285,14 +307,14 @@ export default function BillsPage() {
                     setGenerateMonth('')
                     setGenerateError('')
                   }}
-                  className="min-h-[44px] rounded-full border-hairline text-charcoal"
+                  className="min-h-11 rounded-full border-hairline text-charcoal"
                 >
                   {t('common.cancel')}
                 </Button>
                 <Button
                   type="submit"
                   disabled={generateMutation.isPending}
-                  className="min-h-[44px] rounded-full bg-primary text-on-primary font-semibold disabled:opacity-50"
+                  className="min-h-11 rounded-full bg-primary text-on-primary font-semibold disabled:opacity-50"
                 >
                   {generateMutation.isPending
                     ? t('common.loading')

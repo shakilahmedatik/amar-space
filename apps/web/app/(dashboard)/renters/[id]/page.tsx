@@ -1,7 +1,18 @@
 /** biome-ignore-all lint/suspicious/noArrayIndexKey: intentionally done */
 'use client'
 
-import { Check, Copy, Eye, EyeOff, KeyRound, RefreshCw } from 'lucide-react'
+import { useQueryClient } from '@tanstack/react-query'
+import {
+  AlertTriangle,
+  Check,
+  CheckCircle2,
+  Copy,
+  Eye,
+  EyeOff,
+  KeyRound,
+  RefreshCw,
+  XCircle,
+} from 'lucide-react'
 import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
 import { useState } from 'react'
@@ -19,6 +30,13 @@ import { ErrorFeedback } from '@/components/ui/error-feedback'
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton'
 import { useSession } from '@/contexts/session-context'
 import { useRenter, useResetRenterAccessCode } from '@/hooks/use-renters'
+import {
+  useCancelTermination,
+  useDepositRefund,
+  useExecuteTermination,
+  useRefundDeposit,
+  useScheduleTermination,
+} from '@/hooks/use-terminations'
 import type { Renter } from '@/lib/api-client'
 import { useTranslation } from '@/lib/i18n'
 
@@ -191,7 +209,7 @@ export default function RenterDetailPage() {
                     জাতীয় পরিচয়পত্র (NID)
                   </span>
                   {renter.nidPhotoUrl ? (
-                    <div className="relative group w-full max-w-[200px] aspect-3/2 overflow-hidden rounded-lg border border-hairline bg-surface">
+                    <div className="relative group w-full max-w-50 aspect-3/2 overflow-hidden rounded-lg border border-hairline bg-surface">
                       {/* biome-ignore lint/performance/noImgElement: R2 public url rendering */}
                       <img
                         src={renter.nidPhotoUrl}
@@ -220,7 +238,7 @@ export default function RenterDetailPage() {
                     ডিজিটাল স্বাক্ষর
                   </span>
                   {renter.digitalSignatureUrl ? (
-                    <div className="relative group w-full max-w-[200px] h-20 overflow-hidden rounded border border-hairline bg-white p-2">
+                    <div className="relative group w-full max-w-50 h-20 overflow-hidden rounded border border-hairline bg-white p-2">
                       {/* biome-ignore lint/performance/noImgElement: R2 public url rendering */}
                       <img
                         src={renter.digitalSignatureUrl}
@@ -287,6 +305,11 @@ export default function RenterDetailPage() {
           {/* Access Code Card */}
           {(role === 'owner' || role === 'manager') && (
             <PortalAccessCodeCard renter={renter} />
+          )}
+
+          {/* Termination Section */}
+          {(role === 'owner' || role === 'manager') && renter.contractId && (
+            <TerminationSection renter={renter} />
           )}
 
           {/* Deposit Adjustment Form - Owner only (Requirement 9.7, 9.8, 9.9) */}
@@ -381,7 +404,7 @@ function PortalAccessCodeCard({ renter }: { renter: Renter }) {
             size="sm"
             onClick={() => setConfirmOpen(true)}
             disabled={resetMutation.isPending}
-            className="min-h-[44px] sm:min-h-[36px] rounded-full border-hairline hover:bg-surface text-xs font-semibold"
+            className="min-h-11 sm:min-h-9 rounded-full border-hairline hover:bg-surface text-xs font-semibold"
           >
             <RefreshCw
               className={`h-3.5 w-3.5 ${resetMutation.isPending ? 'animate-spin' : ''}`}
@@ -454,7 +477,7 @@ function PortalAccessCodeCard({ renter }: { renter: Renter }) {
             <Button
               variant="secondary"
               onClick={() => handleCopy(renter.accessCode!)}
-              className="min-h-[44px] rounded-full text-xs font-medium self-start sm:self-auto"
+              className="min-h-11 rounded-full text-xs font-medium self-start sm:self-auto"
             >
               {copied ? (
                 <>
@@ -483,5 +506,369 @@ function PortalAccessCodeCard({ renter }: { renter: Renter }) {
         />
       </CardContent>
     </Card>
+  )
+}
+
+function TerminationSection({ renter }: { renter: Renter }) {
+  const { role } = useSession()
+  const queryClient = useQueryClient()
+  const [showScheduleDialog, setShowScheduleDialog] = useState(false)
+  const [terminationMonth, setTerminationMonth] = useState('')
+  const [terminationReason, setTerminationReason] = useState('')
+  const [showConfirmDialog, setShowConfirmDialog] = useState<
+    'cancel' | 'execute' | null
+  >(null)
+  const [successMessage, setSuccessMessage] = useState('')
+  const [errorMessage, setErrorMessage] = useState('')
+
+  const scheduleMutation = useScheduleTermination()
+  const cancelMutation = useCancelTermination()
+  const executeMutation = useExecuteTermination()
+
+  const isPendingTermination = renter.contractStatus === 'pending_termination'
+  const canScheduleTermination = renter.contractStatus === 'active'
+  const canExecuteTermination =
+    isPendingTermination && renter.scheduledTerminationDate
+      ? new Date(`${renter.scheduledTerminationDate}T23:59:59`) <= new Date()
+      : false
+
+  const { data: depositRefund } = useDepositRefund(
+    renter.id,
+    isPendingTermination || renter.contractStatus === 'terminated',
+  )
+  const refundMutation = useRefundDeposit()
+
+  if (!renter.contractId) return null
+
+  return (
+    <>
+      {successMessage && (
+        <ErrorFeedback
+          message={successMessage}
+          type="success"
+          visible
+          onDismiss={() => setSuccessMessage('')}
+        />
+      )}
+      {errorMessage && (
+        <ErrorFeedback
+          message={errorMessage}
+          type="error"
+          visible
+          onDismiss={() => setErrorMessage('')}
+        />
+      )}
+
+      {/* Pending Termination Banner */}
+      {isPendingTermination && (
+        <Card className="bg-amber-50 border-amber-200 rounded-xl mb-6">
+          <CardContent className="p-6">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="h-5 w-5 text-amber-600 mt-0.5 shrink-0" />
+              <div className="flex-1">
+                <h3 className="text-base font-semibold text-amber-900">
+                  চুক্তি বাতিলের জন্য নির্ধারিত
+                </h3>
+                <p className="text-sm text-amber-800 mt-1">
+                  এই ভাড়াটিয়ার চুক্তি{' '}
+                  {renter.scheduledTerminationDate
+                    ? new Date(
+                        `${renter.scheduledTerminationDate}T00:00:00`,
+                      ).toLocaleDateString('bn-BD')
+                    : ''}{' '}
+                  তারিখে বাতিল হবে।
+                </p>
+                {renter.terminationReason && (
+                  <p className="text-sm text-amber-700 mt-1">
+                    কারণ: {renter.terminationReason}
+                  </p>
+                )}
+                <div className="flex gap-2 mt-3">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowConfirmDialog('cancel')}
+                    disabled={cancelMutation.isPending}
+                    className="min-h-9 rounded-full border-amber-300 text-amber-800 hover:bg-amber-100"
+                  >
+                    <XCircle className="h-4 w-4 mr-1" />
+                    বাতিল তলিয়ে নিন
+                  </Button>
+                  {canExecuteTermination && role === 'owner' && (
+                    <Button
+                      size="sm"
+                      onClick={() => setShowConfirmDialog('execute')}
+                      disabled={executeMutation.isPending}
+                      className="min-h-9 rounded-full bg-error-text text-on-dark"
+                    >
+                      এখনই চুক্তি বাতিল করুন
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Schedule Termination Button (only for active contracts) */}
+      {canScheduleTermination && (role === 'owner' || role === 'manager') && (
+        <Card className="bg-canvas rounded-xl border border-hairline mb-6">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h2 className="text-lg font-semibold text-ink">চুক্তি বাতিলকরণ</h2>
+                <p className="text-sm text-steel mt-1">
+                  এই ভাড়াটিয়ার চুক্তি বাতিলের জন্য নোটিশ দিন।
+                </p>
+              </div>
+              <Button
+                variant="outline"
+                onClick={() => setShowScheduleDialog(true)}
+                className="min-h-11 rounded-full border-error-text text-error-text hover:bg-red-50"
+              >
+                চুক্তি বাতিল নির্ধারণ করুন
+              </Button>
+            </div>
+
+            {showScheduleDialog && (
+              <div className="mt-4 p-4 rounded-lg border border-hairline bg-surface">
+                <h3 className="text-base font-semibold text-ink mb-3">
+                  বাতিলের মাস নির্বাচন করুন
+                </h3>
+                {errorMessage && (
+                  <p className="text-xs text-error-text mb-2">{errorMessage}</p>
+                )}
+                <div className="space-y-3">
+                  <div>
+                    <label
+                      htmlFor="termination-month"
+                      className="block text-sm font-medium text-charcoal mb-1"
+                    >
+                      বাতিলের মাস
+                    </label>
+                    <input
+                      id="termination-month"
+                      type="month"
+                      value={terminationMonth}
+                      onChange={(e) => {
+                        setTerminationMonth(e.target.value)
+                        setErrorMessage('')
+                      }}
+                      className="w-full px-3 py-2 text-sm rounded-md border border-hairline min-h-11 bg-canvas text-ink focus:outline-none focus:ring-2 focus:ring-brand-blue"
+                    />
+                    <p className="text-xs text-steel mt-1">
+                      চুক্তি নির্বাচিত মাসের শেষ দিনে বাতিল হবে।
+                    </p>
+                  </div>
+                  <div>
+                    <label
+                      htmlFor="termination-reason"
+                      className="block text-sm font-medium text-charcoal mb-1"
+                    >
+                      কারণ (ঐচ্ছিক)
+                    </label>
+                    <textarea
+                      id="termination-reason"
+                      value={terminationReason}
+                      onChange={(e) => setTerminationReason(e.target.value)}
+                      maxLength={500}
+                      className="w-full px-3 py-2 text-sm rounded-md border border-hairline min-h-[80px] bg-canvas text-ink focus:outline-none focus:ring-2 focus:ring-brand-blue"
+                      placeholder="বাতিলের কারণ লিখুন..."
+                    />
+                  </div>
+                  <div className="flex gap-2 justify-end">
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setShowScheduleDialog(false)
+                        setTerminationMonth('')
+                        setTerminationReason('')
+                        setErrorMessage('')
+                      }}
+                      className="min-h-11 rounded-full"
+                    >
+                      বাতিল
+                    </Button>
+                    <Button
+                      onClick={() => {
+                        if (!terminationMonth) {
+                          setErrorMessage('মাস নির্বাচন করুন')
+                          return
+                        }
+                        scheduleMutation.mutate(
+                          {
+                            renterId: renter.id,
+                            terminationMonth,
+                            reason: terminationReason || undefined,
+                          },
+                          {
+                            onSuccess: () => {
+                              setShowScheduleDialog(false)
+                              setTerminationMonth('')
+                              setTerminationReason('')
+                              setSuccessMessage(
+                                'চুক্তি বাতিলের তারিখ নির্ধারণ করা হয়েছে।',
+                              )
+                              queryClient.invalidateQueries({
+                                queryKey: ['renters', renter.id],
+                              })
+                            },
+                            onError: (err) => {
+                              setErrorMessage(err.message || 'একটি ত্রুটি হয়েছে')
+                            },
+                          },
+                        )
+                      }}
+                      disabled={scheduleMutation.isPending || !terminationMonth}
+                      className="min-h-11 rounded-full bg-error-text text-on-dark"
+                    >
+                      {scheduleMutation.isPending
+                        ? 'প্রক্রিয়াধীন...'
+                        : 'নির্ধারণ করুন'}
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Deposit Refund Section (for terminated/pending termination contracts) */}
+      {(isPendingTermination || renter.contractStatus === 'terminated') &&
+        depositRefund &&
+        role === 'owner' && (
+          <Card className="bg-canvas rounded-xl border border-hairline mb-6">
+            <CardContent className="p-6">
+              <h2 className="text-lg font-semibold text-ink mb-4 pb-2 border-b border-hairline">
+                জামানত ফেরত
+              </h2>
+              <div className="grid gap-4 grid-cols-[repeat(auto-fit,minmax(200px,1fr))]">
+                <div>
+                  <p className="text-xs font-medium text-steel mb-1">
+                    মোট জামানত
+                  </p>
+                  <CurrencyDisplay
+                    amount={depositRefund.securityDepositAmount}
+                  />
+                </div>
+                <div>
+                  <p className="text-xs font-medium text-steel mb-1">
+                    বাকি জামানত
+                  </p>
+                  <CurrencyDisplay
+                    amount={depositRefund.remainingDepositBalance}
+                  />
+                </div>
+                <div>
+                  <p className="text-xs font-medium text-steel mb-1">
+                    বকেয়া বিল
+                  </p>
+                  <CurrencyDisplay
+                    amount={depositRefund.outstandingBillTotal}
+                  />
+                </div>
+                <div>
+                  <p className="text-xs font-medium text-steel mb-1">
+                    প্রস্তাবিত ফেরত
+                  </p>
+                  <CurrencyDisplay
+                    amount={depositRefund.suggestedRefund}
+                    large
+                  />
+                </div>
+              </div>
+              {depositRefund.suggestedRefund > 0 && (
+                <div className="mt-4">
+                  <Button
+                    onClick={() => {
+                      refundMutation.mutate(
+                        {
+                          renterId: renter.id,
+                          refundAmount: depositRefund.suggestedRefund,
+                        },
+                        {
+                          onSuccess: () => {
+                            setSuccessMessage('জামানত ফেরত সফলভাবে প্রক্রিয়া হয়েছে।')
+                            queryClient.invalidateQueries({
+                              queryKey: ['renters', renter.id],
+                            })
+                            queryClient.invalidateQueries({
+                              queryKey: ['deposit-refund', renter.id],
+                            })
+                          },
+                          onError: (err) => {
+                            setErrorMessage(err.message || 'ফেরত প্রক্রিয়ায় ত্রুটি')
+                          },
+                        },
+                      )
+                    }}
+                    disabled={refundMutation.isPending}
+                    className="min-h-11 rounded-full bg-primary text-on-primary"
+                  >
+                    <CheckCircle2 className="h-4 w-4 mr-1" />
+                    {refundMutation.isPending
+                      ? 'প্রক্রিয়াধীন...'
+                      : 'জামানত ফেরত প্রক্রিয়া করুন'}
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
+      <ConfirmDialog
+        open={showConfirmDialog === 'cancel'}
+        onClose={() => setShowConfirmDialog(null)}
+        onConfirm={() => {
+          cancelMutation.mutate(renter.id, {
+            onSuccess: () => {
+              setShowConfirmDialog(null)
+              setSuccessMessage('চুক্তি বাতিলের নির্ধারণ তুলে নেওয়া হয়েছে।')
+              queryClient.invalidateQueries({
+                queryKey: ['renters', renter.id],
+              })
+            },
+            onError: (err) => {
+              setShowConfirmDialog(null)
+              setErrorMessage(err.message || 'বাতিল করতে ত্রুটি')
+            },
+          })
+        }}
+        title="চুক্তি বাতিলের নির্ধারণ তুলে নিন"
+        description="আপনি কি নিশ্চিত যে আপনি চুক্তি বাতিলের নির্ধারণ তুলে নিতে চান? চুক্তিটি আবার সক্রিয় হয়ে যাবে।"
+        confirmLabel="নির্ধারণ তুলে নিন"
+        cancelLabel="না"
+        destructive
+        loading={cancelMutation.isPending}
+      />
+
+      <ConfirmDialog
+        open={showConfirmDialog === 'execute'}
+        onClose={() => setShowConfirmDialog(null)}
+        onConfirm={() => {
+          executeMutation.mutate(renter.id, {
+            onSuccess: () => {
+              setShowConfirmDialog(null)
+              setSuccessMessage('চুক্তি সফলভাবে বাতিল করা হয়েছে। ফ্ল্যাটটি এখন খালি।')
+              queryClient.invalidateQueries({
+                queryKey: ['renters', renter.id],
+              })
+            },
+            onError: (err) => {
+              setShowConfirmDialog(null)
+              setErrorMessage(err.message || 'বাতিল করতে ত্রুটি')
+            },
+          })
+        }}
+        title="চুক্তি বাতিল করুন"
+        description="আপনি কি নিশ্চিত? চুক্তিটি বাতিল হলে ভাড়াটিয়ার অ্যাকাউন্ট নিষ্ক্রিয় হবে এবং ফ্ল্যাটটি খালি হিসেবে চিহ্নিত হবে।"
+        confirmLabel="চুক্তি বাতিল করুন"
+        cancelLabel="না"
+        destructive
+        loading={executeMutation.isPending}
+      />
+    </>
   )
 }

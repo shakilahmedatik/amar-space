@@ -70,7 +70,7 @@ export function PortalHeader({ building, flat, className }: PortalHeaderProps) {
         <div className="flex items-center gap-3">
           {/* Logo — max 120px width */}
           {building.logoUrl ? (
-            <div className="relative h-16 w-[120px] shrink-0 overflow-hidden rounded-md">
+            <div className="relative h-16 w-30 shrink-0 overflow-hidden rounded-md">
               <Image
                 src={building.logoUrl}
                 alt={`${building.name || 'বিল্ডিং'} লোগো`}

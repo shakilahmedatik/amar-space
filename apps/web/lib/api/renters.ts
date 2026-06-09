@@ -24,6 +24,9 @@ export interface Renter {
   startDate: string
   depositBalance: number
   accessCode: string | null
+  contractStatus: string | null
+  scheduledTerminationDate: string | null
+  terminationReason: string | null
   createdAt: string
   updatedAt: string
 }
@@ -149,4 +152,74 @@ export interface RenterOptionsResponse {
 
 export function fetchRenterOptions(): Promise<RenterOptionsResponse> {
   return apiFetch<RenterOptionsResponse>('/api/renters?pageSize=100')
+}
+
+export interface TerminationResult {
+  contractId: string
+  status: string
+  scheduledTerminationDate: string | null
+  noticeGivenAt: string | null
+  terminationReason: string | null
+}
+
+export interface DepositRefundResult {
+  contractId: string
+  securityDepositAmount: number
+  remainingDepositBalance: number
+  outstandingBillTotal: number
+  suggestedRefund: number
+}
+
+export function scheduleTermination(
+  renterId: string,
+  data: { terminationMonth: string; reason?: string },
+): Promise<TerminationResult> {
+  return apiFetch<TerminationResult>(`/api/renters/${renterId}/terminate`, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  })
+}
+
+export function cancelTermination(
+  renterId: string,
+): Promise<TerminationResult> {
+  return apiFetch<TerminationResult>(`/api/renters/${renterId}/termination`, {
+    method: 'DELETE',
+  })
+}
+
+export function executeTermination(
+  renterId: string,
+): Promise<TerminationResult> {
+  return apiFetch<TerminationResult>(
+    `/api/renters/${renterId}/execute-termination`,
+    {
+      method: 'POST',
+    },
+  )
+}
+
+export function fetchDepositRefund(
+  renterId: string,
+): Promise<DepositRefundResult> {
+  return apiFetch<DepositRefundResult>(
+    `/api/renters/${renterId}/deposit-refund`,
+  )
+}
+
+export function processDepositRefund(
+  renterId: string,
+  data: { refundAmount: number; note?: string },
+): Promise<{
+  id: string
+  contractId: string
+  amount: number
+  billId: string | null
+  note: string | null
+  createdAt: string
+}> {
+  return apiFetch(`/api/renters/${renterId}/refund-deposit`, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  })
 }

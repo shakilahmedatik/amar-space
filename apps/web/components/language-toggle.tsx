@@ -27,7 +27,7 @@ export function LanguageToggle({
       type="button"
       onClick={handleToggle}
       aria-label={t('common.language')}
-      className="inline-flex items-center gap-2 rounded-md border border-hairline px-3 py-2 text-sm font-medium cursor-pointer bg-transparent text-inherit min-w-[44px] min-h-[44px] transition-colors hover:bg-surface"
+      className="inline-flex items-center gap-2 rounded-md border border-hairline px-3 py-2 text-sm font-medium cursor-pointer bg-transparent text-inherit min-w-[44px] min-h-11 transition-colors hover:bg-surface"
     >
       <span aria-hidden="true">🌐</span>
       <span>{locale === 'bn' ? t('common.english') : t('common.bangla')}</span>

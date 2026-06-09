@@ -157,7 +157,7 @@ export default function NoticesPage() {
         {canCreate && (
           <Button
             asChild
-            className="min-h-[44px] rounded-full bg-primary text-on-primary font-semibold"
+            className="min-h-11 rounded-full bg-primary text-on-primary font-semibold"
           >
             <Link href="/notices/new">{t('notices.createNotice')}</Link>
           </Button>

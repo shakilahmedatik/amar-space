@@ -242,7 +242,7 @@ export function BuildingEditForm({
           placeholder={t('buildings.buildingRulesPlaceholder')}
           value={rules}
           onChange={(e) => setRules(e.target.value)}
-          className={`w-full rounded-md border min-h-[100px] p-3 text-sm bg-white text-ink ${errors.rules ? 'border-error-text' : 'border-hairline'}`}
+          className={`w-full rounded-md border min-h-25 p-3 text-sm bg-white text-ink ${errors.rules ? 'border-error-text' : 'border-hairline'}`}
         />
       </FormField>
 
@@ -440,7 +440,7 @@ export function BuildingEditForm({
                       next[index]!.role = ''
                       setContacts(next)
                     }}
-                    className="w-full rounded-md border border-hairline min-h-[44px] px-3 bg-white text-ink text-sm"
+                    className="w-full rounded-md border border-hairline min-h-11 px-3 bg-white text-ink text-sm"
                   >
                     <option value="building">
                       {t('buildings.buildingType')}
@@ -461,7 +461,7 @@ export function BuildingEditForm({
                 { name: '', role: '', phone: '', type: 'building' },
               ])
             }}
-            className="rounded-full min-h-[44px] text-brand-blue-deep border-brand-blue-deep border self-start cursor-pointer"
+            className="rounded-full min-h-11 text-brand-blue-deep border-brand-blue-deep border self-start cursor-pointer"
           >
             + {t('buildings.addEmergencyContact')}
           </Button>
@@ -472,7 +472,7 @@ export function BuildingEditForm({
         <Button
           type="submit"
           disabled={isPending}
-          className="rounded-full min-h-[44px] bg-primary text-on-primary font-semibold cursor-pointer"
+          className="rounded-full min-h-11 bg-primary text-on-primary font-semibold cursor-pointer"
         >
           {isPending ? t('common.loading') : t('common.save')}
         </Button>
@@ -480,7 +480,7 @@ export function BuildingEditForm({
           type="button"
           variant="outline"
           onClick={onCancel}
-          className="rounded-full min-h-[44px] text-charcoal border-hairline cursor-pointer"
+          className="rounded-full min-h-11 text-charcoal border-hairline cursor-pointer"
         >
           {t('common.cancel')}
         </Button>

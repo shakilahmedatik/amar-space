@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
 import { type FormEvent, useEffect, useState } from 'react'
@@ -144,7 +145,11 @@ export default function IssueDetailPage() {
       })
     }
   }
-  const canManage = role === 'owner' || role === 'manager' || role === 'security_guard' || role === 'care_taker'
+  const canManage =
+    role === 'owner' ||
+    role === 'manager' ||
+    role === 'security_guard' ||
+    role === 'care_taker'
   const availableTransitions = issue
     ? (VALID_TRANSITIONS[issue.status] ?? [])
     : []
@@ -275,10 +280,11 @@ export default function IssueDetailPage() {
                       rel="noreferrer"
                       className="group relative w-28 h-28 rounded-lg overflow-hidden border border-hairline bg-surface hover:shadow-md transition-shadow"
                     >
-                      <img
+                      <Image
                         src={att.fileUrl}
                         alt={att.fileName}
                         className="w-full h-full object-cover"
+                        unoptimized
                       />
                       <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                         <span className="text-white text-xs font-medium">
@@ -309,7 +315,7 @@ export default function IssueDetailPage() {
                       setShowStatusForm(!showStatusForm)
                       setShowAssignForm(false)
                     }}
-                    className={`min-h-[44px] rounded-full border-brand-blue-deep text-brand-blue-deep hover:bg-brand-blue-200/30 ${showStatusForm ? 'bg-surface' : 'bg-transparent'}`}
+                    className={`min-h-11 rounded-full border-brand-blue-deep text-brand-blue-deep hover:bg-brand-blue-200/30 ${showStatusForm ? 'bg-surface' : 'bg-transparent'}`}
                   >
                     {t('issues.updateStatus')}
                   </Button>
@@ -324,7 +330,7 @@ export default function IssueDetailPage() {
                       setShowAssignForm(!showAssignForm)
                       setShowStatusForm(false)
                     }}
-                    className={`min-h-[44px] rounded-full border-brand-blue text-brand-blue hover:bg-brand-blue-200/30 ${showAssignForm ? 'bg-surface' : 'bg-transparent'}`}
+                    className={`min-h-11 rounded-full border-brand-blue text-brand-blue hover:bg-brand-blue-200/30 ${showAssignForm ? 'bg-surface' : 'bg-transparent'}`}
                   >
                     {t('issues.assignIssue')}
                   </Button>
@@ -353,7 +359,7 @@ export default function IssueDetailPage() {
                         onChange={(e) =>
                           setNewStatus(e.target.value as IssueStatus | '')
                         }
-                        className={`w-full px-3 py-2 text-sm rounded-md border min-h-[44px] bg-canvas text-ink ${statusErrors.status ? 'border-error-text' : 'border-hairline'}`}
+                        className={`w-full px-3 py-2 text-sm rounded-md border min-h-11 bg-canvas text-ink ${statusErrors.status ? 'border-error-text' : 'border-hairline'}`}
                       >
                         <option value="">{t('issues.selectStatus')}</option>
                         {availableTransitions.map((s) => {
@@ -394,7 +400,7 @@ export default function IssueDetailPage() {
                           maxLength={2000}
                           rows={4}
                           placeholder={t('issues.resolutionNotesPlaceholder')}
-                          className={`w-full px-3 py-2 text-sm rounded-md border min-h-[100px] resize-y font-sans ${statusErrors.resolutionNotes ? 'border-error-text' : 'border-hairline'}`}
+                          className={`w-full px-3 py-2 text-sm rounded-md border min-h-25 resize-y font-sans ${statusErrors.resolutionNotes ? 'border-error-text' : 'border-hairline'}`}
                         />
                         {statusErrors.resolutionNotes && (
                           <p className="text-xs text-error-text mt-1">
@@ -417,14 +423,14 @@ export default function IssueDetailPage() {
                           setResolutionNotes('')
                           setStatusErrors({})
                         }}
-                        className="min-h-[44px] rounded-full border-hairline text-charcoal"
+                        className="min-h-11 rounded-full border-hairline text-charcoal"
                       >
                         {t('common.cancel')}
                       </Button>
                       <Button
                         type="submit"
                         disabled={statusMutation.isPending}
-                        className="min-h-[44px] rounded-full bg-primary text-on-primary font-semibold disabled:opacity-60"
+                        className="min-h-11 rounded-full bg-primary text-on-primary font-semibold disabled:opacity-60"
                       >
                         {statusMutation.isPending
                           ? t('common.loading')
@@ -455,7 +461,7 @@ export default function IssueDetailPage() {
                         id="assignee-select"
                         value={assigneeId}
                         onChange={(e) => setAssigneeId(e.target.value)}
-                        className={`w-full px-3 py-2 text-sm rounded-md border min-h-[44px] bg-canvas text-ink ${assignErrors.assigneeId ? 'border-error-text' : 'border-hairline'}`}
+                        className={`w-full px-3 py-2 text-sm rounded-md border min-h-11 bg-canvas text-ink ${assignErrors.assigneeId ? 'border-error-text' : 'border-hairline'}`}
                       >
                         <option value="">{t('issues.selectAssignee')}</option>
                         {managers.map((m) => (
@@ -480,14 +486,14 @@ export default function IssueDetailPage() {
                           setAssigneeId('')
                           setAssignErrors({})
                         }}
-                        className="min-h-[44px] rounded-full border-hairline text-charcoal"
+                        className="min-h-11 rounded-full border-hairline text-charcoal"
                       >
                         {t('common.cancel')}
                       </Button>
                       <Button
                         type="submit"
                         disabled={assignMutation.isPending}
-                        className="min-h-[44px] rounded-full bg-brand-blue text-on-dark font-semibold disabled:opacity-60"
+                        className="min-h-11 rounded-full bg-brand-blue text-on-dark font-semibold disabled:opacity-60"
                       >
                         {assignMutation.isPending
                           ? t('common.loading')

@@ -23,6 +23,7 @@ export const BILL_STATUS = {
   PARTIALLY_PAID: 'partially_paid',
   PAID: 'paid',
   OVERDUE: 'overdue',
+  CANCELLED: 'cancelled',
 } as const
 
 export type BillStatus = (typeof BILL_STATUS)[keyof typeof BILL_STATUS]
@@ -105,6 +106,16 @@ export const BLOOD_GROUPS = [
 
 export type BloodGroup = (typeof BLOOD_GROUPS)[number]
 
+/** Contract status values */
+export const CONTRACT_STATUS = {
+  ACTIVE: 'active',
+  PENDING_TERMINATION: 'pending_termination',
+  TERMINATED: 'terminated',
+} as const
+
+export type ContractStatus =
+  (typeof CONTRACT_STATUS)[keyof typeof CONTRACT_STATUS]
+
 /** State machine transition maps */
 export const FLAT_STATUS_TRANSITIONS: Record<FlatStatus, FlatStatus[]> = {
   [FLAT_STATUS.VACANT]: [FLAT_STATUS.OCCUPIED, FLAT_STATUS.UNDER_MAINTENANCE],
@@ -117,10 +128,35 @@ export const BILL_STATUS_TRANSITIONS: Record<BillStatus, BillStatus[]> = {
     BILL_STATUS.PARTIALLY_PAID,
     BILL_STATUS.PAID,
     BILL_STATUS.OVERDUE,
+    BILL_STATUS.CANCELLED,
   ],
-  [BILL_STATUS.PARTIALLY_PAID]: [BILL_STATUS.PAID, BILL_STATUS.OVERDUE],
-  [BILL_STATUS.OVERDUE]: [BILL_STATUS.PARTIALLY_PAID, BILL_STATUS.PAID],
+  [BILL_STATUS.PARTIALLY_PAID]: [
+    BILL_STATUS.PAID,
+    BILL_STATUS.OVERDUE,
+    BILL_STATUS.CANCELLED,
+  ],
+  [BILL_STATUS.OVERDUE]: [
+    BILL_STATUS.PARTIALLY_PAID,
+    BILL_STATUS.PAID,
+    BILL_STATUS.CANCELLED,
+  ],
   [BILL_STATUS.PAID]: [],
+  [BILL_STATUS.CANCELLED]: [],
+}
+
+export const CONTRACT_STATUS_TRANSITIONS: Record<
+  ContractStatus,
+  ContractStatus[]
+> = {
+  [CONTRACT_STATUS.ACTIVE]: [
+    CONTRACT_STATUS.PENDING_TERMINATION,
+    CONTRACT_STATUS.TERMINATED,
+  ],
+  [CONTRACT_STATUS.PENDING_TERMINATION]: [
+    CONTRACT_STATUS.ACTIVE,
+    CONTRACT_STATUS.TERMINATED,
+  ],
+  [CONTRACT_STATUS.TERMINATED]: [],
 }
 
 export const MAINTENANCE_STATUS_TRANSITIONS: Record<
@@ -180,6 +216,8 @@ export const ROLE_PERMISSIONS = {
     'roles:write',
     'staff:read',
     'staff:write',
+    'contracts:terminate',
+    'terminations:execute',
   ],
   [ROLES.MANAGER]: [
     'buildings:read',
@@ -198,6 +236,7 @@ export const ROLE_PERMISSIONS = {
     'issues:write',
     'notices:read',
     'notices:write',
+    'contracts:terminate',
   ],
   [ROLES.SECURITY_GUARD]: [
     'buildings:read',

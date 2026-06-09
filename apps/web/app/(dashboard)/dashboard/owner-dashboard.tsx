@@ -31,7 +31,7 @@ export function OwnerDashboard() {
         <Button
           type="button"
           onClick={() => refetch()}
-          className="min-h-[44px] rounded-full bg-primary text-on-primary font-semibold"
+          className="min-h-11 rounded-full bg-primary text-on-primary font-semibold"
         >
           {t('dashboard.retry')}
         </Button>

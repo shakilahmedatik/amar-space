@@ -1,6 +1,7 @@
 import { relations } from 'drizzle-orm'
 import {
   date,
+  integer,
   numeric,
   pgTable,
   text,
@@ -31,7 +32,11 @@ export const bills = pgTable(
       .notNull()
       .references(() => renters.id),
     billingMonth: varchar('billing_month', { length: 7 }).notNull(),
+    dueDate: date('due_date').notNull(),
     baseRent: numeric('base_rent', { precision: 12, scale: 2 }).notNull(),
+    rentDays: integer('rent_days'),
+    totalDaysInMonth: integer('total_days_in_month'),
+    monthlyRent: numeric('monthly_rent', { precision: 12, scale: 2 }).notNull(),
     totalAmount: numeric('total_amount', { precision: 12, scale: 2 }).notNull(),
     paidAmount: numeric('paid_amount', { precision: 12, scale: 2 })
       .notNull()

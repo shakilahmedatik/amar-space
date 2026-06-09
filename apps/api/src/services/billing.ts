@@ -2,7 +2,6 @@ import {
   advanceAdjustments,
   billLineItems,
   bills,
-  buildings,
   type Database,
   flats,
   payments,
@@ -15,17 +14,29 @@ import {
   FLAT_STATUS,
   ROLES,
 } from '@repo/shared/constants'
-import { ForbiddenError, NotFoundError, ValidationError } from '@repo/shared/errors'
+import {
+  ForbiddenError,
+  NotFoundError,
+  ValidationError,
+} from '@repo/shared/errors'
 import type { FieldError, RequestContext } from '@repo/shared/types'
 import {
   type AddUtilityChargeInput,
   addUtilityChargeSchema,
   billingMonthSchema,
 } from '@repo/shared/validation'
-import { and, count, desc, eq, inArray, sql } from 'drizzle-orm'
+import { and, count, eq, inArray, sql } from 'drizzle-orm'
 import type { AuditLogger } from '../plugins/audit-logger'
-
-// --- Types ---
+import {
+  BillingRepository,
+  type ListBillsFilters as RepoListBillsFilters,
+  type ScopeContext,
+} from '../repositories'
+import {
+  calculateDueDate,
+  calculateRentForMonth,
+  getDefaultLineItems,
+} from '../utils/bill-calculation'
 
 export interface BillResult {
   id: string
@@ -34,7 +45,11 @@ export interface BillResult {
   flatId: string
   renterId: string
   billingMonth: string
+  dueDate: string
   baseRent: string
+  rentDays: number | null
+  totalDaysInMonth: number | null
+  monthlyRent: string
   totalAmount: string
   paidAmount: string
   status: string
@@ -52,7 +67,11 @@ export interface MapToBillResultInput {
   flatId: string
   renterId: string
   billingMonth: string
+  dueDate: string | null
   baseRent: string
+  rentDays: number | null
+  totalDaysInMonth: number | null
+  monthlyRent: string | null
   totalAmount: string
   paidAmount: string
   status: string
@@ -123,45 +142,175 @@ export interface GenerateBillsResult {
   skipped: { flatId: string; reason: string }[]
 }
 
-// --- Service ---
-
-/**
- * BillingService handles monthly bill generation, utility charges, and bill queries.
- *
- * Enforces:
- * - Tenant isolation via ownerAccountId
- * - Role-based access (Owner sees all, Manager sees assigned buildings, Renter sees own bills)
- * - Duplicate bill prevention per flat per month (unique constraint)
- * - Max 20 line items per bill
- * - Audit events for bill creation and modification
- *
- */
 export class BillingService {
+  private billingRepo: BillingRepository
   constructor(
     private db: Database,
     private auditLogger: AuditLogger,
-  ) {}
+  ) {
+    this.billingRepo = new BillingRepository(db)
+  }
 
   /**
-   * Generates bills for all occupied flats in a given month.
-   *
-   * - Creates a bill for each flat with status 'occupied' that has an active rental contract
-   * - Sets baseRent from the contract's monthlyRent
-   * - Prevents duplicate bills per flat per month (Requirement 7.10)
-   * - Skips flats without a defined rent amount (Requirement 7.12)
-   * - Only Owner or Manager can generate bills (Requirement 7.14)
-   *
+   * Generates a bill for a single contract for a given billing month.
+   * Calculates prorated rent if contract started mid-month.
+   * Auto-adds line items from contract defaults (gas, water, service, other).
+   */
+  async generateBillForContract(
+    ctx: RequestContext,
+    contractId: string,
+    billingMonth: string,
+  ): Promise<BillResult> {
+    if (ctx.role === 'renter') {
+      throw new ForbiddenError()
+    }
+
+    const monthResult = billingMonthSchema.safeParse(billingMonth)
+    if (!monthResult.success) {
+      throw new ValidationError([
+        {
+          field: 'billingMonth',
+          message: 'Billing month must be in YYYY-MM format',
+          rule: 'format',
+        },
+      ])
+    }
+
+    const contract = await this.db.query.rentalContracts.findFirst({
+      where: and(
+        eq(rentalContracts.id, contractId),
+        eq(rentalContracts.ownerAccountId, ctx.ownerAccountId),
+        inArray(rentalContracts.status, ['active', 'pending_termination']),
+      ),
+    })
+
+    if (!contract) {
+      throw new NotFoundError('Contract')
+    }
+
+    if (ctx.role === ROLES.MANAGER && ctx.assignedBuildingIds) {
+      const flat = await this.db.query.flats.findFirst({
+        where: eq(flats.id, contract.flatId),
+      })
+      if (!flat || !ctx.assignedBuildingIds.includes(flat.buildingId)) {
+        throw new NotFoundError('Contract')
+      }
+    }
+
+    const existingBill = await this.billingRepo.findExistingBill(
+      contract.flatId,
+      billingMonth,
+    )
+    if (existingBill) {
+      throw new ValidationError([
+        {
+          field: 'billingMonth',
+          message: `A bill already exists for this flat in ${billingMonth}`,
+          rule: 'duplicate',
+        },
+      ])
+    }
+
+    const rentCalc = calculateRentForMonth(
+      contract.monthlyRent,
+      contract.startDate,
+      billingMonth,
+    )
+    const dueDate = calculateDueDate(billingMonth)
+
+    const lineItemsData = getDefaultLineItems(contract)
+    let totalAmountVal = Number.parseFloat(rentCalc.baseRent)
+    for (const item of lineItemsData) {
+      totalAmountVal += Number.parseFloat(item.amount)
+    }
+
+    const [newBill] = await this.db
+      .insert(bills)
+      .values({
+        ownerAccountId: ctx.ownerAccountId,
+        contractId: contract.id,
+        flatId: contract.flatId,
+        renterId: contract.renterId,
+        billingMonth,
+        dueDate,
+        baseRent: rentCalc.baseRent,
+        rentDays: rentCalc.rentDays,
+        totalDaysInMonth: rentCalc.totalDaysInMonth,
+        monthlyRent: contract.monthlyRent,
+        totalAmount: totalAmountVal.toFixed(2),
+        paidAmount: '0',
+        status: BILL_STATUS.UNPAID,
+      })
+      .returning()
+
+    if (!newBill) {
+      throw new Error('Failed to create bill')
+    }
+
+    if (lineItemsData.length > 0) {
+      await this.db.insert(billLineItems).values(
+        lineItemsData.map((item) => ({
+          billId: newBill.id,
+          description: item.description,
+          amount: item.amount,
+        })),
+      )
+    }
+
+    this.auditLogger.log({
+      actorId: ctx.userId,
+      action: 'bill_created',
+      entityType: 'bill',
+      entityId: newBill.id,
+      ownerAccountId: ctx.ownerAccountId,
+      newValues: {
+        contractId: contract.id,
+        flatId: contract.flatId,
+        billingMonth,
+        dueDate,
+        baseRent: rentCalc.baseRent,
+        rentDays: rentCalc.rentDays,
+        totalDaysInMonth: rentCalc.totalDaysInMonth,
+        monthlyRent: contract.monthlyRent,
+        totalAmount: totalAmountVal.toFixed(2),
+        status: BILL_STATUS.UNPAID,
+      },
+    })
+
+    return {
+      id: newBill.id,
+      ownerAccountId: newBill.ownerAccountId,
+      contractId: newBill.contractId,
+      flatId: newBill.flatId,
+      renterId: newBill.renterId,
+      billingMonth: newBill.billingMonth,
+      dueDate: newBill.dueDate,
+      baseRent: newBill.baseRent,
+      rentDays: newBill.rentDays,
+      totalDaysInMonth: newBill.totalDaysInMonth,
+      monthlyRent: newBill.monthlyRent,
+      totalAmount: newBill.totalAmount,
+      paidAmount: newBill.paidAmount,
+      status: newBill.status,
+      createdAt: newBill.createdAt,
+      updatedAt: newBill.updatedAt,
+      flatNumber: '',
+      buildingName: '',
+      renterName: '',
+    }
+  }
+
+  /**
+   * Generates bills for all active contracts in a given month.
    */
   async generateBills(
     ctx: RequestContext,
     month: string,
   ): Promise<GenerateBillsResult> {
-    // Renters cannot generate bills
     if (ctx.role === 'renter') {
       throw new ForbiddenError()
     }
 
-    // Validate month format
     const monthResult = billingMonthSchema.safeParse(month)
     if (!monthResult.success) {
       throw new ValidationError([
@@ -175,39 +324,51 @@ export class BillingService {
 
     const billingMonth = monthResult.data
 
-    // Get all occupied flats scoped to the owner account
-    const occupiedFlatsConditions = [
+    const conditions = [
       eq(flats.ownerAccountId, ctx.ownerAccountId),
       eq(flats.status, FLAT_STATUS.OCCUPIED),
     ]
 
-    // Manager can only generate bills for assigned buildings
     if (ctx.role === ROLES.MANAGER && ctx.assignedBuildingIds) {
-      occupiedFlatsConditions.push(
-        inArray(flats.buildingId, ctx.assignedBuildingIds),
-      )
+      conditions.push(inArray(flats.buildingId, ctx.assignedBuildingIds))
     }
 
     const occupiedFlats = await this.db
       .select()
       .from(flats)
-      .where(and(...occupiedFlatsConditions))
+      .where(and(...conditions))
 
     const result: GenerateBillsResult = {
       generated: 0,
       skipped: [],
     }
 
-    for (const flat of occupiedFlats) {
-      // Check if a bill already exists for this flat and month (Requirement 7.10)
-      const existingBill = await this.db.query.bills.findFirst({
-        where: and(
-          eq(bills.flatId, flat.id),
-          eq(bills.billingMonth, billingMonth),
-        ),
-      })
+    if (occupiedFlats.length === 0) {
+      return result
+    }
 
-      if (existingBill) {
+    const flatIds = occupiedFlats.map((f) => f.id)
+    const existingBills = await this.billingRepo.batchFindExistingBills(
+      flatIds,
+      billingMonth,
+    )
+    const flatsWithBills = new Set(existingBills.map((b) => b.flatId))
+
+    const contractStatuses = ['active', 'pending_termination'] as const
+    const activeContracts = await this.db
+      .select()
+      .from(rentalContracts)
+      .where(
+        and(
+          inArray(rentalContracts.flatId, flatIds),
+          eq(rentalContracts.ownerAccountId, ctx.ownerAccountId),
+          inArray(rentalContracts.status, contractStatuses),
+        ),
+      )
+    const contractMap = new Map(activeContracts.map((c) => [c.flatId, c]))
+
+    for (const flat of occupiedFlats) {
+      if (flatsWithBills.has(flat.id)) {
         result.skipped.push({
           flatId: flat.id,
           reason: `Bill already exists for flat ${flat.flatNumber} in ${billingMonth}`,
@@ -215,14 +376,7 @@ export class BillingService {
         continue
       }
 
-      // Find active rental contract for this flat
-      const contract = await this.db.query.rentalContracts.findFirst({
-        where: and(
-          eq(rentalContracts.flatId, flat.id),
-          eq(rentalContracts.ownerAccountId, ctx.ownerAccountId),
-          eq(rentalContracts.status, 'active'),
-        ),
-      })
+      const contract = contractMap.get(flat.id)
 
       if (!contract) {
         result.skipped.push({
@@ -232,7 +386,6 @@ export class BillingService {
         continue
       }
 
-      // Skip if no rent amount defined (Requirement 7.12)
       if (
         !contract.monthlyRent ||
         Number.parseFloat(contract.monthlyRent) <= 0
@@ -244,55 +397,19 @@ export class BillingService {
         continue
       }
 
-      // Calculate total amount by adding default utility charges
-      let totalAmountVal = Number.parseFloat(contract.monthlyRent)
-      const lineItemsToInsert: {
-        billId: string
-        description: string
-        amount: string
-      }[] = []
+      const rentCalc = calculateRentForMonth(
+        contract.monthlyRent,
+        contract.startDate,
+        billingMonth,
+      )
+      const dueDate = calculateDueDate(billingMonth)
 
-      // Check default utility columns on contract
-      const utilities = [
-        {
-          name: 'গ্যাস বিল (Gas Bill)',
-          amount: (contract as Record<string, unknown>).gasBill as
-            | string
-            | null,
-        },
-        {
-          name: 'পানি বিল (Water Bill)',
-          amount: (contract as Record<string, unknown>).waterBill as
-            | string
-            | null,
-        },
-        {
-          name: 'সার্ভিস চার্জ (Service Charge)',
-          amount: (contract as Record<string, unknown>).serviceCharge as
-            | string
-            | null,
-        },
-        {
-          name: 'অন্যান্য বিল (Other Charges)',
-          amount: (contract as Record<string, unknown>).otherCharges as
-            | string
-            | null,
-        },
-      ]
-
-      for (const util of utilities) {
-        if (util.amount && Number.parseFloat(util.amount) > 0) {
-          const amt = Number.parseFloat(util.amount)
-          totalAmountVal += amt
-          lineItemsToInsert.push({
-            billId: '', // Will fill after inserting bill
-            description: util.name,
-            amount: amt.toFixed(2),
-          })
-        }
+      const lineItemsData = getDefaultLineItems(contract)
+      let totalAmountVal = Number.parseFloat(rentCalc.baseRent)
+      for (const item of lineItemsData) {
+        totalAmountVal += Number.parseFloat(item.amount)
       }
 
-      // Create the bill
       const [newBill] = await this.db
         .insert(bills)
         .values({
@@ -301,7 +418,11 @@ export class BillingService {
           flatId: flat.id,
           renterId: contract.renterId,
           billingMonth,
-          baseRent: contract.monthlyRent,
+          dueDate,
+          baseRent: rentCalc.baseRent,
+          rentDays: rentCalc.rentDays,
+          totalDaysInMonth: rentCalc.totalDaysInMonth,
+          monthlyRent: contract.monthlyRent,
           totalAmount: totalAmountVal.toFixed(2),
           paidAmount: '0',
           status: BILL_STATUS.UNPAID,
@@ -316,18 +437,18 @@ export class BillingService {
         continue
       }
 
-      // Insert line items if any
-      if (lineItemsToInsert.length > 0) {
-        const items = lineItemsToInsert.map((item) => ({
-          ...item,
-          billId: newBill.id,
-        }))
-        await this.db.insert(billLineItems).values(items)
+      if (lineItemsData.length > 0) {
+        await this.db.insert(billLineItems).values(
+          lineItemsData.map((item) => ({
+            billId: newBill.id,
+            description: item.description,
+            amount: item.amount,
+          })),
+        )
       }
 
       result.generated++
 
-      // Record audit event (Requirement 7.9)
       this.auditLogger.log({
         actorId: ctx.userId,
         action: 'bill_created',
@@ -337,10 +458,9 @@ export class BillingService {
         newValues: {
           flatId: flat.id,
           billingMonth,
-          baseRent: contract.monthlyRent,
+          baseRent: rentCalc.baseRent,
           totalAmount: totalAmountVal.toFixed(2),
           status: BILL_STATUS.UNPAID,
-          lineItemsCount: lineItemsToInsert.length,
         },
       })
     }
@@ -348,26 +468,15 @@ export class BillingService {
     return result
   }
 
-  /**
-   * Adds a utility charge (line item) to a bill.
-   *
-   * - Validates description (max 200 chars) and amount (0.01-999,999.99)
-   * - Enforces max 20 line items per bill (Requirement 7.2)
-   * - Recalculates totalAmount (Requirement 7.3)
-   * - Only Owner or Manager can add charges (Requirement 7.14)
-   *
-   */
   async addUtilityCharge(
     ctx: RequestContext,
     billId: string,
     charge: AddUtilityChargeInput,
   ): Promise<LineItemResult> {
-    // Renters cannot add utility charges
     if (ctx.role === 'renter') {
       throw new ForbiddenError()
     }
 
-    // Validate input
     const parseResult = addUtilityChargeSchema.safeParse(charge)
     if (!parseResult.success) {
       const errors: FieldError[] = parseResult.error.issues.map((issue) => ({
@@ -379,11 +488,8 @@ export class BillingService {
     }
 
     const validated = parseResult.data
-
-    // Find the bill with tenant isolation
     const bill = await this.findBillWithAccess(ctx, billId)
 
-    // Check max 20 line items (Requirement 7.2)
     const existingLineItems = await this.db
       .select({ count: count() })
       .from(billLineItems)
@@ -400,7 +506,6 @@ export class BillingService {
       ])
     }
 
-    // Insert the line item
     const [lineItem] = await this.db
       .insert(billLineItems)
       .values({
@@ -414,7 +519,6 @@ export class BillingService {
       throw new Error('Failed to add utility charge')
     }
 
-    // Recalculate totalAmount (Requirement 7.3)
     const newTotal =
       Number.parseFloat(bill.baseRent) +
       (await this.calculateLineItemsTotal(billId))
@@ -427,7 +531,6 @@ export class BillingService {
       })
       .where(eq(bills.id, billId))
 
-    // Record audit event (Requirement 7.9)
     this.auditLogger.log({
       actorId: ctx.userId,
       action: 'bill_utility_charge_added',
@@ -453,27 +556,13 @@ export class BillingService {
     }
   }
 
-  /**
-   * Fetches a bill with its line items and payments.
-   *
-   * - Enforces tenant isolation and role-based access
-   * - Owner sees all bills, Manager sees assigned buildings, Renter sees own bills
-   *
-   */
   async getBill(ctx: RequestContext, billId: string): Promise<BillWithDetails> {
     const bill = await this.findBillWithAccess(ctx, billId)
 
-    // Fetch line items
-    const lineItems = await this.db
-      .select()
-      .from(billLineItems)
-      .where(eq(billLineItems.billId, billId))
-
-    // Fetch payments
-    const billPayments = await this.db
-      .select()
-      .from(payments)
-      .where(eq(payments.billId, billId))
+    const [lineItems, billPayments] = await Promise.all([
+      this.billingRepo.getLineItems(billId),
+      this.billingRepo.getPayments(billId),
+    ])
 
     return {
       ...bill,
@@ -497,14 +586,6 @@ export class BillingService {
     }
   }
 
-  /**
-   * Lists bills with multi-field filtering and pagination.
-   *
-   * Filters: building, flat, renter, month, status
-   * Pagination: max 50 per page (Requirement 7.11)
-   * Role-based access: Owner sees all, Manager sees assigned buildings, Renter sees own
-   *
-   */
   async listBills(
     ctx: RequestContext,
     filters: ListBillsFilters,
@@ -512,171 +593,56 @@ export class BillingService {
   ): Promise<PaginatedBills> {
     const pageSize = Math.min(Math.max(pagination.pageSize, 1), 50)
     const page = Math.max(pagination.page, 1)
-    const offset = (page - 1) * pageSize
 
-    const conditions = [eq(bills.ownerAccountId, ctx.ownerAccountId)]
+    const scope: ScopeContext = {
+      ownerAccountId: ctx.ownerAccountId,
+      role: ctx.role,
+      assignedBuildingIds: ctx.assignedBuildingIds,
+      assignedFlatId: ctx.assignedFlatId,
+    }
 
-    // Role-based filtering
     if (ctx.role === 'renter') {
-      // Look up the renter record for this user
       const renterRecord = await this.db.query.renters.findFirst({
         where: eq(renters.userId, ctx.userId),
       })
 
       if (!renterRecord) {
-        // No renter record found — return empty
-        return {
-          data: [],
-          total: 0,
-          page,
-          pageSize,
-          totalPages: 0,
-        }
+        return { data: [], total: 0, page, pageSize, totalPages: 0 }
       }
 
-      // Find the active contract for this renter
       const activeContract = await this.db.query.rentalContracts.findFirst({
         where: and(
           eq(rentalContracts.renterId, renterRecord.id),
-          eq(rentalContracts.status, 'active'),
+          inArray(rentalContracts.status, ['active', 'pending_termination']),
         ),
       })
 
       if (!activeContract) {
-        return {
-          data: [],
-          total: 0,
-          page,
-          pageSize,
-          totalPages: 0,
-        }
+        return { data: [], total: 0, page, pageSize, totalPages: 0 }
       }
 
-      // Filter bills by the renter's assigned flat
-      conditions.push(eq(bills.flatId, activeContract.flatId))
+      scope.assignedFlatId = activeContract.flatId
     }
 
-    if (ctx.role === ROLES.MANAGER && ctx.assignedBuildingIds) {
-      // Manager can only see bills for flats in assigned buildings
-      // We need to join with flats to filter by building
-      const assignedFlats = await this.db
-        .select({ id: flats.id })
-        .from(flats)
-        .where(
-          and(
-            eq(flats.ownerAccountId, ctx.ownerAccountId),
-            inArray(flats.buildingId, ctx.assignedBuildingIds),
-          ),
-        )
-
-      const assignedFlatIds = assignedFlats.map((f) => f.id)
-      if (assignedFlatIds.length === 0) {
-        return {
-          data: [],
-          total: 0,
-          page,
-          pageSize,
-          totalPages: 0,
-        }
-      }
-      conditions.push(inArray(bills.flatId, assignedFlatIds))
+    const repoFilters: RepoListBillsFilters = {
+      buildingId: filters.buildingId,
+      flatId: filters.flatId,
+      renterId: filters.renterId,
+      contractId: filters.contractId,
+      billingMonth: filters.billingMonth,
+      status: filters.status,
     }
 
-    // Apply filters
-    if (filters.buildingId) {
-      // Filter by building: get flat IDs in that building
-      const buildingFlats = await this.db
-        .select({ id: flats.id })
-        .from(flats)
-        .where(
-          and(
-            eq(flats.buildingId, filters.buildingId),
-            eq(flats.ownerAccountId, ctx.ownerAccountId),
-          ),
-        )
-
-      const flatIds = buildingFlats.map((f) => f.id)
-      if (flatIds.length === 0) {
-        return {
-          data: [],
-          total: 0,
-          page,
-          pageSize,
-          totalPages: 0,
-        }
-      }
-      conditions.push(inArray(bills.flatId, flatIds))
-    }
-
-    if (filters.flatId) {
-      conditions.push(eq(bills.flatId, filters.flatId))
-    }
-
-    if (filters.renterId) {
-      conditions.push(eq(bills.renterId, filters.renterId))
-    }
-
-    if (filters.contractId) {
-      conditions.push(eq(bills.contractId, filters.contractId))
-    }
-
-    if (filters.billingMonth) {
-      conditions.push(eq(bills.billingMonth, filters.billingMonth))
-    }
-
-    if (filters.status) {
-      if (Array.isArray(filters.status)) {
-        conditions.push(inArray(bills.status, filters.status))
-      } else {
-        conditions.push(eq(bills.status, filters.status))
-      }
-    }
-
-    const whereClause = and(...conditions)
-
-    let query = this.db
-      .select({
-        id: bills.id,
-        ownerAccountId: bills.ownerAccountId,
-        contractId: bills.contractId,
-        flatId: bills.flatId,
-        renterId: bills.renterId,
-        billingMonth: bills.billingMonth,
-        baseRent: bills.baseRent,
-        totalAmount: bills.totalAmount,
-        paidAmount: bills.paidAmount,
-        status: bills.status,
-        createdAt: bills.createdAt,
-        updatedAt: bills.updatedAt,
-        flatNumber: flats.flatNumber,
-        buildingName: buildings.name,
-        renterName: renters.fullName,
-      })
-      // biome-ignore lint/suspicious/noExplicitAny: query type is bypassed to safely support conditional leftJoin mock compatibility
-      .from(bills) as any
-
-    if (typeof query.leftJoin === 'function') {
-      query = query
-        .leftJoin(flats, eq(bills.flatId, flats.id))
-        .leftJoin(buildings, eq(flats.buildingId, buildings.id))
-        .leftJoin(renters, eq(bills.renterId, renters.id))
-    }
-
-    const [data, totalResult] = await Promise.all([
-      query
-        .where(whereClause)
-        .orderBy(desc(bills.createdAt))
-        .limit(pageSize)
-        .offset(offset),
-      this.db.select({ count: count() }).from(bills).where(whereClause),
-    ])
-
+    const [data, totalResult] = await this.billingRepo.list(
+      scope,
+      repoFilters,
+      page,
+      pageSize,
+    )
     const total = totalResult[0]?.count ?? 0
 
     return {
-      data: data.map((bill: MapToBillResultInput) =>
-        this.mapToBillResult(bill),
-      ),
+      data: data.map((bill) => this.mapToBillResult(bill)),
       total,
       page,
       pageSize,
@@ -684,25 +650,13 @@ export class BillingService {
     }
   }
 
-  /**
-   * Marks unpaid/partially_paid bills as overdue after the billing month has ended.
-   *
-   * This is intended to be called by a scheduled job/cron.
-   * It finds all bills where:
-   * - status is 'unpaid' or 'partially_paid'
-   * - the billing month has passed (current date > last day of billing month)
-   *
-   * Requirement: 7.5
-   */
   async updateOverdueBills(): Promise<number> {
     const now = new Date()
     const currentYear = now.getFullYear()
-    const currentMonth = now.getMonth() + 1 // 1-indexed
+    const currentMonth = now.getMonth() + 1
 
-    // Format current month as YYYY-MM for comparison
     const currentMonthStr = `${currentYear}-${String(currentMonth).padStart(2, '0')}`
 
-    // Update bills where billingMonth < current month and status is unpaid or partially_paid
     const result = await this.db
       .update(bills)
       .set({
@@ -723,32 +677,20 @@ export class BillingService {
     return result.length
   }
 
-  /**
-   * Deletes a bill along with its line items and payments.
-   * Scoped to the owner account and role-based access.
-   */
   async deleteBill(ctx: RequestContext, billId: string): Promise<void> {
-    // Find the bill to verify access
     const bill = await this.findBillWithAccess(ctx, billId)
 
     await this.db.transaction(async (tx) => {
-      // 1. Nullify references in advanceAdjustments linked to this bill
       await tx
         .update(advanceAdjustments)
         .set({ billId: null })
         .where(eq(advanceAdjustments.billId, billId))
 
-      // 2. Delete associated payments
       await tx.delete(payments).where(eq(payments.billId, billId))
-
-      // 3. Delete associated billLineItems
       await tx.delete(billLineItems).where(eq(billLineItems.billId, billId))
-
-      // 4. Delete the bill itself
       await tx.delete(bills).where(eq(bills.id, billId))
     })
 
-    // Record audit event
     this.auditLogger.log({
       actorId: ctx.userId,
       action: 'bill_deleted',
@@ -764,18 +706,18 @@ export class BillingService {
     })
   }
 
-  // --- Private Helpers ---
-
-  /**
-   * Finds a bill by ID with tenant isolation and role-based access enforcement.
-   */
   private async findBillWithAccess(
     ctx: RequestContext,
     billId: string,
   ): Promise<BillResult> {
-    // Renters can only see bills for their assigned flat
+    const scope: ScopeContext = {
+      ownerAccountId: ctx.ownerAccountId,
+      role: ctx.role,
+      assignedBuildingIds: ctx.assignedBuildingIds,
+      assignedFlatId: ctx.assignedFlatId,
+    }
+
     if (ctx.role === 'renter') {
-      // Look up the renter record for this user
       const renterRecord = await this.db.query.renters.findFirst({
         where: eq(renters.userId, ctx.userId),
       })
@@ -784,11 +726,10 @@ export class BillingService {
         throw new NotFoundError('Bill')
       }
 
-      // Find the active contract for this renter
       const activeContract = await this.db.query.rentalContracts.findFirst({
         where: and(
           eq(rentalContracts.renterId, renterRecord.id),
-          eq(rentalContracts.status, 'active'),
+          inArray(rentalContracts.status, ['active', 'pending_termination']),
         ),
       })
 
@@ -796,51 +737,16 @@ export class BillingService {
         throw new NotFoundError('Bill')
       }
 
-      const bill = await this.db.query.bills.findFirst({
-        where: and(
-          eq(bills.id, billId),
-          eq(bills.ownerAccountId, ctx.ownerAccountId),
-          eq(bills.flatId, activeContract.flatId),
-        ),
-        with: {
-          flat: {
-            with: {
-              building: true,
-            },
-          },
-          renter: true,
-        },
-      })
-
-      if (!bill) {
-        throw new NotFoundError('Bill')
-      }
-
-      return this.mapToBillResult(bill)
+      scope.assignedFlatId = activeContract.flatId
     }
 
-    const bill = await this.db.query.bills.findFirst({
-      where: and(
-        eq(bills.id, billId),
-        eq(bills.ownerAccountId, ctx.ownerAccountId),
-      ),
-      with: {
-        flat: {
-          with: {
-            building: true,
-          },
-        },
-        renter: true,
-      },
-    })
+    const bill = await this.billingRepo.findByIdWithAccess(billId, scope)
 
     if (!bill) {
       throw new NotFoundError('Bill')
     }
 
-    // Role-based access check
     if (ctx.role === ROLES.MANAGER && ctx.assignedBuildingIds) {
-      // Check if the bill's flat is in an assigned building
       const flat = await this.db.query.flats.findFirst({
         where: eq(flats.id, bill.flatId),
       })
@@ -850,12 +756,38 @@ export class BillingService {
       }
     }
 
-    return this.mapToBillResult(bill)
+    return this.mapToBillResult({
+      id: bill.id,
+      ownerAccountId: bill.ownerAccountId,
+      contractId: bill.contractId,
+      flatId: bill.flatId,
+      renterId: bill.renterId,
+      billingMonth: bill.billingMonth,
+      dueDate: bill.dueDate ?? null,
+      baseRent: bill.baseRent,
+      rentDays: bill.rentDays ?? null,
+      totalDaysInMonth: bill.totalDaysInMonth ?? null,
+      monthlyRent: bill.monthlyRent ?? bill.baseRent,
+      totalAmount: bill.totalAmount,
+      paidAmount: bill.paidAmount,
+      status: bill.status,
+      createdAt: bill.createdAt,
+      updatedAt: bill.updatedAt,
+      flatNumber: bill.flat?.flatNumber ?? null,
+      buildingName: bill.flat?.building?.name ?? null,
+      renterName: bill.renter?.fullName ?? null,
+      flat: bill.flat
+        ? {
+            flatNumber: bill.flat.flatNumber,
+            building: bill.flat.building
+              ? { name: bill.flat.building.name }
+              : null,
+          }
+        : null,
+      renter: bill.renter ? { fullName: bill.renter.fullName } : null,
+    })
   }
 
-  /**
-   * Calculates the sum of all line item amounts for a bill.
-   */
   private async calculateLineItemsTotal(billId: string): Promise<number> {
     const result = await this.db
       .select({
@@ -879,7 +811,11 @@ export class BillingService {
       flatId: bill.flatId,
       renterId: bill.renterId,
       billingMonth: bill.billingMonth,
+      dueDate: bill.dueDate ?? calculateDueDate(bill.billingMonth),
       baseRent: bill.baseRent,
+      rentDays: bill.rentDays,
+      totalDaysInMonth: bill.totalDaysInMonth,
+      monthlyRent: bill.monthlyRent ?? bill.baseRent,
       totalAmount: bill.totalAmount,
       paidAmount: bill.paidAmount,
       status: bill.status,

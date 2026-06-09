@@ -1,17 +1,30 @@
 import { apiFetch } from '../api'
 
-export type BillStatus = 'unpaid' | 'partially_paid' | 'paid' | 'overdue'
+export type BillStatus =
+  | 'unpaid'
+  | 'partially_paid'
+  | 'paid'
+  | 'overdue'
+  | 'cancelled'
 
 export interface BillListItem {
   id: string
-  flatNumber: string
-  buildingName: string
-  renterName: string
+  ownerAccountId: string
+  contractId: string
+  flatId: string
+  renterId: string
   billingMonth: string
+  dueDate: string
   baseRent: number
+  rentDays: number | null
+  totalDaysInMonth: number | null
+  monthlyRent: number
   totalAmount: number
   paidAmount: number
   status: BillStatus
+  flatNumber: string
+  buildingName: string
+  renterName: string
   createdAt: string
 }
 
@@ -25,11 +38,10 @@ export interface BillLineItem {
 export interface BillPayment {
   id: string
   amount: number
-  paymentDate: string
-  paymentMethod: string
+  paidAt: string
+  method: string
   receiptReference: string
   note: string | null
-  createdAt: string
 }
 
 export interface BillDetail {
@@ -41,10 +53,16 @@ export interface BillDetail {
   renterId: string
   renterName: string
   billingMonth: string
+  dueDate: string
   baseRent: number
+  rentDays: number | null
+  totalDaysInMonth: number | null
+  monthlyRent: number
   totalAmount: number
   paidAmount: number
+  remainingBalance: number
   status: BillStatus
+  ownerAccountId: string
   lineItems: BillLineItem[]
   payments: BillPayment[]
   createdAt: string
@@ -64,18 +82,24 @@ export interface BillListParams {
   buildingId?: string
   flatId?: string
   renterId?: string
+  contractId?: string
   month?: string
   status?: BillStatus | ''
 }
 
 export interface GenerateBillsInput {
-  billingMonth: string // YYYY-MM
+  billingMonth: string
 }
 
 export interface GenerateBillsResponse {
   generated: number
   skipped: number
-  errors: string[]
+  billingMonth: string
+}
+
+export interface GenerateBillForContractInput {
+  contractId: string
+  billingMonth: string
 }
 
 export interface AddUtilityChargeInput {
@@ -92,7 +116,8 @@ export function fetchBills(
   if (params.buildingId) searchParams.set('buildingId', params.buildingId)
   if (params.flatId) searchParams.set('flatId', params.flatId)
   if (params.renterId) searchParams.set('renterId', params.renterId)
-  if (params.month) searchParams.set('month', params.month)
+  if (params.contractId) searchParams.set('contractId', params.contractId)
+  if (params.month) searchParams.set('billingMonth', params.month)
   if (params.status) searchParams.set('status', params.status)
   const query = searchParams.toString()
   return apiFetch<BillListResponse>(`/api/bills${query ? `?${query}` : ''}`)
@@ -111,11 +136,26 @@ export function generateBills(
   })
 }
 
+export function generateBillForContract(
+  data: GenerateBillForContractInput,
+): Promise<BillListItem> {
+  return apiFetch<BillListItem>(`/api/bills/generate/${data.contractId}`, {
+    method: 'POST',
+    body: JSON.stringify({ billingMonth: data.billingMonth }),
+  })
+}
+
 export function addUtilityCharge(
   billId: string,
   data: AddUtilityChargeInput,
-): Promise<BillDetail> {
-  return apiFetch<BillDetail>(`/api/bills/${billId}/charges`, {
+): Promise<{
+  id: string
+  billId: string
+  description: string
+  amount: number
+  createdAt: string
+}> {
+  return apiFetch(`/api/bills/${billId}/charges`, {
     method: 'POST',
     body: JSON.stringify(data),
   })

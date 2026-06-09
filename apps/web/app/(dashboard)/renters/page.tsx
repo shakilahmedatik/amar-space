@@ -138,7 +138,7 @@ export default function RentersPage() {
         {canRegister && activeTab === 'active' && (
           <Button
             asChild
-            className="min-h-[44px] rounded-full bg-primary text-on-primary font-semibold hover:opacity-90 transition-opacity"
+            className="min-h-11 rounded-full bg-primary text-on-primary font-semibold hover:opacity-90 transition-opacity"
           >
             <Link href="/renters/new">{t('renters.registerRenter')}</Link>
           </Button>
@@ -268,7 +268,7 @@ export default function RentersPage() {
                 <button
                   type="button"
                   onClick={() => handleOpenReview(req)}
-                  className="absolute right-4 top-4 flex min-h-[36px] items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface border border-hairline text-base text-ink font-semibold hover:bg-surface-dark transition-colors active:scale-95"
+                  className="absolute right-4 top-4 flex min-h-9 items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface border border-hairline text-base text-ink font-semibold hover:bg-surface-dark transition-colors active:scale-95"
                 >
                   <Eye className="h-4 w-4" />
                   পর্যালোচনা
@@ -684,7 +684,7 @@ function ApproveRegistrationDialog({
               type="button"
               onClick={handleReject}
               disabled={isLoading}
-              className="flex min-h-[44px] items-center justify-center gap-1.5 px-4 py-2.5 rounded-lg border border-error-text/30 bg-error-bg text-base text-error-text font-semibold hover:bg-error-text/10 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+              className="flex min-h-11 items-center justify-center gap-1.5 px-4 py-2.5 rounded-lg border border-error-text/30 bg-error-bg text-base text-error-text font-semibold hover:bg-error-text/10 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
             >
               <X className="h-5 w-5" />
               আবেদন বাতিল
@@ -693,7 +693,7 @@ function ApproveRegistrationDialog({
             <button
               type="submit"
               disabled={isLoading}
-              className="flex-1 sm:flex-none flex min-h-[44px] items-center justify-center gap-1.5 px-6 py-2.5 rounded-lg bg-brand-blue-deep text-base text-white font-semibold hover:bg-brand-blue-deep/90 transition-colors active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed"
+              className="flex-1 sm:flex-none flex min-h-11 items-center justify-center gap-1.5 px-6 py-2.5 rounded-lg bg-brand-blue-deep text-base text-white font-semibold hover:bg-brand-blue-deep/90 transition-colors active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed"
             >
               {isLoading ? (
                 <>

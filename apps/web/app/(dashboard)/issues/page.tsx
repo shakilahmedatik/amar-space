@@ -229,7 +229,6 @@ export default function IssuesPage() {
 
       <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
         <h1 className="text-2xl font-bold text-ink">{t('issues.title')}</h1>
-
       </div>
 
       {isLoading ? (
@@ -266,7 +265,9 @@ export default function IssuesPage() {
           if (deleteTarget) {
             try {
               await deleteMutation.mutateAsync(deleteTarget)
-              setSuccessMessage(t('issues.deleteSuccess') || 'Issue deleted successfully')
+              setSuccessMessage(
+                t('issues.deleteSuccess') || 'Issue deleted successfully',
+              )
             } catch {
               setSuccessMessage('')
             }

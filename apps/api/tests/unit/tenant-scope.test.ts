@@ -45,10 +45,10 @@ describe('Tenant Scope Middleware', () => {
     }
 
     // Creates a thenable query result that supports .limit()
-  function createQueryResult(): {
-    limit: ReturnType<typeof vi.fn>
-    then: <T>(onfulfilled: (value: unknown[]) => T) => Promise<T>
-  } {
+    function createQueryResult(): {
+      limit: ReturnType<typeof vi.fn>
+      then: <T>(onfulfilled: (value: unknown[]) => T) => Promise<T>
+    } {
       const result = nextResult()
       return {
         // .limit(n) — returns another query result (same array for simplicity)

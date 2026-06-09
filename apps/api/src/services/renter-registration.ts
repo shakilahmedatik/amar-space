@@ -62,6 +62,9 @@ export interface RenterResult {
   startDate?: string | null
   depositBalance?: number | null
   accessCode?: string | null
+  contractStatus?: string | null
+  scheduledTerminationDate?: string | null
+  terminationReason?: string | null
 }
 
 export interface RentalContractResult {
@@ -357,7 +360,8 @@ export class RenterRegistrationService {
       ),
       with: {
         rentalContracts: {
-          where: (contracts, { eq }) => eq(contracts.status, 'active'),
+          where: (contracts, { inArray }) =>
+            inArray(contracts.status, ['active', 'pending_termination']),
           with: {
             flat: {
               with: {
@@ -413,6 +417,10 @@ export class RenterRegistrationService {
         ? Number.parseFloat(activeContract.remainingDepositBalance)
         : null,
       accessCode: accessCodeRecord?.code ?? null,
+      contractStatus: activeContract?.status ?? null,
+      scheduledTerminationDate:
+        activeContract?.scheduledTerminationDate ?? null,
+      terminationReason: activeContract?.terminationReason ?? null,
     }
   }
 

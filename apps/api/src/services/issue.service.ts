@@ -1,4 +1,10 @@
-import { buildings, type Database, issueAttachments, issues, users } from '@repo/db'
+import {
+  buildings,
+  type Database,
+  issueAttachments,
+  issues,
+  users,
+} from '@repo/db'
 import {
   ISSUE_STATUS,
   ISSUE_STATUS_TRANSITIONS,
@@ -14,9 +20,10 @@ import {
   type UpdateIssueStatusInput,
   updateIssueStatusSchema,
 } from '@repo/shared/validation'
-import { and, count, desc, eq } from 'drizzle-orm'
+import { and, eq } from 'drizzle-orm'
 import type { AuditLogger } from '../plugins/audit-logger'
 import type { R2Client } from '../plugins/r2'
+import { IssueRepository, type ScopeContext } from '../repositories'
 
 // --- Types ---
 
@@ -93,11 +100,14 @@ const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
  *
  */
 export class IssueService {
+  private issueRepo: IssueRepository
   constructor(
     private db: Database,
     private auditLogger: AuditLogger,
     private r2: R2Client,
-  ) {}
+  ) {
+    this.issueRepo = new IssueRepository(db)
+  }
 
   /**
    * Creates a new building-level issue.
@@ -398,68 +408,45 @@ export class IssueService {
   ): Promise<PaginatedIssues> {
     const pageSize = Math.min(Math.max(input.pageSize, 1), 50)
     const page = Math.max(input.page, 1)
-    const offset = (page - 1) * pageSize
 
-    const conditions = [eq(issues.ownerAccountId, ctx.ownerAccountId)]
-
-    if (input.buildingId) {
-      conditions.push(eq(issues.buildingId, input.buildingId))
+    const scope: ScopeContext = {
+      ownerAccountId: ctx.ownerAccountId,
+      role: ctx.role,
+      assignedBuildingIds: ctx.assignedBuildingIds,
     }
 
-    if (input.category) {
-      conditions.push(eq(issues.category, input.category))
-    }
-
-    if (input.status) {
-      conditions.push(eq(issues.status, input.status))
-    }
-
-    if (input.priority) {
-      conditions.push(eq(issues.priority, input.priority))
-    }
-
-    if (input.assigneeId) {
-      conditions.push(eq(issues.assigneeId, input.assigneeId))
-    }
-
-    const whereClause = and(...conditions)
-
-    const [data, totalResult] = await Promise.all([
-      this.db
-        .select({
-          id: issues.id,
-          ownerAccountId: issues.ownerAccountId,
-          buildingId: issues.buildingId,
-          title: issues.title,
-          description: issues.description,
-          category: issues.category,
-          priority: issues.priority,
-          status: issues.status,
-          assigneeId: issues.assigneeId,
-          resolutionNotes: issues.resolutionNotes,
-          resolvedAt: issues.resolvedAt,
-          createdAt: issues.createdAt,
-          updatedAt: issues.updatedAt,
-          buildingName: buildings.name,
-          assigneeName: users.name,
-        })
-        .from(issues)
-        .leftJoin(buildings, eq(issues.buildingId, buildings.id))
-        .leftJoin(users, eq(issues.assigneeId, users.id))
-        .where(whereClause)
-        .orderBy(desc(issues.createdAt))
-        .limit(pageSize)
-        .offset(offset),
-      this.db.select({ count: count() }).from(issues).where(whereClause),
-    ])
+    const [data, totalResult] = await this.issueRepo.list(
+      scope,
+      {
+        buildingId: input.buildingId,
+        category: input.category,
+        status: input.status,
+        priority: input.priority,
+        assigneeId: input.assigneeId,
+      },
+      page,
+      pageSize,
+    )
 
     const total = totalResult[0]?.count ?? 0
 
     return {
       data: data.map((row) => ({
-        ...row,
+        id: row.id,
+        ownerAccountId: row.ownerAccountId,
+        buildingId: row.buildingId,
         buildingName: row.buildingName ?? '',
+        title: row.title,
+        description: row.description,
+        category: row.category,
+        priority: row.priority,
+        status: row.status,
+        assigneeId: row.assigneeId,
         assigneeName: row.assigneeName ?? null,
+        resolutionNotes: row.resolutionNotes,
+        resolvedAt: row.resolvedAt,
+        createdAt: row.createdAt,
+        updatedAt: row.updatedAt,
         attachments: [],
       })),
       total,
@@ -475,16 +462,10 @@ export class IssueService {
    * Returns NotFoundError if the issue doesn't exist or belongs to another account.
    */
   async getIssue(ctx: RequestContext, issueId: string): Promise<IssueResult> {
-    const result = await this.db.query.issues.findFirst({
-      where: and(
-        eq(issues.id, issueId),
-        eq(issues.ownerAccountId, ctx.ownerAccountId),
-      ),
-      with: {
-        building: true,
-        assignee: true,
-        attachments: true,
-      },
+    const result = await this.issueRepo.findByIdWithAccess(issueId, {
+      ownerAccountId: ctx.ownerAccountId,
+      role: ctx.role,
+      assignedBuildingIds: ctx.assignedBuildingIds,
     })
 
     if (!result) {

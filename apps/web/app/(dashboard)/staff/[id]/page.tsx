@@ -567,7 +567,9 @@ export default function StaffDetailPage() {
       <ConfirmDialog
         open={showDeleteDialog}
         onClose={() => setShowDeleteDialog(false)}
-        title={t('staff.deleteConfirmTitle') || 'Permanently Delete Staff Member'}
+        title={
+          t('staff.deleteConfirmTitle') || 'Permanently Delete Staff Member'
+        }
         description={
           t('staff.deleteConfirmDescription') ||
           'This action permanently deletes this staff member and all associated data. It cannot be undone.'

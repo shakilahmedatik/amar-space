@@ -93,7 +93,7 @@ export function DataTable<T>({
                   id={`filter-${filter.key}`}
                   value={filterValues[filter.key] || ''}
                   onChange={(e) => onFilterChange?.(filter.key, e.target.value)}
-                  className="w-full px-3 py-2 text-sm rounded-md border border-hairline bg-canvas text-ink min-h-[44px]"
+                  className="w-full px-3 py-2 text-sm rounded-md border border-hairline bg-canvas text-ink min-h-11"
                 >
                   <option value="">
                     {filter.placeholder || t('common.filter')}
@@ -111,7 +111,7 @@ export function DataTable<T>({
                   value={filterValues[filter.key] || ''}
                   onChange={(e) => onFilterChange?.(filter.key, e.target.value)}
                   placeholder={filter.placeholder || t('common.search')}
-                  className="w-full px-3 py-2 text-sm rounded-md border border-hairline bg-canvas text-ink min-h-[44px]"
+                  className="w-full px-3 py-2 text-sm rounded-md border border-hairline bg-canvas text-ink min-h-11"
                 />
               )}
             </div>
@@ -181,7 +181,7 @@ export function DataTable<T>({
               onClick={handlePrevious}
               disabled={pagination.page <= 1}
               aria-label={t('common.previous')}
-              className="min-w-[44px] min-h-[44px] inline-flex items-center justify-center px-3 py-2 text-sm font-medium rounded-md border border-hairline bg-transparent text-ink disabled:text-stone disabled:cursor-not-allowed disabled:opacity-50"
+              className="min-w-[44px] min-h-11 inline-flex items-center justify-center px-3 py-2 text-sm font-medium rounded-md border border-hairline bg-transparent text-ink disabled:text-stone disabled:cursor-not-allowed disabled:opacity-50"
             >
               {t('common.previous')}
             </button>
@@ -190,7 +190,7 @@ export function DataTable<T>({
               onClick={handleNext}
               disabled={pagination.page >= totalPages}
               aria-label={t('common.next')}
-              className="min-w-[44px] min-h-[44px] inline-flex items-center justify-center px-3 py-2 text-sm font-medium rounded-md border border-hairline bg-transparent text-ink disabled:text-stone disabled:cursor-not-allowed disabled:opacity-50"
+              className="min-w-[44px] min-h-11 inline-flex items-center justify-center px-3 py-2 text-sm font-medium rounded-md border border-hairline bg-transparent text-ink disabled:text-stone disabled:cursor-not-allowed disabled:opacity-50"
             >
               {t('common.next')}
             </button>

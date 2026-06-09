@@ -359,7 +359,7 @@ export default function NoticeDetailPage() {
                         rows={8}
                         placeholder={t('notices.bodyPlaceholder')}
                         className={[
-                          'w-full px-3 py-2 text-sm rounded-md border min-h-[44px] resize-y font-[inherit]',
+                          'w-full px-3 py-2 text-sm rounded-md border min-h-11 resize-y font-[inherit]',
                           editErrors.body
                             ? 'border-error-text bg-error-bg'
                             : 'border-hairline bg-canvas',
@@ -391,7 +391,7 @@ export default function NoticeDetailPage() {
                           setFlatOptions([])
                         }}
                         className={[
-                          'w-full px-3 py-2 text-sm rounded-md border min-h-[44px] bg-canvas',
+                          'w-full px-3 py-2 text-sm rounded-md border min-h-11 bg-canvas',
                           editErrors.targetAudience
                             ? 'border-error-text'
                             : 'border-hairline',
@@ -433,7 +433,7 @@ export default function NoticeDetailPage() {
                             setFlatOptions([])
                           }}
                           className={[
-                            'w-full px-3 py-2 text-sm rounded-md border min-h-[44px] bg-canvas',
+                            'w-full px-3 py-2 text-sm rounded-md border min-h-11 bg-canvas',
                             editErrors.targetBuildingId
                               ? 'border-error-text'
                               : 'border-hairline',
@@ -467,7 +467,7 @@ export default function NoticeDetailPage() {
                           onChange={(e) => setEditFlatId(e.target.value)}
                           disabled={loadingFlats}
                           className={[
-                            'w-full px-3 py-2 text-sm rounded-md border min-h-[44px] bg-canvas',
+                            'w-full px-3 py-2 text-sm rounded-md border min-h-11 bg-canvas',
                             editErrors.targetFlatId
                               ? 'border-error-text'
                               : 'border-hairline',
@@ -490,14 +490,14 @@ export default function NoticeDetailPage() {
                       type="button"
                       variant="outline"
                       onClick={cancelEditing}
-                      className="min-h-[44px] rounded-full"
+                      className="min-h-11 rounded-full"
                     >
                       {t('common.cancel')}
                     </Button>
                     <Button
                       type="submit"
                       disabled={updateMutation.isPending}
-                      className="min-h-[44px] rounded-full bg-primary text-on-primary font-semibold"
+                      className="min-h-11 rounded-full bg-primary text-on-primary font-semibold"
                     >
                       {updateMutation.isPending
                         ? t('common.loading')
@@ -531,7 +531,7 @@ export default function NoticeDetailPage() {
                       variant="outline"
                       onClick={handleTogglePin}
                       disabled={pinMutation.isPending}
-                      className="min-h-[44px] rounded-full border-brand-orange text-brand-orange hover:bg-warning-bg"
+                      className="min-h-11 rounded-full border-brand-orange text-brand-orange hover:bg-warning-bg"
                     >
                       {notice.isPinned ? t('notices.unpin') : t('notices.pin')}
                     </Button>
@@ -543,7 +543,7 @@ export default function NoticeDetailPage() {
                       type="button"
                       variant="outline"
                       onClick={startEditing}
-                      className="min-h-[44px] rounded-full border-brand-blue-deep text-brand-blue-deep hover:bg-brand-blue-200"
+                      className="min-h-11 rounded-full border-brand-blue-deep text-brand-blue-deep hover:bg-brand-blue-200"
                     >
                       {t('common.edit')}
                     </Button>
@@ -555,7 +555,7 @@ export default function NoticeDetailPage() {
                       type="button"
                       variant="outline"
                       onClick={() => setShowDeleteConfirm(true)}
-                      className="min-h-[44px] rounded-full border-error-text text-error-text hover:bg-error-bg"
+                      className="min-h-11 rounded-full border-error-text text-error-text hover:bg-error-bg"
                     >
                       {t('common.delete')}
                     </Button>

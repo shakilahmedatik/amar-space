@@ -503,7 +503,7 @@ export default function NewBuildingPage() {
                             newContacts[index]!.role = ''
                             setEmergencyContacts(newContacts)
                           }}
-                          className="w-full rounded-md border border-hairline min-h-[44px] px-3 bg-white text-ink text-sm"
+                          className="w-full rounded-md border border-hairline min-h-11 px-3 bg-white text-ink text-sm"
                         >
                           <option value="building">
                             {t('buildings.buildingType')}
@@ -526,7 +526,7 @@ export default function NewBuildingPage() {
                       { name: '', role: '', phone: '', type: 'building' },
                     ])
                   }}
-                  className="rounded-full min-h-[44px] text-brand-blue-deep border-brand-blue-deep border self-start cursor-pointer"
+                  className="rounded-full min-h-11 text-brand-blue-deep border-brand-blue-deep border self-start cursor-pointer"
                 >
                   + {t('buildings.addEmergencyContact')}
                 </Button>
@@ -537,7 +537,7 @@ export default function NewBuildingPage() {
               <Button
                 type="submit"
                 disabled={createMutation.isPending}
-                className="rounded-full min-h-[44px] bg-primary text-on-primary font-semibold cursor-pointer"
+                className="rounded-full min-h-11 bg-primary text-on-primary font-semibold cursor-pointer"
               >
                 {createMutation.isPending
                   ? t('common.loading')
@@ -547,7 +547,7 @@ export default function NewBuildingPage() {
               <Button
                 asChild
                 variant="outline"
-                className="rounded-full min-h-[44px] text-charcoal border-hairline cursor-pointer"
+                className="rounded-full min-h-11 text-charcoal border-hairline cursor-pointer"
               >
                 <Link href="/buildings">{t('common.cancel')}</Link>
               </Button>

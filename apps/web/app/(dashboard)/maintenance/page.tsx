@@ -174,7 +174,7 @@ export default function MaintenancePage() {
         {canCreate && (
           <Button
             asChild
-            className="rounded-full min-h-[44px] bg-primary text-on-primary font-semibold"
+            className="rounded-full min-h-11 bg-primary text-on-primary font-semibold"
           >
             <Link href="/maintenance/new">
               {t('maintenance.createRequest')}

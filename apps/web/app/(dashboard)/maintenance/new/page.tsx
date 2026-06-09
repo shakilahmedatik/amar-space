@@ -145,7 +145,7 @@ export default function NewMaintenanceRequestPage() {
                 rows={5}
                 placeholder={t('maintenance.description')}
                 className={[
-                  'w-full px-3 py-2 text-sm rounded-md border min-h-[44px] resize-y font-[inherit]',
+                  'w-full px-3 py-2 text-sm rounded-md border min-h-11 resize-y font-[inherit]',
                   errors.description
                     ? 'border-error-text bg-error-bg'
                     : 'border-hairline bg-canvas',
@@ -170,7 +170,7 @@ export default function NewMaintenanceRequestPage() {
                   setPriority(e.target.value as MaintenancePriority | '')
                 }
                 className={[
-                  'w-full px-3 py-2 text-sm rounded-md border min-h-[44px] bg-canvas',
+                  'w-full px-3 py-2 text-sm rounded-md border min-h-11 bg-canvas',
                   errors.priority ? 'border-error-text' : 'border-hairline',
                 ].join(' ')}
               >
@@ -200,17 +200,13 @@ export default function NewMaintenanceRequestPage() {
 
           {/* Submit */}
           <div className="flex gap-3 justify-end">
-            <Button
-              asChild
-              variant="outline"
-              className="rounded-full min-h-[44px]"
-            >
+            <Button asChild variant="outline" className="rounded-full min-h-11">
               <Link href="/maintenance">{t('common.cancel')}</Link>
             </Button>
             <Button
               type="submit"
               disabled={createMutation.isPending}
-              className="rounded-full min-h-[44px] bg-primary text-on-primary font-semibold"
+              className="rounded-full min-h-11 bg-primary text-on-primary font-semibold"
             >
               {createMutation.isPending
                 ? t('common.loading')

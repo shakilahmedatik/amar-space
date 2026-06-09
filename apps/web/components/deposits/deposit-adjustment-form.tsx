@@ -140,7 +140,7 @@ export function DepositAdjustmentForm({
             id="adjustment-bill"
             value={billId}
             onChange={(e) => setBillId(e.target.value)}
-            className="block w-full px-3 py-2.5 text-base leading-normal rounded-md border border-hairline bg-canvas text-ink min-h-[44px] focus:outline-none focus:ring-2 focus:ring-primary/50"
+            className="block w-full px-3 py-2.5 text-base leading-normal rounded-md border border-hairline bg-canvas text-ink min-h-11 focus:outline-none focus:ring-2 focus:ring-primary/50"
           >
             <option value="">{t('deposits.noBillLink')}</option>
             {unpaidBills.map((bill) => (
@@ -176,7 +176,7 @@ export function DepositAdjustmentForm({
           <Button
             type="submit"
             disabled={adjustMutation.isPending}
-            className="rounded-full min-h-[44px] px-6"
+            className="rounded-full min-h-11 px-6"
           >
             {adjustMutation.isPending
               ? t('common.loading')

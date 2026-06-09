@@ -52,7 +52,7 @@ export function TopNavbar({ onNavigate }: TopNavbarProps) {
       <Link
         href="/dashboard"
         onClick={handleHome}
-        className="flex items-center gap-2 min-h-[44px] min-w-[44px] px-3 rounded-lg text-sm font-medium text-charcoal hover:bg-surface hover:text-ink transition-colors duration-150"
+        className="flex items-center gap-2 min-h-11 min-w-[44px] px-3 rounded-lg text-sm font-medium text-charcoal hover:bg-surface hover:text-ink transition-colors duration-150"
         aria-label={t('nav.dashboard')}
       >
         <NavIcon name="home" />
@@ -65,7 +65,7 @@ export function TopNavbar({ onNavigate }: TopNavbarProps) {
       <button
         type="button"
         onClick={handleLanguageToggle}
-        className="flex items-center gap-2 min-h-[44px] min-w-[44px] px-3 rounded-lg text-sm font-medium text-charcoal hover:bg-surface hover:text-ink transition-colors duration-150"
+        className="flex items-center gap-2 min-h-11 min-w-[44px] px-3 rounded-lg text-sm font-medium text-charcoal hover:bg-surface hover:text-ink transition-colors duration-150"
         aria-label={t('common.language')}
       >
         <NavIcon name="globe" />
@@ -79,7 +79,7 @@ export function TopNavbar({ onNavigate }: TopNavbarProps) {
         type="button"
         onClick={handleLogout}
         disabled={isLoggingOut}
-        className="flex items-center gap-2 min-h-[44px] min-w-[44px] px-3 rounded-lg text-sm font-medium text-error-text hover:bg-error-bg transition-colors duration-150 disabled:opacity-50"
+        className="flex items-center gap-2 min-h-11 min-w-[44px] px-3 rounded-lg text-sm font-medium text-error-text hover:bg-error-bg transition-colors duration-150 disabled:opacity-50"
         aria-label={t('common.logout')}
       >
         <NavIcon name="log-out" />

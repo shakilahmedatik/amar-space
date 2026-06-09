@@ -29,7 +29,7 @@ export function BulkQrDownloadButton({
     <Button
       onClick={download}
       disabled={isDownloading}
-      className="min-h-[44px] min-w-[44px] rounded-full"
+      className="min-h-11 min-w-[44px] rounded-full"
     >
       {isDownloading ? (
         <Loader2 className="h-4 w-4 animate-spin" />

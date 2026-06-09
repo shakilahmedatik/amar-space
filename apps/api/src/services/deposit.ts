@@ -17,7 +17,7 @@ import {
   type ApplyAdjustmentInput,
   applyAdjustmentSchema,
 } from '@repo/shared/validation'
-import { and, count, desc, eq } from 'drizzle-orm'
+import { and, count, desc, eq, inArray } from 'drizzle-orm'
 import type { AuditLogger } from '../plugins/audit-logger'
 
 // --- Types ---
@@ -403,5 +403,98 @@ export class DepositService {
       adjustedBy: adjustment.adjustedBy,
       createdAt: adjustment.createdAt,
     }
+  }
+
+  /**
+   * Process a deposit refund for a terminated contract.
+   * Deducts the refund amount from the remaining deposit balance.
+   */
+  async processDepositRefund(
+    ctx: RequestContext,
+    contractId: string,
+    refundAmount: number,
+    note?: string,
+  ): Promise<AdjustmentResult> {
+    if (ctx.role !== ROLES.OWNER) {
+      throw new ForbiddenError()
+    }
+
+    const contract = await this.db.query.rentalContracts.findFirst({
+      where: and(
+        eq(rentalContracts.id, contractId),
+        eq(rentalContracts.ownerAccountId, ctx.ownerAccountId),
+        inArray(rentalContracts.status, ['terminated', 'pending_termination']),
+      ),
+    })
+
+    if (!contract) {
+      throw new NotFoundError('Contract')
+    }
+
+    const remainingBalance = Number.parseFloat(contract.remainingDepositBalance)
+
+    if (refundAmount > remainingBalance) {
+      throw new ValidationError([
+        {
+          field: 'refundAmount',
+          message: `Refund amount exceeds remaining deposit balance. Maximum refundable amount is ${remainingBalance.toFixed(2)}`,
+          rule: 'exceeds_balance',
+        },
+      ])
+    }
+
+    if (refundAmount <= 0) {
+      throw new ValidationError([
+        {
+          field: 'refundAmount',
+          message: 'Refund amount must be greater than zero',
+          rule: 'min_value',
+        },
+      ])
+    }
+
+    const oldBalance = remainingBalance
+    const newBalance = remainingBalance - refundAmount
+
+    await this.db
+      .update(rentalContracts)
+      .set({
+        remainingDepositBalance: newBalance.toFixed(2),
+        updatedAt: new Date(),
+      })
+      .where(eq(rentalContracts.id, contractId))
+
+    const [adjustment] = await this.db
+      .insert(advanceAdjustments)
+      .values({
+        ownerAccountId: ctx.ownerAccountId,
+        contractId,
+        amount: refundAmount.toFixed(2),
+        billId: null,
+        note: note ?? 'Deposit refund upon contract termination',
+        adjustedBy: ctx.userId,
+      })
+      .returning()
+
+    if (!adjustment) {
+      throw new Error('Failed to create refund adjustment record')
+    }
+
+    this.auditLogger.log({
+      actorId: ctx.userId,
+      action: 'deposit_refunded',
+      entityType: 'rental_contract',
+      entityId: contractId,
+      ownerAccountId: ctx.ownerAccountId,
+      oldValues: {
+        remainingDepositBalance: oldBalance.toFixed(2),
+      },
+      newValues: {
+        remainingDepositBalance: newBalance.toFixed(2),
+        refundAmount: refundAmount.toFixed(2),
+      },
+    })
+
+    return this.mapToAdjustmentResult(adjustment)
   }
 }

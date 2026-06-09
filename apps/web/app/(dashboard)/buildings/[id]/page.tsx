@@ -139,7 +139,7 @@ export default function BuildingDetailPage() {
                     type="button"
                     variant="outline"
                     onClick={() => setIsEditing(true)}
-                    className="rounded-full min-h-[44px] text-brand-blue-deep border-brand-blue-deep cursor-pointer"
+                    className="rounded-full min-h-11 text-brand-blue-deep border-brand-blue-deep cursor-pointer"
                   >
                     {t('common.edit')}
                   </Button>

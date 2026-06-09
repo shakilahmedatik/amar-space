@@ -112,7 +112,7 @@ export default function CreateFlatPage() {
         <div className="mb-6">
           <Link
             href="/flats"
-            className="inline-flex items-center min-h-[44px] text-sm text-brand-blue-deep no-underline"
+            className="inline-flex items-center min-h-11 text-sm text-brand-blue-deep no-underline"
           >
             ← {t('common.back')}
           </Link>
@@ -175,7 +175,7 @@ export default function CreateFlatPage() {
                   disabled={buildingsLoading}
                   aria-invalid={!!errors.buildingId || undefined}
                   className={[
-                    'block w-full px-3 py-2.5 text-base leading-normal rounded-md border min-h-[44px] bg-background text-foreground',
+                    'block w-full px-3 py-2.5 text-base leading-normal rounded-md border min-h-11 bg-background text-foreground',
                     errors.buildingId
                       ? 'border-error-text bg-error-bg'
                       : 'border-hairline',
@@ -194,14 +194,14 @@ export default function CreateFlatPage() {
                 <Button
                   asChild
                   variant="outline"
-                  className="rounded-full min-h-[44px]"
+                  className="rounded-full min-h-11"
                 >
                   <Link href="/flats">{t('common.cancel')}</Link>
                 </Button>
                 <Button
                   type="submit"
                   disabled={createFlatMutation.isPending}
-                  className="rounded-full min-h-[44px]"
+                  className="rounded-full min-h-11"
                 >
                   {createFlatMutation.isPending
                     ? t('common.loading')

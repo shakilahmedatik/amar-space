@@ -8,7 +8,13 @@ import type { FastifyReply, FastifyRequest } from 'fastify'
  */
 export interface AuthUser {
   id: string
-  role: 'superadmin' | 'owner' | 'manager' | 'security_guard' | 'care_taker' | 'renter'
+  role:
+    | 'superadmin'
+    | 'owner'
+    | 'manager'
+    | 'security_guard'
+    | 'care_taker'
+    | 'renter'
   ownerAccountId: string
   email: string
   approvalStatus?: 'pending' | 'approved' | 'rejected'

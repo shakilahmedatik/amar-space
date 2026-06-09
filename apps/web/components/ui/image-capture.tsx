@@ -171,7 +171,7 @@ export function ImageCapture({
             <button
               type="button"
               onClick={startCamera}
-              className="flex flex-col items-center justify-center gap-2 rounded-lg border border-hairline bg-white p-4 text-center hover:border-brand-blue-deep hover:text-brand-blue-deep transition-colors active:bg-surface min-h-[100px]"
+              className="flex flex-col items-center justify-center gap-2 rounded-lg border border-hairline bg-white p-4 text-center hover:border-brand-blue-deep hover:text-brand-blue-deep transition-colors active:bg-surface min-h-25"
             >
               <Camera className="h-6 w-6 text-steel" />
               <span className="text-base font-medium">{cameraButtonLabel}</span>
@@ -179,7 +179,7 @@ export function ImageCapture({
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="flex flex-col items-center justify-center gap-2 rounded-lg border border-hairline bg-white p-4 text-center hover:border-brand-blue-deep hover:text-brand-blue-deep transition-colors active:bg-surface min-h-[100px]"
+              className="flex flex-col items-center justify-center gap-2 rounded-lg border border-hairline bg-white p-4 text-center hover:border-brand-blue-deep hover:text-brand-blue-deep transition-colors active:bg-surface min-h-25"
             >
               <Upload className="h-6 w-6 text-steel" />
               <span className="text-base font-medium">{uploadButtonLabel}</span>

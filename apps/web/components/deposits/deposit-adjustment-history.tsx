@@ -68,7 +68,7 @@ export function DepositAdjustmentHistory({
       header: t('deposits.note'),
       render: (row) => (
         <span
-          className="max-w-[200px] overflow-hidden text-ellipsis whitespace-nowrap inline-block"
+          className="max-w-50 overflow-hidden text-ellipsis whitespace-nowrap inline-block"
           title={row.note || ''}
         >
           {row.note || '—'}

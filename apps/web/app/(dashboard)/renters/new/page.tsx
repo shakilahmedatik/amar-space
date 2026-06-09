@@ -357,7 +357,7 @@ export default function NewRenterPage() {
                 onChange={(e) => setBloodGroup(e.target.value)}
                 aria-invalid={!!errors.bloodGroup || undefined}
                 className={[
-                  'block w-full px-3 py-2.5 text-base leading-6 rounded-md border min-h-[44px]',
+                  'block w-full px-3 py-2.5 text-base leading-6 rounded-md border min-h-11',
                   'bg-background text-foreground',
                   errors.bloodGroup
                     ? 'border-error-text bg-error-bg'
@@ -501,7 +501,7 @@ export default function NewRenterPage() {
                 disabled={isLoadingFlats}
                 aria-invalid={!!errors.flatId || undefined}
                 className={[
-                  'block w-full px-3 py-2.5 text-base leading-6 rounded-md border min-h-[44px]',
+                  'block w-full px-3 py-2.5 text-base leading-6 rounded-md border min-h-11',
                   'bg-background text-foreground',
                   errors.flatId
                     ? 'border-error-text bg-error-bg'
@@ -603,7 +603,7 @@ export default function NewRenterPage() {
               <Button
                 type="submit"
                 disabled={createMutation.isPending}
-                className="min-h-[44px] rounded-full bg-primary text-on-primary font-semibold disabled:opacity-50"
+                className="min-h-11 rounded-full bg-primary text-on-primary font-semibold disabled:opacity-50"
               >
                 {createMutation.isPending
                   ? t('common.loading')
@@ -613,7 +613,7 @@ export default function NewRenterPage() {
               <Button
                 asChild
                 variant="outline"
-                className="min-h-[44px] rounded-full"
+                className="min-h-11 rounded-full"
               >
                 <Link href="/renters">{t('common.cancel')}</Link>
               </Button>

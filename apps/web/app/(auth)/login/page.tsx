@@ -187,7 +187,7 @@ export default function LoginPage() {
         <Button
           type="submit"
           disabled={isSubmitting}
-          className="w-full min-h-[44px] rounded-full bg-primary text-on-primary font-semibold mt-6"
+          className="w-full min-h-11 rounded-full bg-primary text-on-primary font-semibold mt-6"
           aria-busy={isSubmitting}
         >
           {isSubmitting ? t('common.loading') : t('auth.login')}

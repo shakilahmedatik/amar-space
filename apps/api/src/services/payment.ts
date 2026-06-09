@@ -13,7 +13,11 @@ import {
   type PaymentMethod,
   ROLES,
 } from '@repo/shared/constants'
-import { ForbiddenError, NotFoundError, ValidationError } from '@repo/shared/errors'
+import {
+  ForbiddenError,
+  NotFoundError,
+  ValidationError,
+} from '@repo/shared/errors'
 import type { FieldError, RequestContext } from '@repo/shared/types'
 import {
   type RecordPaymentInput,

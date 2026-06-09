@@ -168,7 +168,7 @@ export default function BillDetailPage() {
                       type="button"
                       variant="destructive"
                       onClick={() => setShowDeleteBillDialog(true)}
-                      className="rounded-full min-h-[44px] bg-error-text text-on-dark font-semibold hover:bg-error-text/90"
+                      className="rounded-full min-h-11 bg-error-text text-on-dark font-semibold hover:bg-error-text/90"
                     >
                       {t('bills.deleteBill')}
                     </Button>
@@ -184,6 +184,18 @@ export default function BillDetailPage() {
                   </p>
                   <p className="text-base font-semibold text-ink">
                     {bill.billingMonth}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs font-medium text-steel mb-1">
+                    Due Date
+                  </p>
+                  <p className="text-base text-ink">
+                    {bill.dueDate
+                      ? new Date(
+                          `${bill.dueDate}T00:00:00`,
+                        ).toLocaleDateString()
+                      : '—'}
                   </p>
                 </div>
                 <div>
@@ -205,7 +217,20 @@ export default function BillDetailPage() {
                     {t('bills.baseRent')}
                   </p>
                   <CurrencyDisplay amount={bill.baseRent} />
+                  {bill.rentDays !== null && bill.totalDaysInMonth !== null && (
+                    <p className="text-xs text-steel mt-0.5">
+                      {bill.rentDays}/{bill.totalDaysInMonth} days
+                    </p>
+                  )}
                 </div>
+                {bill.rentDays !== null && bill.totalDaysInMonth !== null && (
+                  <div>
+                    <p className="text-xs font-medium text-steel mb-1">
+                      Full Monthly Rent
+                    </p>
+                    <CurrencyDisplay amount={bill.monthlyRent} />
+                  </div>
+                )}
                 <div>
                   <p className="text-xs font-medium text-steel mb-1">
                     {t('bills.totalAmount')}
@@ -223,7 +248,10 @@ export default function BillDetailPage() {
                     {t('bills.remainingBalance')}
                   </p>
                   <CurrencyDisplay
-                    amount={bill.totalAmount - bill.paidAmount}
+                    amount={
+                      bill.remainingBalance ??
+                      bill.totalAmount - bill.paidAmount
+                    }
                     large
                   />
                 </div>
@@ -244,7 +272,7 @@ export default function BillDetailPage() {
                     type="button"
                     variant="outline"
                     onClick={() => setShowChargeForm(true)}
-                    className="min-h-[44px] rounded-full border-brand-blue-deep text-brand-blue-deep hover:bg-brand-blue-200"
+                    className="min-h-11 rounded-full border-brand-blue-deep text-brand-blue-deep hover:bg-brand-blue-200"
                   >
                     {t('bills.addCharge')}
                   </Button>
@@ -305,7 +333,7 @@ export default function BillDetailPage() {
                       <Button
                         type="submit"
                         disabled={addChargeMutation.isPending}
-                        className="min-h-[44px] rounded-full bg-primary text-on-primary font-semibold disabled:opacity-50"
+                        className="min-h-11 rounded-full bg-primary text-on-primary font-semibold disabled:opacity-50"
                       >
                         {addChargeMutation.isPending
                           ? t('common.loading')
@@ -320,7 +348,7 @@ export default function BillDetailPage() {
                           setChargeAmount('')
                           setChargeErrors({})
                         }}
-                        className="min-h-[44px] rounded-full border-hairline text-charcoal"
+                        className="min-h-11 rounded-full border-hairline text-charcoal"
                       >
                         {t('common.cancel')}
                       </Button>
@@ -342,7 +370,7 @@ export default function BillDetailPage() {
                         <th className="px-4 py-3 text-left font-semibold text-xs text-steel uppercase bg-surface">
                           {t('bills.description')}
                         </th>
-                        <th className="px-4 py-3 text-right font-semibold text-xs text-steel uppercase bg-surface w-[140px]">
+                        <th className="px-4 py-3 text-right font-semibold text-xs text-steel uppercase bg-surface w-35">
                           {t('bills.amount')}
                         </th>
                       </tr>
@@ -396,11 +424,11 @@ export default function BillDetailPage() {
                         <th className="px-4 py-3 text-left font-semibold text-xs text-steel uppercase bg-surface">
                           {t('bills.note')}
                         </th>
-                        <th className="px-4 py-3 text-right font-semibold text-xs text-steel uppercase bg-surface w-[140px]">
+                        <th className="px-4 py-3 text-right font-semibold text-xs text-steel uppercase bg-surface w-35">
                           {t('bills.amount')}
                         </th>
                         {(role === 'owner' || role === 'manager') && (
-                          <th className="px-4 py-3 text-right font-semibold text-xs text-steel uppercase bg-surface w-[60px]">
+                          <th className="px-4 py-3 text-right font-semibold text-xs text-steel uppercase bg-surface w-15">
                             {t('flats.actions')}
                           </th>
                         )}
@@ -413,10 +441,12 @@ export default function BillDetailPage() {
                           className="border-b border-hairline-soft min-h-section-sm"
                         >
                           <td className="px-4 py-3 text-ink">
-                            {payment.paymentDate}
+                            {payment.paidAt
+                              ? new Date(payment.paidAt).toLocaleDateString()
+                              : ''}
                           </td>
                           <td className="px-4 py-3 text-ink">
-                            {payment.paymentMethod}
+                            {payment.method}
                           </td>
                           <td className="px-4 py-3 font-mono text-[0.8rem] text-ink">
                             {payment.receiptReference}
@@ -435,7 +465,7 @@ export default function BillDetailPage() {
                                 onClick={() =>
                                   setDeletePaymentTargetId(payment.id)
                                 }
-                                className="min-h-[44px] w-[44px] p-0 rounded-full text-error-text hover:bg-error-bg/10 hover:text-error-text inline-flex items-center justify-center"
+                                className="min-h-11 w-11 p-0 rounded-full text-error-text hover:bg-error-bg/10 hover:text-error-text inline-flex items-center justify-center"
                                 aria-label={t('payments.deletePayment')}
                               >
                                 <Trash2 className="h-4 w-4" />

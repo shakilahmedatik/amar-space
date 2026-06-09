@@ -1,7 +1,6 @@
 import type { RequestContext, UserRole } from '@repo/shared/types'
 import {
   assignIssueSchema,
-  createIssueSchema,
   updateIssueStatusSchema,
 } from '@repo/shared/validation'
 import type { FastifyInstance } from 'fastify'
@@ -33,7 +32,11 @@ import {
  * - Owner: full access including delete
  */
 async function issueRoutes(fastify: FastifyInstance) {
-  const issueService = new IssueService(fastify.db, fastify.auditLogger, fastify.r2)
+  const issueService = new IssueService(
+    fastify.db,
+    fastify.auditLogger,
+    fastify.r2,
+  )
   const r2BaseUrl = fastify.env.R2_PUBLIC_BASE_URL.replace(/\/$/, '')
   const formatR2Url = (key: string) => {
     if (key.startsWith('http://') || key.startsWith('https://')) return key
@@ -247,7 +250,13 @@ async function issueRoutes(fastify: FastifyInstance) {
         buildingId: string
         title: string
         description: string
-        category: 'plumbing' | 'electrical' | 'structural' | 'cleaning' | 'security' | 'other'
+        category:
+          | 'plumbing'
+          | 'electrical'
+          | 'structural'
+          | 'cleaning'
+          | 'security'
+          | 'other'
         priority: 'low' | 'medium' | 'high' | 'urgent'
       }
       let attachments: FileAttachment[] | undefined
@@ -295,7 +304,13 @@ async function issueRoutes(fastify: FastifyInstance) {
           buildingId: string
           title: string
           description: string
-          category: 'plumbing' | 'electrical' | 'structural' | 'cleaning' | 'security' | 'other'
+          category:
+            | 'plumbing'
+            | 'electrical'
+            | 'structural'
+            | 'cleaning'
+            | 'security'
+            | 'other'
           priority: 'low' | 'medium' | 'high' | 'urgent'
         }
         data = body
@@ -518,12 +533,7 @@ async function issueRoutes(fastify: FastifyInstance) {
   fastify.delete(
     '/:id',
     {
-      preHandler: [
-        authGuard,
-        roleGuard(['owner']),
-        approvalGuard,
-        tenantScope,
-      ],
+      preHandler: [authGuard, roleGuard(['owner']), approvalGuard, tenantScope],
       schema: {
         tags: ['Issues'],
         summary: 'Delete issue',

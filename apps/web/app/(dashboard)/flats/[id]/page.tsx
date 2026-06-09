@@ -96,7 +96,7 @@ export default function FlatDetailPage() {
         />
         <Link
           href="/flats"
-          className="inline-flex items-center min-h-[44px] text-sm text-brand-blue-deep no-underline"
+          className="inline-flex items-center min-h-11 text-sm text-brand-blue-deep no-underline"
         >
           ← {t('common.back')}
         </Link>
@@ -123,7 +123,7 @@ export default function FlatDetailPage() {
         <div className="mb-6">
           <Link
             href="/flats"
-            className="inline-flex items-center min-h-[44px] text-sm text-brand-blue-deep no-underline"
+            className="inline-flex items-center min-h-11 text-sm text-brand-blue-deep no-underline"
           >
             ← {t('common.back')}
           </Link>
@@ -184,7 +184,7 @@ export default function FlatDetailPage() {
                     onClick={() => handleStatusTransition(targetStatus)}
                     disabled={updateFlatMutation.isPending}
                     className={[
-                      'rounded-full min-h-[44px]',
+                      'rounded-full min-h-11',
                       targetStatus === 'under_maintenance'
                         ? 'bg-warning-bg text-warning-text border-warning-text/30'
                         : 'bg-success-bg text-success-text border-success-text/30',
@@ -214,7 +214,7 @@ export default function FlatDetailPage() {
                   type="button"
                   variant="destructive"
                   onClick={() => setShowDeleteDialog(true)}
-                  className="rounded-full min-h-[44px] bg-error-text text-on-dark"
+                  className="rounded-full min-h-11 bg-error-text text-on-dark"
                 >
                   {t('flats.deleteFlat')}
                 </Button>

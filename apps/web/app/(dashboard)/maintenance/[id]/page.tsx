@@ -125,7 +125,11 @@ export default function MaintenanceDetailPage() {
         return status
     }
   }
-  const canUpdateStatus = role === 'owner' || role === 'manager' || role === 'security_guard' || role === 'care_taker'
+  const canUpdateStatus =
+    role === 'owner' ||
+    role === 'manager' ||
+    role === 'security_guard' ||
+    role === 'care_taker'
 
   return (
     <>
@@ -224,7 +228,7 @@ export default function MaintenanceDetailPage() {
                       onClick={() => handleStatusUpdate(newStatus)}
                       disabled={statusMutation.isPending}
                       className={[
-                        'rounded-full min-h-[44px] border-0',
+                        'rounded-full min-h-11 border-0',
                         getStatusButtonClasses(newStatus),
                       ].join(' ')}
                     >
@@ -326,7 +330,7 @@ export default function MaintenanceDetailPage() {
                   rows={3}
                   placeholder={t('maintenance.commentPlaceholder')}
                   className={[
-                    'w-full px-3 py-2 text-sm rounded-md border min-h-[44px] resize-y font-[inherit] mb-2',
+                    'w-full px-3 py-2 text-sm rounded-md border min-h-11 resize-y font-[inherit] mb-2',
                     commentError
                       ? 'border-error-text bg-error-bg'
                       : 'border-hairline bg-canvas',
@@ -339,7 +343,7 @@ export default function MaintenanceDetailPage() {
                   <Button
                     type="submit"
                     disabled={commentMutation.isPending}
-                    className="rounded-full min-h-[44px] bg-primary text-on-primary font-semibold"
+                    className="rounded-full min-h-11 bg-primary text-on-primary font-semibold"
                   >
                     {commentMutation.isPending
                       ? t('common.loading')

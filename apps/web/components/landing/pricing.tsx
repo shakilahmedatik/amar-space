@@ -144,7 +144,7 @@ export function LandingPricing() {
               <Link
                 href={plan.ctaHref}
                 className={[
-                  'mt-auto px-6 py-3 rounded-full text-sm font-semibold text-center min-h-[44px] flex items-center justify-center transition-colors duration-150',
+                  'mt-auto px-6 py-3 rounded-full text-sm font-semibold text-center min-h-11 flex items-center justify-center transition-colors duration-150',
                   plan.highlight
                     ? 'bg-brand-green text-on-dark hover:bg-brand-green-hover'
                     : 'bg-primary text-on-primary hover:bg-charcoal',

@@ -4,20 +4,19 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   type AddUtilityChargeInput,
   addUtilityCharge,
-  type BillListParams,
   deleteBill,
   fetchBill,
   fetchBills,
   fetchFlats,
   fetchRenterOptions,
+  type BillListParams,
+  type GenerateBillForContractInput,
   type GenerateBillsInput,
+  generateBillForContract,
   generateBills,
 } from '@/lib/api-client'
 import { DEFAULT_STALE_TIME, OPTIONS_STALE_TIME } from './constants'
 
-/**
- * TanStack Query hook for bill list with filters and pagination.
- */
 export function useBills(params: BillListParams = {}) {
   return useQuery({
     queryKey: ['bills', params],
@@ -26,9 +25,6 @@ export function useBills(params: BillListParams = {}) {
   })
 }
 
-/**
- * TanStack Query hook for a single bill detail with line items and payments.
- */
 export function useBill(id: string) {
   return useQuery({
     queryKey: ['bills', id],
@@ -38,9 +34,6 @@ export function useBill(id: string) {
   })
 }
 
-/**
- * Mutation hook for generating monthly bills.
- */
 export function useGenerateBills() {
   const queryClient = useQueryClient()
 
@@ -52,9 +45,18 @@ export function useGenerateBills() {
   })
 }
 
-/**
- * Mutation hook for adding a utility charge to a bill.
- */
+export function useGenerateBillForContract() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (data: GenerateBillForContractInput) =>
+      generateBillForContract(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['bills'] })
+    },
+  })
+}
+
 export function useAddUtilityCharge(billId: string) {
   const queryClient = useQueryClient()
 
@@ -67,10 +69,6 @@ export function useAddUtilityCharge(billId: string) {
   })
 }
 
-/**
- * TanStack Query hook for flat options (used in bill list filter).
- * Returns all flats for the filter dropdown.
- */
 export function useFlatOptions() {
   return useQuery({
     queryKey: ['flats', { type: 'options' }],
@@ -79,10 +77,6 @@ export function useFlatOptions() {
   })
 }
 
-/**
- * TanStack Query hook for renter options (used in bill list filter).
- * Returns all renters for the filter dropdown.
- */
 export function useRenterOptions() {
   return useQuery({
     queryKey: ['renters', { type: 'options' }],
@@ -91,9 +85,6 @@ export function useRenterOptions() {
   })
 }
 
-/**
- * Mutation hook for deleting a bill.
- */
 export function useDeleteBill() {
   const queryClient = useQueryClient()
 

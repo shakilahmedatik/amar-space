@@ -133,7 +133,7 @@ export function FileUpload({
         aria-label="Upload files"
         className={[
           'flex flex-col items-center justify-center',
-          'w-full min-h-[120px] px-4 py-8',
+          'w-full min-h-30 px-4 py-8',
           'rounded-md bg-surface',
           'border-2 border-dashed',
           isDragOver
@@ -212,7 +212,7 @@ export function FileUpload({
                     removeFile(index)
                   }}
                   aria-label={`Remove ${file.name}`}
-                  className="min-w-[44px] min-h-[44px] inline-flex items-center justify-center border-none bg-transparent text-error-text cursor-pointer text-xl font-bold"
+                  className="min-w-[44px] min-h-11 inline-flex items-center justify-center border-none bg-transparent text-error-text cursor-pointer text-xl font-bold"
                 >
                   ×
                 </button>

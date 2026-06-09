@@ -12,7 +12,6 @@ import {
   Megaphone,
   Phone,
   ShieldCheck,
-  Upload,
   User,
   Users,
 } from 'lucide-react'
@@ -132,8 +131,7 @@ export default function PortalOccupiedView({
     },
     onError: (err) => {
       setFeedback({
-        message:
-          err instanceof Error ? err.message : t('common.error'),
+        message: err instanceof Error ? err.message : t('common.error'),
         type: 'error',
       })
     },
@@ -229,7 +227,7 @@ export default function PortalOccupiedView({
             variant="outline"
             onClick={() => logoutMutation.mutate()}
             disabled={logoutMutation.isPending}
-            className="rounded-full cursor-pointer bg-white/10 hover:bg-white/20 text-white border-white/20 min-h-[44px] gap-2 font-medium"
+            className="rounded-full cursor-pointer bg-white/10 hover:bg-white/20 text-white border-white/20 min-h-11 gap-2 font-medium"
           >
             <LogOut className="h-4 w-4" />
             {t('common.logout') || 'লগ আউট'}
@@ -243,7 +241,7 @@ export default function PortalOccupiedView({
           type="button"
           onClick={() => setActiveTab('profile')}
           className={cn(
-            'px-5 py-3 text-sm font-semibold border-b-2 transition-all min-h-[44px] whitespace-nowrap flex items-center gap-2',
+            'px-5 py-3 text-sm font-semibold border-b-2 transition-all min-h-11 whitespace-nowrap flex items-center gap-2',
             activeTab === 'profile'
               ? 'border-primary text-primary'
               : 'border-transparent text-steel hover:text-charcoal',
@@ -256,7 +254,7 @@ export default function PortalOccupiedView({
           type="button"
           onClick={() => setActiveTab('bills')}
           className={cn(
-            'px-5 py-3 text-sm font-semibold border-b-2 transition-all min-h-[44px] whitespace-nowrap flex items-center gap-2',
+            'px-5 py-3 text-sm font-semibold border-b-2 transition-all min-h-11 whitespace-nowrap flex items-center gap-2',
             activeTab === 'bills'
               ? 'border-primary text-primary'
               : 'border-transparent text-steel hover:text-charcoal',
@@ -269,7 +267,7 @@ export default function PortalOccupiedView({
           type="button"
           onClick={() => setActiveTab('notices')}
           className={cn(
-            'px-5 py-3 text-sm font-semibold border-b-2 transition-all min-h-[44px] whitespace-nowrap flex items-center gap-2',
+            'px-5 py-3 text-sm font-semibold border-b-2 transition-all min-h-11 whitespace-nowrap flex items-center gap-2',
             activeTab === 'notices'
               ? 'border-primary text-primary'
               : 'border-transparent text-steel hover:text-charcoal',
@@ -282,7 +280,7 @@ export default function PortalOccupiedView({
           type="button"
           onClick={() => setActiveTab('contacts')}
           className={cn(
-            'px-5 py-3 text-sm font-semibold border-b-2 transition-all min-h-[44px] whitespace-nowrap flex items-center gap-2',
+            'px-5 py-3 text-sm font-semibold border-b-2 transition-all min-h-11 whitespace-nowrap flex items-center gap-2',
             activeTab === 'contacts'
               ? 'border-primary text-primary'
               : 'border-transparent text-steel hover:text-charcoal',
@@ -295,7 +293,7 @@ export default function PortalOccupiedView({
           type="button"
           onClick={() => setActiveTab('issues')}
           className={cn(
-            'px-5 py-3 text-sm font-semibold border-b-2 transition-all min-h-[44px] whitespace-nowrap flex items-center gap-2',
+            'px-5 py-3 text-sm font-semibold border-b-2 transition-all min-h-11 whitespace-nowrap flex items-center gap-2',
             activeTab === 'issues'
               ? 'border-primary text-primary'
               : 'border-transparent text-steel hover:text-charcoal',
@@ -339,9 +337,15 @@ export default function PortalOccupiedView({
               </CardTitle>
             </CardHeader>
             <CardContent className="p-6">
-              <form onSubmit={handleIssueSubmit} className="flex flex-col gap-5">
+              <form
+                onSubmit={handleIssueSubmit}
+                className="flex flex-col gap-5"
+              >
                 <div>
-                  <label htmlFor="issue-title" className="block text-sm font-semibold text-ink mb-1.5">
+                  <label
+                    htmlFor="issue-title"
+                    className="block text-sm font-semibold text-ink mb-1.5"
+                  >
                     সমস্যার শিরোনাম <span className="text-error-text">*</span>
                   </label>
                   <input
@@ -350,21 +354,29 @@ export default function PortalOccupiedView({
                     value={issueTitle}
                     onChange={(e) => {
                       setIssueTitle(e.target.value)
-                      if (issueErrors.title) setIssueErrors((prev) => ({ ...prev, title: '' }))
+                      if (issueErrors.title)
+                        setIssueErrors((prev) => ({ ...prev, title: '' }))
                     }}
                     placeholder="যেমন: বাথরুমের কলের পাইপ লিক করছে"
                     className={cn(
-                      'w-full px-4 py-2.5 border rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary/40 min-h-[44px]',
-                      issueErrors.title ? 'border-error-text' : 'border-hairline',
+                      'w-full px-4 py-2.5 border rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary/40 min-h-11',
+                      issueErrors.title
+                        ? 'border-error-text'
+                        : 'border-hairline',
                     )}
                   />
                   {issueErrors.title && (
-                    <p className="text-xs text-error-text mt-1">{issueErrors.title}</p>
+                    <p className="text-xs text-error-text mt-1">
+                      {issueErrors.title}
+                    </p>
                   )}
                 </div>
 
                 <div>
-                  <label htmlFor="issue-description" className="block text-sm font-semibold text-ink mb-1.5">
+                  <label
+                    htmlFor="issue-description"
+                    className="block text-sm font-semibold text-ink mb-1.5"
+                  >
                     বিস্তারিত বিবরণ <span className="text-error-text">*</span>
                   </label>
                   <textarea
@@ -373,29 +385,39 @@ export default function PortalOccupiedView({
                     value={issueDescription}
                     onChange={(e) => {
                       setIssueDescription(e.target.value)
-                      if (issueErrors.description) setIssueErrors((prev) => ({ ...prev, description: '' }))
+                      if (issueErrors.description)
+                        setIssueErrors((prev) => ({ ...prev, description: '' }))
                     }}
                     placeholder="সমস্যাটি বিস্তারিত লিখুন..."
                     className={cn(
-                      'w-full px-4 py-2.5 border rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary/40 min-h-[100px]',
-                      issueErrors.description ? 'border-error-text' : 'border-hairline',
+                      'w-full px-4 py-2.5 border rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary/40 min-h-25',
+                      issueErrors.description
+                        ? 'border-error-text'
+                        : 'border-hairline',
                     )}
                   />
                   {issueErrors.description && (
-                    <p className="text-xs text-error-text mt-1">{issueErrors.description}</p>
+                    <p className="text-xs text-error-text mt-1">
+                      {issueErrors.description}
+                    </p>
                   )}
                 </div>
 
                 <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
                   <div>
-                    <label htmlFor="issue-category" className="block text-sm font-semibold text-ink mb-1.5">
+                    <label
+                      htmlFor="issue-category"
+                      className="block text-sm font-semibold text-ink mb-1.5"
+                    >
                       বিষয়
                     </label>
                     <select
                       id="issue-category"
                       value={issueCategory}
-                      onChange={(e) => setIssueCategory(e.target.value as typeof issueCategory)}
-                      className="w-full px-4 py-2.5 border border-hairline rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary/40 min-h-[44px]"
+                      onChange={(e) =>
+                        setIssueCategory(e.target.value as typeof issueCategory)
+                      }
+                      className="w-full px-4 py-2.5 border border-hairline rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary/40 min-h-11"
                     >
                       <option value="plumbing">প্লাম্বিং</option>
                       <option value="electrical">ইলেকট্রিক্যাল</option>
@@ -407,14 +429,19 @@ export default function PortalOccupiedView({
                   </div>
 
                   <div>
-                    <label htmlFor="issue-priority" className="block text-sm font-semibold text-ink mb-1.5">
+                    <label
+                      htmlFor="issue-priority"
+                      className="block text-sm font-semibold text-ink mb-1.5"
+                    >
                       অগ্রাধিকার
                     </label>
                     <select
                       id="issue-priority"
                       value={issuePriority}
-                      onChange={(e) => setIssuePriority(e.target.value as typeof issuePriority)}
-                      className="w-full px-4 py-2.5 border border-hairline rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary/40 min-h-[44px]"
+                      onChange={(e) =>
+                        setIssuePriority(e.target.value as typeof issuePriority)
+                      }
+                      className="w-full px-4 py-2.5 border border-hairline rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary/40 min-h-11"
                     >
                       <option value="low">কম</option>
                       <option value="medium">মাঝারি</option>
@@ -425,7 +452,10 @@ export default function PortalOccupiedView({
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-ink mb-1.5">
+                  <label
+                    htmlFor="issue-files"
+                    className="block text-sm font-semibold text-ink mb-1.5"
+                  >
                     ছবি সংযুক্তি (ঐচ্ছিক)
                   </label>
                   <div className="relative">
@@ -440,7 +470,7 @@ export default function PortalOccupiedView({
                     />
                     <label
                       htmlFor="issue-files"
-                      className="flex items-center gap-2 px-4 py-2.5 border border-dashed border-hairline rounded-lg text-sm bg-white cursor-pointer hover:bg-surface/50 transition-colors min-h-[44px] justify-center text-steel font-medium"
+                      className="flex items-center gap-2 px-4 py-2.5 border border-dashed border-hairline rounded-lg text-sm bg-white cursor-pointer hover:bg-surface/50 transition-colors min-h-11 justify-center text-steel font-medium"
                     >
                       <Image className="h-4 w-4" />
                       {issueAttachments.length > 0
@@ -455,7 +485,10 @@ export default function PortalOccupiedView({
                       </span>
                       <ul className="text-xs text-ink flex flex-col gap-1.5">
                         {issueAttachments.map((f, i) => (
-                          <li key={i} className="flex justify-between items-center">
+                          <li
+                            key={i}
+                            className="flex justify-between items-center"
+                          >
                             <span className="truncate">{f.name}</span>
                             <span className="text-steel font-mono">
                               ({(f.size / 1024).toFixed(1)} KB)
@@ -470,9 +503,11 @@ export default function PortalOccupiedView({
                 <Button
                   type="submit"
                   disabled={issueMutation.isPending}
-                  className="w-full bg-primary hover:bg-primary/95 text-white font-semibold rounded-lg py-3 text-sm min-h-[44px]"
+                  className="w-full bg-primary hover:bg-primary/95 text-white font-semibold rounded-lg py-3 text-sm min-h-11"
                 >
-                  {issueMutation.isPending ? 'জমা দেওয়া হচ্ছে...' : 'রিপোর্ট জমা দিন'}
+                  {issueMutation.isPending
+                    ? 'জমা দেওয়া হচ্ছে...'
+                    : 'রিপোর্ট জমা দিন'}
                 </Button>
               </form>
             </CardContent>
@@ -636,7 +671,7 @@ export default function PortalOccupiedView({
                         জাতীয় পরিচয়পত্র (NID)
                       </span>
                       {renter.nidPhotoUrl ? (
-                        <div className="relative group w-full max-w-[140px] aspect-3/2 overflow-hidden rounded-lg border border-hairline bg-white shadow-sm">
+                        <div className="relative group w-full max-w-35 aspect-3/2 overflow-hidden rounded-lg border border-hairline bg-white shadow-sm">
                           {/* biome-ignore lint/performance/noImgElement: public image display */}
                           <img
                             src={renter.nidPhotoUrl}
@@ -665,7 +700,7 @@ export default function PortalOccupiedView({
                         ডিজিটাল স্বাক্ষর
                       </span>
                       {renter.digitalSignatureUrl ? (
-                        <div className="relative group w-full max-w-[140px] h-16 overflow-hidden rounded border border-hairline bg-white shadow-sm p-1">
+                        <div className="relative group w-full max-w-35 h-16 overflow-hidden rounded border border-hairline bg-white shadow-sm p-1">
                           {/* biome-ignore lint/performance/noImgElement: public image display */}
                           <img
                             src={renter.digitalSignatureUrl}
@@ -782,10 +817,10 @@ export default function PortalOccupiedView({
                     <table className="w-full border-collapse text-sm">
                       <thead>
                         <tr className="border-b border-hairline bg-surface">
-                          <th className="px-5 py-3..5 text-left font-semibold text-xs text-steel uppercase w-[120px]">
+                          <th className="px-5 py-3..5 text-left font-semibold text-xs text-steel uppercase w-30">
                             {t('bills.billMonth')}
                           </th>
-                          <th className="px-5 py-3.5 text-left font-semibold text-xs text-steel uppercase w-[100px]">
+                          <th className="px-5 py-3.5 text-left font-semibold text-xs text-steel uppercase w-25">
                             {t('bills.status')}
                           </th>
                           <th className="px-5 py-3.5 text-right font-semibold text-xs text-steel uppercase">
@@ -794,7 +829,7 @@ export default function PortalOccupiedView({
                           <th className="px-5 py-3.5 text-right font-semibold text-xs text-steel uppercase">
                             {t('bills.paidAmount')}
                           </th>
-                          <th className="px-5 py-3.5 text-right font-semibold text-xs text-steel uppercase w-[120px]">
+                          <th className="px-5 py-3.5 text-right font-semibold text-xs text-steel uppercase w-30">
                             বকেয়া
                           </th>
                         </tr>
@@ -884,16 +919,16 @@ export default function PortalOccupiedView({
                           <th className="px-5 py-3.5 text-left font-semibold text-xs text-steel uppercase">
                             রসিদ নম্বর
                           </th>
-                          <th className="px-5 py-3.5 text-left font-semibold text-xs text-steel uppercase w-[120px]">
+                          <th className="px-5 py-3.5 text-left font-semibold text-xs text-steel uppercase w-30">
                             তারিখ
                           </th>
-                          <th className="px-5 py-3.5 text-left font-semibold text-xs text-steel uppercase w-[120px]">
+                          <th className="px-5 py-3.5 text-left font-semibold text-xs text-steel uppercase w-30">
                             পদ্ধতি
                           </th>
                           <th className="px-5 py-3.5 text-left font-semibold text-xs text-steel uppercase">
                             নোট
                           </th>
-                          <th className="px-5 py-3.5 text-right font-semibold text-xs text-steel uppercase w-[140px]">
+                          <th className="px-5 py-3.5 text-right font-semibold text-xs text-steel uppercase w-35">
                             পরিমাণ
                           </th>
                         </tr>
@@ -942,8 +977,6 @@ export default function PortalOccupiedView({
             </Card>
           </div>
         )}
-
-
       </div>
     </div>
   )

@@ -3,6 +3,7 @@ import type { RequestContext, UserRole } from '@repo/shared/types'
 import {
   addUtilityChargeSchema,
   billStatusEnum,
+  generateBillForContractSchema,
   generateBillsSchema,
 } from '@repo/shared/validation'
 import type { FastifyInstance } from 'fastify'
@@ -17,26 +18,30 @@ import {
   errorResponseSchema,
 } from '../../utils/schemas'
 
-/**
- * Billing routes plugin.
- *
- * Provides:
- * - GET /api/bills — List bills with filters and pagination
- * - POST /api/bills/generate — Generate monthly bills for occupied flats
- * - GET /api/bills/:id — Get a bill with line items and payments
- * - POST /api/bills/:id/charges — Add a utility charge to a bill
- *
- * Access control:
- * - Owner: full access (list, generate, view, add charges)
- * - Manager: list and view bills for assigned buildings, generate and add charges
- * - Renter: list and view own bills only
- */
+const billItemSchema = z.object({
+  id: z.string(),
+  ownerAccountId: z.string(),
+  contractId: z.string(),
+  flatId: z.string(),
+  renterId: z.string(),
+  billingMonth: z.string(),
+  dueDate: z.string(),
+  baseRent: z.number(),
+  rentDays: z.number().nullable(),
+  totalDaysInMonth: z.number().nullable(),
+  monthlyRent: z.number(),
+  totalAmount: z.number(),
+  paidAmount: z.number(),
+  status: z.enum(['unpaid', 'partially_paid', 'paid', 'overdue', 'cancelled']),
+  flatNumber: z.string(),
+  buildingName: z.string(),
+  renterName: z.string(),
+  createdAt: dateTimeResponseSchema,
+})
+
 async function billRoutes(fastify: FastifyInstance) {
   const billingService = new BillingService(fastify.db, fastify.auditLogger)
 
-  /**
-   * Helper to build RequestContext from the Fastify request.
-   */
   function buildRequestContext(request: {
     user: {
       id: string
@@ -64,8 +69,6 @@ async function billRoutes(fastify: FastifyInstance) {
 
   /**
    * GET /api/bills
-   * Lists bills with multi-field filters and pagination.
-   * Owner sees all, Manager sees assigned buildings, Renter sees own bills.
    */
   fastify.get(
     '/',
@@ -79,8 +82,6 @@ async function billRoutes(fastify: FastifyInstance) {
       schema: {
         tags: ['Bills'],
         summary: 'List bills',
-        description:
-          'Returns paginated bills with optional filters by building, flat, renter, billing month, and status.\n\n**Roles: owner, manager, renter**',
         security: [{ BearerAuth: [] }, { CookieAuth: [] }],
         querystring: z.object({
           buildingId: z.string().uuid().optional(),
@@ -97,23 +98,7 @@ async function billRoutes(fastify: FastifyInstance) {
         }),
         response: {
           200: z.object({
-            data: z.array(
-              z.object({
-                id: z.string(),
-                billingMonth: z.string(),
-                baseRent: z.number(),
-                totalAmount: z.number(),
-                paidAmount: z.number(),
-                status: z.enum(['unpaid', 'partially_paid', 'paid', 'overdue']),
-                flatId: z.string(),
-                renterId: z.string(),
-                ownerAccountId: z.string(),
-                createdAt: dateTimeResponseSchema,
-                flatNumber: z.string(),
-                buildingName: z.string(),
-                renterName: z.string(),
-              }),
-            ),
+            data: z.array(billItemSchema),
             total: z.number(),
             page: z.number(),
             pageSize: z.number(),
@@ -154,22 +139,28 @@ async function billRoutes(fastify: FastifyInstance) {
       return reply.status(200).send({
         data: result.data.map((bill) => ({
           id: bill.id,
+          ownerAccountId: bill.ownerAccountId,
+          contractId: bill.contractId,
+          flatId: bill.flatId,
+          renterId: bill.renterId,
           billingMonth: bill.billingMonth,
+          dueDate: bill.dueDate,
           baseRent: Number.parseFloat(bill.baseRent),
+          rentDays: bill.rentDays,
+          totalDaysInMonth: bill.totalDaysInMonth,
+          monthlyRent: Number.parseFloat(bill.monthlyRent),
           totalAmount: Number.parseFloat(bill.totalAmount),
           paidAmount: Number.parseFloat(bill.paidAmount),
           status: bill.status as
             | 'unpaid'
             | 'partially_paid'
             | 'paid'
-            | 'overdue',
-          flatId: bill.flatId,
-          renterId: bill.renterId,
-          ownerAccountId: bill.ownerAccountId,
-          createdAt: bill.createdAt,
+            | 'overdue'
+            | 'cancelled',
           flatNumber: bill.flatNumber,
           buildingName: bill.buildingName,
           renterName: bill.renterName,
+          createdAt: bill.createdAt,
         })),
         total: result.total,
         page: result.page,
@@ -180,8 +171,7 @@ async function billRoutes(fastify: FastifyInstance) {
 
   /**
    * POST /api/bills/generate
-   * Generates monthly bills for all occupied flats in a given month.
-   * Owner and Manager only.
+   * Generates monthly bills for all occupied flats.
    */
   fastify.post(
     '/generate',
@@ -226,9 +216,78 @@ async function billRoutes(fastify: FastifyInstance) {
   )
 
   /**
+   * POST /api/bills/generate/:contractId
+   * Generates a bill for a specific contract and month.
+   */
+  fastify.post(
+    '/generate/:contractId',
+    {
+      preHandler: [
+        authGuard,
+        roleGuard(['owner', 'manager']),
+        approvalGuard,
+        tenantScope,
+      ],
+      schema: {
+        tags: ['Bills'],
+        summary: 'Generate bill for a contract',
+        description:
+          'Generates a bill for a specific rental contract for the given billing month. Calculates prorated rent if the contract started mid-month.\n\n**Roles: owner, manager**',
+        security: [{ BearerAuth: [] }, { CookieAuth: [] }],
+        params: z.object({
+          contractId: z.string().uuid('Invalid contract ID format'),
+        }),
+        body: generateBillForContractSchema,
+        response: {
+          201: billItemSchema,
+          400: errorResponseSchema,
+          401: errorResponseSchema,
+          403: errorResponseSchema,
+          404: errorResponseSchema,
+        },
+      },
+    },
+    async (request, reply) => {
+      const { contractId } = request.params as { contractId: string }
+      const { billingMonth } = request.body as { billingMonth: string }
+      const ctx = buildRequestContext(request as never)
+
+      const bill = await billingService.generateBillForContract(
+        ctx,
+        contractId,
+        billingMonth,
+      )
+
+      return reply.status(201).send({
+        id: bill.id,
+        ownerAccountId: bill.ownerAccountId,
+        contractId: bill.contractId,
+        flatId: bill.flatId,
+        renterId: bill.renterId,
+        billingMonth: bill.billingMonth,
+        dueDate: bill.dueDate,
+        baseRent: Number.parseFloat(bill.baseRent),
+        rentDays: bill.rentDays,
+        totalDaysInMonth: bill.totalDaysInMonth,
+        monthlyRent: Number.parseFloat(bill.monthlyRent),
+        totalAmount: Number.parseFloat(bill.totalAmount),
+        paidAmount: Number.parseFloat(bill.paidAmount),
+        status: bill.status as
+          | 'unpaid'
+          | 'partially_paid'
+          | 'paid'
+          | 'overdue'
+          | 'cancelled',
+        flatNumber: bill.flatNumber,
+        buildingName: bill.buildingName,
+        renterName: bill.renterName,
+        createdAt: bill.createdAt,
+      })
+    },
+  )
+
+  /**
    * GET /api/bills/:id
-   * Gets a bill with its line items and payments.
-   * Owner sees all, Manager sees assigned buildings, Renter sees own bills.
    */
   fastify.get(
     '/:id',
@@ -253,10 +312,21 @@ async function billRoutes(fastify: FastifyInstance) {
             id: z.string(),
             contractId: z.string(),
             billingMonth: z.string(),
+            dueDate: z.string(),
             baseRent: z.number(),
+            rentDays: z.number().nullable(),
+            totalDaysInMonth: z.number().nullable(),
+            monthlyRent: z.number(),
             totalAmount: z.number(),
             paidAmount: z.number(),
-            status: z.enum(['unpaid', 'partially_paid', 'paid', 'overdue']),
+            remainingBalance: z.number(),
+            status: z.enum([
+              'unpaid',
+              'partially_paid',
+              'paid',
+              'overdue',
+              'cancelled',
+            ]),
             flatId: z.string(),
             flatNumber: z.string(),
             buildingName: z.string(),
@@ -279,6 +349,8 @@ async function billRoutes(fastify: FastifyInstance) {
                 amount: z.number(),
                 paidAt: dateTimeResponseSchema,
                 method: z.string(),
+                receiptReference: z.string(),
+                note: z.string().nullable(),
               }),
             ),
           }),
@@ -293,15 +365,27 @@ async function billRoutes(fastify: FastifyInstance) {
       const ctx = buildRequestContext(request as never)
 
       const bill = await billingService.getBill(ctx, id)
+      const totalAmount = Number.parseFloat(bill.totalAmount)
+      const paidAmount = Number.parseFloat(bill.paidAmount)
 
       return reply.status(200).send({
         id: bill.id,
         contractId: bill.contractId,
         billingMonth: bill.billingMonth,
+        dueDate: bill.dueDate,
         baseRent: Number.parseFloat(bill.baseRent),
-        totalAmount: Number.parseFloat(bill.totalAmount),
-        paidAmount: Number.parseFloat(bill.paidAmount),
-        status: bill.status as 'unpaid' | 'partially_paid' | 'paid' | 'overdue',
+        rentDays: bill.rentDays,
+        totalDaysInMonth: bill.totalDaysInMonth,
+        monthlyRent: Number.parseFloat(bill.monthlyRent),
+        totalAmount,
+        paidAmount,
+        remainingBalance: totalAmount - paidAmount,
+        status: bill.status as
+          | 'unpaid'
+          | 'partially_paid'
+          | 'paid'
+          | 'overdue'
+          | 'cancelled',
         flatId: bill.flatId,
         flatNumber: bill.flatNumber,
         buildingName: bill.buildingName,
@@ -321,6 +405,8 @@ async function billRoutes(fastify: FastifyInstance) {
           amount: Number.parseFloat(payment.amount),
           paidAt: new Date(payment.paymentDate),
           method: payment.paymentMethod,
+          receiptReference: payment.receiptReference,
+          note: payment.note,
         })),
       })
     },
@@ -328,8 +414,6 @@ async function billRoutes(fastify: FastifyInstance) {
 
   /**
    * POST /api/bills/:id/charges
-   * Adds a utility charge (line item) to a bill.
-   * Owner and Manager only.
    */
   fastify.post(
     '/:id/charges',
@@ -384,8 +468,6 @@ async function billRoutes(fastify: FastifyInstance) {
 
   /**
    * DELETE /api/bills/:id
-   * Deletes a bill and all its associated line items and payments.
-   * Owner and Manager only.
    */
   fastify.delete(
     '/:id',
@@ -424,7 +506,8 @@ async function billRoutes(fastify: FastifyInstance) {
 
       return reply.status(200).send({
         success: true,
-        message: 'বিলটি সফলভাবে ডিলিট করা হয়েছে।',
+        message:
+          '\u09AC\u09BF\u09B2\u099F\u09BF \u09B8\u09AB\u09B2\u09AD\u09BE\u09AC\u09C7 \u09A1\u09BF\u09B2\u09BF\u099F \u0995\u09B0\u09BE \u09B9\u09AF\u09BC\u09C7\u099B\u09C7\u0964',
       })
     },
   )

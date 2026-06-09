@@ -141,7 +141,7 @@ export default function PaymentsPage() {
             type="button"
             variant="ghost"
             onClick={() => setDeleteTargetId(row.id)}
-            className="min-h-[44px] w-[44px] p-0 rounded-full text-error-text hover:bg-error-bg/10 hover:text-error-text"
+            className="min-h-11 w-[44px] p-0 rounded-full text-error-text hover:bg-error-bg/10 hover:text-error-text"
             aria-label={t('payments.deletePayment')}
           >
             <Trash2 className="h-4 w-4" />
@@ -200,7 +200,7 @@ export default function PaymentsPage() {
         {canRecord && (
           <Button
             asChild
-            className="rounded-full min-h-[44px] bg-primary text-on-primary font-semibold"
+            className="rounded-full min-h-11 bg-primary text-on-primary font-semibold"
           >
             <Link href="/payments/new">{t('payments.recordPayment')}</Link>
           </Button>
@@ -221,7 +221,7 @@ export default function PaymentsPage() {
             type="date"
             value={startDate}
             onChange={(e) => handleFilterChange('startDate', e.target.value)}
-            className="w-full px-3 py-2 text-sm rounded-md border border-hairline bg-canvas text-ink min-h-[44px]"
+            className="w-full px-3 py-2 text-sm rounded-md border border-hairline bg-canvas text-ink min-h-11"
           />
         </div>
         <div className="min-w-[150px] flex-1">
@@ -236,7 +236,7 @@ export default function PaymentsPage() {
             type="date"
             value={endDate}
             onChange={(e) => handleFilterChange('endDate', e.target.value)}
-            className="w-full px-3 py-2 text-sm rounded-md border border-hairline bg-canvas text-ink min-h-[44px]"
+            className="w-full px-3 py-2 text-sm rounded-md border border-hairline bg-canvas text-ink min-h-11"
           />
         </div>
       </div>

@@ -147,11 +147,17 @@ async function flatRoutes(fastify: FastifyInstance) {
   fastify.post(
     '/',
     {
-      preHandler: [authGuard, roleGuard(['owner', 'manager']), approvalGuard, tenantScope],
+      preHandler: [
+        authGuard,
+        roleGuard(['owner', 'manager']),
+        approvalGuard,
+        tenantScope,
+      ],
       schema: {
         tags: ['Flats'],
         summary: 'Create a flat',
-        description: 'Creates a new flat in a building.\n\n**Roles: owner, manager**',
+        description:
+          'Creates a new flat in a building.\n\n**Roles: owner, manager**',
         security: [{ BearerAuth: [] }, { CookieAuth: [] }],
         body: createFlatSchema,
         response: {

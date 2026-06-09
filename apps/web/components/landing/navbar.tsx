@@ -98,7 +98,7 @@ export function LandingNavbar() {
             <a
               key={link.href}
               href={link.href}
-              className="px-4 py-2 rounded-full text-sm font-medium text-slate hover:text-ink hover:bg-surface transition-colors duration-150 min-h-[44px] flex items-center"
+              className="px-4 py-2 rounded-full text-sm font-medium text-slate hover:text-ink hover:bg-surface transition-colors duration-150 min-h-11 flex items-center"
             >
               {link.label}
             </a>
@@ -110,13 +110,13 @@ export function LandingNavbar() {
           <LanguageToggle />
           <Link
             href="/login"
-            className="px-4 py-2 rounded-full text-sm font-semibold text-ink border border-hairline hover:bg-surface transition-colors duration-150 min-h-[44px] flex items-center"
+            className="px-4 py-2 rounded-full text-sm font-semibold text-ink border border-hairline hover:bg-surface transition-colors duration-150 min-h-11 flex items-center"
           >
             {t('auth.login')}
           </Link>
           <Link
             href="/register"
-            className="px-5 py-2 rounded-full text-sm font-semibold bg-primary text-on-primary hover:bg-charcoal transition-colors duration-150 min-h-[44px] flex items-center"
+            className="px-5 py-2 rounded-full text-sm font-semibold bg-primary text-on-primary hover:bg-charcoal transition-colors duration-150 min-h-11 flex items-center"
           >
             {t('landing.nav.getStarted')}
           </Link>
@@ -175,7 +175,7 @@ export function LandingNavbar() {
               key={link.href}
               href={link.href}
               onClick={() => setMenuOpen(false)}
-              className="px-4 py-3 rounded-lg text-base font-medium text-charcoal hover:bg-surface hover:text-ink transition-colors min-h-[44px] flex items-center"
+              className="px-4 py-3 rounded-lg text-base font-medium text-charcoal hover:bg-surface hover:text-ink transition-colors min-h-11 flex items-center"
             >
               {link.label}
             </a>
@@ -183,13 +183,13 @@ export function LandingNavbar() {
           <div className="border-t border-hairline mt-2 pt-3 flex flex-col gap-2">
             <Link
               href="/login"
-              className="px-4 py-3 rounded-full text-base font-semibold text-ink border border-hairline hover:bg-surface transition-colors min-h-[44px] flex items-center justify-center"
+              className="px-4 py-3 rounded-full text-base font-semibold text-ink border border-hairline hover:bg-surface transition-colors min-h-11 flex items-center justify-center"
             >
               {t('auth.login')}
             </Link>
             <Link
               href="/register"
-              className="px-4 py-3 rounded-full text-base font-semibold bg-primary text-on-primary hover:bg-charcoal transition-colors min-h-[44px] flex items-center justify-center"
+              className="px-4 py-3 rounded-full text-base font-semibold bg-primary text-on-primary hover:bg-charcoal transition-colors min-h-11 flex items-center justify-center"
             >
               {t('landing.nav.getStarted')}
             </Link>

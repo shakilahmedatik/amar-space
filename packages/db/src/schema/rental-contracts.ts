@@ -46,6 +46,10 @@ export const rentalContracts = pgTable('rental_contracts', {
     .notNull()
     .default('0.00'),
   status: varchar('status', { length: 20 }).notNull().default('active'),
+  scheduledTerminationDate: date('scheduled_termination_date'),
+  noticeGivenAt: timestamp('notice_given_at', { withTimezone: true }),
+  terminationReason: varchar('termination_reason', { length: 500 }),
+  terminatedBy: text('terminated_by').references(() => users.id),
   createdAt: timestamp('created_at', { withTimezone: true })
     .notNull()
     .defaultNow(),

@@ -55,7 +55,7 @@ export default function PaymentReceiptPage() {
       <div className="mb-6">
         <Link
           href="/payments"
-          className="text-steel text-sm no-underline inline-flex items-center min-h-[44px]"
+          className="text-steel text-sm no-underline inline-flex items-center min-h-11"
         >
           ← {t('common.back')}
         </Link>

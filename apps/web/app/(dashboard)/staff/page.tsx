@@ -74,7 +74,10 @@ export default function StaffPage() {
             ? (ROLE_LABELS[row.role]?.bn ?? row.role)
             : (ROLE_LABELS[row.role]?.en ?? row.role)
         return (
-          <Badge variant="outline" className={`rounded-full font-medium ${colors}`}>
+          <Badge
+            variant="outline"
+            className={`rounded-full font-medium ${colors}`}
+          >
             {label}
           </Badge>
         )
@@ -164,7 +167,7 @@ export default function StaffPage() {
               setRoleFilter(e.target.value || undefined)
               setPage(1)
             }}
-            className="rounded-md border border-hairline min-h-[44px] px-3 bg-white text-ink text-sm"
+            className="rounded-md border border-hairline min-h-11 px-3 bg-white text-ink text-sm"
           >
             <option value="">{locale === 'bn' ? 'সব রোল' : 'All Roles'}</option>
             <option value="manager">
@@ -181,7 +184,7 @@ export default function StaffPage() {
           {isOwner && (
             <Button
               asChild
-              className="rounded-full min-h-[44px] bg-primary text-on-primary font-semibold"
+              className="rounded-full min-h-11 bg-primary text-on-primary font-semibold"
             >
               <Link href="/staff/new">
                 {t('staff.createStaff') || 'Add Staff'}
@@ -229,7 +232,9 @@ export default function StaffPage() {
       <ConfirmDialog
         open={!!deleteTarget}
         onClose={() => setDeleteTarget(null)}
-        title={t('staff.deleteConfirmTitle') || 'Permanently Delete Staff Member'}
+        title={
+          t('staff.deleteConfirmTitle') || 'Permanently Delete Staff Member'
+        }
         description={
           t('staff.deleteConfirmDescription') ||
           'This action permanently deletes this staff member and all associated data. It cannot be undone.'

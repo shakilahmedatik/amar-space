@@ -184,7 +184,7 @@ export default function AuditPage() {
                     handleFilterChange(filter.key, e.target.value)
                   }
                   placeholder={filter.placeholder}
-                  className="w-full px-3 py-2 text-sm rounded-md border border-hairline bg-canvas text-ink min-h-[44px]"
+                  className="w-full px-3 py-2 text-sm rounded-md border border-hairline bg-canvas text-ink min-h-11"
                 />
               </div>
             ))}
@@ -207,7 +207,7 @@ export default function AuditPage() {
                   <TableHead className="w-[130px] text-steel font-semibold text-xs uppercase tracking-wide">
                     {t('audit.entityId')}
                   </TableHead>
-                  <TableHead className="w-[140px] text-steel font-semibold text-xs uppercase tracking-wide">
+                  <TableHead className="w-35 text-steel font-semibold text-xs uppercase tracking-wide">
                     {t('audit.actor')}
                   </TableHead>
                   <TableHead className="w-[160px] text-steel font-semibold text-xs uppercase tracking-wide">
@@ -250,7 +250,7 @@ export default function AuditPage() {
                 <Button
                   type="button"
                   variant="outline"
-                  className="rounded-full min-w-[44px] min-h-[44px]"
+                  className="rounded-full min-w-[44px] min-h-11"
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
                   disabled={page <= 1}
                   aria-label={t('common.previous')}
@@ -260,7 +260,7 @@ export default function AuditPage() {
                 <Button
                   type="button"
                   variant="outline"
-                  className="rounded-full min-w-[44px] min-h-[44px]"
+                  className="rounded-full min-w-[44px] min-h-11"
                   onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                   disabled={page >= totalPages}
                   aria-label={t('common.next')}
@@ -301,7 +301,7 @@ function AuditRow({
               isExpanded ? t('audit.collapseRow') : t('audit.expandRow')
             }
             aria-expanded={isExpanded}
-            className={`min-w-[44px] min-h-[44px] inline-flex items-center justify-center bg-transparent border-none cursor-pointer text-base text-steel transition-transform duration-150 ${isExpanded ? 'rotate-90' : 'rotate-0'}`}
+            className={`min-w-[44px] min-h-11 inline-flex items-center justify-center bg-transparent border-none cursor-pointer text-base text-steel transition-transform duration-150 ${isExpanded ? 'rotate-90' : 'rotate-0'}`}
           >
             ▶
           </button>

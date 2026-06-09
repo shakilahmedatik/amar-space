@@ -8,7 +8,7 @@ import { describe, expect, it } from 'vitest'
  * Property 3: 44px touch targets on all interactive elements
  *
  * Primary action buttons (submit buttons, nav items) must have either
- * `min-h-[44px]` or `min-h-11` somewhere in the file to satisfy the
+ * `min-h-11` or `min-h-11` somewhere in the file to satisfy the
  * WCAG 2.5.5 minimum touch target size requirement.
  */
 
@@ -65,12 +65,12 @@ const navFiles = [
 
 describe('Feature: amarspace-fixes-and-ui-overhaul, Property 3: 44px touch targets on all interactive elements', () => {
   describe('3a — Sanity check: touch target classes are present in the codebase', () => {
-    it('at least one TSX file contains min-h-[44px]', () => {
+    it('at least one TSX file contains min-h-11', () => {
       const found = allTsxFiles.some((f) => {
         const src = fs.readFileSync(f, 'utf-8')
         return /min-h-\[44px\]/.test(src)
       })
-      expect(found, 'Expected at least one file with min-h-[44px]').toBe(true)
+      expect(found, 'Expected at least one file with min-h-11').toBe(true)
     })
 
     it('at least one TSX file contains min-h-11', () => {
@@ -87,7 +87,7 @@ describe('Feature: amarspace-fixes-and-ui-overhaul, Property 3: 44px touch targe
   // ---------------------------------------------------------------------------
 
   describe('3b — Nav layout files have 44px touch targets', () => {
-    it('sidebar.tsx has min-h-[44px] or min-h-11', () => {
+    it('sidebar.tsx has min-h-11 or min-h-11', () => {
       const sidebarPath = path.join(
         WEB_ROOT,
         'components',
@@ -98,11 +98,11 @@ describe('Feature: amarspace-fixes-and-ui-overhaul, Property 3: 44px touch targe
       const source = fs.readFileSync(sidebarPath, 'utf-8')
       expect(
         hasTouchTarget(source),
-        'sidebar.tsx must contain min-h-[44px] or min-h-11 for nav items',
+        'sidebar.tsx must contain min-h-11 or min-h-11 for nav items',
       ).toBe(true)
     })
 
-    it('bottom-tab-bar.tsx has min-h-[44px] or min-h-11', () => {
+    it('bottom-tab-bar.tsx has min-h-11 or min-h-11', () => {
       const tabBarPath = path.join(
         WEB_ROOT,
         'components',
@@ -115,7 +115,7 @@ describe('Feature: amarspace-fixes-and-ui-overhaul, Property 3: 44px touch targe
       const source = fs.readFileSync(tabBarPath, 'utf-8')
       expect(
         hasTouchTarget(source),
-        'bottom-tab-bar.tsx must contain min-h-[44px] or min-h-11 for tab items',
+        'bottom-tab-bar.tsx must contain min-h-11 or min-h-11 for tab items',
       ).toBe(true)
     })
 
@@ -143,7 +143,7 @@ describe('Feature: amarspace-fixes-and-ui-overhaul, Property 3: 44px touch targe
       expect(buttonFiles.length).toBeGreaterThan(0)
     })
 
-    it('every file containing <Button also contains min-h-[44px] or min-h-11', () => {
+    it('every file containing <Button also contains min-h-11 or min-h-11', () => {
       const violations: string[] = []
       for (const filePath of buttonFiles) {
         const source = fs.readFileSync(filePath, 'utf-8')
@@ -163,7 +163,7 @@ describe('Feature: amarspace-fixes-and-ui-overhaul, Property 3: 44px touch targe
   // ---------------------------------------------------------------------------
 
   describe('3d — Property: sampled files with <Button have touch target classes', () => {
-    it('fast-check: for any sampled file containing <Button, it has min-h-[44px] or min-h-11', () => {
+    it('fast-check: for any sampled file containing <Button, it has min-h-11 or min-h-11', () => {
       // Guard: need at least one file to run the property
       if (buttonFiles.length === 0) {
         return
@@ -176,7 +176,7 @@ describe('Feature: amarspace-fixes-and-ui-overhaul, Property 3: 44px touch targe
 
           expect(
             hasTouchTarget(source),
-            `File ${relPath} contains <Button but is missing min-h-[44px] or min-h-11`,
+            `File ${relPath} contains <Button but is missing min-h-11 or min-h-11`,
           ).toBe(true)
         }),
         { numRuns: buttonFiles.length },

@@ -126,7 +126,7 @@ export function BottomTabBar({
                 }}
                 className={`
                   flex flex-col items-center justify-center gap-0.5
-                  min-h-[44px] min-w-[44px] w-full
+                  min-h-11 min-w-[44px] w-full
                   py-2 px-1
                   text-xs leading-tight font-medium
                   transition-colors duration-150
@@ -153,7 +153,7 @@ export function BottomTabBar({
               onClick={() => setMoreMenuOpen((prev) => !prev)}
               className={`
                 flex flex-col items-center justify-center gap-0.5
-                min-h-[44px] min-w-[44px] w-full
+                min-h-11 min-w-[44px] w-full
                 py-2 px-1
                 text-xs leading-tight font-medium
                 transition-colors duration-150

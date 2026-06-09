@@ -159,6 +159,7 @@ export const billStatusEnum = z.enum([
   'partially_paid',
   'paid',
   'overdue',
+  'cancelled',
 ])
 
 export const billingMonthSchema = z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/, {
@@ -167,6 +168,23 @@ export const billingMonthSchema = z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/, {
 
 export const generateBillsSchema = z.object({
   billingMonth: billingMonthSchema,
+})
+
+export const generateBillForContractSchema = z.object({
+  contractId: uuidSchema,
+  billingMonth: billingMonthSchema,
+})
+
+export const scheduleTerminationSchema = z.object({
+  terminationMonth: billingMonthSchema,
+  reason: z.string().max(500).optional(),
+})
+
+export const cancelTerminationSchema = z.object({})
+
+export const processDepositRefundSchema = z.object({
+  refundAmount: z.number().min(0.01).max(99_999_999.99),
+  note: z.string().max(500).optional(),
 })
 
 export const addUtilityChargeSchema = z.object({
@@ -420,6 +438,14 @@ export type CreateFlatInput = z.infer<typeof createFlatSchema>
 export type UpdateFlatInput = z.infer<typeof updateFlatSchema>
 export type RegisterRenterInput = z.infer<typeof registerRenterSchema>
 export type GenerateBillsInput = z.infer<typeof generateBillsSchema>
+export type GenerateBillForContractInput = z.infer<
+  typeof generateBillForContractSchema
+>
+export type ScheduleTerminationInput = z.infer<typeof scheduleTerminationSchema>
+export type CancelTerminationInput = z.infer<typeof cancelTerminationSchema>
+export type ProcessDepositRefundInput = z.infer<
+  typeof processDepositRefundSchema
+>
 export type AddUtilityChargeInput = z.infer<typeof addUtilityChargeSchema>
 export type RecordPaymentInput = z.infer<typeof recordPaymentSchema>
 export type ApplyAdjustmentInput = z.infer<typeof applyAdjustmentSchema>

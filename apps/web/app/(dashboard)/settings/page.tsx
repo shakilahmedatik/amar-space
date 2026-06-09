@@ -124,7 +124,7 @@ export default function SettingsPage() {
                 onClick={() => handleLanguageChange('bn')}
                 disabled={isSavingLanguage}
                 aria-pressed={locale === 'bn'}
-                className="rounded-full min-h-[44px] px-5 font-medium"
+                className="rounded-full min-h-11 px-5 font-medium"
               >
                 বাংলা
               </Button>
@@ -134,7 +134,7 @@ export default function SettingsPage() {
                 onClick={() => handleLanguageChange('en')}
                 disabled={isSavingLanguage}
                 aria-pressed={locale === 'en'}
-                className="rounded-full min-h-[44px] px-5 font-medium"
+                className="rounded-full min-h-11 px-5 font-medium"
               >
                 English
               </Button>

@@ -350,6 +350,7 @@ export function buildApp(opts: Record<string, unknown> = {}) {
   app.register(import('./routes/system/health'), { prefix: '/api/health' })
   app.register(import('./routes/auth/auth'), { prefix: '/api/auth' })
   app.register(import('./routes/auth/register'), { prefix: '/api/register' })
+  app.register(import('./routes/auth/permissions'))
   app.register(import('./routes/system/audit'), { prefix: '/api/audit' })
   app.register(import('./routes/property/roles'), { prefix: '/api/users' })
   app.register(import('./routes/property/buildings'), {
@@ -357,6 +358,9 @@ export function buildApp(opts: Record<string, unknown> = {}) {
   })
   app.register(import('./routes/property/flats'), { prefix: '/api/flats' })
   app.register(import('./routes/property/renters'), { prefix: '/api/renters' })
+  app.register(import('./routes/property/terminations'), {
+    prefix: '/api/renters',
+  })
   app.register(import('./routes/property/registration-requests'), {
     prefix: '/api/registration-requests',
   })

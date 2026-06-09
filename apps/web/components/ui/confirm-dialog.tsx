@@ -64,7 +64,7 @@ export function ConfirmDialog({
         <AlertDialogFooter>
           <AlertDialogCancel
             onClick={onClose}
-            className="min-h-[44px] rounded-full"
+            className="min-h-11 rounded-full"
           >
             {resolvedCancelLabel}
           </AlertDialogCancel>
@@ -73,8 +73,8 @@ export function ConfirmDialog({
             disabled={loading}
             className={
               destructive
-                ? 'min-h-[44px] rounded-full bg-error-text text-on-dark opacity-100 disabled:opacity-70'
-                : 'min-h-[44px] rounded-full opacity-100 disabled:opacity-70'
+                ? 'min-h-11 rounded-full bg-error-text text-on-dark opacity-100 disabled:opacity-70'
+                : 'min-h-11 rounded-full opacity-100 disabled:opacity-70'
             }
           >
             {loading ? t('common.loading') : resolvedConfirmLabel}

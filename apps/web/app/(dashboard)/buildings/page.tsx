@@ -65,7 +65,7 @@ export default function BuildingsPage() {
         {isOwner && (
           <Button
             asChild
-            className="rounded-full min-h-[44px] bg-primary text-on-primary font-semibold"
+            className="rounded-full min-h-11 bg-primary text-on-primary font-semibold"
           >
             <Link href="/buildings/new">{t('buildings.createBuilding')}</Link>
           </Button>

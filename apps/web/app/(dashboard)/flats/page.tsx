@@ -75,7 +75,7 @@ export default function FlatsPage() {
       render: (row) => (
         <Link
           href={`/flats/${row.id}`}
-          className="inline-flex items-center min-w-[44px] min-h-[44px] text-sm font-medium text-brand-blue-deep no-underline"
+          className="inline-flex items-center min-w-[44px] min-h-11 text-sm font-medium text-brand-blue-deep no-underline"
         >
           {t('flats.viewDetail')}
         </Link>
@@ -121,7 +121,7 @@ export default function FlatsPage() {
         <h1 className="text-2xl font-bold text-ink">{t('flats.title')}</h1>
 
         {(role === 'owner' || role === 'manager') && (
-          <Button asChild className="rounded-full min-h-[44px]">
+          <Button asChild className="rounded-full min-h-11">
             <Link href="/flats/new">{t('flats.createFlat')}</Link>
           </Button>
         )}

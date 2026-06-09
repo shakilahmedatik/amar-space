@@ -134,7 +134,7 @@ export default function RecordPaymentPage() {
       <div className="mb-6">
         <Link
           href="/payments"
-          className="text-steel text-sm no-underline inline-flex items-center min-h-[44px]"
+          className="text-steel text-sm no-underline inline-flex items-center min-h-11"
         >
           ← {t('common.back')}
         </Link>
@@ -160,7 +160,7 @@ export default function RecordPaymentPage() {
             value={billId}
             onChange={(e) => setBillId(e.target.value)}
             disabled={billsLoading}
-            className={`w-full px-3 py-2.5 text-base rounded-md border bg-canvas text-ink min-h-[44px] ${
+            className={`w-full px-3 py-2.5 text-base rounded-md border bg-canvas text-ink min-h-11 ${
               errors.billId ? 'border-error-text' : 'border-hairline'
             }`}
           >
@@ -202,7 +202,7 @@ export default function RecordPaymentPage() {
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
             placeholder="0.00"
-            className={`w-full px-3 py-2.5 text-base rounded-md border bg-canvas text-ink min-h-[44px] ${
+            className={`w-full px-3 py-2.5 text-base rounded-md border bg-canvas text-ink min-h-11 ${
               errors.amount ? 'border-error-text' : 'border-hairline'
             }`}
           />
@@ -225,7 +225,7 @@ export default function RecordPaymentPage() {
             value={paymentDate}
             onChange={(e) => setPaymentDate(e.target.value)}
             max={new Date().toISOString().split('T')[0]}
-            className={`w-full px-3 py-2.5 text-base rounded-md border bg-canvas text-ink min-h-[44px] ${
+            className={`w-full px-3 py-2.5 text-base rounded-md border bg-canvas text-ink min-h-11 ${
               errors.paymentDate ? 'border-error-text' : 'border-hairline'
             }`}
           />
@@ -248,7 +248,7 @@ export default function RecordPaymentPage() {
             onChange={(e) =>
               setPaymentMethod(e.target.value as PaymentMethod | '')
             }
-            className={`w-full px-3 py-2.5 text-base rounded-md border bg-canvas text-ink min-h-[44px] ${
+            className={`w-full px-3 py-2.5 text-base rounded-md border bg-canvas text-ink min-h-11 ${
               errors.paymentMethod ? 'border-error-text' : 'border-hairline'
             }`}
           >
@@ -296,7 +296,7 @@ export default function RecordPaymentPage() {
           <Button
             type="submit"
             disabled={recordMutation.isPending}
-            className="rounded-full min-h-[44px] bg-primary text-on-primary font-semibold disabled:opacity-60"
+            className="rounded-full min-h-11 bg-primary text-on-primary font-semibold disabled:opacity-60"
           >
             {recordMutation.isPending
               ? t('common.loading')
@@ -305,7 +305,7 @@ export default function RecordPaymentPage() {
           <Button
             asChild
             variant="outline"
-            className="rounded-full min-h-[44px] text-charcoal border-hairline"
+            className="rounded-full min-h-11 text-charcoal border-hairline"
           >
             <Link href="/payments">{t('common.cancel')}</Link>
           </Button>

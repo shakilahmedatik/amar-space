@@ -31,7 +31,7 @@ export function ManagerDashboard() {
         <Button
           type="button"
           onClick={() => refetch()}
-          className="min-h-[44px] rounded-full"
+          className="min-h-11 rounded-full"
         >
           {t('dashboard.retry')}
         </Button>

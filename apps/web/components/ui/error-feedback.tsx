@@ -74,7 +74,7 @@ export function ErrorFeedback({
             type="button"
             onClick={handleDismiss}
             aria-label="Dismiss"
-            className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded border-none bg-transparent text-xl font-bold text-inherit cursor-pointer"
+            className="inline-flex min-h-11 min-w-[44px] items-center justify-center rounded border-none bg-transparent text-xl font-bold text-inherit cursor-pointer"
           >
             ×
           </button>

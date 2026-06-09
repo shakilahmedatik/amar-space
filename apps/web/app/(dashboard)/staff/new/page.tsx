@@ -90,7 +90,8 @@ export default function NewStaffPage() {
 
     if (phone.trim() && !/^01\d{9}$/.test(phone.trim())) {
       newErrors.phone =
-        t('validation.invalidPhone') || 'Phone number must be 11 digits starting with 01'
+        t('validation.invalidPhone') ||
+        'Phone number must be 11 digits starting with 01'
     }
 
     setErrors(newErrors)
@@ -181,7 +182,7 @@ export default function NewStaffPage() {
 
             <Button
               onClick={() => router.push('/staff')}
-              className="rounded-full min-h-[44px] bg-primary text-on-primary font-semibold cursor-pointer"
+              className="rounded-full min-h-11 bg-primary text-on-primary font-semibold cursor-pointer"
             >
               {t('common.back') || 'Back to Staff'}
             </Button>
@@ -294,7 +295,7 @@ export default function NewStaffPage() {
                 id="staff-role"
                 value={role}
                 onChange={(e) => setRole(e.target.value)}
-                className="w-full rounded-md border border-hairline min-h-[44px] px-3 bg-white text-ink text-sm"
+                className="w-full rounded-md border border-hairline min-h-11 px-3 bg-white text-ink text-sm"
               >
                 {roleOptions.map((opt) => (
                   <option key={opt.value} value={opt.value}>
@@ -339,7 +340,7 @@ export default function NewStaffPage() {
               <Button
                 type="submit"
                 disabled={createMutation.isPending}
-                className="rounded-full min-h-[44px] bg-primary text-on-primary font-semibold cursor-pointer"
+                className="rounded-full min-h-11 bg-primary text-on-primary font-semibold cursor-pointer"
               >
                 {createMutation.isPending
                   ? t('common.loading')
@@ -349,7 +350,7 @@ export default function NewStaffPage() {
               <Button
                 asChild
                 variant="outline"
-                className="rounded-full min-h-[44px] text-charcoal border-hairline cursor-pointer"
+                className="rounded-full min-h-11 text-charcoal border-hairline cursor-pointer"
               >
                 <Link href="/staff">{t('common.cancel')}</Link>
               </Button>

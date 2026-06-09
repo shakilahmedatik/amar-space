@@ -14,6 +14,7 @@ export const renterAccessCodes = pgTable('renter_access_codes', {
   codeHash: varchar('code_hash', { length: 255 }).notNull(),
   failedAttempts: integer('failed_attempts').notNull().default(0),
   lockedUntil: timestamp('locked_until', { withTimezone: true }),
+  expiresAt: timestamp('expires_at', { withTimezone: true }),
   createdAt: timestamp('created_at', { withTimezone: true })
     .notNull()
     .defaultNow(),

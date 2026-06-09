@@ -236,7 +236,7 @@ export default function RegisterPage() {
         <Button
           type="submit"
           disabled={isSubmitting}
-          className="w-full min-h-[44px] rounded-full mt-6 text-base font-semibold"
+          className="w-full min-h-11 rounded-full mt-6 text-base font-semibold"
           aria-busy={isSubmitting}
         >
           {isSubmitting ? t('common.loading') : t('auth.register')}

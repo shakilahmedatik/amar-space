@@ -85,6 +85,13 @@
       "when": 1781005924986,
       "tag": "0011_stiff_strong_guy",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1781022988030,
+      "tag": "0012_known_spirit",
+      "breakpoints": true
     }
   ]
 }

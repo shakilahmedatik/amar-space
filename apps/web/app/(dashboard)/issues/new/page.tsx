@@ -1,6 +1,5 @@
 'use client'
 
-import { Image } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { type FormEvent, useState } from 'react'
@@ -137,7 +136,7 @@ export default function NewIssuePage() {
                 id="issue-building"
                 value={buildingId}
                 onChange={(e) => setBuildingId(e.target.value)}
-                className={`w-full px-3 py-2 text-sm rounded-md border min-h-[44px] bg-canvas text-ink ${errors.buildingId ? 'border-error-text' : 'border-hairline'}`}
+                className={`w-full px-3 py-2 text-sm rounded-md border min-h-11 bg-canvas text-ink ${errors.buildingId ? 'border-error-text' : 'border-hairline'}`}
               >
                 <option value="">{t('issues.selectBuilding')}</option>
                 {buildingsLoading ? (
@@ -188,7 +187,7 @@ export default function NewIssuePage() {
                 maxLength={2000}
                 rows={5}
                 placeholder={t('issues.descriptionPlaceholder')}
-                className={`w-full px-3 py-2 text-sm rounded-md border min-h-[120px] resize-y font-sans ${errors.description ? 'border-error-text' : 'border-hairline'}`}
+                className={`w-full px-3 py-2 text-sm rounded-md border min-h-30 resize-y font-sans ${errors.description ? 'border-error-text' : 'border-hairline'}`}
               />
             </FormField>
             <p className="text-xs text-steel mt-1">{description.length}/2000</p>
@@ -208,7 +207,7 @@ export default function NewIssuePage() {
                 onChange={(e) =>
                   setCategory(e.target.value as IssueCategory | '')
                 }
-                className={`w-full px-3 py-2 text-sm rounded-md border min-h-[44px] bg-canvas text-ink ${errors.category ? 'border-error-text' : 'border-hairline'}`}
+                className={`w-full px-3 py-2 text-sm rounded-md border min-h-11 bg-canvas text-ink ${errors.category ? 'border-error-text' : 'border-hairline'}`}
               >
                 <option value="">{t('issues.selectCategory')}</option>
                 <option value="plumbing">{t('issues.plumbing')}</option>
@@ -235,7 +234,7 @@ export default function NewIssuePage() {
                 onChange={(e) =>
                   setPriority(e.target.value as IssuePriority | '')
                 }
-                className={`w-full px-3 py-2 text-sm rounded-md border min-h-[44px] bg-canvas text-ink ${errors.priority ? 'border-error-text' : 'border-hairline'}`}
+                className={`w-full px-3 py-2 text-sm rounded-md border min-h-11 bg-canvas text-ink ${errors.priority ? 'border-error-text' : 'border-hairline'}`}
               >
                 <option value="">{t('issues.selectPriority')}</option>
                 <option value="low">{t('issues.low')}</option>
@@ -248,7 +247,7 @@ export default function NewIssuePage() {
 
           {/* Photo Upload */}
           <div className="mb-6">
-            <label className="block text-sm font-semibold text-ink mb-1.5">
+            <label htmlFor="issue-photo-upload" className="block text-sm font-semibold text-ink mb-1.5">
               {t('issues.photoUpload') || 'ছবি সংযুক্তি (ঐচ্ছিক)'}
             </label>
             <FileUpload
@@ -264,14 +263,14 @@ export default function NewIssuePage() {
             <Button
               asChild
               variant="outline"
-              className="min-h-[44px] rounded-full border-hairline text-charcoal"
+              className="min-h-11 rounded-full border-hairline text-charcoal"
             >
               <Link href="/issues">{t('common.cancel')}</Link>
             </Button>
             <Button
               type="submit"
               disabled={createMutation.isPending}
-              className="min-h-[44px] rounded-full bg-primary text-on-primary font-semibold disabled:opacity-60"
+              className="min-h-11 rounded-full bg-primary text-on-primary font-semibold disabled:opacity-60"
             >
               {createMutation.isPending
                 ? t('common.loading')

@@ -90,7 +90,7 @@ export function FormInput({
       ref={ref}
       aria-invalid={hasError || undefined}
       className={cn(
-        'rounded-md border-hairline min-h-[44px]',
+        'rounded-md border-hairline min-h-11',
         hasError && 'border-error-text bg-error-bg',
         className,
       )}

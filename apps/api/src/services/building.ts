@@ -523,7 +523,12 @@ export class BuildingService {
     }
 
     const [data, total] = await Promise.all([
-      this.buildingRepository.list(ctx.ownerAccountId, page, pageSize, buildingIds),
+      this.buildingRepository.list(
+        ctx.ownerAccountId,
+        page,
+        pageSize,
+        buildingIds,
+      ),
       this.buildingRepository.count(ctx.ownerAccountId, buildingIds),
     ])
 

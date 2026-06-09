@@ -33,7 +33,7 @@ export function SizeSelector({ value, onChange, disabled }: SizeSelectorProps) {
           key={size}
           value={String(size)}
           className={cn(
-            'min-h-[44px] min-w-[44px] cursor-pointer rounded-md border px-4 py-2 text-sm font-medium transition-colors',
+            'min-h-11 min-w-[44px] cursor-pointer rounded-md border px-4 py-2 text-sm font-medium transition-colors',
             'flex items-center justify-center',
             'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
             'disabled:cursor-not-allowed disabled:opacity-50',

@@ -98,10 +98,7 @@ describe('Feature: amarspace-full-implementation, Property 17: Tenant data isola
     vi.restoreAllMocks()
   })
 
-  function setupApp(
-    user: AuthUser,
-    querySequence: unknown[][] = [],
-  ) {
+  function setupApp(user: AuthUser, querySequence: unknown[][] = []) {
     const mockDb = createSequentialMockDb(querySequence)
 
     app.decorateRequest('user', null as unknown as AuthUser)
