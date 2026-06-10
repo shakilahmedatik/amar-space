@@ -341,6 +341,7 @@ async function renterRoutes(fastify: FastifyInstance) {
             selfiePhotoUrl: z.string().nullable(),
             ownerAccountId: z.string(),
             accessCode: z.string().nullable(),
+            hasAccessCode: z.boolean(),
             contractStatus: z.string().nullable(),
             scheduledTerminationDate: z.string().nullable(),
             terminationReason: z.string().nullable(),

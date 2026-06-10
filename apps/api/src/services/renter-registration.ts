@@ -63,6 +63,7 @@ export interface RenterResult {
   startDate?: string | null
   depositBalance?: number | null
   accessCode?: string | null
+  hasAccessCode?: boolean
   contractStatus?: string | null
   scheduledTerminationDate?: string | null
   terminationReason?: string | null
@@ -379,7 +380,7 @@ export class RenterRegistrationService {
     const flat = activeContract?.flat
     const building = flat?.building
 
-    const _accessCodeRecord = await this.db.query.renterAccessCodes.findFirst({
+    const accessCodeRecord = await this.db.query.renterAccessCodes.findFirst({
       where: eq(renterAccessCodes.renterId, renterId),
     })
 
@@ -415,6 +416,7 @@ export class RenterRegistrationService {
         ? Number.parseFloat(activeContract.remainingDepositBalance)
         : null,
       accessCode: null,
+      hasAccessCode: !!accessCodeRecord,
       contractStatus: activeContract?.status ?? null,
       scheduledTerminationDate:
         activeContract?.scheduledTerminationDate ?? null,

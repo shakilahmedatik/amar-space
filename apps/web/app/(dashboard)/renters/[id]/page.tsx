@@ -7,8 +7,6 @@ import {
   Check,
   CheckCircle2,
   Copy,
-  Eye,
-  EyeOff,
   KeyRound,
   RefreshCw,
   XCircle,
@@ -355,7 +353,6 @@ function InfoField({ label, value }: { label: string; value: string }) {
 /** Component for displaying and managing renter portal access codes */
 function PortalAccessCodeCard({ renter }: { renter: Renter }) {
   const { t } = useTranslation()
-  const [showCode, setShowCode] = useState(false)
   const [copied, setCopied] = useState(false)
   const [confirmOpen, setConfirmOpen] = useState(false)
   const [generatedCode, setGeneratedCode] = useState<string | null>(null)
@@ -372,14 +369,16 @@ function PortalAccessCodeCard({ renter }: { renter: Renter }) {
     resetMutation.mutate(renter.id, {
       onSuccess: (data) => {
         setGeneratedCode(data.code)
-        setShowCode(true)
         setConfirmOpen(false)
       },
     })
   }
 
-  const codeToShow = renter.accessCode || '------'
-  const displayCode = showCode ? codeToShow : '••••••'
+  const displayCode = generatedCode
+    ? generatedCode
+    : renter.hasAccessCode
+      ? '••••••'
+      : '------'
 
   return (
     <Card className="bg-canvas rounded-xl border border-hairline mb-6 overflow-hidden">
@@ -453,30 +452,25 @@ function PortalAccessCodeCard({ renter }: { renter: Renter }) {
               <span className="text-xl font-mono font-semibold tracking-wider text-ink">
                 {displayCode}
               </span>
-              {renter.accessCode && (
+              {generatedCode && (
                 <Button
                   variant="ghost"
                   size="icon"
-                  onClick={() => setShowCode(!showCode)}
+                  onClick={() => handleCopy(generatedCode)}
                   className="h-8 w-8 text-steel hover:text-ink rounded-full"
+                  title={t('renters.copyCode')}
                 >
-                  {showCode ? (
-                    <EyeOff className="h-4 w-4" />
-                  ) : (
-                    <Eye className="h-4 w-4" />
-                  )}
-                  <span className="sr-only">
-                    {showCode ? t('renters.hideCode') : t('renters.showCode')}
-                  </span>
+                  <Copy className="h-4 w-4" />
+                  <span className="sr-only">{t('renters.copyCode')}</span>
                 </Button>
               )}
             </div>
           </div>
 
-          {renter.accessCode && (
+          {generatedCode && (
             <Button
               variant="secondary"
-              onClick={() => handleCopy(renter.accessCode!)}
+              onClick={() => handleCopy(generatedCode)}
               className="min-h-11 rounded-full text-xs font-medium self-start sm:self-auto"
             >
               {copied ? (

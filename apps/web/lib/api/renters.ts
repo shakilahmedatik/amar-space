@@ -24,6 +24,7 @@ export interface Renter {
   startDate: string
   depositBalance: number
   accessCode: string | null
+  hasAccessCode: boolean
   contractStatus: string | null
   scheduledTerminationDate: string | null
   terminationReason: string | null
