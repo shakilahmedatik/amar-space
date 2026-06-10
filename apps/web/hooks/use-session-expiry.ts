@@ -18,7 +18,7 @@ const SESSION_EXPIRED_MESSAGE = 'সেশনের মেয়াদ শেষ
 /**
  * Hook that periodically checks portal session validity.
  * When the session expires (after 30 minutes of inactivity),
- * redirects the renter back to `/f/{flatSlug}` with a session expired message.
+ * redirects the renter back to `/portal/{flatSlug}` with a session expired message.
  *
  * @param flatSlug - The flat slug to redirect back to on session expiry
  * @param enabled - Whether session checking is active (default: true)
@@ -46,7 +46,7 @@ export function useSessionExpiry(flatSlug: string, enabled = true): void {
 
       if (!data.valid) {
         // Session expired — redirect to flat portal with expired message
-        const redirectUrl = `/f/${flatSlug}?session_expired=true`
+        const redirectUrl = `/portal/${flatSlug}?session_expired=true`
         router.replace(redirectUrl)
       }
     } catch {

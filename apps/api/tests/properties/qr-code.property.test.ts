@@ -12,7 +12,7 @@ import { QrCodeService } from '../../src/services/qr-code'
  *
  * For any valid flat slug and configured frontend URL, generating a QR code and then
  * decoding the resulting PNG image SHALL yield the original URL in the format
- * `{frontend_url}/f/{slug}`.
+ * `{frontend_url}/portal/{slug}`.
  *
  */
 
@@ -34,7 +34,7 @@ function decodeQrFromPngBuffer(pngBuffer: Buffer): string | null {
 // --- Property 1: QR Code Round-Trip ---
 
 describe('Feature: flat-qr-code-generation, Property 1: QR Code Round-Trip', () => {
-  it('generating a QR code for any flat slug and decoding the PNG SHALL yield the original URL {frontend_url}/f/{slug}', async () => {
+  it('generating a QR code for any flat slug and decoding the PNG SHALL yield the original URL {frontend_url}/portal/{slug}', async () => {
     const service = new QrCodeService(TEST_BASE_URL)
 
     // Generate valid slugs (lowercase alphanumeric + hyphens, 1-100 chars)
@@ -47,7 +47,7 @@ describe('Feature: flat-qr-code-generation, Property 1: QR Code Round-Trip', () 
 
     await fc.assert(
       fc.asyncProperty(slugArb, async (slug) => {
-        const expectedUrl = `${TEST_BASE_URL}/f/${slug}`
+        const expectedUrl = `${TEST_BASE_URL}/portal/${slug}`
 
         // Generate QR code PNG buffer
         const pngBuffer = await service.generateQrCode(slug)
@@ -261,8 +261,8 @@ describe('Feature: flat-qr-code-generation, Property 5: Metadata Response Comple
           // Verify buildingName equals the input buildingName
           expect(result.buildingName).toBe(buildingName)
 
-          // Verify encodedUrl equals {frontend_url}/f/{slug}
-          expect(result.encodedUrl).toBe(`${TEST_BASE_URL}/f/${flat.slug}`)
+          // Verify encodedUrl equals {frontend_url}/portal/{slug}
+          expect(result.encodedUrl).toBe(`${TEST_BASE_URL}/portal/${flat.slug}`)
 
           // Verify imageBase64 starts with data:image/png;base64,
           expect(result.imageBase64).toMatch(/^data:image\/png;base64,/)
@@ -376,7 +376,7 @@ describe('Feature: flat-qr-code-generation, Property 4: Bulk Generation Produces
 
             const pngBuffer = entry!.getData()
             const decodedUrl = decodeQrFromPngBuffer(pngBuffer)
-            const expectedUrl = `${TEST_BASE_URL}/f/${flat.slug}`
+            const expectedUrl = `${TEST_BASE_URL}/portal/${flat.slug}`
             expect(decodedUrl).toBe(expectedUrl)
           }
         },

@@ -45,7 +45,7 @@ export class QrCodeService {
    *
    */
   buildFlatUrl(slug: string): string {
-    return `${this.frontendUrl}/f/${slug}`
+    return `${this.frontendUrl}/portal/${slug}`
   }
 
   /**

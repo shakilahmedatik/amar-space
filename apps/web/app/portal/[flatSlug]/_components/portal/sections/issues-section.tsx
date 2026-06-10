@@ -241,7 +241,7 @@ export function IssuesSection({ flatSlug, buildingId }: IssuesSectionProps) {
             <Button
               type="submit"
               disabled={isSubmitting}
-              className="w-full bg-primary hover:bg-primary/95 text-white font-semibold rounded-lg py-3 text-sm min-h-11 cursor-pointer"
+              className="w-full bg-primary hover:bg-primary/95 text-white font-semibold rounded-full py-3 text-sm min-h-11 cursor-pointer"
             >
               {isSubmitting
                 ? t('issues.submitting') || 'জমা দেওয়া হচ্ছে...'

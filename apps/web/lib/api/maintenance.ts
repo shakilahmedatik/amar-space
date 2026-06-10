@@ -119,7 +119,7 @@ export async function createMaintenanceRequest(
   const headers: Record<string, string> = {}
   if (
     typeof window !== 'undefined' &&
-    window.location.pathname.startsWith('/f/')
+    window.location.pathname.startsWith('/portal/')
   ) {
     headers['x-portal-request'] = 'true'
   }

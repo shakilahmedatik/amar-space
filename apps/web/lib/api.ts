@@ -32,7 +32,7 @@ export async function apiFetch<T>(
   // Automatically attach x-portal-request header when fetching from a flat portal page
   if (
     typeof window !== 'undefined' &&
-    window.location.pathname.startsWith('/f/')
+    window.location.pathname.startsWith('/portal/')
   ) {
     headers['x-portal-request'] = 'true'
   }

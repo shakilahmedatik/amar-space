@@ -17,13 +17,13 @@ const TEST_BASE_URL = 'https://app.amarspace.com'
 
 describe('QrCodeService', () => {
   describe('buildFlatUrl', () => {
-    it('should return {frontendUrl}/f/{slug} format', () => {
+    it('should return {frontendUrl}/portal/{slug} format', () => {
       const service = new QrCodeService(TEST_BASE_URL)
       const slug = 'building-a-flat-4a'
 
       const url = service.buildFlatUrl(slug)
 
-      expect(url).toBe(`${TEST_BASE_URL}/f/${slug}`)
+      expect(url).toBe(`${TEST_BASE_URL}/portal/${slug}`)
     })
   })
 
@@ -96,7 +96,7 @@ describe('QrCodeService', () => {
       expect(metadata).toHaveProperty('buildingName', buildingName)
       expect(metadata).toHaveProperty(
         'encodedUrl',
-        `${TEST_BASE_URL}/f/${flat.slug}`,
+        `${TEST_BASE_URL}/portal/${flat.slug}`,
       )
       expect(metadata).toHaveProperty('imageBase64')
     })

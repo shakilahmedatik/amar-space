@@ -260,7 +260,7 @@ describe('Integration: QR Code Endpoints', () => {
       expect(body.flatId).toBe(FLAT_ID)
       expect(body.flatNumber).toBe('101')
       expect(body.buildingName).toBe('Test Building')
-      expect(body.encodedUrl).toContain(`/f/test-slug`)
+      expect(body.encodedUrl).toContain(`/portal/test-slug`)
       expect(body.imageBase64).toContain('data:image/png;base64,')
     })
 
