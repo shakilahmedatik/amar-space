@@ -11,6 +11,7 @@ import { FormField, FormInput } from '@/components/ui/form-field'
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton'
 import { useSession } from '@/contexts/session-context'
 import { useBuildings } from '@/hooks/use-buildings'
+import { useCreateNoticeTemplate } from '@/hooks/use-notice-templates'
 import {
   useDeleteNotice,
   useNotice,
@@ -52,11 +53,14 @@ export default function NoticeDetailPage() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
   const [successMessage, setSuccessMessage] = useState('')
+  const [saveTemplateName, setSaveTemplateName] = useState('')
+  const [showSaveTemplate, setShowSaveTemplate] = useState(false)
 
   const { data: notice, isLoading, isError, error } = useNotice(noticeId)
   const updateMutation = useUpdateNotice(noticeId)
   const deleteMutation = useDeleteNotice(noticeId)
   const pinMutation = useToggleNoticePin(noticeId)
+  const createTemplateMutation = useCreateNoticeTemplate()
   const { data: buildingsData } = useBuildings(1, 100)
   // Load flats when editing with specific_flat audience
   useEffect(() => {
@@ -186,6 +190,29 @@ export default function NoticeDetailPage() {
       })
     }
   }
+  async function handleSaveTemplate() {
+    if (!notice || !saveTemplateName.trim()) return
+
+    try {
+      await createTemplateMutation.mutateAsync({
+        name: saveTemplateName.trim(),
+        title: notice.title,
+        body: notice.body,
+        targetAudience: notice.targetAudience,
+      })
+      setShowSaveTemplate(false)
+      setSaveTemplateName('')
+      setSuccessMessage(t('notices.templateSaved'))
+    } catch (err) {
+      setEditErrors({
+        form:
+          err instanceof Error ? err.message : t('notices.templateSaveError'),
+      })
+    }
+  }
+
+  const isExpired = notice?.expiresAt && new Date(notice.expiresAt) < new Date()
+
   // Owner can edit/delete any notice; Manager can edit/delete only their own
   const canEdit =
     role === 'owner' || (role === 'manager' && notice?.authorId === user?.id)
@@ -244,6 +271,11 @@ export default function NoticeDetailPage() {
                         📌 {t('notices.pinned')}
                       </span>
                     )}
+                    {isExpired && (
+                      <span className="inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full bg-error-bg text-error-text">
+                        {t('notices.expired')}
+                      </span>
+                    )}
                   </div>
                 </div>
 
@@ -292,6 +324,16 @@ export default function NoticeDetailPage() {
                       {new Date(notice.createdAt).toLocaleDateString()}
                     </p>
                   </div>
+                  {notice.expiresAt && (
+                    <div>
+                      <p className="text-xs font-medium text-steel mb-1">
+                        {t('notices.expiresAt')}
+                      </p>
+                      <p className="text-base text-ink">
+                        {new Date(notice.expiresAt).toLocaleDateString()}
+                      </p>
+                    </div>
+                  )}
                 </div>
 
                 {/* Notice Body */}
@@ -560,7 +602,69 @@ export default function NoticeDetailPage() {
                       {t('common.delete')}
                     </Button>
                   )}
+
+                  {/* Save as Template */}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setShowSaveTemplate(true)}
+                    className="min-h-11 rounded-full border-brand-blue-deep text-brand-blue-deep hover:bg-brand-blue-200"
+                  >
+                    {t('notices.saveAsTemplate')}
+                  </Button>
                 </div>
+
+                {/* Save as Template Inline Form */}
+                {showSaveTemplate && (
+                  <div className="mt-4 pt-4 border-t border-hairline">
+                    <p className="text-sm font-medium text-ink-strong mb-2">
+                      {t('notices.saveTemplateDescription')}
+                    </p>
+                    <div className="flex gap-3 items-end">
+                      <div className="flex-1">
+                        <FormField
+                          label={t('notices.templateName')}
+                          required
+                          htmlFor="template-name"
+                        >
+                          <FormInput
+                            id="template-name"
+                            type="text"
+                            value={saveTemplateName}
+                            onChange={(e) =>
+                              setSaveTemplateName(e.target.value)
+                            }
+                            placeholder={t('notices.templateNamePlaceholder')}
+                          />
+                        </FormField>
+                      </div>
+                      <Button
+                        type="button"
+                        onClick={handleSaveTemplate}
+                        disabled={
+                          createTemplateMutation.isPending ||
+                          !saveTemplateName.trim()
+                        }
+                        className="min-h-11 rounded-full bg-primary text-on-primary font-semibold"
+                      >
+                        {createTemplateMutation.isPending
+                          ? t('common.loading')
+                          : t('common.save')}
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => {
+                          setShowSaveTemplate(false)
+                          setSaveTemplateName('')
+                        }}
+                        className="min-h-11 rounded-full"
+                      >
+                        {t('common.cancel')}
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
           )}

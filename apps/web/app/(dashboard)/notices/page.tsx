@@ -8,6 +8,7 @@ import { DataTable, type DataTableColumn } from '@/components/ui/data-table'
 import { ErrorFeedback } from '@/components/ui/error-feedback'
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton'
 import { useSession } from '@/contexts/session-context'
+import { useCreateNoticeTemplate } from '@/hooks/use-notice-templates'
 import { useNotices } from '@/hooks/use-notices'
 import type { NoticeListItem, NoticeTargetAudience } from '@/lib/api-client'
 import { useTranslation } from '@/lib/i18n'
@@ -15,12 +16,12 @@ import { useTranslation } from '@/lib/i18n'
 /**
  * Notice list page — /notices
  * Displays paginated list of notices with pinned notices at top.
- * Filtered by target audience. Owner/Manager can create new notices.
+ * Supports Active/Archived tabs, target audience filter, and template creation.
  */
 export default function NoticesPage() {
   const { role } = useSession()
   const { t } = useTranslation()
-  const _router = useRouter()
+  const router = useRouter()
   const [page, setPage] = useState(1)
 
   // Filter state
@@ -28,11 +29,16 @@ export default function NoticesPage() {
     NoticeTargetAudience | ''
   >('')
   const [pinnedFilter, setPinnedFilter] = useState<boolean | ''>('')
+  const [statusFilter, setStatusFilter] = useState<'active' | 'archived'>(
+    'active',
+  )
+  const createTemplateMutation = useCreateNoticeTemplate()
   const { data, isLoading, isError, error } = useNotices({
     page,
     pageSize: 50,
     targetAudience: audienceFilter || undefined,
     pinned: pinnedFilter !== '' ? pinnedFilter : undefined,
+    status: statusFilter,
   })
 
   const handleFilterChange = useCallback((key: string, value: string) => {
@@ -87,6 +93,23 @@ export default function NoticesPage() {
     pinned: pinnedFilter === '' ? '' : String(pinnedFilter),
   }
 
+  function handleUseAsTemplate(notice: NoticeListItem) {
+    const name = `${notice.title} ${t('notices.templateSuffix')}`
+    createTemplateMutation.mutate(
+      {
+        name,
+        title: notice.title,
+        body: notice.body || '',
+        targetAudience: notice.targetAudience,
+      },
+      {
+        onSuccess: () => {
+          router.push('/notices/templates')
+        },
+      },
+    )
+  }
+
   const columns: DataTableColumn<NoticeListItem>[] = [
     {
       key: 'title',
@@ -128,6 +151,16 @@ export default function NoticesPage() {
       width: '140px',
     },
     {
+      key: 'expiresAt',
+      header: t('notices.expiresAt'),
+      render: (row) => (
+        <span className="text-[0.8125rem] text-steel">
+          {row.expiresAt ? new Date(row.expiresAt).toLocaleDateString() : '—'}
+        </span>
+      ),
+      width: '110px',
+    },
+    {
       key: 'createdAt',
       header: t('notices.createdAt'),
       render: (row) => (
@@ -137,6 +170,26 @@ export default function NoticesPage() {
       ),
       width: '110px',
     },
+    ...(statusFilter === 'archived'
+      ? [
+          {
+            key: 'actions' as string,
+            header: '',
+            render: (row: NoticeListItem) => (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => handleUseAsTemplate(row)}
+                className="rounded-full text-xs"
+              >
+                {t('notices.useAsTemplate')}
+              </Button>
+            ),
+            width: '140px',
+          },
+        ]
+      : []),
   ]
 
   return (
@@ -149,19 +202,66 @@ export default function NoticesPage() {
         />
       )}
 
-      <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
+      <div className="flex items-center justify-between mb-4 flex-wrap gap-4">
         <h1 className="text-2xl font-bold text-ink-strong">
           {t('notices.title')}
         </h1>
 
-        {canCreate && (
-          <Button
-            asChild
-            className="min-h-11 rounded-full bg-primary text-on-primary font-semibold"
-          >
-            <Link href="/notices/new">{t('notices.createNotice')}</Link>
-          </Button>
-        )}
+        <div className="flex items-center gap-3">
+          {canCreate && (
+            <>
+              <Button
+                asChild
+                variant="outline"
+                className="min-h-9 rounded-full"
+              >
+                <Link href="/notices/templates">
+                  {t('notices.manageTemplates')}
+                </Link>
+              </Button>
+              <Button
+                asChild
+                className="min-h-11 rounded-full bg-primary text-on-primary font-semibold"
+              >
+                <Link href="/notices/new">{t('notices.createNotice')}</Link>
+              </Button>
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* Status Tabs */}
+      <div className="flex gap-1 mb-4">
+        <button
+          type="button"
+          onClick={() => {
+            setStatusFilter('active')
+            setPage(1)
+          }}
+          className={[
+            'px-4 py-1.5 text-sm font-medium rounded-full transition-colors',
+            statusFilter === 'active'
+              ? 'bg-primary text-on-primary'
+              : 'bg-hairline text-ink hover:bg-steel/20',
+          ].join(' ')}
+        >
+          {t('notices.active')}
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            setStatusFilter('archived')
+            setPage(1)
+          }}
+          className={[
+            'px-4 py-1.5 text-sm font-medium rounded-full transition-colors',
+            statusFilter === 'archived'
+              ? 'bg-primary text-on-primary'
+              : 'bg-hairline text-ink hover:bg-steel/20',
+          ].join(' ')}
+        >
+          {t('notices.archived')}
+        </button>
       </div>
 
       {isLoading ? (

@@ -92,6 +92,13 @@
       "when": 1781022988030,
       "tag": "0012_known_spirit",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1781029868805,
+      "tag": "0013_pale_deathbird",
+      "breakpoints": true
     }
   ]
 }

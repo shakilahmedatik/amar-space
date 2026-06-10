@@ -287,6 +287,8 @@ export const noticeTargetEnum = z.enum([
   'managers_only',
 ])
 
+export const expiryDateTimeSchema = z.string().optional()
+
 export const createNoticeSchema = z
   .object({
     title: z.string().min(1).max(200),
@@ -295,6 +297,7 @@ export const createNoticeSchema = z
     targetBuildingId: uuidSchema.optional(),
     targetFlatId: uuidSchema.optional(),
     isPinned: z.boolean().default(false),
+    expiresAt: expiryDateTimeSchema,
   })
   .refine(
     (data) => {
@@ -327,6 +330,23 @@ export const updateNoticeSchema = z.object({
   targetAudience: noticeTargetEnum.optional(),
   targetBuildingId: uuidSchema.optional().nullable(),
   targetFlatId: uuidSchema.optional().nullable(),
+  expiresAt: z.string().optional().nullable(),
+})
+
+// ─── Notice Template Schemas ─────────────────────────────────────────────────
+
+export const createNoticeTemplateSchema = z.object({
+  name: z.string().min(1).max(200),
+  title: z.string().min(1).max(200),
+  body: z.string().min(1).max(5000),
+  targetAudience: noticeTargetEnum,
+})
+
+export const updateNoticeTemplateSchema = z.object({
+  name: z.string().min(1).max(200).optional(),
+  title: z.string().min(1).max(200).optional(),
+  body: z.string().min(1).max(5000).optional(),
+  targetAudience: noticeTargetEnum.optional(),
 })
 
 // ─── File Upload Schemas ────────────────────────────────────────────────────
@@ -463,6 +483,12 @@ export type UpdateIssueStatusInput = z.infer<typeof updateIssueStatusSchema>
 export type AssignIssueInput = z.infer<typeof assignIssueSchema>
 export type CreateNoticeInput = z.infer<typeof createNoticeSchema>
 export type UpdateNoticeInput = z.infer<typeof updateNoticeSchema>
+export type CreateNoticeTemplateInput = z.infer<
+  typeof createNoticeTemplateSchema
+>
+export type UpdateNoticeTemplateInput = z.infer<
+  typeof updateNoticeTemplateSchema
+>
 export type FileUploadInput = z.infer<typeof fileUploadSchema>
 export type AuditLogQueryInput = z.infer<typeof auditLogQuerySchema>
 export type CreateStaffInput = z.infer<typeof createStaffSchema>

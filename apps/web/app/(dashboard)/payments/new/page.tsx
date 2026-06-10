@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { ErrorFeedback } from '@/components/ui/error-feedback'
 import { useRecordPayment, useUnpaidBills } from '@/hooks/use-payments'
@@ -118,6 +118,14 @@ export default function RecordPaymentPage() {
     ? Number(selectedBill.totalAmount) - Number(selectedBill.paidAmount)
     : null
 
+  useEffect(() => {
+    if (remainingBalance !== null && remainingBalance > 0) {
+      setAmount(remainingBalance.toFixed(2))
+    } else {
+      setAmount('')
+    }
+  }, [remainingBalance])
+
   return (
     <>
       {successMessage && (
@@ -224,7 +232,7 @@ export default function RecordPaymentPage() {
             type="date"
             value={paymentDate}
             onChange={(e) => setPaymentDate(e.target.value)}
-            max={new Date().toISOString().split('T')[0]}
+            max={new Date().toLocaleDateString('en-CA')}
             className={`w-full px-3 py-2.5 text-base rounded-md border bg-canvas text-ink min-h-11 ${
               errors.paymentDate ? 'border-error-text' : 'border-hairline'
             }`}

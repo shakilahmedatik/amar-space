@@ -98,6 +98,7 @@ async function paymentRoutes(fastify: FastifyInstance) {
               z.object({
                 id: z.string(),
                 billId: z.string(),
+                receiptReference: z.string(),
                 amount: z.number(),
                 paymentDate: z.string(),
                 paymentMethod: z.enum([
@@ -154,6 +155,7 @@ async function paymentRoutes(fastify: FastifyInstance) {
         data: result.data.map((p) => ({
           id: p.id,
           billId: p.billId,
+          receiptReference: p.receiptReference,
           amount: Number.parseFloat(p.amount),
           paymentDate: p.paymentDate,
           paymentMethod: p.paymentMethod as
@@ -201,6 +203,7 @@ async function paymentRoutes(fastify: FastifyInstance) {
           201: z.object({
             id: z.string(),
             billId: z.string(),
+            receiptReference: z.string(),
             amount: z.number(),
             paymentDate: z.string(),
             paymentMethod: z.enum([
@@ -235,6 +238,7 @@ async function paymentRoutes(fastify: FastifyInstance) {
       return reply.status(201).send({
         id: payment.id,
         billId: payment.billId,
+        receiptReference: payment.receiptReference,
         amount: Number.parseFloat(payment.amount),
         paymentDate: payment.paymentDate,
         paymentMethod: payment.paymentMethod as
@@ -276,6 +280,7 @@ async function paymentRoutes(fastify: FastifyInstance) {
           200: z.object({
             id: z.string(),
             billId: z.string(),
+            receiptReference: z.string(),
             amount: z.number(),
             paymentDate: z.string(),
             paymentMethod: z.enum([
@@ -303,6 +308,7 @@ async function paymentRoutes(fastify: FastifyInstance) {
       return reply.status(200).send({
         id: payment.id,
         billId: payment.billId,
+        receiptReference: payment.receiptReference,
         amount: Number.parseFloat(payment.amount),
         paymentDate: payment.paymentDate,
         paymentMethod: payment.paymentMethod as

@@ -1,13 +1,14 @@
 'use client'
 
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { type FormEvent, useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { ErrorFeedback } from '@/components/ui/error-feedback'
 import { FormField, FormInput } from '@/components/ui/form-field'
 import { useBuildings } from '@/hooks/use-buildings'
+import { useNoticeTemplates } from '@/hooks/use-notice-templates'
 import { useCreateNotice } from '@/hooks/use-notices'
 import type { NoticeTargetAudience } from '@/lib/api-client'
 import { fetchFlats } from '@/lib/api-client'
@@ -16,7 +17,8 @@ import { useTranslation } from '@/lib/i18n'
 /**
  * New notice form — /notices/new
  * Accessible by Owner and Manager roles.
- * Title (max 200 chars), body (max 5000 chars), target audience, building/flat selection.
+ * Title (max 200 chars), body (max 5000 chars), target audience, building/flat selection,
+ * optional expiry date, and template pre-fill.
  */
 export default function NewNoticePage() {
   const { t } = useTranslation()
@@ -29,6 +31,8 @@ export default function NewNoticePage() {
   >('')
   const [targetBuildingId, setTargetBuildingId] = useState('')
   const [targetFlatId, setTargetFlatId] = useState('')
+  const [expiresAt, setExpiresAt] = useState('')
+  const [selectedTemplateId, setSelectedTemplateId] = useState('')
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [successMessage, setSuccessMessage] = useState('')
 
@@ -40,6 +44,23 @@ export default function NewNoticePage() {
 
   const createMutation = useCreateNotice()
   const { data: buildingsData } = useBuildings(1, 100)
+  const { data: templatesData } = useNoticeTemplates()
+  const searchParams = useSearchParams()
+
+  // Pre-fill from template if templateId is in query params
+  useEffect(() => {
+    const templateId = searchParams.get('templateId')
+    if (!templateId || !templatesData?.data) return
+
+    const template = templatesData.data.find((t) => t.id === templateId)
+    if (!template) return
+
+    setSelectedTemplateId(template.id)
+    setTitle(template.title)
+    setBody(template.body)
+    setTargetAudience(template.targetAudience as NoticeTargetAudience | '')
+  }, [searchParams, templatesData])
+
   // Load flats when building is selected for specific_flat audience
   useEffect(() => {
     async function loadFlats() {
@@ -66,6 +87,21 @@ export default function NewNoticePage() {
     }
     loadFlats()
   }, [targetAudience, targetBuildingId])
+
+  function handleTemplateChange(templateId: string) {
+    setSelectedTemplateId(templateId)
+    if (!templateId || !templatesData?.data) return
+
+    const template = templatesData.data.find((t) => t.id === templateId)
+    if (!template) return
+
+    setTitle(template.title)
+    setBody(template.body)
+    setTargetAudience(template.targetAudience as NoticeTargetAudience | '')
+    setTargetBuildingId('')
+    setTargetFlatId('')
+    setFlatOptions([])
+  }
 
   function validate(): boolean {
     const newErrors: Record<string, string> = {}
@@ -119,6 +155,7 @@ export default function NewNoticePage() {
             : undefined,
         targetFlatId:
           targetAudience === 'specific_flat' ? targetFlatId : undefined,
+        expiresAt: expiresAt || undefined,
       })
       setSuccessMessage(t('notices.createSuccess'))
       setTimeout(() => {
@@ -163,6 +200,30 @@ export default function NewNoticePage() {
           )}
 
           <form onSubmit={handleSubmit}>
+            {/* Template Selector */}
+            {templatesData?.data && templatesData.data.length > 0 && (
+              <div className="mb-5">
+                <FormField
+                  label={t('notices.startFromTemplate')}
+                  htmlFor="notice-template"
+                >
+                  <select
+                    id="notice-template"
+                    value={selectedTemplateId}
+                    onChange={(e) => handleTemplateChange(e.target.value)}
+                    className="w-full px-3 py-2 text-sm rounded-md border min-h-11 bg-canvas border-hairline"
+                  >
+                    <option value="">{t('notices.selectTemplate')}</option>
+                    {templatesData.data.map((tmpl) => (
+                      <option key={tmpl.id} value={tmpl.id}>
+                        {tmpl.name}
+                      </option>
+                    ))}
+                  </select>
+                </FormField>
+              </div>
+            )}
+
             {/* Title */}
             <div className="mb-5">
               <FormField
@@ -318,6 +379,21 @@ export default function NewNoticePage() {
                 </FormField>
               </div>
             )}
+
+            {/* Expiry Date */}
+            <div className="mb-5">
+              <FormField label={t('notices.expiresAt')} htmlFor="notice-expiry">
+                <FormInput
+                  id="notice-expiry"
+                  type="datetime-local"
+                  value={expiresAt}
+                  onChange={(e) => setExpiresAt(e.target.value)}
+                />
+              </FormField>
+              <p className="text-xs text-steel mt-1">
+                {t('notices.expiresAtHint')}
+              </p>
+            </div>
 
             {/* Submit */}
             <div className="flex gap-3 justify-end">

@@ -162,7 +162,9 @@ export function addUtilityCharge(
 }
 
 export function fetchUnpaidBills(): Promise<BillListResponse> {
-  return apiFetch<BillListResponse>('/api/bills?status=unpaid&pageSize=100')
+  return apiFetch<BillListResponse>(
+    '/api/bills?status=unpaid&status=partially_paid&status=overdue&pageSize=100',
+  )
 }
 
 export function deleteBill(id: string): Promise<void> {

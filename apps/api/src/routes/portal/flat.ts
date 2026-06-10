@@ -9,7 +9,7 @@ import {
   renterAccessCodes,
 } from '@repo/db'
 import { isValidFlatSlug, registrationFormSchema } from '@repo/shared/portal'
-import { and, asc, desc, eq, or } from 'drizzle-orm'
+import { and, asc, desc, eq, or, sql } from 'drizzle-orm'
 import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
 import { compareAccessCode, hashAccessCode } from '../../utils/access-code-hash'
@@ -266,6 +266,7 @@ async function portalFlatRoutes(fastify: FastifyInstance) {
 
       // Query public notices for the flat's building
       // Public notices are: all_renters OR specific_building targeting this building
+      // Exclude expired notices
       const buildingNotices = await fastify.db
         .select({
           id: notices.id,
@@ -285,6 +286,7 @@ async function portalFlatRoutes(fastify: FastifyInstance) {
                 eq(notices.targetBuildingId, building.id),
               ),
             ),
+            sql`${notices.expiresAt} IS NULL OR ${notices.expiresAt} > NOW()`,
           ),
         )
         .orderBy(desc(notices.createdAt))

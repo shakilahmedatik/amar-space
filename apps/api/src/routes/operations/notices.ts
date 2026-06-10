@@ -98,6 +98,7 @@ async function noticeRoutes(fastify: FastifyInstance) {
             .enum(['true', 'false'])
             .transform((v) => v === 'true')
             .optional(),
+          status: z.enum(['active', 'archived', 'all']).optional(),
         }),
         response: {
           200: z.object({
@@ -108,6 +109,9 @@ async function noticeRoutes(fastify: FastifyInstance) {
                 body: z.string(),
                 targetAudience: z.string(),
                 isPinned: z.boolean(),
+                authorId: z.string(),
+                authorName: z.string().nullable(),
+                expiresAt: dateTimeResponseSchema.nullable(),
                 createdAt: dateTimeResponseSchema,
                 updatedAt: dateTimeResponseSchema,
               }),
@@ -122,17 +126,20 @@ async function noticeRoutes(fastify: FastifyInstance) {
       },
     },
     async (request, reply) => {
-      const { page, pageSize, targetAudience, isPinned } = request.query as {
-        page: number
-        pageSize: number
-        targetAudience?: string
-        isPinned?: boolean
-      }
+      const { page, pageSize, targetAudience, isPinned, status } =
+        request.query as {
+          page: number
+          pageSize: number
+          targetAudience?: string
+          isPinned?: boolean
+          status?: 'active' | 'archived' | 'all'
+        }
       const ctx = buildRequestContext(request as never)
 
       const result = await noticeService.listNotices(ctx, {
         targetAudience,
         isPinned,
+        status,
         page,
         pageSize,
       })
@@ -170,6 +177,7 @@ async function noticeRoutes(fastify: FastifyInstance) {
             targetBuildingId: z.string().nullable(),
             targetFlatId: z.string().nullable(),
             isPinned: z.boolean(),
+            expiresAt: dateTimeResponseSchema.nullable(),
             createdAt: dateTimeResponseSchema,
           }),
           400: errorResponseSchema,
@@ -220,6 +228,7 @@ async function noticeRoutes(fastify: FastifyInstance) {
             targetBuildingId: z.string().nullable(),
             targetFlatId: z.string().nullable(),
             isPinned: z.boolean(),
+            expiresAt: dateTimeResponseSchema.nullable(),
             authorId: z.string(),
             createdAt: dateTimeResponseSchema,
             updatedAt: dateTimeResponseSchema,
@@ -273,6 +282,7 @@ async function noticeRoutes(fastify: FastifyInstance) {
             targetBuildingId: z.string().nullable(),
             targetFlatId: z.string().nullable(),
             isPinned: z.boolean(),
+            expiresAt: dateTimeResponseSchema.nullable(),
             updatedAt: dateTimeResponseSchema,
           }),
           400: errorResponseSchema,

@@ -4,6 +4,7 @@ import {
   flats,
   managerAssignments,
   notices,
+  users,
 } from '@repo/db'
 import { NOTICE_TARGETS, type NoticeTarget } from '@repo/shared/constants'
 import {
@@ -18,14 +19,17 @@ import {
   type UpdateNoticeInput,
   updateNoticeSchema,
 } from '@repo/shared/validation'
-import { and, count, desc, eq, inArray, or } from 'drizzle-orm'
+import { and, count, desc, eq, inArray, or, type SQL, sql } from 'drizzle-orm'
 import type { AuditLogger } from '../plugins/audit-logger'
 
 // --- Types ---
 
+export type NoticeStatus = 'active' | 'archived' | 'all'
+
 export interface ListNoticesInput {
   targetAudience?: string
   isPinned?: boolean
+  status?: NoticeStatus
   page: number
   pageSize: number
 }
@@ -34,6 +38,7 @@ export interface NoticeResult {
   id: string
   ownerAccountId: string
   authorId: string
+  authorName: string | null
   title: string
   body: string
   targetAudience: string
@@ -41,6 +46,7 @@ export interface NoticeResult {
   targetFlatId: string | null
   isPinned: boolean
   pinnedAt: Date | null
+  expiresAt: Date | null
   createdAt: Date
   updatedAt: Date
 }
@@ -168,6 +174,8 @@ export class NoticeService {
     }
 
     // Step 5: Insert the notice
+    const expiresAt = validated.expiresAt ? new Date(validated.expiresAt) : null
+
     const [created] = await this.db
       .insert(notices)
       .values({
@@ -180,6 +188,7 @@ export class NoticeService {
         targetFlatId: validated.targetFlatId ?? null,
         isPinned: validated.isPinned,
         pinnedAt: validated.isPinned ? new Date() : null,
+        expiresAt,
       })
       .returning()
 
@@ -353,6 +362,11 @@ export class NoticeService {
     if (validated.targetFlatId !== undefined) {
       updatePayload.targetFlatId = validated.targetFlatId
     }
+    if (validated.expiresAt !== undefined) {
+      updatePayload.expiresAt = validated.expiresAt
+        ? new Date(validated.expiresAt)
+        : null
+    }
 
     // Step 7: Perform the update
     const [updated] = await this.db
@@ -523,6 +537,17 @@ export class NoticeService {
       baseConditions.push(eq(notices.isPinned, input.isPinned))
     }
 
+    // Apply expiry status filter
+    if (input.status === 'active' || !input.status) {
+      baseConditions.push(
+        sql`${notices.expiresAt} IS NULL OR ${notices.expiresAt} > NOW()`,
+      )
+    } else if (input.status === 'archived') {
+      baseConditions.push(
+        sql`${notices.expiresAt} IS NOT NULL AND ${notices.expiresAt} <= NOW()`,
+      )
+    }
+
     // Apply role-based visibility filtering
     const visibilityCondition = this.buildVisibilityCondition(ctx)
 
@@ -530,25 +555,43 @@ export class NoticeService {
       ? and(...baseConditions, visibilityCondition)
       : and(...baseConditions)
 
-    const [data, totalResult] = await Promise.all([
-      this.db
-        .select()
-        .from(notices)
-        .where(whereClause)
-        .orderBy(
-          desc(notices.isPinned),
-          desc(notices.pinnedAt),
-          desc(notices.createdAt),
-        )
-        .limit(pageSize)
-        .offset(offset),
-      this.db.select({ count: count() }).from(notices).where(whereClause),
-    ])
+    const rows = await this.db
+      .select({
+        id: notices.id,
+        ownerAccountId: notices.ownerAccountId,
+        authorId: notices.authorId,
+        authorName: users.name,
+        title: notices.title,
+        body: notices.body,
+        targetAudience: notices.targetAudience,
+        targetBuildingId: notices.targetBuildingId,
+        targetFlatId: notices.targetFlatId,
+        isPinned: notices.isPinned,
+        pinnedAt: notices.pinnedAt,
+        expiresAt: notices.expiresAt,
+        createdAt: notices.createdAt,
+        updatedAt: notices.updatedAt,
+      })
+      .from(notices)
+      .leftJoin(users, eq(notices.authorId, users.id))
+      .where(whereClause)
+      .orderBy(
+        desc(notices.isPinned),
+        desc(notices.pinnedAt),
+        desc(notices.createdAt),
+      )
+      .limit(pageSize)
+      .offset(offset)
 
-    const total = totalResult[0]?.count ?? 0
+    const [totalResult] = await this.db
+      .select({ count: count() })
+      .from(notices)
+      .where(whereClause)
+
+    const total = totalResult?.count ?? 0
 
     return {
-      data: data.map((row) => this.mapToResult(row)),
+      data: rows.map((row) => this.mapToResultWithAuthor(row)),
       total,
       page,
       pageSize,
@@ -619,10 +662,11 @@ export class NoticeService {
     targetFlatId: string | null,
   ): Promise<void> {
     // Build conditions for the scope
-    const conditions = [
+    const conditions: SQL[] = [
       eq(notices.ownerAccountId, ownerAccountId),
       eq(notices.targetAudience, targetAudience),
       eq(notices.isPinned, true),
+      sql`${notices.expiresAt} IS NULL OR ${notices.expiresAt} > NOW()`,
     ]
 
     // Scope by building or flat if applicable
@@ -757,6 +801,7 @@ export class NoticeService {
       id: row.id,
       ownerAccountId: row.ownerAccountId,
       authorId: row.authorId,
+      authorName: null,
       title: row.title,
       body: row.body,
       targetAudience: row.targetAudience,
@@ -764,6 +809,28 @@ export class NoticeService {
       targetFlatId: row.targetFlatId,
       isPinned: row.isPinned,
       pinnedAt: row.pinnedAt,
+      expiresAt: row.expiresAt,
+      createdAt: row.createdAt,
+      updatedAt: row.updatedAt,
+    }
+  }
+
+  private mapToResultWithAuthor(
+    row: typeof notices.$inferSelect & { authorName: string | null },
+  ): NoticeResult {
+    return {
+      id: row.id,
+      ownerAccountId: row.ownerAccountId,
+      authorId: row.authorId,
+      authorName: row.authorName,
+      title: row.title,
+      body: row.body,
+      targetAudience: row.targetAudience,
+      targetBuildingId: row.targetBuildingId,
+      targetFlatId: row.targetFlatId,
+      isPinned: row.isPinned,
+      pinnedAt: row.pinnedAt,
+      expiresAt: row.expiresAt,
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
     }

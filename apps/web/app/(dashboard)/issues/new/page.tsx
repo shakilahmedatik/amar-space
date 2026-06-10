@@ -247,7 +247,10 @@ export default function NewIssuePage() {
 
           {/* Photo Upload */}
           <div className="mb-6">
-            <label htmlFor="issue-photo-upload" className="block text-sm font-semibold text-ink mb-1.5">
+            <label
+              htmlFor="issue-photo-upload"
+              className="block text-sm font-semibold text-ink mb-1.5"
+            >
               {t('issues.photoUpload') || 'ছবি সংযুক্তি (ঐচ্ছিক)'}
             </label>
             <FileUpload

@@ -374,6 +374,9 @@ export function buildApp(opts: Record<string, unknown> = {}) {
   app.register(import('./routes/operations/notices'), {
     prefix: '/api/notices',
   })
+  app.register(import('./routes/operations/notice-templates'), {
+    prefix: '/api/notice-templates',
+  })
   app.register(import('./routes/system/settings'), { prefix: '/api/settings' })
   app.register(import('./routes/system/dashboard'), {
     prefix: '/api/dashboard',

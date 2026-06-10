@@ -10,7 +10,7 @@ import { maintenanceAttachments } from './maintenance-attachments'
 import { maintenanceComments } from './maintenance-comments'
 import { maintenanceRequests } from './maintenance-requests'
 import { managerAssignments } from './manager-assignments'
-import { notices } from './notices'
+import { noticeTemplates, notices } from './notices'
 import { permissions } from './permissions'
 import { portalSessions } from './portal-sessions'
 import { registrationRequests } from './registration-requests'
@@ -205,6 +205,17 @@ export const noticesRelations = relations(notices, ({ one }) => ({
     references: [flats.id],
   }),
 }))
+
+export const noticeTemplatesRelations = relations(
+  noticeTemplates,
+  ({ one }) => ({
+    owner: one(users, {
+      fields: [noticeTemplates.ownerAccountId],
+      references: [users.id],
+      relationName: 'ownerNoticeTemplates',
+    }),
+  }),
+)
 
 export const fileReferencesRelations = relations(fileReferences, ({ one }) => ({
   owner: one(users, {
