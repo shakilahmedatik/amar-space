@@ -2,48 +2,19 @@ import { isValidFlatSlug } from '@repo/shared'
 import { AlertCircle } from 'lucide-react'
 import { Suspense } from 'react'
 import { BASE_URL } from '@/lib/api'
-import { PortalActionsSection } from './components/portal-actions-section'
-import { PortalHeader } from './components/portal-header'
-import { QuickActionsGrid } from './components/quick-actions-grid'
-import { SessionExpiredBanner } from './components/session-expired-banner'
-
-/**
- * Portal flat response shape from GET /api/portal/flat/:slug.
- */
-interface PortalFlatResponse {
-  building: {
-    name: string
-    logoUrl: string | null
-    coverImageUrl: string | null
-    whatsappGroupLink: string | null
-    managerPhone: string | null
-    rules: string | null
-  }
-  flat: {
-    flatNumber: string
-    status: 'AVAILABLE' | 'OCCUPIED' | 'MAINTENANCE'
-    slug: string
-  }
-  emergencyContacts: Array<{
-    name: string
-    role: string
-    phone: string | null
-    type: 'building' | 'nearby'
-    order: number
-  }>
-  hasPendingRegistration: boolean
-}
+import {
+  PortalActionsSection,
+  PortalHeader,
+  QuickActionsGrid,
+  SessionExpiredBanner,
+} from './_components'
+import type { PortalPageData } from './_components/types'
 
 interface PortalPageProps {
   params: Promise<{ flatSlug: string }>
 }
 
-/**
- * Fetches portal data from the API.
- * Returns null if the flat is not found (404).
- * Throws on other errors.
- */
-async function getPortalData(slug: string): Promise<PortalFlatResponse | null> {
+async function getPortalData(slug: string): Promise<PortalPageData | null> {
   const response = await fetch(`${BASE_URL}/api/portal/flat/${slug}`, {
     next: { revalidate: 60 },
   })
@@ -56,18 +27,12 @@ async function getPortalData(slug: string): Promise<PortalFlatResponse | null> {
     throw new Error('সার্ভারে সমস্যা হয়েছে')
   }
 
-  return response.json()
+  return response.json() as Promise<PortalPageData>
 }
 
-/**
- * Portal page — server component at /f/[flatSlug].
- * Validates the slug format, fetches portal data from the API,
- * and renders the portal sections.
- */
 export default async function PortalPage({ params }: PortalPageProps) {
   const { flatSlug } = await params
 
-  // Client-side slug validation — reject invalid slugs without DB lookup
   if (!isValidFlatSlug(flatSlug)) {
     return (
       <div
@@ -83,7 +48,6 @@ export default async function PortalPage({ params }: PortalPageProps) {
     )
   }
 
-  // Fetch portal data from the API
   const data = await getPortalData(flatSlug)
 
   if (!data) {
@@ -103,15 +67,12 @@ export default async function PortalPage({ params }: PortalPageProps) {
 
   return (
     <div className="flex flex-col gap-5">
-      {/* Session expired banner — shown when redirected due to session expiry */}
       <Suspense fallback={null}>
         <SessionExpiredBanner />
       </Suspense>
 
-      {/* Portal Header — building info, logo, flat number, status badge */}
       <PortalHeader building={data.building} flat={data.flat} />
 
-      {/* Communication shortcuts — Rules & Call Manager */}
       {(data.building.rules || data.building.managerPhone) && (
         <section aria-label="দ্রুত কার্যক্রম">
           <QuickActionsGrid
@@ -123,7 +84,6 @@ export default async function PortalPage({ params }: PortalPageProps) {
         </section>
       )}
 
-      {/* Renter actions — registration card & view-info card (with inline panels) */}
       <section aria-label="ভাড়াটিয়া কার্যক্রম">
         <PortalActionsSection
           flatSlug={data.flat.slug}

@@ -1,12 +1,10 @@
 'use client'
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   Bug,
   ClipboardList,
   CreditCard,
   FileText,
-  LogOut,
   Megaphone,
   MessageCircle,
   ShieldAlert,
@@ -15,49 +13,36 @@ import {
   X,
 } from 'lucide-react'
 import { useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
 import { trackEvent } from '@/lib/analytics'
-import { fetchPortalRenterData, portalLogout } from '@/lib/api-client'
 import { useTranslation } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
-import { AccessCodeInput } from './access-code-input'
-import PortalOccupiedView, {
-  type PortalPanelType,
-} from './portal-occupied-view'
-import { RegistrationForm } from './registration-form'
+import { AccessCodeInput } from '../auth/access-code-input'
+import { usePortalAuth } from '../hooks/use-portal-auth'
+import { RegistrationForm } from '../registration/registration-form'
+import type {
+  ActivePanel,
+  EmergencyContact,
+  FlatStatus,
+  PortalPanelType,
+} from '../types'
+import { PortalOccupiedView } from './portal-occupied-view'
+import { RenterHeader } from './renter-header'
 
 interface PortalActionsSectionProps {
   flatSlug: string
-  flatStatus: 'AVAILABLE' | 'OCCUPIED' | 'MAINTENANCE'
+  flatStatus: FlatStatus
   hasPendingRegistration: boolean
   whatsappGroupLink?: string | null
-  emergencyContacts?: Array<{
-    name: string
-    role: string
-    phone: string | null
-    type: 'building' | 'nearby'
-    order: number
-  }>
+  emergencyContacts?: EmergencyContact[]
   rules?: string | null
 }
 
-type ActivePanel = 'register' | PortalPanelType | null
-
-/**
- * Portal actions section — renders action cards for the flat portal.
- *
- * - AVAILABLE / MAINTENANCE: shows a registration button only.
- * - OCCUPIED + not logged in: shows AccessCodeInput (login gate); no action buttons.
- * - OCCUPIED + logged in: shows renter header on top, then action buttons,
- *   then the selected section panel below.
- */
 export function PortalActionsSection({
   flatSlug,
   flatStatus,
   hasPendingRegistration,
   whatsappGroupLink,
-  emergencyContacts,
+  emergencyContacts = [],
   rules,
 }: PortalActionsSectionProps) {
   const { t } = useTranslation()
@@ -66,30 +51,9 @@ export function PortalActionsSection({
   const isOccupied = flatStatus === 'OCCUPIED'
   const isMaintenance = flatStatus === 'MAINTENANCE'
 
-  const queryClient = useQueryClient()
-
-  // Fetch portal data to know if the renter is logged in
-  const { data: portalData, refetch } = useQuery({
-    queryKey: ['portal-renter-data', flatSlug],
-    queryFn: () => fetchPortalRenterData(flatSlug),
-    retry: false,
-    enabled: isOccupied,
-  })
-
-  const isLoggedIn = isOccupied && !!portalData
-
-  // Logout — clears cached data, resets the panel, triggers a refetch
-  const logoutMutation = useMutation({
-    mutationFn: () => portalLogout(flatSlug),
-    onSuccess: () => {
-      queryClient.setQueryData(['portal-renter-data', flatSlug], null)
-      queryClient.invalidateQueries({
-        queryKey: ['portal-renter-data', flatSlug],
-      })
-      setActivePanel(null)
-      refetch()
-    },
-  })
+  // Fetch portal auth state
+  const { isLoggedIn, portalData, refetch, logout, isLoggingOut } =
+    usePortalAuth(flatSlug, isOccupied)
 
   function toggle(panel: ActivePanel) {
     setActivePanel((prev) => (prev === panel ? null : panel))
@@ -136,11 +100,15 @@ export function PortalActionsSection({
                     : 'text-ink',
               )}
             >
-              {isMaintenance ? 'রক্ষণাবেক্ষণ চলছে' : 'ভাড়াটিয়া রেজিস্ট্রেশন ফর্ম'}
+              {isMaintenance
+                ? t('renters.maintenanceWarning') || 'রক্ষণাবেক্ষণ চলছে'
+                : t('renters.registerRenter') || 'ভাড়াটিয়া রেজিস্ট্রেশন ফর্ম'}
             </span>
             {!isMaintenance && !activePanel && (
               <span className="text-xs text-steel">
-                {hasPendingRegistration ? 'আবেদন পেন্ডিং' : 'রেজিস্ট্রেশন করুন'}
+                {hasPendingRegistration
+                  ? t('renters.pending') || 'আবেদন পেন্ডিং'
+                  : t('renters.register') || 'রেজিস্ট্রেশন করুন'}
               </span>
             )}
           </button>
@@ -152,38 +120,22 @@ export function PortalActionsSection({
         <AccessCodeInput
           flatSlug={flatSlug}
           flatStatus="OCCUPIED"
-          onSuccess={() => refetch()}
+          onSuccess={refetch}
         />
       )}
 
       {/* ── Occupied flat — logged in ─────────────────────────────────────── */}
-      {isOccupied && isLoggedIn && (
+      {isOccupied && isLoggedIn && portalData && (
         <>
           {/* Renter header — persistent above the action buttons */}
-          <Card className="overflow-hidden border border-hairline bg-canvas shadow-sm rounded-xl">
-            <div className="bg-brand-blue-deep px-6 py-5 text-white flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-              <div>
-                <h2 className="text-xl font-bold flex items-center gap-2">
-                  <ShieldCheck className="h-6 w-6 text-brand-orange" />
-                  {portalData.renter.fullName}
-                </h2>
-                <p className="text-sm opacity-90 mt-1">
-                  {portalData.flat.buildingName} • ফ্ল্যাট{' '}
-                  {portalData.flat.flatNumber} (তলা {portalData.flat.floor})
-                </p>
-              </div>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => logoutMutation.mutate()}
-                disabled={logoutMutation.isPending}
-                className="rounded-full cursor-pointer bg-white/10 hover:bg-white/20 text-white border-white/20 min-h-11 gap-2 font-medium"
-              >
-                <LogOut className="h-4 w-4" />
-                {t('common.logout') || 'লগ আউট'}
-              </Button>
-            </div>
-          </Card>
+          <RenterHeader
+            fullName={portalData.renter.fullName}
+            buildingName={portalData.flat.buildingName}
+            flatNumber={portalData.flat.flatNumber}
+            floor={portalData.flat.floor}
+            onLogout={logout}
+            isLoggingOut={isLoggingOut}
+          />
 
           {/* Action buttons grid */}
           <div className="grid gap-3 grid-cols-2">
@@ -194,7 +146,7 @@ export function PortalActionsSection({
               icon={
                 <User className="h-6 w-6 text-brand-blue-deep" aria-hidden />
               }
-              label="নিজের তথ্য দেখুন"
+              label={t('renters.personalInfo') || 'নিজের তথ্য দেখুন'}
               ariaLabel="নিজের তথ্য দেখুন"
             />
 
@@ -222,7 +174,7 @@ export function PortalActionsSection({
                   aria-hidden
                 />
               }
-              label="নোটিশ বোর্ড"
+              label={t('notices.title') || 'নোটিশ বোর্ড'}
               ariaLabel="নোটিশ বোর্ড"
             />
 
@@ -247,23 +199,23 @@ export function PortalActionsSection({
                   aria-hidden
                 />
               }
-              label="জরুরি যোগাযোগ"
+              label={t('buildings.emergencyContacts') || 'জরুরি যোগাযোগ'}
               ariaLabel="জরুরি যোগাযোগ"
             />
 
-            {/* WhatsApp Group — shown in place of Rules when a link is configured */}
+            {/* WhatsApp Group — shown inside logged in action buttons area */}
             {whatsappGroupLink ? (
               <a
                 href={whatsappGroupLink}
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={() => trackEvent('WhatsApp Clicked', flatSlug)}
-                className="flex flex-col items-center justify-center gap-2 rounded-xl border border-hairline bg-white p-5 text-center shadow-sm transition-all min-h-[90px] hover:border-green-300 hover:shadow active:scale-[0.99]"
+                className="flex flex-col items-center justify-center gap-2 rounded-xl border border-hairline bg-white p-5 text-center shadow-sm transition-all min-h-[90px] hover:border-green-300 hover:shadow active:scale-[0.99] cursor-pointer"
                 aria-label="হোয়াটসঅ্যাপ গ্রুপে যোগ দিন"
               >
                 <MessageCircle className="h-6 w-6 text-green-600" aria-hidden />
                 <span className="text-sm font-semibold text-ink">
-                  হোয়াটসঅ্যাপ গ্রুপ
+                  {t('buildings.whatsappGroupLink') || 'হোয়াটসঅ্যাপ গ্রুপ'}
                 </span>
               </a>
             ) : null}
@@ -282,13 +234,14 @@ export function PortalActionsSection({
                     aria-hidden
                   />
                   <span className="text-sm font-semibold text-ink">
-                    ভাড়াটিয়া পোর্টাল
+                    {t('common.appName') || 'আমারস্পেস'} -{' '}
+                    {t('settings.roleRenter') || 'ভাড়াটিয়া পোর্টাল'}
                   </span>
                 </div>
                 <button
                   type="button"
                   onClick={() => setActivePanel(null)}
-                  className="flex items-center justify-center h-8 w-8 rounded-lg hover:bg-surface-dark transition-colors"
+                  className="flex items-center justify-center h-8 w-8 rounded-lg hover:bg-surface-dark transition-colors cursor-pointer"
                   aria-label="বন্ধ করুন"
                 >
                   <X className="h-4 w-4 text-steel" />
@@ -298,6 +251,7 @@ export function PortalActionsSection({
                 <PortalOccupiedView
                   flatSlug={flatSlug}
                   activePanel={activePanel as PortalPanelType}
+                  portalData={portalData}
                   emergencyContacts={emergencyContacts}
                   rules={rules}
                 />
@@ -317,13 +271,13 @@ export function PortalActionsSection({
             <div className="flex items-center gap-2">
               <FileText className="h-4 w-4 text-brand-blue-deep" aria-hidden />
               <span className="text-sm font-semibold text-ink">
-                ভাড়াটিয়া নিবন্ধন ফর্ম
+                {t('renters.registerRenter') || 'ভাড়াটিয়া নিবন্ধন ফর্ম'}
               </span>
             </div>
             <button
               type="button"
               onClick={() => setActivePanel(null)}
-              className="flex items-center justify-center h-8 w-8 rounded-lg hover:bg-surface-dark transition-colors"
+              className="flex items-center justify-center h-8 w-8 rounded-lg hover:bg-surface-dark transition-colors cursor-pointer"
               aria-label="বন্ধ করুন"
             >
               <X className="h-4 w-4 text-steel" />

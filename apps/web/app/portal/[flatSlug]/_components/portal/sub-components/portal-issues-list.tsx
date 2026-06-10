@@ -3,9 +3,10 @@
 import { useQuery } from '@tanstack/react-query'
 import { AlertCircle, Bug, CheckCircle2, Clock, Loader2 } from 'lucide-react'
 import Image from 'next/image'
-import { fetchPortalIssues, type PortalIssue } from '@/lib/api/portal'
+import { fetchPortalIssues } from '@/lib/api/portal'
 import { useTranslation } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
+import type { PortalIssue } from '../../types'
 
 interface PortalIssuesListProps {
   flatSlug: string
@@ -86,7 +87,9 @@ export function PortalIssuesList({ flatSlug }: PortalIssuesListProps) {
     return (
       <div className="flex items-center justify-center py-8">
         <Loader2 className="h-5 w-5 animate-spin text-primary" />
-        <span className="ml-2 text-sm text-steel">{t('common.loading')}</span>
+        <span className="ml-2 text-sm text-steel">
+          {t('common.loading') || 'লোড হচ্ছে...'}
+        </span>
       </div>
     )
   }
@@ -94,7 +97,7 @@ export function PortalIssuesList({ flatSlug }: PortalIssuesListProps) {
   if (isError || !data) {
     return (
       <p className="text-sm text-steel text-center py-6">
-        {t('issues.issueListLoadError')}
+        {t('issues.issueListLoadError') || 'সমস্যার তালিকা লোড করা যায়নি।'}
       </p>
     )
   }
@@ -105,7 +108,9 @@ export function PortalIssuesList({ flatSlug }: PortalIssuesListProps) {
     return (
       <div className="text-center py-8">
         <Bug className="h-8 w-8 text-steel mx-auto mb-2" />
-        <p className="text-sm text-steel">{t('issues.noIssuesReported')}</p>
+        <p className="text-sm text-steel">
+          {t('issues.noIssuesReported') || 'কোনো সমস্যা রিপোর্ট করা হয়নি।'}
+        </p>
       </div>
     )
   }
@@ -174,7 +179,7 @@ function IssueCard({ issue }: { issue: PortalIssue }) {
         <span className="text-steel/70">{createdDate}</span>
         {issue.assigneeName && (
           <span className="text-steel/70">
-            {t('issues.assignedTo')}: {issue.assigneeName}
+            {t('issues.assignedTo') || 'দায়িত্বে'}: {issue.assigneeName}
           </span>
         )}
       </div>
@@ -182,13 +187,15 @@ function IssueCard({ issue }: { issue: PortalIssue }) {
       {issue.resolutionNotes && issue.status === 'resolved' && (
         <div className="mt-3 pt-2 border-t border-emerald-200/60">
           <p className="text-xs text-emerald-700">
-            <span className="font-semibold">{t('issues.resolution')}: </span>
+            <span className="font-semibold">
+              {t('issues.resolution') || 'সমাধান'}:{' '}
+            </span>
             {issue.resolutionNotes}
           </p>
         </div>
       )}
 
-      {issue.attachments.length > 0 && (
+      {issue.attachments && issue.attachments.length > 0 && (
         <div className="mt-2 flex gap-2 flex-wrap">
           {issue.attachments.map((att) => (
             <a
@@ -196,7 +203,7 @@ function IssueCard({ issue }: { issue: PortalIssue }) {
               href={att.fileUrl}
               target="_blank"
               rel="noreferrer"
-              className="group relative w-28 h-28 rounded-lg overflow-hidden border border-hairline bg-surface hover:shadow-md transition-shadow"
+              className="group relative w-28 h-28 rounded-lg overflow-hidden border border-hairline bg-surface hover:shadow-md transition-shadow cursor-pointer"
             >
               <Image
                 src={att.fileUrl}
@@ -208,7 +215,7 @@ function IssueCard({ issue }: { issue: PortalIssue }) {
               />
               <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                 <span className="text-white text-xs font-medium">
-                  {t('issues.view')}
+                  {t('issues.view') || 'দেখুন'}
                 </span>
               </div>
             </a>

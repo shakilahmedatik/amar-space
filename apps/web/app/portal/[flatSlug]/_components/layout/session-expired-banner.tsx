@@ -7,13 +7,6 @@ import {
   SESSION_EXPIRED_PARAM,
 } from '@/hooks/use-session-expiry'
 
-/**
- * Displays a session expired banner when the user is redirected back
- * to the flat portal page due to session expiry.
- *
- * The banner is shown when the URL contains `?session_expired=true`.
- * Displays a Bangla message informing the user their session has expired.
- */
 export function SessionExpiredBanner() {
   const searchParams = useSearchParams()
   const isSessionExpired = searchParams.get(SESSION_EXPIRED_PARAM) === 'true'

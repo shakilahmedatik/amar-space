@@ -1,41 +1,15 @@
 'use client'
 
-import { useQuery } from '@tanstack/react-query'
 import { Megaphone } from 'lucide-react'
-import { BASE_URL } from '@/lib/api'
+import { usePortalNotices } from '../../hooks/use-portal-notices'
 import { NoticeBoard } from './notice-board'
-
-interface Notice {
-  id: string
-  title: string
-  body: string
-  createdAt: string
-  isPinned: boolean
-}
 
 interface NoticeBoardSectionProps {
   flatSlug: string
 }
 
-async function fetchNotices(slug: string): Promise<Notice[]> {
-  const res = await fetch(`${BASE_URL}/api/portal/flat/${slug}/notices`, {
-    credentials: 'include',
-  })
-  if (!res.ok) return []
-  const data = await res.json()
-  return data.notices ?? []
-}
-
-/**
- * Client component that fetches and renders the notice board for the portal.
- * Uses TanStack Query for data fetching with a 60s stale time.
- */
 export function NoticeBoardSection({ flatSlug }: NoticeBoardSectionProps) {
-  const { data: notices = [], isLoading } = useQuery({
-    queryKey: ['portal-notices', flatSlug],
-    queryFn: () => fetchNotices(flatSlug),
-    staleTime: 60_000,
-  })
+  const { notices, isLoading } = usePortalNotices(flatSlug)
 
   if (isLoading) {
     return (

@@ -18,11 +18,30 @@ vi.mock('next/navigation', () => ({
 }))
 
 // Mock analytics
-vi.mock('@/app/f/[flatSlug]/lib/analytics', () => ({
+vi.mock('@/lib/analytics', () => ({
   trackEvent: vi.fn(),
 }))
 
-import { AccessCodeInput } from '@/app/f/[flatSlug]/components/access-code-input'
+// Mock i18n
+vi.mock('@/lib/i18n', () => ({
+  useTranslation: () => ({
+    t: (key: string) => {
+      const mockTranslations: Record<string, string> = {
+        'renters.accessCodeLabel': 'অ্যাক্সেস কোড',
+        'renters.accessCodePrompt':
+          'আপনার ড্যাশবোর্ডে প্রবেশ করতে ৬ সংখ্যার অ্যাক্সেস কোড দিন',
+        'renters.accessLocked': 'অ্যাক্সেস কোড লক করা হয়েছে',
+        'renters.tryAgainAfter': 'পর আবার চেষ্টা করুন',
+        'renters.invalidCodeFormat': 'অনুগ্রহ করে ৬ সংখ্যার কোড দিন',
+        'renters.invalidCode': 'অবৈধ অ্যাক্সেস কোড',
+      }
+      return mockTranslations[key] || key
+    },
+    locale: 'bn',
+  }),
+}))
+
+import { AccessCodeInput } from '@/app/portal/[flatSlug]/_components/auth/access-code-input'
 
 function createWrapper() {
   const queryClient = new QueryClient({

@@ -128,9 +128,9 @@ function getStatusLabel(status: string, t: (key: string) => string): string {
     active: 'Active',
     terminated: 'Terminated',
     expired: 'Expired',
-    AVAILABLE: 'খালি',
-    OCCUPIED: 'ভাড়া হয়েছে',
-    MAINTENANCE: 'রক্ষণাবেক্ষণ',
+    AVAILABLE: t('flats.vacant'),
+    OCCUPIED: t('flats.occupied'),
+    MAINTENANCE: t('flats.underMaintenance'),
   }
   return labelMap[status] || status
 }

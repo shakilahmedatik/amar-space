@@ -5,7 +5,14 @@ import { StatusBadge } from '@/components/ui/status-badge'
 
 vi.mock('@/lib/i18n', () => ({
   useTranslation: () => ({
-    t: (key: string) => key,
+    t: (key: string) => {
+      const translations: Record<string, string> = {
+        'flats.vacant': 'খালি',
+        'flats.occupied': 'ভাড়া হয়েছে',
+        'flats.underMaintenance': 'রক্ষণাবেক্ষণ',
+      }
+      return translations[key] || key
+    },
     locale: 'bn',
   }),
 }))

@@ -12,14 +12,6 @@ interface SignaturePadProps {
 
 /**
  * Signature pad component — touch-based signature capture using HTML5 Canvas.
- *
- * Features:
- * - Touch and mouse-based drawing on canvas
- * - Exports signature as base64 PNG string
- * - Validates minimum 1 stroke before exporting
- * - Clear button to reset the canvas
- * - Calls onChange callback with base64 data when user finishes drawing
- * - Mobile-optimized with touch event handling
  */
 export function SignaturePad({
   onChange,
@@ -31,9 +23,6 @@ export function SignaturePad({
   const [strokeCount, setStrokeCount] = useState(0)
   const lastPointRef = useRef<{ x: number; y: number } | null>(null)
 
-  /**
-   * Initialize canvas with white background and proper resolution.
-   */
   const initCanvas = useCallback(() => {
     const canvas = canvasRef.current
     if (!canvas) return
@@ -41,7 +30,6 @@ export function SignaturePad({
     const ctx = canvas.getContext('2d')
     if (!ctx) return
 
-    // Set canvas resolution based on device pixel ratio for sharp rendering
     const dpr = window.devicePixelRatio || 1
     const rect = canvas.getBoundingClientRect()
 
@@ -50,11 +38,9 @@ export function SignaturePad({
 
     ctx.scale(dpr, dpr)
 
-    // Fill with white background
     ctx.fillStyle = 'white'
     ctx.fillRect(0, 0, rect.width, rect.height)
 
-    // Set drawing styles
     ctx.strokeStyle = 'rgb(26, 26, 26)'
     ctx.lineWidth = 2.5
     ctx.lineCap = 'round'
@@ -65,7 +51,6 @@ export function SignaturePad({
     const canvas = canvasRef.current
     if (!canvas) return
 
-    // Observe layout sizing dynamically (e.g. after flex elements align)
     const observer = new ResizeObserver((entries) => {
       if (entries.length > 0) {
         initCanvas()
@@ -73,7 +58,6 @@ export function SignaturePad({
     })
     observer.observe(canvas)
 
-    // Fallback resize listener
     window.addEventListener('resize', initCanvas)
 
     return () => {
@@ -82,9 +66,6 @@ export function SignaturePad({
     }
   }, [initCanvas])
 
-  /**
-   * Get the position of a touch or mouse event relative to the canvas.
-   */
   function getEventPosition(
     e:
       | React.TouchEvent<HTMLCanvasElement>
@@ -115,9 +96,6 @@ export function SignaturePad({
     return { x: 0, y: 0 }
   }
 
-  /**
-   * Start a new stroke.
-   */
   function handleStart(
     e:
       | React.TouchEvent<HTMLCanvasElement>
@@ -136,9 +114,6 @@ export function SignaturePad({
     ctx.moveTo(pos.x, pos.y)
   }
 
-  /**
-   * Continue drawing the current stroke.
-   */
   function handleMove(
     e:
       | React.TouchEvent<HTMLCanvasElement>
@@ -164,9 +139,6 @@ export function SignaturePad({
     lastPointRef.current = pos
   }
 
-  /**
-   * End the current stroke and export signature.
-   */
   function handleEnd(
     e:
       | React.TouchEvent<HTMLCanvasElement>
@@ -181,28 +153,18 @@ export function SignaturePad({
     const newStrokeCount = strokeCount + 1
     setStrokeCount(newStrokeCount)
 
-    // Export signature as base64 PNG
     exportSignature()
   }
 
-  /**
-   * Export the canvas content as a base64 PNG string.
-   * Only exports if at least 1 stroke has been drawn.
-   */
   function exportSignature() {
     const canvas = canvasRef.current
     if (!canvas) return
 
-    // strokeCount + 1 because state hasn't updated yet in the same call
     const dataUrl = canvas.toDataURL('image/png')
-    // Remove the data:image/png;base64, prefix
     const base64 = dataUrl.replace(/^data:image\/png;base64,/, '')
     onChange?.(base64)
   }
 
-  /**
-   * Clear the canvas and reset stroke count.
-   */
   function handleClear() {
     const canvas = canvasRef.current
     if (!canvas) return
@@ -213,12 +175,10 @@ export function SignaturePad({
     const dpr = window.devicePixelRatio || 1
     const rect = canvas.getBoundingClientRect()
 
-    // Clear and refill with white
     ctx.clearRect(0, 0, rect.width * dpr, rect.height * dpr)
     ctx.fillStyle = 'white'
     ctx.fillRect(0, 0, rect.width, rect.height)
 
-    // Reset drawing styles
     ctx.strokeStyle = 'rgb(26, 26, 26)'
     ctx.lineWidth = 2.5
     ctx.lineCap = 'round'

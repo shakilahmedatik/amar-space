@@ -10,15 +10,33 @@ vi.mock('next/navigation', () => ({
 }))
 
 // Mock analytics
-vi.mock('@/app/f/[flatSlug]/lib/analytics', () => ({
+vi.mock('@/lib/analytics', () => ({
   trackEvent: vi.fn(),
+}))
+
+// Mock i18n
+vi.mock('@/lib/i18n', () => ({
+  useTranslation: () => ({
+    t: (key: string) => {
+      const mockTranslations: Record<string, string> = {
+        'buildings.buildingRules': 'নিয়মাবলী',
+        'buildings.managerPhone': 'ম্যানেজারকে কল করুন',
+        'buildings.emergencyContacts': 'জরুরি যোগাযোগ',
+        'nav.flats': 'ফ্ল্যাট',
+        'flats.floor': 'তলা',
+        'common.logout': 'লগ আউট',
+      }
+      return mockTranslations[key] || key
+    },
+    locale: 'bn',
+  }),
 }))
 
 // TanStack Query wrapper for components that need it
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { AccessCodeInput } from '@/app/f/[flatSlug]/components/access-code-input'
-import { EmergencyContacts } from '@/app/f/[flatSlug]/components/emergency-contacts'
-import { QuickActionsGrid } from '@/app/f/[flatSlug]/components/quick-actions-grid'
+import { AccessCodeInput } from '@/app/portal/[flatSlug]/_components/auth/access-code-input'
+import { EmergencyContacts } from '@/app/portal/[flatSlug]/_components/portal/sub-components/emergency-contacts'
+import { QuickActionsGrid } from '@/app/portal/[flatSlug]/_components/quick-actions/quick-actions-grid'
 
 function createWrapper() {
   const queryClient = new QueryClient({
@@ -155,7 +173,10 @@ describe('Responsive Rendering', () => {
       expect(interactiveElements.length).toBeGreaterThan(0)
 
       for (const element of interactiveElements) {
-        expect(element.className).toContain('min-h-[48px]')
+        const hasMinHeight =
+          element.className.includes('min-h-[48px]') ||
+          element.className.includes('min-h-12')
+        expect(hasMinHeight).toBe(true)
         expect(element.className).toContain('min-w-[48px]')
       }
     })
