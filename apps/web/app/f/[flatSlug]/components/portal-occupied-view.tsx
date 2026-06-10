@@ -32,6 +32,7 @@ import { AccessCodeInput } from './access-code-input'
 import { BuildingInfo } from './building-info'
 import { EmergencyContacts } from './emergency-contacts'
 import { NoticeBoardSection } from './notice-board-section'
+import { PortalIssuesList } from './portal-issues-list'
 
 interface PortalOccupiedViewProps {
   flatSlug: string
@@ -118,6 +119,7 @@ export default function PortalOccupiedView({
       })
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['portal-issues', flatSlug] })
       setFeedback({
         message: t('issues.createSuccess') || 'Issue submitted successfully',
         type: 'success',
@@ -142,19 +144,19 @@ export default function PortalOccupiedView({
     const errors: Record<string, string> = {}
 
     if (!issueTitle.trim()) {
-      errors.title = 'শিরোনাম প্রয়োজন'
+      errors.title = t('issues.titleRequired')
     } else if (issueTitle.trim().length < 5) {
-      errors.title = 'শিরোনাম কমপক্ষে ৫ অক্ষরের হতে হবে'
+      errors.title = t('issues.titleMinLength')
     } else if (issueTitle.trim().length > 200) {
-      errors.title = 'শিরোনাম সর্বোচ্চ ২০০ অক্ষরের হতে হবে'
+      errors.title = t('issues.titleMaxLength')
     }
 
     if (!issueDescription.trim()) {
-      errors.description = 'বিবরণ প্রয়োজন'
+      errors.description = t('issues.descriptionRequired')
     } else if (issueDescription.trim().length < 10) {
-      errors.description = 'বিবরণ কমপক্ষে ১০ অক্ষরের হতে হবে'
+      errors.description = t('issues.descriptionMinLength')
     } else if (issueDescription.trim().length > 2000) {
-      errors.description = 'বিবরণ সর্বোচ্চ ২০০০ অক্ষরের হতে হবে'
+      errors.description = t('issues.descriptionMaxLength')
     }
 
     if (Object.keys(errors).length > 0) {
@@ -329,189 +331,216 @@ export default function PortalOccupiedView({
         )}
 
         {activeTab === 'issues' && (
-          <Card className="bg-canvas border border-hairline rounded-xl max-w-2xl">
-            <CardHeader className="pb-3 border-b border-hairline-soft">
-              <CardTitle className="text-base font-semibold text-ink flex items-center gap-2">
-                <Bug className="h-4 w-4 text-primary" />
-                {'সমস্যা রিপোর্ট করুন'}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-6">
-              <form
-                onSubmit={handleIssueSubmit}
-                className="flex flex-col gap-5"
-              >
-                <div>
-                  <label
-                    htmlFor="issue-title"
-                    className="block text-sm font-semibold text-ink mb-1.5"
-                  >
-                    সমস্যার শিরোনাম <span className="text-error-text">*</span>
-                  </label>
-                  <input
-                    id="issue-title"
-                    type="text"
-                    value={issueTitle}
-                    onChange={(e) => {
-                      setIssueTitle(e.target.value)
-                      if (issueErrors.title)
-                        setIssueErrors((prev) => ({ ...prev, title: '' }))
-                    }}
-                    placeholder="যেমন: বাথরুমের কলের পাইপ লিক করছে"
-                    className={cn(
-                      'w-full px-4 py-2.5 border rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary/40 min-h-11',
-                      issueErrors.title
-                        ? 'border-error-text'
-                        : 'border-hairline',
-                    )}
-                  />
-                  {issueErrors.title && (
-                    <p className="text-xs text-error-text mt-1">
-                      {issueErrors.title}
-                    </p>
-                  )}
-                </div>
+          <>
+            <Card className="bg-canvas border border-hairline rounded-xl">
+              <CardHeader className="pb-3 border-b border-hairline-soft">
+                <CardTitle className="text-base font-semibold text-ink flex items-center gap-2">
+                  <Bug className="h-4 w-4 text-primary" />
+                  {t('issues.myIssues')}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-4">
+                <PortalIssuesList flatSlug={flatSlug} />
+              </CardContent>
+            </Card>
 
-                <div>
-                  <label
-                    htmlFor="issue-description"
-                    className="block text-sm font-semibold text-ink mb-1.5"
-                  >
-                    বিস্তারিত বিবরণ <span className="text-error-text">*</span>
-                  </label>
-                  <textarea
-                    id="issue-description"
-                    rows={4}
-                    value={issueDescription}
-                    onChange={(e) => {
-                      setIssueDescription(e.target.value)
-                      if (issueErrors.description)
-                        setIssueErrors((prev) => ({ ...prev, description: '' }))
-                    }}
-                    placeholder="সমস্যাটি বিস্তারিত লিখুন..."
-                    className={cn(
-                      'w-full px-4 py-2.5 border rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary/40 min-h-25',
-                      issueErrors.description
-                        ? 'border-error-text'
-                        : 'border-hairline',
-                    )}
-                  />
-                  {issueErrors.description && (
-                    <p className="text-xs text-error-text mt-1">
-                      {issueErrors.description}
-                    </p>
-                  )}
-                </div>
-
-                <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
+            <Card className="bg-canvas border border-hairline rounded-xl max-w-2xl">
+              <CardHeader className="pb-3 border-b border-hairline-soft">
+                <CardTitle className="text-base font-semibold text-ink flex items-center gap-2">
+                  <Bug className="h-4 w-4 text-primary" />
+                  {t('issues.newIssueReport')}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-6">
+                <form
+                  onSubmit={handleIssueSubmit}
+                  className="flex flex-col gap-5"
+                >
                   <div>
                     <label
-                      htmlFor="issue-category"
+                      htmlFor="issue-title"
                       className="block text-sm font-semibold text-ink mb-1.5"
                     >
-                      বিষয়
+                      {t('issues.issueTitle')}{' '}
+                      <span className="text-error-text">*</span>
                     </label>
-                    <select
-                      id="issue-category"
-                      value={issueCategory}
-                      onChange={(e) =>
-                        setIssueCategory(e.target.value as typeof issueCategory)
-                      }
-                      className="w-full px-4 py-2.5 border border-hairline rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary/40 min-h-11"
-                    >
-                      <option value="plumbing">প্লাম্বিং</option>
-                      <option value="electrical">ইলেকট্রিক্যাল</option>
-                      <option value="structural">স্ট্রাকচারাল</option>
-                      <option value="cleaning">পরিষ্কার</option>
-                      <option value="security">নিরাপত্তা</option>
-                      <option value="other">অন্যান্য</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label
-                      htmlFor="issue-priority"
-                      className="block text-sm font-semibold text-ink mb-1.5"
-                    >
-                      অগ্রাধিকার
-                    </label>
-                    <select
-                      id="issue-priority"
-                      value={issuePriority}
-                      onChange={(e) =>
-                        setIssuePriority(e.target.value as typeof issuePriority)
-                      }
-                      className="w-full px-4 py-2.5 border border-hairline rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary/40 min-h-11"
-                    >
-                      <option value="low">কম</option>
-                      <option value="medium">মাঝারি</option>
-                      <option value="high">উচ্চ</option>
-                      <option value="urgent">জরুরি</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="issue-files"
-                    className="block text-sm font-semibold text-ink mb-1.5"
-                  >
-                    ছবি সংযুক্তি (ঐচ্ছিক)
-                  </label>
-                  <div className="relative">
                     <input
-                      id="issue-files"
-                      type="file"
-                      multiple
-                      accept="image/jpeg,image/png,image/webp"
-                      capture="environment"
-                      onChange={handleIssueFileChange}
-                      className="hidden"
+                      id="issue-title"
+                      type="text"
+                      value={issueTitle}
+                      onChange={(e) => {
+                        setIssueTitle(e.target.value)
+                        if (issueErrors.title)
+                          setIssueErrors((prev) => ({ ...prev, title: '' }))
+                      }}
+                      placeholder={t('issues.titlePlaceholder')}
+                      className={cn(
+                        'w-full px-4 py-2.5 border rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary/40 min-h-11',
+                        issueErrors.title
+                          ? 'border-error-text'
+                          : 'border-hairline',
+                      )}
                     />
+                    {issueErrors.title && (
+                      <p className="text-xs text-error-text mt-1">
+                        {issueErrors.title}
+                      </p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label
+                      htmlFor="issue-description"
+                      className="block text-sm font-semibold text-ink mb-1.5"
+                    >
+                      {t('issues.description')}{' '}
+                      <span className="text-error-text">*</span>
+                    </label>
+                    <textarea
+                      id="issue-description"
+                      rows={4}
+                      value={issueDescription}
+                      onChange={(e) => {
+                        setIssueDescription(e.target.value)
+                        if (issueErrors.description)
+                          setIssueErrors((prev) => ({
+                            ...prev,
+                            description: '',
+                          }))
+                      }}
+                      placeholder={t('issues.descriptionPlaceholder')}
+                      className={cn(
+                        'w-full px-4 py-2.5 border rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary/40 min-h-25',
+                        issueErrors.description
+                          ? 'border-error-text'
+                          : 'border-hairline',
+                      )}
+                    />
+                    {issueErrors.description && (
+                      <p className="text-xs text-error-text mt-1">
+                        {issueErrors.description}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
+                    <div>
+                      <label
+                        htmlFor="issue-category"
+                        className="block text-sm font-semibold text-ink mb-1.5"
+                      >
+                        {t('issues.category')}
+                      </label>
+                      <select
+                        id="issue-category"
+                        value={issueCategory}
+                        onChange={(e) =>
+                          setIssueCategory(
+                            e.target.value as typeof issueCategory,
+                          )
+                        }
+                        className="w-full px-4 py-2.5 border border-hairline rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary/40 min-h-11"
+                      >
+                        <option value="plumbing">{t('issues.plumbing')}</option>
+                        <option value="electrical">
+                          {t('issues.electrical')}
+                        </option>
+                        <option value="structural">
+                          {t('issues.structural')}
+                        </option>
+                        <option value="cleaning">{t('issues.cleaning')}</option>
+                        <option value="security">{t('issues.security')}</option>
+                        <option value="other">{t('issues.other')}</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label
+                        htmlFor="issue-priority"
+                        className="block text-sm font-semibold text-ink mb-1.5"
+                      >
+                        {t('issues.priority')}
+                      </label>
+                      <select
+                        id="issue-priority"
+                        value={issuePriority}
+                        onChange={(e) =>
+                          setIssuePriority(
+                            e.target.value as typeof issuePriority,
+                          )
+                        }
+                        className="w-full px-4 py-2.5 border border-hairline rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary/40 min-h-11"
+                      >
+                        <option value="low">{t('issues.low')}</option>
+                        <option value="medium">{t('issues.medium')}</option>
+                        <option value="high">{t('issues.high')}</option>
+                        <option value="urgent">{t('issues.urgent')}</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div>
                     <label
                       htmlFor="issue-files"
-                      className="flex items-center gap-2 px-4 py-2.5 border border-dashed border-hairline rounded-lg text-sm bg-white cursor-pointer hover:bg-surface/50 transition-colors min-h-11 justify-center text-steel font-medium"
+                      className="block text-sm font-semibold text-ink mb-1.5"
                     >
-                      <Image className="h-4 w-4" />
-                      {issueAttachments.length > 0
-                        ? `${issueAttachments.length}টি ফাইল নির্বাচিত`
-                        : 'ছবি নির্বাচন করুন'}
+                      {t('issues.photoUpload')}
                     </label>
-                  </div>
-                  {issueAttachments.length > 0 && (
-                    <div className="bg-surface p-3 rounded-lg border border-hairline mt-2">
-                      <span className="text-xs text-steel font-semibold block mb-1">
-                        সংযুক্ত ফাইল:
-                      </span>
-                      <ul className="text-xs text-ink flex flex-col gap-1.5">
-                        {issueAttachments.map((f, i) => (
-                          <li
-                            key={i}
-                            className="flex justify-between items-center"
-                          >
-                            <span className="truncate">{f.name}</span>
-                            <span className="text-steel font-mono">
-                              ({(f.size / 1024).toFixed(1)} KB)
-                            </span>
-                          </li>
-                        ))}
-                      </ul>
+                    <div className="relative">
+                      <input
+                        id="issue-files"
+                        type="file"
+                        multiple
+                        accept="image/jpeg,image/png,image/webp"
+                        capture="environment"
+                        onChange={handleIssueFileChange}
+                        className="hidden"
+                      />
+                      <label
+                        htmlFor="issue-files"
+                        className="flex items-center gap-2 px-4 py-2.5 border border-dashed border-hairline rounded-lg text-sm bg-white cursor-pointer hover:bg-surface/50 transition-colors min-h-11 justify-center text-steel font-medium"
+                      >
+                        <Image className="h-4 w-4" />
+                        {issueAttachments.length > 0
+                          ? `${issueAttachments.length}${t('issues.filesSelected')}`
+                          : t('issues.selectFiles')}
+                      </label>
                     </div>
-                  )}
-                </div>
+                    {issueAttachments.length > 0 && (
+                      <div className="bg-surface p-3 rounded-lg border border-hairline mt-2">
+                        <span className="text-xs text-steel font-semibold block mb-1">
+                          {t('issues.attachedFiles')}
+                        </span>
+                        <ul className="text-xs text-ink flex flex-col gap-1.5">
+                          {issueAttachments.map((f, i) => (
+                            <li
+                              key={i}
+                              className="flex justify-between items-center"
+                            >
+                              <span className="truncate">{f.name}</span>
+                              <span className="text-steel font-mono">
+                                ({(f.size / 1024).toFixed(1)} KB)
+                              </span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
 
-                <Button
-                  type="submit"
-                  disabled={issueMutation.isPending}
-                  className="w-full bg-primary hover:bg-primary/95 text-white font-semibold rounded-lg py-3 text-sm min-h-11"
-                >
-                  {issueMutation.isPending
-                    ? 'জমা দেওয়া হচ্ছে...'
-                    : 'রিপোর্ট জমা দিন'}
-                </Button>
-              </form>
-            </CardContent>
-          </Card>
+                  <Button
+                    type="submit"
+                    disabled={issueMutation.isPending}
+                    className="w-full bg-primary hover:bg-primary/95 text-white font-semibold rounded-lg py-3 text-sm min-h-11"
+                  >
+                    {issueMutation.isPending
+                      ? t('issues.submitting')
+                      : t('issues.submitReport')}
+                  </Button>
+                </form>
+              </CardContent>
+            </Card>
+          </>
         )}
 
         {activeTab === 'profile' && (

@@ -269,7 +269,7 @@ export default function IssueDetailPage() {
             {issue.attachments && issue.attachments.length > 0 && (
               <div>
                 <p className="text-xs font-medium text-steel mb-3">
-                  {t('issues.photoUpload') || 'Attachments'}
+                  {t('issues.photoUpload')}
                 </p>
                 <div className="flex flex-wrap gap-3">
                   {issue.attachments.map((att) => (
@@ -283,8 +283,10 @@ export default function IssueDetailPage() {
                       <Image
                         src={att.fileUrl}
                         alt={att.fileName}
-                        className="w-full h-full object-cover"
                         unoptimized
+                        width={100}
+                        height={100}
+                        className="rounded h-full w-auto object-contain"
                       />
                       <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                         <span className="text-white text-xs font-medium">

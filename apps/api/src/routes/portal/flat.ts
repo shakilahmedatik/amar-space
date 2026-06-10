@@ -3,6 +3,8 @@ import {
   bills,
   emergencyContacts,
   flatSlugs,
+  flats,
+  issues,
   notices,
   payments,
   portalSessions,
@@ -1031,6 +1033,146 @@ async function portalFlatRoutes(fastify: FastifyInstance) {
           buildingAddress: building.address,
         },
       })
+    },
+  )
+
+  /**
+   * GET /api/portal/flat/:slug/issues
+   *
+   * Returns issues for the authenticated renter's building.
+   * Requires a valid portal_session cookie.
+   */
+  fastify.get(
+    '/:slug/issues',
+    {
+      schema: {
+        tags: ['Portal'],
+        summary: 'Get issues for renter portal',
+        description:
+          "Returns issues filed for the authenticated renter's building, sorted by most recent first. Requires a valid portal_session cookie.",
+        params: z.object({
+          slug: z.string(),
+        }),
+        response: {
+          200: z.object({
+            issues: z.array(
+              z.object({
+                id: z.string(),
+                title: z.string(),
+                description: z.string(),
+                category: z.string(),
+                priority: z.string(),
+                status: z.string(),
+                assigneeName: z.string().nullable(),
+                resolutionNotes: z.string().nullable(),
+                resolvedAt: z.string().nullable(),
+                createdAt: z.string(),
+                updatedAt: z.string(),
+                attachments: z.array(
+                  z.object({
+                    id: z.string(),
+                    fileName: z.string(),
+                    fileUrl: z.string(),
+                    fileSize: z.number(),
+                    mimeType: z.string(),
+                  }),
+                ),
+              }),
+            ),
+          }),
+          401: z.object({
+            error: z.string(),
+            message: z.string(),
+          }),
+          404: z.object({
+            error: z.string(),
+            message: z.string(),
+          }),
+        },
+      },
+    },
+    async (request, reply) => {
+      const { slug } = request.params as { slug: string }
+      const sessionId = request.cookies.portal_session
+
+      if (!sessionId) {
+        return reply.status(401).send({
+          error: 'UNAUTHORIZED',
+          message: 'প্রবেশাধিকার নেই। অনুগ্রহ করে কোড দিয়ে লগইন করুন।',
+        })
+      }
+
+      const flatSlugRecord = await fastify.db.query.flatSlugs.findFirst({
+        where: eq(flatSlugs.slug, slug),
+      })
+
+      if (!flatSlugRecord) {
+        return reply.status(404).send({
+          error: 'NOT_FOUND',
+          message: 'ফ্ল্যাটটি পাওয়া যায়নি',
+        })
+      }
+
+      const portalSession = await fastify.db.query.portalSessions.findFirst({
+        where: eq(portalSessions.id, sessionId),
+      })
+
+      if (
+        !portalSession ||
+        new Date(portalSession.expiresAt) <= new Date() ||
+        portalSession.flatId !== flatSlugRecord.flatId
+      ) {
+        return reply.status(401).send({
+          error: 'UNAUTHORIZED',
+          message: 'সেশনের মেয়াদ শেষ হয়েছে। আবার লগইন করুন।',
+        })
+      }
+
+      // Resolve buildingId for this flat
+      const flatRecord = await fastify.db.query.flats.findFirst({
+        where: eq(flats.id, flatSlugRecord.flatId),
+        columns: { id: true, buildingId: true },
+      })
+
+      if (!flatRecord) {
+        return reply.status(404).send({
+          error: 'NOT_FOUND',
+          message: 'ফ্ল্যাটটি পাওয়া যায়নি',
+        })
+      }
+
+      const buildingIssues = await fastify.db.query.issues.findMany({
+        where: eq(issues.buildingId, flatRecord.buildingId),
+        with: {
+          assignee: { columns: { name: true } },
+          attachments: true,
+        },
+        orderBy: [desc(issues.createdAt)],
+        limit: 50,
+      })
+
+      const issueList = buildingIssues.map((issue) => ({
+        id: issue.id,
+        title: issue.title,
+        description: issue.description,
+        category: issue.category,
+        priority: issue.priority,
+        status: issue.status,
+        assigneeName: issue.assignee?.name ?? null,
+        resolutionNotes: issue.resolutionNotes,
+        resolvedAt: issue.resolvedAt ? issue.resolvedAt.toISOString() : null,
+        createdAt: issue.createdAt.toISOString(),
+        updatedAt: issue.updatedAt.toISOString(),
+        attachments: issue.attachments.map((a) => ({
+          id: a.id,
+          fileName: a.fileName,
+          fileUrl: formatR2Url(a.fileUrl),
+          fileSize: a.fileSize,
+          mimeType: a.mimeType,
+        })),
+      }))
+
+      return reply.status(200).send({ issues: issueList })
     },
   )
 

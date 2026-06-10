@@ -251,7 +251,7 @@ export default function NewIssuePage() {
               htmlFor="issue-photo-upload"
               className="block text-sm font-semibold text-ink mb-1.5"
             >
-              {t('issues.photoUpload') || 'ছবি সংযুক্তি (ঐচ্ছিক)'}
+              {t('issues.photoUpload')}
             </label>
             <FileUpload
               onFilesSelected={setAttachments}

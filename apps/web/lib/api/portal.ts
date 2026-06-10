@@ -58,6 +58,35 @@ export function fetchPortalRenterData(slug: string): Promise<PortalRenterData> {
   return apiFetch<PortalRenterData>(`/api/portal/flat/${slug}/renter-data`)
 }
 
+export interface PortalIssue {
+  id: string
+  title: string
+  description: string
+  category: string
+  priority: string
+  status: string
+  assigneeName: string | null
+  resolutionNotes: string | null
+  resolvedAt: string | null
+  createdAt: string
+  updatedAt: string
+  attachments: Array<{
+    id: string
+    fileName: string
+    fileUrl: string
+    fileSize: number
+    mimeType: string
+  }>
+}
+
+export interface PortalIssuesResponse {
+  issues: PortalIssue[]
+}
+
+export function fetchPortalIssues(slug: string): Promise<PortalIssuesResponse> {
+  return apiFetch<PortalIssuesResponse>(`/api/portal/flat/${slug}/issues`)
+}
+
 export function portalLogout(
   slug: string,
 ): Promise<{ success: boolean; message: string }> {
