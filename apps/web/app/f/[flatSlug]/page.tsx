@@ -111,13 +111,14 @@ export default async function PortalPage({ params }: PortalPageProps) {
       {/* Portal Header — building info, logo, flat number, status badge */}
       <PortalHeader building={data.building} flat={data.flat} />
 
-      {/* Communication shortcuts — WhatsApp Group & Call Manager */}
-      {(data.building.whatsappGroupLink || data.building.managerPhone) && (
+      {/* Communication shortcuts — Rules & Call Manager */}
+      {(data.building.rules || data.building.managerPhone) && (
         <section aria-label="দ্রুত কার্যক্রম">
           <QuickActionsGrid
             whatsappGroupLink={data.building.whatsappGroupLink}
             managerPhone={data.building.managerPhone}
             flatSlug={data.flat.slug}
+            rules={data.building.rules}
           />
         </section>
       )}
@@ -128,6 +129,7 @@ export default async function PortalPage({ params }: PortalPageProps) {
           flatSlug={data.flat.slug}
           flatStatus={data.flat.status}
           hasPendingRegistration={data.hasPendingRegistration}
+          whatsappGroupLink={data.building.whatsappGroupLink}
           emergencyContacts={data.emergencyContacts}
           rules={data.building.rules}
         />

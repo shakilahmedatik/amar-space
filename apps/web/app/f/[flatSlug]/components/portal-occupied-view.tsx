@@ -3,29 +3,21 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
-  AlertTriangle,
   Bug,
   CreditCard,
   FileText,
   Image,
-  LogOut,
-  Megaphone,
   Phone,
-  ShieldCheck,
   User,
   Users,
 } from 'lucide-react'
 import { useState } from 'react'
-import { Button } from '@/components/ui/button'
+import { Button } from '@/components/ui'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { CurrencyDisplay } from '@/components/ui/currency-display'
 import { ErrorFeedback } from '@/components/ui/error-feedback'
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton'
-import {
-  createIssue,
-  fetchPortalRenterData,
-  portalLogout,
-} from '@/lib/api-client'
+import { createIssue, fetchPortalRenterData } from '@/lib/api-client'
 import { useTranslation } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { AccessCodeInput } from './access-code-input'
@@ -34,9 +26,18 @@ import { EmergencyContacts } from './emergency-contacts'
 import { NoticeBoardSection } from './notice-board-section'
 import { PortalIssuesList } from './portal-issues-list'
 
+export type PortalPanelType =
+  | 'profile'
+  | 'bills'
+  | 'notices'
+  | 'contacts'
+  | 'issues'
+  | 'rules'
+
 interface PortalOccupiedViewProps {
   flatSlug: string
   className?: string
+  activePanel: PortalPanelType
   emergencyContacts?: Array<{
     name: string
     role: string
@@ -47,17 +48,15 @@ interface PortalOccupiedViewProps {
   rules?: string | null
 }
 
-type TabType = 'profile' | 'bills' | 'notices' | 'contacts' | 'issues'
-
 export default function PortalOccupiedView({
   flatSlug,
   className,
+  activePanel,
   emergencyContacts = [],
   rules = null,
 }: PortalOccupiedViewProps) {
   const { t } = useTranslation()
   const queryClient = useQueryClient()
-  const [activeTab, setActiveTab] = useState<TabType>('profile')
   const [feedback, setFeedback] = useState<{
     message: string
     type: 'success' | 'error'
@@ -74,24 +73,6 @@ export default function PortalOccupiedView({
     queryKey: ['portal-renter-data', flatSlug],
     queryFn: () => fetchPortalRenterData(flatSlug),
     retry: false,
-  })
-
-  // Logout mutation
-  const logoutMutation = useMutation({
-    mutationFn: () => portalLogout(flatSlug),
-    onSuccess: () => {
-      queryClient.setQueryData(['portal-renter-data', flatSlug], null)
-      queryClient.invalidateQueries({
-        queryKey: ['portal-renter-data', flatSlug],
-      })
-      refetch()
-    },
-    onError: (err) => {
-      setFeedback({
-        message: err instanceof Error ? err.message : t('common.error'),
-        type: 'error',
-      })
-    },
   })
 
   // Issues form state — placed before early returns to keep hook order stable
@@ -188,7 +169,7 @@ export default function PortalOccupiedView({
     )
   }
 
-  // If unauthorized, render the Access Code input
+  // If unauthorized or no data, render the Access Code input (login gate)
   if (isUnauthorized || !portalData) {
     return (
       <AccessCodeInput
@@ -199,7 +180,7 @@ export default function PortalOccupiedView({
     )
   }
 
-  const { renter, contract, bills, payments, flat } = portalData
+  const { renter, contract, bills, payments } = portalData
 
   return (
     <div className={cn('flex flex-col gap-6', className)}>
@@ -212,125 +193,30 @@ export default function PortalOccupiedView({
         />
       )}
 
-      {/* Renter Portal Dashboard Header */}
-      <Card className="overflow-hidden border border-hairline bg-canvas shadow-sm rounded-xl">
-        <div className="bg-brand-blue-deep px-6 py-5 text-white flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <div>
-            <h2 className="text-xl font-bold flex items-center gap-2">
-              <ShieldCheck className="h-6 w-6 text-brand-orange" />
-              {renter.fullName}
-            </h2>
-            <p className="text-sm opacity-90 mt-1">
-              {flat.buildingName} • ফ্ল্যাট {flat.flatNumber} (তলা {flat.floor})
-            </p>
-          </div>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => logoutMutation.mutate()}
-            disabled={logoutMutation.isPending}
-            className="rounded-full cursor-pointer bg-white/10 hover:bg-white/20 text-white border-white/20 min-h-11 gap-2 font-medium"
-          >
-            <LogOut className="h-4 w-4" />
-            {t('common.logout') || 'লগ আউট'}
-          </Button>
-        </div>
-      </Card>
-
-      {/* Tab Buttons */}
-      <div className="flex border-b border-hairline gap-2 overflow-x-auto pb-1">
-        <button
-          type="button"
-          onClick={() => setActiveTab('profile')}
-          className={cn(
-            'px-5 py-3 text-sm font-semibold border-b-2 transition-all min-h-11 whitespace-nowrap flex items-center gap-2',
-            activeTab === 'profile'
-              ? 'border-primary text-primary'
-              : 'border-transparent text-steel hover:text-charcoal',
-          )}
-        >
-          <User className="h-4 w-4" />
-          {t('renters.personalInfo') || 'আমার প্রোফাইল'}
-        </button>
-        <button
-          type="button"
-          onClick={() => setActiveTab('bills')}
-          className={cn(
-            'px-5 py-3 text-sm font-semibold border-b-2 transition-all min-h-11 whitespace-nowrap flex items-center gap-2',
-            activeTab === 'bills'
-              ? 'border-primary text-primary'
-              : 'border-transparent text-steel hover:text-charcoal',
-          )}
-        >
-          <CreditCard className="h-4 w-4" />
-          {t('bills.title') || 'বিল ও পেমেন্ট'}
-        </button>
-        <button
-          type="button"
-          onClick={() => setActiveTab('notices')}
-          className={cn(
-            'px-5 py-3 text-sm font-semibold border-b-2 transition-all min-h-11 whitespace-nowrap flex items-center gap-2',
-            activeTab === 'notices'
-              ? 'border-primary text-primary'
-              : 'border-transparent text-steel hover:text-charcoal',
-          )}
-        >
-          <Megaphone className="h-4 w-4" />
-          {'নোটিশ বোর্ড'}
-        </button>
-        <button
-          type="button"
-          onClick={() => setActiveTab('contacts')}
-          className={cn(
-            'px-5 py-3 text-sm font-semibold border-b-2 transition-all min-h-11 whitespace-nowrap flex items-center gap-2',
-            activeTab === 'contacts'
-              ? 'border-primary text-primary'
-              : 'border-transparent text-steel hover:text-charcoal',
-          )}
-        >
-          <AlertTriangle className="h-4 w-4" />
-          {'জরুরি যোগাযোগ ও নিয়মাবলী'}
-        </button>
-        <button
-          type="button"
-          onClick={() => setActiveTab('issues')}
-          className={cn(
-            'px-5 py-3 text-sm font-semibold border-b-2 transition-all min-h-11 whitespace-nowrap flex items-center gap-2',
-            activeTab === 'issues'
-              ? 'border-primary text-primary'
-              : 'border-transparent text-steel hover:text-charcoal',
-          )}
-        >
-          <Bug className="h-4 w-4" />
-          {t('issues.title') || 'সমস্যা রিপোর্ট'}
-        </button>
-      </div>
-
-      {/* Tab Contents */}
+      {/* Panel Contents — driven by activePanel prop from parent */}
       <div className="transition-all duration-200">
-        {activeTab === 'notices' && (
+        {activePanel === 'notices' && (
           <div className="bg-canvas border border-hairline p-5 rounded-xl shadow-sm">
             <NoticeBoardSection flatSlug={flatSlug} />
           </div>
         )}
 
-        {activeTab === 'contacts' && (
-          <div className="flex flex-col gap-6">
-            <div className="bg-canvas border border-hairline p-5 rounded-xl shadow-sm">
-              <EmergencyContacts
-                contacts={emergencyContacts}
-                flatSlug={flatSlug}
-              />
-            </div>
-            {rules && (
-              <div className="bg-canvas border border-hairline p-5 rounded-xl shadow-sm">
-                <BuildingInfo rules={rules} />
-              </div>
-            )}
+        {activePanel === 'contacts' && (
+          <div className="bg-canvas border border-hairline p-5 rounded-xl shadow-sm">
+            <EmergencyContacts
+              contacts={emergencyContacts}
+              flatSlug={flatSlug}
+            />
           </div>
         )}
 
-        {activeTab === 'issues' && (
+        {activePanel === 'rules' && rules && (
+          <div className="bg-canvas border border-hairline p-5 rounded-xl shadow-sm">
+            <BuildingInfo rules={rules} />
+          </div>
+        )}
+
+        {activePanel === 'issues' && (
           <>
             <Card className="bg-canvas border border-hairline rounded-xl">
               <CardHeader className="pb-3 border-b border-hairline-soft">
@@ -344,7 +230,7 @@ export default function PortalOccupiedView({
               </CardContent>
             </Card>
 
-            <Card className="bg-canvas border border-hairline rounded-xl max-w-2xl">
+            <Card className="bg-canvas border border-hairline rounded-xl max-w-2xl mt-6">
               <CardHeader className="pb-3 border-b border-hairline-soft">
                 <CardTitle className="text-base font-semibold text-ink flex items-center gap-2">
                   <Bug className="h-4 w-4 text-primary" />
@@ -543,7 +429,7 @@ export default function PortalOccupiedView({
           </>
         )}
 
-        {activeTab === 'profile' && (
+        {activePanel === 'profile' && (
           <div className="grid gap-6 grid-cols-1">
             {/* Personal Details */}
             <div className="lg:col-span-2 flex flex-col gap-6">
@@ -668,7 +554,7 @@ export default function PortalOccupiedView({
                     {/* Selfie Photo */}
                     <div className="flex flex-col items-center p-3 border border-hairline-soft bg-surface rounded-xl text-center">
                       <span className="text-xs font-semibold text-steel mb-2">
-                        ভাড়াটিয়ার সেলফি ছবি
+                        ভাড়াটিয়ার সেলফি ছবি
                       </span>
                       {renter.selfiePhotoUrl ? (
                         <div className="relative group w-24 h-24 rounded-full overflow-hidden border border-hairline bg-white shadow-sm">
@@ -684,7 +570,7 @@ export default function PortalOccupiedView({
                             rel="noreferrer"
                             className="absolute inset-0 bg-black/50 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-xs"
                           >
-                            বড় করে দেখুন
+                            বড় করে দেখুন
                           </a>
                         </div>
                       ) : (
@@ -713,7 +599,7 @@ export default function PortalOccupiedView({
                             rel="noreferrer"
                             className="absolute inset-0 bg-black/50 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-xs"
                           >
-                            বড় করে দেখুন
+                            বড় করে দেখুন
                           </a>
                         </div>
                       ) : (
@@ -742,7 +628,7 @@ export default function PortalOccupiedView({
                             rel="noreferrer"
                             className="absolute inset-0 bg-black/50 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-xs"
                           >
-                            বড় করে দেখুন
+                            বড় করে দেখুন
                           </a>
                         </div>
                       ) : (
@@ -756,7 +642,7 @@ export default function PortalOccupiedView({
               </Card>
             </div>
 
-            {/* Contract Info Sidebar */}
+            {/* Contract Info */}
             <div>
               <Card className="bg-canvas border border-hairline rounded-xl sticky top-4">
                 <CardHeader className="pb-3 border-b border-hairline-soft">
@@ -782,7 +668,7 @@ export default function PortalOccupiedView({
                       </div>
                       <div>
                         <span className="text-xs text-steel block">
-                          ভাড়া শুরুর তারিখ
+                          ভাড়া শুরুর তারিখ
                         </span>
                         <span className="text-sm font-semibold text-ink">
                           {new Date(contract.startDate).toLocaleDateString(
@@ -817,7 +703,7 @@ export default function PortalOccupiedView({
                     </>
                   ) : (
                     <p className="text-sm text-steel text-center py-6">
-                      কোনো চুক্তির তথ্য পাওয়া যায়নি
+                      কোনো চুক্তির তথ্য পাওয়া যায়নি
                     </p>
                   )}
                 </CardContent>
@@ -826,7 +712,7 @@ export default function PortalOccupiedView({
           </div>
         )}
 
-        {activeTab === 'bills' && (
+        {activePanel === 'bills' && (
           <div className="flex flex-col gap-6">
             {/* Bill History List */}
             <Card className="bg-canvas border border-hairline rounded-xl">
@@ -839,7 +725,7 @@ export default function PortalOccupiedView({
               <CardContent className="p-0">
                 {bills.length === 0 ? (
                   <p className="text-sm text-steel text-center py-8">
-                    {t('bills.noBills') || 'কোনো বিল পাওয়া যায়নি'}
+                    {t('bills.noBills') || 'কোনো বিল পাওয়া যায়নি'}
                   </p>
                 ) : (
                   <div className="overflow-x-auto">
@@ -859,7 +745,7 @@ export default function PortalOccupiedView({
                             {t('bills.paidAmount')}
                           </th>
                           <th className="px-5 py-3.5 text-right font-semibold text-xs text-steel uppercase w-30">
-                            বকেয়া
+                            বকেয়া
                           </th>
                         </tr>
                       </thead>
@@ -871,7 +757,7 @@ export default function PortalOccupiedView({
                               : bill.status === 'partially_paid'
                                 ? 'আংশিক পরিশোধিত'
                                 : bill.status === 'overdue'
-                                  ? 'বকেয়া'
+                                  ? 'বকেয়া'
                                   : 'অপরিশোধিত'
                           const statusColor =
                             bill.status === 'paid'
@@ -938,7 +824,7 @@ export default function PortalOccupiedView({
               <CardContent className="p-0">
                 {payments.length === 0 ? (
                   <p className="text-sm text-steel text-center py-8">
-                    {t('payments.noPayments') || 'কোনো পেমেন্ট পাওয়া যায়নি'}
+                    {t('payments.noPayments') || 'কোনো পেমেন্ট পাওয়া যায়নি'}
                   </p>
                 ) : (
                   <div className="overflow-x-auto">
