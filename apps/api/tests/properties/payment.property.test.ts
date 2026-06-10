@@ -20,6 +20,37 @@ import { PaymentService } from '../../src/services/payment'
 
 // --- Helpers ---
 
+function mockDbWithTransaction<
+  T extends {
+    transaction?: unknown
+    select?: unknown
+    query: {
+      bills: {
+        findFirst: () => Promise<unknown>
+      }
+      [key: string]: unknown
+    }
+    [key: string]: unknown
+  },
+>(db: T): T {
+  const dbObj = db as Record<string, unknown>
+  dbObj.transaction = vi.fn(async (cb) => await cb(db))
+  dbObj.select = vi.fn().mockReturnValue({
+    from: vi.fn().mockReturnValue({
+      where: vi.fn().mockReturnValue({
+        for: vi.fn().mockImplementation(async () => {
+          const query = db.query as {
+            bills: { findFirst: () => Promise<unknown> }
+          }
+          const bill = await query.bills.findFirst()
+          return bill ? [bill] : []
+        }),
+      }),
+    }),
+  })
+  return db
+}
+
 function createMockAuditLogger() {
   return {
     log: vi.fn(),
@@ -118,7 +149,7 @@ describe('Feature: amarspace-full-implementation, Property 12: Payment correctly
           // Ensure payment is valid (>= 0.01)
           fc.pre(paymentAmount >= 0.01)
 
-          const db = {
+          const db = mockDbWithTransaction({
             query: {
               bills: {
                 findFirst: vi.fn().mockResolvedValue({
@@ -164,7 +195,7 @@ describe('Feature: amarspace-full-implementation, Property 12: Payment correctly
                 where: vi.fn().mockResolvedValue(undefined),
               }),
             }),
-          }
+          })
 
           const service = new PaymentService(
             db as unknown as Database,
@@ -220,7 +251,7 @@ describe('Feature: amarspace-full-implementation, Property 12: Payment correctly
 
           const paymentDate = getTodayDateString()
 
-          const db = {
+          const db = mockDbWithTransaction({
             query: {
               bills: {
                 findFirst: vi.fn().mockResolvedValue({
@@ -266,7 +297,7 @@ describe('Feature: amarspace-full-implementation, Property 12: Payment correctly
                 where: vi.fn().mockResolvedValue(undefined),
               }),
             }),
-          }
+          })
 
           const service = new PaymentService(
             db as unknown as Database,
@@ -328,7 +359,7 @@ describe('Feature: amarspace-full-implementation, Property 12: Payment correctly
           // Stay within valid amount range for Zod schema
           fc.pre(paymentAmount <= 999_999_999.99)
 
-          const db = {
+          const db = mockDbWithTransaction({
             query: {
               bills: {
                 findFirst: vi.fn().mockResolvedValue({
@@ -354,7 +385,7 @@ describe('Feature: amarspace-full-implementation, Property 12: Payment correctly
             },
             insert: vi.fn(),
             update: vi.fn(),
-          }
+          })
 
           const service = new PaymentService(
             db as unknown as Database,
@@ -440,7 +471,7 @@ describe('Feature: amarspace-full-implementation, Property 12: Payment correctly
             // Ensure payment is valid
             fc.pre(paymentAmount >= 0.01)
 
-            const db = {
+            const db = mockDbWithTransaction({
               query: {
                 bills: {
                   findFirst: vi.fn().mockResolvedValue({
@@ -486,7 +517,7 @@ describe('Feature: amarspace-full-implementation, Property 12: Payment correctly
                   where: vi.fn().mockResolvedValue(undefined),
                 }),
               }),
-            }
+            })
 
             const service = new PaymentService(
               db as unknown as Database,

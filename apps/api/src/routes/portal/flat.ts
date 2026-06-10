@@ -1,3 +1,4 @@
+import { randomInt } from 'node:crypto'
 import {
   bills,
   emergencyContacts,
@@ -485,8 +486,8 @@ async function portalFlatRoutes(fastify: FastifyInstance) {
         'image/png',
       )
 
-      // Generate a random 6-digit access code (plaintext) and its hash
-      const accessCode = Math.floor(100000 + Math.random() * 900000).toString()
+      // Generate a random 6-digit access code (plaintext) and its hash securely
+      const accessCode = randomInt(100000, 1000000).toString()
       const accessCodeHash = hashAccessCode(accessCode)
 
       // Create registration_requests record with PENDING_APPROVAL status
@@ -511,7 +512,6 @@ async function portalFlatRoutes(fastify: FastifyInstance) {
           advanceAmount: String(data.advanceAmount),
           digitalSignatureUrl,
           status: 'PENDING_APPROVAL',
-          accessCode,
           accessCodeHash,
         })
         .returning({ id: registrationRequests.id })

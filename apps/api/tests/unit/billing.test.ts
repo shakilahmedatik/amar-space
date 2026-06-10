@@ -1,4 +1,5 @@
 import type { Database } from '@repo/db'
+import { bills, flats, rentalContracts } from '@repo/db'
 import {
   ForbiddenError,
   NotFoundError,
@@ -119,6 +120,56 @@ const defaultBill = {
   updatedAt: new Date('2024-03-01'),
 }
 
+function createMockDbForGenerate({
+  occupiedFlats = [defaultFlat],
+  existingBills = [] as unknown[],
+  activeContracts = [defaultContract] as unknown[],
+  insertedBill = defaultBill,
+} = {}) {
+  return {
+    select: vi.fn().mockImplementation((selectArg) => {
+      // Check if it's a count query
+      if (selectArg && typeof selectArg === 'object' && 'count' in selectArg) {
+        return {
+          from: vi.fn().mockReturnValue({
+            where: vi.fn().mockResolvedValue([{ count: 0 }]),
+          }),
+        }
+      }
+
+      // Default select implementation
+      return {
+        from: vi.fn().mockImplementation((table) => {
+          let result: unknown[] = []
+          if (table === flats) {
+            result = occupiedFlats
+          } else if (table === rentalContracts) {
+            result = activeContracts
+          } else if (table === bills) {
+            result = existingBills
+          }
+          return {
+            where: vi.fn().mockResolvedValue(result),
+          }
+        }),
+      }
+    }),
+    insert: vi.fn().mockReturnValue({
+      values: vi.fn().mockReturnValue({
+        returning: vi.fn().mockResolvedValue([insertedBill]),
+      }),
+    }),
+    query: {
+      bills: {
+        findFirst: vi.fn().mockResolvedValue(null),
+      },
+      rentalContracts: {
+        findFirst: vi.fn().mockResolvedValue(null),
+      },
+    },
+  }
+}
+
 // --- Tests ---
 
 describe('BillingService', () => {
@@ -130,26 +181,7 @@ describe('BillingService', () => {
 
   describe('generateBills', () => {
     it('should generate bills for occupied flats with active contracts', async () => {
-      const db = {
-        select: vi.fn().mockReturnValue({
-          from: vi.fn().mockReturnValue({
-            where: vi.fn().mockResolvedValue([defaultFlat]),
-          }),
-        }),
-        insert: vi.fn().mockReturnValue({
-          values: vi.fn().mockReturnValue({
-            returning: vi.fn().mockResolvedValue([defaultBill]),
-          }),
-        }),
-        query: {
-          bills: {
-            findFirst: vi.fn().mockResolvedValue(null), // no existing bill
-          },
-          rentalContracts: {
-            findFirst: vi.fn().mockResolvedValue(defaultContract),
-          },
-        },
-      }
+      const db = createMockDbForGenerate()
 
       const ctx = createOwnerContext()
       const service = new BillingService(
@@ -165,22 +197,9 @@ describe('BillingService', () => {
     })
 
     it('should skip flats that already have a bill for the month (Requirement 7.10)', async () => {
-      const db = {
-        select: vi.fn().mockReturnValue({
-          from: vi.fn().mockReturnValue({
-            where: vi.fn().mockResolvedValue([defaultFlat]),
-          }),
-        }),
-        insert: vi.fn(),
-        query: {
-          bills: {
-            findFirst: vi.fn().mockResolvedValue(defaultBill), // bill already exists
-          },
-          rentalContracts: {
-            findFirst: vi.fn().mockResolvedValue(defaultContract),
-          },
-        },
-      }
+      const db = createMockDbForGenerate({
+        existingBills: [{ flatId: 'flat-1' }],
+      })
 
       const ctx = createOwnerContext()
       const service = new BillingService(
@@ -197,22 +216,9 @@ describe('BillingService', () => {
     })
 
     it('should skip flats without active rental contract', async () => {
-      const db = {
-        select: vi.fn().mockReturnValue({
-          from: vi.fn().mockReturnValue({
-            where: vi.fn().mockResolvedValue([defaultFlat]),
-          }),
-        }),
-        insert: vi.fn(),
-        query: {
-          bills: {
-            findFirst: vi.fn().mockResolvedValue(null),
-          },
-          rentalContracts: {
-            findFirst: vi.fn().mockResolvedValue(null), // no contract
-          },
-        },
-      }
+      const db = createMockDbForGenerate({
+        activeContracts: [],
+      })
 
       const ctx = createOwnerContext()
       const service = new BillingService(
@@ -230,22 +236,9 @@ describe('BillingService', () => {
     it('should skip flats with no rent amount defined (Requirement 7.12)', async () => {
       const contractNoRent = { ...defaultContract, monthlyRent: '0' }
 
-      const db = {
-        select: vi.fn().mockReturnValue({
-          from: vi.fn().mockReturnValue({
-            where: vi.fn().mockResolvedValue([defaultFlat]),
-          }),
-        }),
-        insert: vi.fn(),
-        query: {
-          bills: {
-            findFirst: vi.fn().mockResolvedValue(null),
-          },
-          rentalContracts: {
-            findFirst: vi.fn().mockResolvedValue(contractNoRent),
-          },
-        },
-      }
+      const db = createMockDbForGenerate({
+        activeContracts: [contractNoRent],
+      })
 
       const ctx = createOwnerContext()
       const service = new BillingService(
@@ -290,26 +283,7 @@ describe('BillingService', () => {
     })
 
     it('should record audit event for each generated bill (Requirement 7.9)', async () => {
-      const db = {
-        select: vi.fn().mockReturnValue({
-          from: vi.fn().mockReturnValue({
-            where: vi.fn().mockResolvedValue([defaultFlat]),
-          }),
-        }),
-        insert: vi.fn().mockReturnValue({
-          values: vi.fn().mockReturnValue({
-            returning: vi.fn().mockResolvedValue([defaultBill]),
-          }),
-        }),
-        query: {
-          bills: {
-            findFirst: vi.fn().mockResolvedValue(null),
-          },
-          rentalContracts: {
-            findFirst: vi.fn().mockResolvedValue(defaultContract),
-          },
-        },
-      }
+      const db = createMockDbForGenerate()
 
       const ctx = createOwnerContext()
       const service = new BillingService(
@@ -331,26 +305,7 @@ describe('BillingService', () => {
     })
 
     it('should allow manager to generate bills for assigned buildings', async () => {
-      const db = {
-        select: vi.fn().mockReturnValue({
-          from: vi.fn().mockReturnValue({
-            where: vi.fn().mockResolvedValue([defaultFlat]),
-          }),
-        }),
-        insert: vi.fn().mockReturnValue({
-          values: vi.fn().mockReturnValue({
-            returning: vi.fn().mockResolvedValue([defaultBill]),
-          }),
-        }),
-        query: {
-          bills: {
-            findFirst: vi.fn().mockResolvedValue(null),
-          },
-          rentalContracts: {
-            findFirst: vi.fn().mockResolvedValue(defaultContract),
-          },
-        },
-      }
+      const db = createMockDbForGenerate()
 
       const ctx = createManagerContext()
       const service = new BillingService(
@@ -810,16 +765,19 @@ describe('BillingService', () => {
         select: vi.fn().mockImplementation(() => {
           selectCallCount++
           if (selectCallCount % 2 === 1) {
-            return {
-              from: vi.fn().mockReturnValue({
-                where: vi.fn().mockReturnValue({
-                  orderBy: vi.fn().mockReturnValue({
-                    limit: vi.fn().mockReturnValue({
-                      offset: vi.fn().mockResolvedValue(billsList),
-                    }),
+            const fromObj = {
+              leftJoin: vi.fn(),
+              where: vi.fn().mockReturnValue({
+                orderBy: vi.fn().mockReturnValue({
+                  limit: vi.fn().mockReturnValue({
+                    offset: vi.fn().mockResolvedValue(billsList),
                   }),
                 }),
               }),
+            }
+            fromObj.leftJoin.mockImplementation(() => fromObj)
+            return {
+              from: vi.fn().mockReturnValue(fromObj),
             }
           }
           return {
@@ -855,16 +813,19 @@ describe('BillingService', () => {
         select: vi.fn().mockImplementation(() => {
           selectCallCount++
           if (selectCallCount % 2 === 1) {
-            return {
-              from: vi.fn().mockReturnValue({
-                where: vi.fn().mockReturnValue({
-                  orderBy: vi.fn().mockReturnValue({
-                    limit: vi.fn().mockReturnValue({
-                      offset: vi.fn().mockResolvedValue([]),
-                    }),
+            const fromObj = {
+              leftJoin: vi.fn(),
+              where: vi.fn().mockReturnValue({
+                orderBy: vi.fn().mockReturnValue({
+                  limit: vi.fn().mockReturnValue({
+                    offset: vi.fn().mockResolvedValue([]),
                   }),
                 }),
               }),
+            }
+            fromObj.leftJoin.mockImplementation(() => fromObj)
+            return {
+              from: vi.fn().mockReturnValue(fromObj),
             }
           }
           return {
@@ -913,16 +874,36 @@ describe('BillingService', () => {
     })
 
     it('should return empty result for manager with no assigned flats', async () => {
+      let selectCallCount = 0
       const db = {
         query: {
           renters: {
             findFirst: vi.fn(),
           },
         },
-        select: vi.fn().mockReturnValue({
-          from: vi.fn().mockReturnValue({
-            where: vi.fn().mockResolvedValue([]), // no flats in assigned buildings
-          }),
+        select: vi.fn().mockImplementation(() => {
+          selectCallCount++
+          if (selectCallCount % 2 === 1) {
+            const fromObj = {
+              leftJoin: vi.fn(),
+              where: vi.fn().mockReturnValue({
+                orderBy: vi.fn().mockReturnValue({
+                  limit: vi.fn().mockReturnValue({
+                    offset: vi.fn().mockResolvedValue([]),
+                  }),
+                }),
+              }),
+            }
+            fromObj.leftJoin.mockImplementation(() => fromObj)
+            return {
+              from: vi.fn().mockReturnValue(fromObj),
+            }
+          }
+          return {
+            from: vi.fn().mockReturnValue({
+              where: vi.fn().mockResolvedValue([{ count: 0 }]),
+            }),
+          }
         }),
       }
 

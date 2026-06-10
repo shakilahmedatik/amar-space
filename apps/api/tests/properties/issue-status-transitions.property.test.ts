@@ -1,4 +1,5 @@
 import type { Database } from '@repo/db'
+import type { R2Client } from '../../src/plugins/r2'
 import {
   ISSUE_STATUS,
   ISSUE_STATUS_TRANSITIONS,
@@ -32,6 +33,12 @@ import { IssueService } from '../../src/services/issue.service'
  */
 
 // --- Helpers ---
+
+const mockR2 = {
+  upload: vi.fn().mockResolvedValue('storage-key'),
+  getPresignedUrl: vi.fn().mockResolvedValue('https://example.com/file'),
+  delete: vi.fn().mockResolvedValue(undefined),
+} as unknown as R2Client
 
 function createMockAuditLogger() {
   return {
@@ -155,7 +162,7 @@ describe('Feature: amarspace-full-implementation, Property 16: Issue status tran
             newStatus,
             resolutionNotes,
           )
-          const service = new IssueService(db, auditLogger)
+          const service = new IssueService(db, auditLogger, mockR2)
 
           // For Resolved transitions, always provide resolution notes
           const input =
@@ -221,7 +228,7 @@ describe('Feature: amarspace-full-implementation, Property 16: Issue status tran
           targetStatus,
           'some notes',
         )
-        const service = new IssueService(db, auditLogger)
+        const service = new IssueService(db, auditLogger, mockR2)
 
         const input =
           targetStatus === ISSUE_STATUS.RESOLVED
@@ -251,7 +258,7 @@ describe('Feature: amarspace-full-implementation, Property 16: Issue status tran
             ISSUE_STATUS.RESOLVED,
             emptyNotes,
           )
-          const service = new IssueService(db, auditLogger)
+          const service = new IssueService(db, auditLogger, mockR2)
 
           // Property: Transitioning to Resolved without resolution notes is rejected
           await expect(
@@ -280,7 +287,7 @@ describe('Feature: amarspace-full-implementation, Property 16: Issue status tran
             ISSUE_STATUS.RESOLVED,
             resolutionNotes,
           )
-          const service = new IssueService(db, auditLogger)
+          const service = new IssueService(db, auditLogger, mockR2)
 
           // Property: Transitioning to Resolved with valid notes succeeds
           const result = await service.updateIssueStatus(ctx, ISSUE_ID, {
@@ -310,7 +317,7 @@ describe('Feature: amarspace-full-implementation, Property 16: Issue status tran
             ISSUE_STATUS.RESOLVED,
             tooLongNotes,
           )
-          const service = new IssueService(db, auditLogger)
+          const service = new IssueService(db, auditLogger, mockR2)
 
           // Property: Resolution notes exceeding 2000 chars are rejected
           await expect(

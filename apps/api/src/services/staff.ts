@@ -17,7 +17,7 @@ import {
   NotFoundError,
   ValidationError,
 } from '@repo/shared/errors'
-import type { FieldError, RequestContext } from '@repo/shared/types'
+import type { PaginationInput, RequestContext } from '@repo/shared/types'
 import {
   type CreateStaffInput,
   createStaffSchema,
@@ -25,16 +25,12 @@ import {
   type UpdateStaffPermissionsInput,
   updateStaffPermissionsSchema,
   updateStaffSchema,
+  validateOrThrow,
 } from '@repo/shared/validation'
 import { and, count, desc, eq, inArray, sql } from 'drizzle-orm'
 import type { AuditLogger } from '../plugins/audit-logger'
 
 const STAFF_ROLES = ['manager', 'security_guard', 'care_taker'] as const
-
-export interface PaginationInput {
-  page: number
-  pageSize: number
-}
 
 export interface PaginatedResult<T> {
   data: T[]
@@ -101,17 +97,7 @@ export class StaffService {
     ctx: RequestContext,
     input: CreateStaffInput,
   ): Promise<CreateStaffResult> {
-    const parseResult = createStaffSchema.safeParse(input)
-    if (!parseResult.success) {
-      const errors: FieldError[] = parseResult.error.issues.map((issue) => ({
-        field: issue.path.join('.') || 'unknown',
-        message: issue.message,
-        rule: issue.code,
-      }))
-      throw new ValidationError(errors)
-    }
-
-    const validated = parseResult.data
+    const validated = validateOrThrow(createStaffSchema, input)
 
     if (validated.buildingIds.length > 0) {
       const ownedBuildings = await this.db
@@ -402,17 +388,7 @@ export class StaffService {
     staffId: string,
     input: UpdateStaffInput,
   ): Promise<void> {
-    const parseResult = updateStaffSchema.safeParse(input)
-    if (!parseResult.success) {
-      const errors: FieldError[] = parseResult.error.issues.map((issue) => ({
-        field: issue.path.join('.') || 'unknown',
-        message: issue.message,
-        rule: issue.code,
-      }))
-      throw new ValidationError(errors)
-    }
-
-    const validated = parseResult.data
+    const validated = validateOrThrow(updateStaffSchema, input)
 
     const staff = await this.db.query.users.findFirst({
       where: and(
@@ -642,17 +618,7 @@ export class StaffService {
     staffId: string,
     input: UpdateStaffPermissionsInput,
   ): Promise<void> {
-    const parseResult = updateStaffPermissionsSchema.safeParse(input)
-    if (!parseResult.success) {
-      const errors: FieldError[] = parseResult.error.issues.map((issue) => ({
-        field: issue.path.join('.') || 'unknown',
-        message: issue.message,
-        rule: issue.code,
-      }))
-      throw new ValidationError(errors)
-    }
-
-    const validated = parseResult.data
+    const validated = validateOrThrow(updateStaffPermissionsSchema, input)
 
     const staff = await this.db.query.users.findFirst({
       where: and(

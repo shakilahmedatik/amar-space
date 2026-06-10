@@ -12,7 +12,13 @@
  * Used by both Sidebar (desktop ≥768px) and BottomTabBar (mobile <768px).
  */
 
-export type UserRole = 'owner' | 'manager' | 'security_guard' | 'care_taker'
+export type UserRole =
+  | 'owner'
+  | 'manager'
+  | 'security_guard'
+  | 'care_taker'
+  | 'renter'
+  | 'superadmin'
 
 export interface NavigationItem {
   /** Unique identifier for the navigation item */

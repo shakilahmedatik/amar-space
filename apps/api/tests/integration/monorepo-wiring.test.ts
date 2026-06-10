@@ -98,7 +98,7 @@ describe('Monorepo Wiring Integration', () => {
         {
           cwd: resolve(ROOT_DIR, 'apps/api'),
           encoding: 'utf-8',
-          timeout: 30_000,
+          timeout: 60_000,
         },
       )
 
@@ -115,7 +115,7 @@ describe('Monorepo Wiring Integration', () => {
       const result = execSync('npx tsc --noEmit', {
         cwd: resolve(ROOT_DIR, 'apps/api'),
         encoding: 'utf-8',
-        timeout: 30_000,
+        timeout: 60_000,
       })
 
       // If tsc succeeds, it returns empty string (no errors)

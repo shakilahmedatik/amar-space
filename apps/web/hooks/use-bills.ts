@@ -4,12 +4,12 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   type AddUtilityChargeInput,
   addUtilityCharge,
+  type BillListParams,
   deleteBill,
   fetchBill,
   fetchBills,
   fetchFlats,
   fetchRenterOptions,
-  type BillListParams,
   type GenerateBillForContractInput,
   type GenerateBillsInput,
   generateBillForContract,

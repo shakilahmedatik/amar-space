@@ -6,10 +6,10 @@ import {
 
 describe('access-code-hash utility', () => {
   describe('hashAccessCode', () => {
-    it('should produce a consistent hash for the same code', () => {
+    it('should produce different hashes for different calls with the same code (due to random salt)', () => {
       const hash1 = hashAccessCode('123456')
       const hash2 = hashAccessCode('123456')
-      expect(hash1).toBe(hash2)
+      expect(hash1).not.toBe(hash2)
     })
 
     it('should produce different hashes for different codes', () => {
@@ -18,9 +18,12 @@ describe('access-code-hash utility', () => {
       expect(hash1).not.toBe(hash2)
     })
 
-    it('should return a 64-character hex string (SHA-256)', () => {
+    it('should return a string in salt:hash format', () => {
       const hash = hashAccessCode('000000')
-      expect(hash).toMatch(/^[0-9a-f]{64}$/)
+      const parts = hash.split(':')
+      expect(parts).toHaveLength(2)
+      expect(parts[0]).toMatch(/^[0-9a-f]{32}$/) // 16 bytes salt
+      expect(parts[1]).toMatch(/^[0-9a-f]{128}$/) // 64 bytes key
     })
   })
 

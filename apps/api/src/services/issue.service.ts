@@ -11,7 +11,7 @@ import {
   type IssueStatus,
 } from '@repo/shared/constants'
 import { NotFoundError, ValidationError } from '@repo/shared/errors'
-import type { FieldError, RequestContext } from '@repo/shared/types'
+import type { RequestContext } from '@repo/shared/types'
 import {
   type AssignIssueInput,
   assignIssueSchema,
@@ -19,6 +19,7 @@ import {
   createIssueSchema,
   type UpdateIssueStatusInput,
   updateIssueStatusSchema,
+  validateOrThrow,
 } from '@repo/shared/validation'
 import { and, eq } from 'drizzle-orm'
 import type { AuditLogger } from '../plugins/audit-logger'
@@ -126,17 +127,7 @@ export class IssueService {
     attachments?: FileAttachment[],
   ): Promise<IssueResult> {
     // Step 1: Validate input using Zod schema
-    const parseResult = createIssueSchema.safeParse(input)
-    if (!parseResult.success) {
-      const errors: FieldError[] = parseResult.error.issues.map((issue) => ({
-        field: issue.path.join('.') || 'unknown',
-        message: issue.message,
-        rule: issue.code,
-      }))
-      throw new ValidationError(errors)
-    }
-
-    const validated = parseResult.data
+    const validated = validateOrThrow(createIssueSchema, input)
 
     // Step 2: Validate attachments if provided
     if (attachments && attachments.length > 0) {
@@ -211,17 +202,7 @@ export class IssueService {
     input: AssignIssueInput,
   ): Promise<IssueResult> {
     // Step 1: Validate input
-    const parseResult = assignIssueSchema.safeParse(input)
-    if (!parseResult.success) {
-      const errors: FieldError[] = parseResult.error.issues.map((issue) => ({
-        field: issue.path.join('.') || 'unknown',
-        message: issue.message,
-        rule: issue.code,
-      }))
-      throw new ValidationError(errors)
-    }
-
-    const validated = parseResult.data
+    const validated = validateOrThrow(assignIssueSchema, input)
 
     // Step 2: Verify issue exists and belongs to the owner's account
     const existing = await this.db.query.issues.findFirst({
@@ -298,17 +279,7 @@ export class IssueService {
     input: UpdateIssueStatusInput,
   ): Promise<IssueResult> {
     // Step 1: Validate input
-    const parseResult = updateIssueStatusSchema.safeParse(input)
-    if (!parseResult.success) {
-      const errors: FieldError[] = parseResult.error.issues.map((issue) => ({
-        field: issue.path.join('.') || 'unknown',
-        message: issue.message,
-        rule: issue.code,
-      }))
-      throw new ValidationError(errors)
-    }
-
-    const validated = parseResult.data
+    const validated = validateOrThrow(updateIssueStatusSchema, input)
 
     // Step 2: Verify issue exists and belongs to the owner's account
     const existing = await this.db.query.issues.findFirst({

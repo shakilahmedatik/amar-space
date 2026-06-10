@@ -449,7 +449,6 @@ export const ownerListQuerySchema = z.object({
 
 // ─── Type Exports ───────────────────────────────────────────────────────────
 
-export type PaginationInput = z.infer<typeof paginationSchema>
 export type RegisterInput = z.infer<typeof registerSchema>
 export type LoginInput = z.infer<typeof loginSchema>
 export type CreateBuildingInput = z.infer<typeof createBuildingSchema>
@@ -502,3 +501,19 @@ export type UpdateApprovalStatusInput = z.infer<
 >
 export type AdminUserListQueryInput = z.infer<typeof adminUserListQuerySchema>
 export type OwnerListQueryInput = z.infer<typeof ownerListQuerySchema>
+
+import { ValidationError } from '../errors/index'
+import type { FieldError } from '../types/index'
+
+export function validateOrThrow<T>(schema: z.Schema<T>, data: unknown): T {
+  const result = schema.safeParse(data)
+  if (!result.success) {
+    const errors: FieldError[] = result.error.issues.map((issue) => ({
+      field: issue.path.join('.') || 'unknown',
+      message: issue.message,
+      rule: issue.code,
+    }))
+    throw new ValidationError(errors)
+  }
+  return result.data
+}

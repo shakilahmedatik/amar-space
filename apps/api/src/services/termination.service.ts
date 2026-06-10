@@ -19,7 +19,7 @@ import {
   ValidationError,
 } from '@repo/shared/errors'
 import type { RequestContext } from '@repo/shared/types'
-import { billingMonthSchema } from '@repo/shared/validation'
+import { billingMonthSchema, validateOrThrow } from '@repo/shared/validation'
 import { and, eq, inArray, isNotNull, sql } from 'drizzle-orm'
 import type { AuditLogger } from '../plugins/audit-logger'
 import { getLastDayOfMonth } from '../utils/bill-calculation'
@@ -59,16 +59,7 @@ export class TerminationService {
       throw new ForbiddenError()
     }
 
-    const monthResult = billingMonthSchema.safeParse(input.terminationMonth)
-    if (!monthResult.success) {
-      throw new ValidationError([
-        {
-          field: 'terminationMonth',
-          message: 'Termination month must be in YYYY-MM format',
-          rule: 'format',
-        },
-      ])
-    }
+    validateOrThrow(billingMonthSchema, input.terminationMonth)
 
     const renter = await this.db.query.renters.findFirst({
       where: and(

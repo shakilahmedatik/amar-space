@@ -8,7 +8,7 @@ import {
   users,
 } from '@repo/db'
 import { ForbiddenError } from '@repo/shared/errors'
-import type { RequestContext } from '@repo/shared/types'
+import type { PaginationInput, RequestContext } from '@repo/shared/types'
 import { and, count, desc, eq, gte, inArray, lte } from 'drizzle-orm'
 
 // --- Types ---
@@ -20,11 +20,6 @@ export interface AuditLogQueryFilters {
   actionName?: string
   startDate?: string // ISO date string
   endDate?: string // ISO date string
-}
-
-export interface PaginationInput {
-  page: number
-  pageSize: number
 }
 
 export interface AuditLogEntry {
@@ -96,7 +91,10 @@ export class AuditLogQueryService {
     const offset = (page - 1) * pageSize
 
     // Build conditions with tenant isolation (Requirement 13.8)
-    const conditions = [eq(auditLogs.ownerAccountId, ctx.ownerAccountId)]
+    const conditions = []
+    if (ctx.role !== 'superadmin' && !ctx.isSuperadmin) {
+      conditions.push(eq(auditLogs.ownerAccountId, ctx.ownerAccountId!))
+    }
 
     // Manager: restrict to entities in assigned buildings (Requirement 13.4)
     if (ctx.role === 'manager') {

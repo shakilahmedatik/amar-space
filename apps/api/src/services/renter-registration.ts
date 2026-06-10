@@ -1,4 +1,4 @@
-import { randomUUID } from 'node:crypto'
+import { randomInt, randomUUID } from 'node:crypto'
 import {
   type Database,
   fileReferences,
@@ -14,8 +14,9 @@ import type { FieldError, RequestContext } from '@repo/shared/types'
 import {
   type RegisterRenterInput,
   registerRenterSchema,
+  validateOrThrow,
 } from '@repo/shared/validation'
-import { and, desc, eq } from 'drizzle-orm'
+import { and, count, desc, eq } from 'drizzle-orm'
 import type { AuditLogger } from '../plugins/audit-logger'
 import type { R2Client } from '../plugins/r2'
 import { hashAccessCode } from '../utils/access-code-hash'
@@ -140,17 +141,7 @@ export class RenterRegistrationService {
     data: RegisterRenterData,
   ): Promise<RegisterRenterResult> {
     // Step 1: Validate input using Zod schema (Requirements 4.3, 4.4, 4.5, 4.6)
-    const parseResult = registerRenterSchema.safeParse(data)
-    if (!parseResult.success) {
-      const errors: FieldError[] = parseResult.error.issues.map((issue) => ({
-        field: issue.path.join('.') || 'unknown',
-        message: issue.message,
-        rule: issue.code,
-      }))
-      throw new ValidationError(errors)
-    }
-
-    const validated = parseResult.data
+    const validated = validateOrThrow(registerRenterSchema, data)
 
     // Step 2: Validate file uploads if provided (Requirements 4.11, 4.12)
     if (data.nidPhoto) {
@@ -184,117 +175,123 @@ export class RenterRegistrationService {
       ])
     }
 
-    // Step 5: Create user account (Requirement 4.8)
-    // Generate a unique email for the renter based on phone number
+    // Step 5: Create user account and associated renter/contract records in a transaction
     const renterEmail = `renter_${validated.phone}@amarspace.local`
 
-    const [renterUser] = await this.db
-      .insert(users)
-      .values({
-        id: randomUUID(),
-        email: renterEmail,
-        name: validated.fullName,
-        role: 'owner',
-        ownerAccountId: ctx.ownerAccountId,
-        phone: validated.phone,
-        approvalStatus: null,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      })
-      .returning()
+    const result = await this.db.transaction(async (tx) => {
+      // Create user account (Requirement 4.8) - role is 'renter'
+      const [renterUser] = await tx
+        .insert(users)
+        .values({
+          id: randomUUID(),
+          email: renterEmail,
+          name: validated.fullName,
+          role: 'renter',
+          ownerAccountId: ctx.ownerAccountId,
+          phone: validated.phone,
+          approvalStatus: null,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        })
+        .returning()
 
-    if (!renterUser) {
-      throw new Error('Failed to create renter user account')
-    }
+      if (!renterUser) {
+        throw new Error('Failed to create renter user account')
+      }
 
-    // Step 6: Handle file uploads (Requirements 4.11, 4.12)
-    let nidPhotoUrl: string | null = null
-    let digitalSignatureUrl: string | null = null
+      // Handle file uploads inside transaction
+      let nidPhotoUrl: string | null = null
+      let digitalSignatureUrl: string | null = null
 
-    if (data.nidPhoto) {
-      nidPhotoUrl = await this.uploadFile(
-        ctx.ownerAccountId,
-        'renter_nid',
-        renterUser.id,
-        data.nidPhoto,
-      )
-    }
+      if (data.nidPhoto) {
+        nidPhotoUrl = await this.uploadFile(
+          tx,
+          ctx.ownerAccountId,
+          'renter_nid',
+          renterUser.id,
+          data.nidPhoto,
+        )
+      }
 
-    if (data.digitalSignature) {
-      digitalSignatureUrl = await this.uploadFile(
-        ctx.ownerAccountId,
-        'signature',
-        renterUser.id,
-        data.digitalSignature,
-      )
-    }
+      if (data.digitalSignature) {
+        digitalSignatureUrl = await this.uploadFile(
+          tx,
+          ctx.ownerAccountId,
+          'signature',
+          renterUser.id,
+          data.digitalSignature,
+        )
+      }
 
-    // Step 7: Create renter record (Requirements 4.1, 4.2)
-    const [renter] = await this.db
-      .insert(renters)
-      .values({
-        ownerAccountId: ctx.ownerAccountId,
-        userId: renterUser.id,
-        fullName: validated.fullName,
-        phone: validated.phone,
-        nidNumber: validated.nidNumber,
-        nidPhotoUrl,
-        dateOfBirth: validated.dateOfBirth ?? null,
-        occupation: validated.occupation,
-        bloodGroup: validated.bloodGroup,
-        totalFamilyMembers: validated.totalFamilyMembers,
-        familyMemberNames: validated.familyMemberNames ?? null,
-        emergencyContactName: validated.emergencyContactName,
-        emergencyContactNumber: validated.emergencyContactNumber,
-        emergencyContactRelationship: validated.emergencyContactRelationship,
-        digitalSignatureUrl,
-      })
-      .returning()
+      // Create renter record (Requirements 4.1, 4.2)
+      const [renter] = await tx
+        .insert(renters)
+        .values({
+          ownerAccountId: ctx.ownerAccountId,
+          userId: renterUser.id,
+          fullName: validated.fullName,
+          phone: validated.phone,
+          nidNumber: validated.nidNumber,
+          nidPhotoUrl,
+          dateOfBirth: validated.dateOfBirth ?? null,
+          occupation: validated.occupation,
+          bloodGroup: validated.bloodGroup,
+          totalFamilyMembers: validated.totalFamilyMembers,
+          familyMemberNames: validated.familyMemberNames ?? null,
+          emergencyContactName: validated.emergencyContactName,
+          emergencyContactNumber: validated.emergencyContactNumber,
+          emergencyContactRelationship: validated.emergencyContactRelationship,
+          digitalSignatureUrl,
+        })
+        .returning()
 
-    if (!renter) {
-      throw new Error('Failed to create renter record')
-    }
+      if (!renter) {
+        throw new Error('Failed to create renter record')
+      }
 
-    // Step 8: Create rental contract (Requirement 4.7)
-    const [contract] = await this.db
-      .insert(rentalContracts)
-      .values({
-        ownerAccountId: ctx.ownerAccountId,
-        renterId: renter.id,
-        flatId: validated.flatId,
-        monthlyRent: validated.monthlyRent.toFixed(2),
-        startDate: validated.startDate,
-        securityDepositAmount: validated.advanceAmount.toFixed(2),
-        remainingDepositBalance: validated.advanceAmount.toFixed(2),
-        status: 'active',
-      })
-      .returning()
+      // Create rental contract (Requirement 4.7)
+      const [contract] = await tx
+        .insert(rentalContracts)
+        .values({
+          ownerAccountId: ctx.ownerAccountId,
+          renterId: renter.id,
+          flatId: validated.flatId,
+          monthlyRent: validated.monthlyRent.toFixed(2),
+          startDate: validated.startDate,
+          securityDepositAmount: validated.advanceAmount.toFixed(2),
+          remainingDepositBalance: validated.advanceAmount.toFixed(2),
+          status: 'active',
+        })
+        .returning()
 
-    if (!contract) {
-      throw new Error('Failed to create rental contract')
-    }
+      if (!contract) {
+        throw new Error('Failed to create rental contract')
+      }
 
-    // Step 9: Update flat status to Occupied (Requirement 6.4)
-    await this.db
-      .update(flats)
-      .set({
-        status: FLAT_STATUS.OCCUPIED,
-        updatedAt: new Date(),
-      })
-      .where(eq(flats.id, validated.flatId))
+      // Update flat status to Occupied (Requirement 6.4)
+      await tx
+        .update(flats)
+        .set({
+          status: FLAT_STATUS.OCCUPIED,
+          updatedAt: new Date(),
+        })
+        .where(eq(flats.id, validated.flatId))
 
-    // Step 10: Record audit event (Requirement 4.10)
+      return { renterUser, renter, contract }
+    })
+
+    // Record audit event (Requirement 4.10)
     this.auditLogger.log({
       actorId: ctx.userId,
       action: 'renter_registered',
       entityType: 'renter',
-      entityId: renter.id,
+      entityId: result.renter.id,
       ownerAccountId: ctx.ownerAccountId,
       newValues: {
-        renterId: renter.id,
-        userId: renterUser.id,
+        renterId: result.renter.id,
+        userId: result.renterUser.id,
         flatId: validated.flatId,
-        contractId: contract.id,
+        contractId: result.contract.id,
         fullName: validated.fullName,
         phone: validated.phone,
         monthlyRent: validated.monthlyRent,
@@ -305,43 +302,44 @@ export class RenterRegistrationService {
 
     return {
       renter: {
-        id: renter.id,
-        userId: renter.userId,
-        ownerAccountId: renter.ownerAccountId,
-        fullName: renter.fullName,
-        phone: renter.phone,
-        nidNumber: renter.nidNumber,
-        nidPhotoUrl: renter.nidPhotoUrl,
-        dateOfBirth: renter.dateOfBirth,
-        occupation: renter.occupation,
-        bloodGroup: renter.bloodGroup,
-        totalFamilyMembers: renter.totalFamilyMembers,
-        familyMemberNames: renter.familyMemberNames,
-        emergencyContactName: renter.emergencyContactName,
-        emergencyContactNumber: renter.emergencyContactNumber,
-        emergencyContactRelationship: renter.emergencyContactRelationship,
-        digitalSignatureUrl: renter.digitalSignatureUrl,
-        selfiePhotoUrl: renter.selfiePhotoUrl,
-        createdAt: renter.createdAt,
-        updatedAt: renter.updatedAt,
+        id: result.renter.id,
+        userId: result.renter.userId,
+        ownerAccountId: result.renter.ownerAccountId,
+        fullName: result.renter.fullName,
+        phone: result.renter.phone,
+        nidNumber: result.renter.nidNumber,
+        nidPhotoUrl: result.renter.nidPhotoUrl,
+        dateOfBirth: result.renter.dateOfBirth,
+        occupation: result.renter.occupation,
+        bloodGroup: result.renter.bloodGroup,
+        totalFamilyMembers: result.renter.totalFamilyMembers,
+        familyMemberNames: result.renter.familyMemberNames,
+        emergencyContactName: result.renter.emergencyContactName,
+        emergencyContactNumber: result.renter.emergencyContactNumber,
+        emergencyContactRelationship:
+          result.renter.emergencyContactRelationship,
+        digitalSignatureUrl: result.renter.digitalSignatureUrl,
+        selfiePhotoUrl: result.renter.selfiePhotoUrl,
+        createdAt: result.renter.createdAt,
+        updatedAt: result.renter.updatedAt,
       },
       contract: {
-        id: contract.id,
-        ownerAccountId: contract.ownerAccountId,
-        renterId: contract.renterId,
-        flatId: contract.flatId,
-        monthlyRent: contract.monthlyRent,
-        startDate: contract.startDate,
-        securityDepositAmount: contract.securityDepositAmount,
-        remainingDepositBalance: contract.remainingDepositBalance,
-        status: contract.status,
-        createdAt: contract.createdAt,
-        updatedAt: contract.updatedAt,
+        id: result.contract.id,
+        ownerAccountId: result.contract.ownerAccountId,
+        renterId: result.contract.renterId,
+        flatId: result.contract.flatId,
+        monthlyRent: result.contract.monthlyRent,
+        startDate: result.contract.startDate,
+        securityDepositAmount: result.contract.securityDepositAmount,
+        remainingDepositBalance: result.contract.remainingDepositBalance,
+        status: result.contract.status,
+        createdAt: result.contract.createdAt,
+        updatedAt: result.contract.updatedAt,
       },
       user: {
-        id: renterUser.id,
-        email: renterUser.email,
-        role: renterUser.role,
+        id: result.renterUser.id,
+        email: result.renterUser.email,
+        role: result.renterUser.role,
       },
     }
   }
@@ -381,7 +379,7 @@ export class RenterRegistrationService {
     const flat = activeContract?.flat
     const building = flat?.building
 
-    const accessCodeRecord = await this.db.query.renterAccessCodes.findFirst({
+    const _accessCodeRecord = await this.db.query.renterAccessCodes.findFirst({
       where: eq(renterAccessCodes.renterId, renterId),
     })
 
@@ -416,7 +414,7 @@ export class RenterRegistrationService {
       depositBalance: activeContract
         ? Number.parseFloat(activeContract.remainingDepositBalance)
         : null,
-      accessCode: accessCodeRecord?.code ?? null,
+      accessCode: null,
       contractStatus: activeContract?.status ?? null,
       scheduledTerminationDate:
         activeContract?.scheduledTerminationDate ?? null,
@@ -459,7 +457,7 @@ export class RenterRegistrationService {
       ])
     }
 
-    const newCode = Math.floor(100000 + Math.random() * 900000).toString()
+    const newCode = randomInt(100000, 1000000).toString()
     const newHash = hashAccessCode(newCode)
 
     const existingAccessCode = await this.db.query.renterAccessCodes.findFirst({
@@ -470,7 +468,6 @@ export class RenterRegistrationService {
       await this.db
         .update(renterAccessCodes)
         .set({
-          code: newCode,
           codeHash: newHash,
           failedAttempts: 0,
           lockedUntil: null,
@@ -481,7 +478,6 @@ export class RenterRegistrationService {
       await this.db.insert(renterAccessCodes).values({
         flatId: activeContract.flatId,
         renterId: renterId,
-        code: newCode,
         codeHash: newHash,
         failedAttempts: 0,
         createdAt: new Date(),
@@ -523,8 +519,6 @@ export class RenterRegistrationService {
     const offset = (page - 1) * pageSize
 
     const whereClause = eq(renters.ownerAccountId, ctx.ownerAccountId)
-
-    const { count } = await import('drizzle-orm')
 
     const [data, totalResult] = await Promise.all([
       this.db.query.renters.findMany({
@@ -630,6 +624,7 @@ export class RenterRegistrationService {
    * Returns the storage key (URL reference).
    */
   private async uploadFile(
+    db: Pick<Database, 'insert'>,
     ownerAccountId: string,
     entityType: string,
     entityId: string,
@@ -646,7 +641,7 @@ export class RenterRegistrationService {
     )
 
     // Record file reference in database
-    await this.db.insert(fileReferences).values({
+    await db.insert(fileReferences).values({
       ownerAccountId,
       entityType,
       entityId,

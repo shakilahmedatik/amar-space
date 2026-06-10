@@ -19,11 +19,16 @@ import {
   NotFoundError,
   ValidationError,
 } from '@repo/shared/errors'
-import type { FieldError, RequestContext } from '@repo/shared/types'
+import type {
+  FieldError,
+  PaginationInput,
+  RequestContext,
+} from '@repo/shared/types'
 import {
   addMaintenanceCommentSchema,
   createMaintenanceRequestSchema,
   updateMaintenanceStatusSchema,
+  validateOrThrow,
 } from '@repo/shared/validation'
 import { and, count, desc, eq, inArray } from 'drizzle-orm'
 import type { AuditLogger } from '../plugins/audit-logger'
@@ -93,11 +98,6 @@ export interface ListMaintenanceFilters {
   priority?: Priority
 }
 
-export interface PaginationInput {
-  page: number
-  pageSize: number
-}
-
 export interface PaginatedMaintenanceRequests {
   data: MaintenanceRequestResult[]
   total: number
@@ -151,18 +151,7 @@ export class MaintenanceService {
     data: CreateMaintenanceRequestInput,
     attachments?: FileAttachment[],
   ): Promise<MaintenanceRequestResult> {
-    // Validate input using Zod schema
-    const parseResult = createMaintenanceRequestSchema.safeParse(data)
-    if (!parseResult.success) {
-      const errors: FieldError[] = parseResult.error.issues.map((issue) => ({
-        field: issue.path.join('.') || 'unknown',
-        message: issue.message,
-        rule: issue.code,
-      }))
-      throw new ValidationError(errors)
-    }
-
-    const validated = parseResult.data
+    const validated = validateOrThrow(createMaintenanceRequestSchema, data)
 
     // Resolve the renter and their flat
     const renter = await this.db.query.renters.findFirst({
@@ -268,20 +257,9 @@ export class MaintenanceService {
       throw new ForbiddenError()
     }
 
-    // Validate the new status value
-    const parseResult = updateMaintenanceStatusSchema.safeParse({
+    const validated = validateOrThrow(updateMaintenanceStatusSchema, {
       status: newStatus,
     })
-    if (!parseResult.success) {
-      const errors: FieldError[] = parseResult.error.issues.map((issue) => ({
-        field: issue.path.join('.') || 'unknown',
-        message: issue.message,
-        rule: issue.code,
-      }))
-      throw new ValidationError(errors)
-    }
-
-    const validated = parseResult.data
 
     // Find the request with tenant isolation
     const request = await this.findRequestWithAccess(ctx, requestId)
@@ -342,18 +320,7 @@ export class MaintenanceService {
     requestId: string,
     commentData: { content: string },
   ): Promise<MaintenanceCommentResult> {
-    // Validate input
-    const parseResult = addMaintenanceCommentSchema.safeParse(commentData)
-    if (!parseResult.success) {
-      const errors: FieldError[] = parseResult.error.issues.map((issue) => ({
-        field: issue.path.join('.') || 'unknown',
-        message: issue.message,
-        rule: issue.code,
-      }))
-      throw new ValidationError(errors)
-    }
-
-    const validated = parseResult.data
+    const validated = validateOrThrow(addMaintenanceCommentSchema, commentData)
 
     // Find the request with access check
     await this.findRequestWithAccess(ctx, requestId)

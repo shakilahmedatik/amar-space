@@ -1,16 +1,13 @@
 import { randomUUID } from 'node:crypto'
 import { type Database, emergencyContacts } from '@repo/db'
-import {
-  ConflictError,
-  NotFoundError,
-  ValidationError,
-} from '@repo/shared/errors'
-import type { FieldError, RequestContext } from '@repo/shared/types'
+import { ConflictError, NotFoundError } from '@repo/shared/errors'
+import type { PaginationInput, RequestContext } from '@repo/shared/types'
 import {
   type CreateBuildingInput,
   createBuildingSchema,
   type UpdateBuildingInput,
   updateBuildingSchema,
+  validateOrThrow,
 } from '@repo/shared/validation'
 import { eq } from 'drizzle-orm'
 import type { AuditLogger } from '../plugins/audit-logger'
@@ -18,11 +15,6 @@ import type { R2Client } from '../plugins/r2'
 import { BuildingRepository } from '../repositories/building.repository'
 
 // --- Types ---
-
-export interface PaginationInput {
-  page: number
-  pageSize: number
-}
 
 export interface PaginatedResult<T> {
   data: T[]
@@ -99,17 +91,7 @@ export class BuildingService {
     input: CreateBuildingInput,
   ): Promise<Building> {
     // Step 1: Validate input using Zod schema
-    const parseResult = createBuildingSchema.safeParse(input)
-    if (!parseResult.success) {
-      const errors: FieldError[] = parseResult.error.issues.map((issue) => ({
-        field: issue.path.join('.') || 'unknown',
-        message: issue.message,
-        rule: issue.code,
-      }))
-      throw new ValidationError(errors)
-    }
-
-    const validated = parseResult.data
+    const validated = validateOrThrow(createBuildingSchema, input)
 
     // Step 2: Check name uniqueness per owner (Requirement 5.9)
     const existing = await this.buildingRepository.findByNameAndOwner(
@@ -247,17 +229,7 @@ export class BuildingService {
     input: UpdateBuildingInput,
   ): Promise<Building> {
     // Step 1: Validate input using Zod schema
-    const parseResult = updateBuildingSchema.safeParse(input)
-    if (!parseResult.success) {
-      const errors: FieldError[] = parseResult.error.issues.map((issue) => ({
-        field: issue.path.join('.') || 'unknown',
-        message: issue.message,
-        rule: issue.code,
-      }))
-      throw new ValidationError(errors)
-    }
-
-    const validated = parseResult.data
+    const validated = validateOrThrow(updateBuildingSchema, input)
 
     // Step 2: Verify building exists and belongs to the owner
     const existing = await this.buildingRepository.findById(

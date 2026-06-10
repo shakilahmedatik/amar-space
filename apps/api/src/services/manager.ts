@@ -5,21 +5,17 @@ import {
   NotFoundError,
   ValidationError,
 } from '@repo/shared/errors'
-import type { FieldError, RequestContext } from '@repo/shared/types'
+import type { PaginationInput, RequestContext } from '@repo/shared/types'
 import {
   type CreateManagerInput,
   createManagerSchema,
+  validateOrThrow,
 } from '@repo/shared/validation'
 import { and, count, desc, eq, inArray } from 'drizzle-orm'
 import type { AuditLogger } from '../plugins/audit-logger'
 import { generateTemporaryPassword } from '../utils/password-generator'
 
 // --- Types ---
-
-export interface PaginationInput {
-  page: number
-  pageSize: number
-}
 
 export interface PaginatedResult<T> {
   data: T[]
@@ -90,17 +86,7 @@ export class ManagerService {
     input: CreateManagerInput,
   ): Promise<CreateManagerResult> {
     // Step 1: Validate input using Zod schema
-    const parseResult = createManagerSchema.safeParse(input)
-    if (!parseResult.success) {
-      const errors: FieldError[] = parseResult.error.issues.map((issue) => ({
-        field: issue.path.join('.') || 'unknown',
-        message: issue.message,
-        rule: issue.code,
-      }))
-      throw new ValidationError(errors)
-    }
-
-    const validated = parseResult.data
+    const validated = validateOrThrow(createManagerSchema, input)
 
     // Step 2: Validate building ownership — all buildingIds must belong to owner's account
     const ownedBuildings = await this.db

@@ -139,6 +139,7 @@ describe('Tenant Scope Middleware', () => {
       const body = response.json()
       expect(body.tenantScope).toEqual({
         ownerAccountId: '__all__',
+        isSuperadmin: true,
       })
       expect(body.tenantScope.assignedBuildingIds).toBeUndefined()
       expect(body.tenantScope.assignedFlatId).toBeUndefined()

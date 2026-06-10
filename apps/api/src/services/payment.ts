@@ -1,3 +1,4 @@
+import { randomInt } from 'node:crypto'
 import {
   bills,
   buildings,
@@ -18,10 +19,15 @@ import {
   NotFoundError,
   ValidationError,
 } from '@repo/shared/errors'
-import type { FieldError, RequestContext } from '@repo/shared/types'
+import type {
+  FieldError,
+  PaginationInput,
+  RequestContext,
+} from '@repo/shared/types'
 import {
   type RecordPaymentInput,
   recordPaymentSchema,
+  validateOrThrow,
 } from '@repo/shared/validation'
 import { and, count, desc, eq, gte, inArray, lte, sql } from 'drizzle-orm'
 import type { AuditLogger } from '../plugins/audit-logger'
@@ -50,11 +56,6 @@ export interface ListPaymentsFilters {
   startDate?: string
   endDate?: string
   paymentMethod?: PaymentMethod
-}
-
-export interface PaginationInput {
-  page: number
-  pageSize: number
 }
 
 export interface PaginatedPayments {
@@ -115,17 +116,7 @@ export class PaymentService {
     }
 
     // Validate input using Zod schema
-    const parseResult = recordPaymentSchema.safeParse(data)
-    if (!parseResult.success) {
-      const errors: FieldError[] = parseResult.error.issues.map((issue) => ({
-        field: issue.path.join('.') || 'unknown',
-        message: issue.message,
-        rule: issue.code,
-      }))
-      throw new ValidationError(errors)
-    }
-
-    const validated = parseResult.data
+    const validated = validateOrThrow(recordPaymentSchema, data)
 
     // Additional validation: amount must have at most 2 decimal places (Requirement 8.11)
     if (!this.hasMaxTwoDecimalPlaces(validated.amount)) {
@@ -144,95 +135,108 @@ export class PaymentService {
       throw new ValidationError(dateErrors)
     }
 
-    // Find the bill with tenant isolation
-    const bill = await this.db.query.bills.findFirst({
-      where: and(
-        eq(bills.id, validated.billId),
-        eq(bills.ownerAccountId, ctx.ownerAccountId),
-      ),
-    })
+    const paymentResult = await this.db.transaction(async (tx) => {
+      // Find the bill with tenant isolation and row lock
+      const [lockedBill] = await tx
+        .select()
+        .from(bills)
+        .where(
+          and(
+            eq(bills.id, validated.billId),
+            eq(bills.ownerAccountId, ctx.ownerAccountId),
+          ),
+        )
+        .for('update')
 
-    if (!bill) {
-      throw new NotFoundError('Bill')
-    }
-
-    // Reject if bill is already Paid (Requirement 8.10)
-    if (bill.status === BILL_STATUS.PAID) {
-      throw new ValidationError([
-        {
-          field: 'billId',
-          message: 'Bill is already fully paid and not eligible for payment',
-          rule: 'bill_status',
-        },
-      ])
-    }
-
-    // Role-based access check for Manager
-    if (ctx.role === ROLES.MANAGER && ctx.assignedBuildingIds) {
-      const flat = await this.db.query.flats.findFirst({
-        where: eq(flats.id, bill.flatId),
-      })
-
-      if (!flat || !ctx.assignedBuildingIds.includes(flat.buildingId)) {
+      if (!lockedBill) {
         throw new NotFoundError('Bill')
       }
-    }
 
-    // Calculate remaining balance (Requirement 8.4)
-    // Use rounded arithmetic to avoid floating point precision issues
-    const totalAmount = Number.parseFloat(bill.totalAmount)
-    const paidAmount = Number.parseFloat(bill.paidAmount)
-    const remainingBalance = Number((totalAmount - paidAmount).toFixed(2))
+      // Reject if bill is already Paid (Requirement 8.10)
+      if (lockedBill.status === BILL_STATUS.PAID) {
+        throw new ValidationError([
+          {
+            field: 'billId',
+            message: 'Bill is already fully paid and not eligible for payment',
+            rule: 'bill_status',
+          },
+        ])
+      }
 
-    if (Number(validated.amount.toFixed(2)) > remainingBalance) {
-      throw new ValidationError([
-        {
-          field: 'amount',
-          message: `Payment amount exceeds remaining balance. Maximum payable amount is ${remainingBalance.toFixed(2)}`,
-          rule: 'exceeds_balance',
-        },
-      ])
-    }
+      // Role-based access check for Manager
+      if (ctx.role === ROLES.MANAGER && ctx.assignedBuildingIds) {
+        const flat = await tx.query.flats.findFirst({
+          where: eq(flats.id, lockedBill.flatId),
+        })
 
-    // Generate unique receipt reference (Requirement 8.8)
-    const receiptReference = this.generateReceiptReference()
+        if (!flat || !ctx.assignedBuildingIds.includes(flat.buildingId)) {
+          throw new NotFoundError('Bill')
+        }
+      }
 
-    // Record the payment
-    const [payment] = await this.db
-      .insert(payments)
-      .values({
-        ownerAccountId: ctx.ownerAccountId,
-        billId: validated.billId,
+      // Calculate remaining balance (Requirement 8.4)
+      // Use rounded arithmetic to avoid floating point precision issues
+      const totalAmount = Number.parseFloat(lockedBill.totalAmount)
+      const paidAmount = Number.parseFloat(lockedBill.paidAmount)
+      const remainingBalance = Number((totalAmount - paidAmount).toFixed(2))
+
+      if (Number(validated.amount.toFixed(2)) > remainingBalance) {
+        throw new ValidationError([
+          {
+            field: 'amount',
+            message: `Payment amount exceeds remaining balance. Maximum payable amount is ${remainingBalance.toFixed(2)}`,
+            rule: 'exceeds_balance',
+          },
+        ])
+      }
+
+      // Generate unique receipt reference (Requirement 8.8)
+      const receiptReference = this.generateReceiptReference()
+
+      // Record the payment
+      const [payment] = await tx
+        .insert(payments)
+        .values({
+          ownerAccountId: ctx.ownerAccountId,
+          billId: validated.billId,
+          receiptReference,
+          amount: validated.amount.toFixed(2),
+          paymentDate: validated.paymentDate,
+          paymentMethod: validated.paymentMethod,
+          note: validated.note ?? null,
+        })
+        .returning()
+
+      if (!payment) {
+        throw new Error('Failed to record payment')
+      }
+
+      // Update bill paidAmount and status (Requirements 8.2, 8.3)
+      // Use rounded arithmetic to avoid floating point precision issues
+      const newPaidAmount = paidAmount + validated.amount
+      const newPaidAmountRounded = Number(newPaidAmount.toFixed(2))
+      const totalAmountRounded = Number(totalAmount.toFixed(2))
+      const newStatus =
+        newPaidAmountRounded >= totalAmountRounded
+          ? BILL_STATUS.PAID
+          : BILL_STATUS.PARTIALLY_PAID
+
+      await tx
+        .update(bills)
+        .set({
+          paidAmount: newPaidAmount.toFixed(2),
+          status: newStatus,
+          updatedAt: new Date(),
+        })
+        .where(eq(bills.id, validated.billId))
+
+      return {
+        payment,
+        newPaidAmount,
+        newStatus,
         receiptReference,
-        amount: validated.amount.toFixed(2),
-        paymentDate: validated.paymentDate,
-        paymentMethod: validated.paymentMethod,
-        note: validated.note ?? null,
-      })
-      .returning()
-
-    if (!payment) {
-      throw new Error('Failed to record payment')
-    }
-
-    // Update bill paidAmount and status (Requirements 8.2, 8.3)
-    // Use rounded arithmetic to avoid floating point precision issues
-    const newPaidAmount = paidAmount + validated.amount
-    const newPaidAmountRounded = Number(newPaidAmount.toFixed(2))
-    const totalAmountRounded = Number(totalAmount.toFixed(2))
-    const newStatus =
-      newPaidAmountRounded >= totalAmountRounded
-        ? BILL_STATUS.PAID
-        : BILL_STATUS.PARTIALLY_PAID
-
-    await this.db
-      .update(bills)
-      .set({
-        paidAmount: newPaidAmount.toFixed(2),
-        status: newStatus,
-        updatedAt: new Date(),
-      })
-      .where(eq(bills.id, validated.billId))
+      }
+    })
 
     // Record audit event (Requirement 8.7)
     this.auditLogger.log({
@@ -242,16 +246,16 @@ export class PaymentService {
       entityId: validated.billId,
       ownerAccountId: ctx.ownerAccountId,
       newValues: {
-        paymentId: payment.id,
+        paymentId: paymentResult.payment.id,
         amount: validated.amount,
         paymentMethod: validated.paymentMethod,
-        receiptReference,
-        newPaidAmount: newPaidAmount.toFixed(2),
-        newStatus,
+        receiptReference: paymentResult.receiptReference,
+        newPaidAmount: paymentResult.newPaidAmount.toFixed(2),
+        newStatus: paymentResult.newStatus,
       },
     })
 
-    return this.mapToPaymentResult(payment)
+    return this.mapToPaymentResult(paymentResult.payment)
   }
 
   /**
@@ -703,18 +707,13 @@ export class PaymentService {
     return str.length - decimalIndex - 1 <= 2
   }
 
-  /**
-   * Generates a unique alphanumeric receipt reference (12-20 characters).
-   * Format: PAY-{timestamp_base36}-{random_alphanumeric}
-   * This produces references between 12-20 characters.
-   */
   private generateReceiptReference(): string {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
     const timestamp = Date.now().toString(36).toUpperCase()
     const randomLength = 16 - timestamp.length - 1 // Target ~16 chars total
     let random = ''
     for (let i = 0; i < Math.max(randomLength, 4); i++) {
-      random += chars.charAt(Math.floor(Math.random() * chars.length))
+      random += chars.charAt(randomInt(0, chars.length))
     }
     const reference = `${timestamp}${random}`
     // Ensure it's between 12-20 characters

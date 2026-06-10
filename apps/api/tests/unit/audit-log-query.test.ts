@@ -139,8 +139,13 @@ function createMockDb(
   // We need a more sophisticated mock that handles different table queries
   let fromCallCount = 0
   const sophisticatedSelect = vi.fn().mockImplementation((selectArg) => {
-    // If selectArg has 'id' field, it's a sub-query for entity IDs
-    if (selectArg && typeof selectArg === 'object' && 'id' in selectArg) {
+    // If selectArg has 'id' field and is not the main query, it's a sub-query for entity IDs
+    if (
+      selectArg &&
+      typeof selectArg === 'object' &&
+      'id' in selectArg &&
+      !('actorId' in selectArg)
+    ) {
       fromCallCount++
       const currentFromCall = fromCallCount
 
@@ -180,16 +185,19 @@ function createMockDb(
     }
 
     // Default: data query for audit logs
-    return {
-      from: vi.fn().mockReturnValue({
-        where: vi.fn().mockReturnValue({
-          orderBy: vi.fn().mockReturnValue({
-            limit: vi.fn().mockReturnValue({
-              offset: vi.fn().mockResolvedValue(selectData),
-            }),
+    const fromObj = {
+      leftJoin: vi.fn(),
+      where: vi.fn().mockReturnValue({
+        orderBy: vi.fn().mockReturnValue({
+          limit: vi.fn().mockReturnValue({
+            offset: vi.fn().mockResolvedValue(selectData),
           }),
         }),
       }),
+    }
+    fromObj.leftJoin.mockImplementation(() => fromObj)
+    return {
+      from: vi.fn().mockReturnValue(fromObj),
     }
   })
 

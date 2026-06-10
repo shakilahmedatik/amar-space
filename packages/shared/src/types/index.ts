@@ -17,6 +17,7 @@ export interface RequestContext {
   assignedFlatId?: string
   ipAddress: string
   userAgent: string
+  isSuperadmin?: boolean
 }
 
 /** Standard API error response */
@@ -33,4 +34,9 @@ export interface FieldError {
   field: string
   message: string
   rule?: string
+}
+
+export interface PaginationInput {
+  page: number
+  pageSize: number
 }

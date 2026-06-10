@@ -1,7 +1,6 @@
 import { sessions, users } from '@repo/db/schema'
-import { ConflictError, ValidationError } from '@repo/shared/errors'
-import type { FieldError } from '@repo/shared/types'
-import { emailSchema, passwordSchema } from '@repo/shared/validation'
+import { ConflictError } from '@repo/shared/errors'
+import { registerSchema, validateOrThrow } from '@repo/shared/validation'
 import { eq } from 'drizzle-orm'
 import type { FastifyInstance } from 'fastify'
 
@@ -34,40 +33,7 @@ export function validateRegistrationInput(input: RegisterInput): {
   email: string
   password: string
 } {
-  const errors: FieldError[] = []
-
-  // Validate email
-  const emailResult = emailSchema.safeParse(input.email)
-  if (!emailResult.success) {
-    for (const issue of emailResult.error.issues) {
-      errors.push({
-        field: 'email',
-        message: issue.message,
-        rule: issue.code,
-      })
-    }
-  }
-
-  // Validate password
-  const passwordResult = passwordSchema.safeParse(input.password)
-  if (!passwordResult.success) {
-    for (const issue of passwordResult.error.issues) {
-      errors.push({
-        field: 'password',
-        message: issue.message,
-        rule: issue.code,
-      })
-    }
-  }
-
-  if (errors.length > 0) {
-    throw new ValidationError(errors)
-  }
-
-  return {
-    email: emailResult.data!,
-    password: input.password,
-  }
+  return validateOrThrow(registerSchema, input)
 }
 
 /**

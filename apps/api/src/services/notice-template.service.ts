@@ -1,11 +1,12 @@
 import type { noticeTemplates } from '@repo/db'
-import { NotFoundError, ValidationError } from '@repo/shared/errors'
-import type { FieldError, RequestContext } from '@repo/shared/types'
+import { NotFoundError } from '@repo/shared/errors'
+import type { RequestContext } from '@repo/shared/types'
 import {
   type CreateNoticeTemplateInput,
   createNoticeTemplateSchema,
   type UpdateNoticeTemplateInput,
   updateNoticeTemplateSchema,
+  validateOrThrow,
 } from '@repo/shared/validation'
 import type { AuditLogger } from '../plugins/audit-logger'
 import type { NoticeTemplateRepository } from '../repositories/notice-template.repository'
@@ -57,17 +58,7 @@ export class NoticeTemplateService {
     ctx: RequestContext,
     input: CreateNoticeTemplateInput,
   ): Promise<NoticeTemplateResult> {
-    const parseResult = createNoticeTemplateSchema.safeParse(input)
-    if (!parseResult.success) {
-      const errors: FieldError[] = parseResult.error.issues.map((issue) => ({
-        field: issue.path.join('.') || 'unknown',
-        message: issue.message,
-        rule: issue.code,
-      }))
-      throw new ValidationError(errors)
-    }
-
-    const validated = parseResult.data
+    const validated = validateOrThrow(createNoticeTemplateSchema, input)
 
     const [created] = await this.repo.create({
       ownerAccountId: ctx.ownerAccountId,
@@ -102,17 +93,7 @@ export class NoticeTemplateService {
     templateId: string,
     input: UpdateNoticeTemplateInput,
   ): Promise<NoticeTemplateResult> {
-    const parseResult = updateNoticeTemplateSchema.safeParse(input)
-    if (!parseResult.success) {
-      const errors: FieldError[] = parseResult.error.issues.map((issue) => ({
-        field: issue.path.join('.') || 'unknown',
-        message: issue.message,
-        rule: issue.code,
-      }))
-      throw new ValidationError(errors)
-    }
-
-    const validated = parseResult.data
+    const validated = validateOrThrow(updateNoticeTemplateSchema, input)
 
     const existing = await this.repo.findById(templateId, ctx.ownerAccountId)
     if (!existing) {

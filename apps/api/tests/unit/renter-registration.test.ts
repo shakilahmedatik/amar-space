@@ -157,7 +157,7 @@ function createMockDb(
     }),
   })
 
-  return {
+  const dbMock = {
     query: {
       flats: {
         findFirst: vi.fn().mockResolvedValue(defaultFlat),
@@ -172,7 +172,9 @@ function createMockDb(
     insert: mockInsert,
     update: mockUpdate,
     select: mockSelect,
-  } as unknown as Database
+    transaction: vi.fn().mockImplementation((cb) => cb(dbMock)),
+  }
+  return dbMock as unknown as Database
 }
 
 function createOwnerContext(

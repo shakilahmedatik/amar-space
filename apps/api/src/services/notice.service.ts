@@ -12,12 +12,13 @@ import {
   NotFoundError,
   ValidationError,
 } from '@repo/shared/errors'
-import type { FieldError, RequestContext } from '@repo/shared/types'
+import type { RequestContext } from '@repo/shared/types'
 import {
   type CreateNoticeInput,
   createNoticeSchema,
   type UpdateNoticeInput,
   updateNoticeSchema,
+  validateOrThrow,
 } from '@repo/shared/validation'
 import { and, count, desc, eq, inArray, or, type SQL, sql } from 'drizzle-orm'
 import type { AuditLogger } from '../plugins/audit-logger'
@@ -99,17 +100,7 @@ export class NoticeService {
     input: CreateNoticeInput,
   ): Promise<NoticeResult> {
     // Step 1: Validate input using Zod schema
-    const parseResult = createNoticeSchema.safeParse(input)
-    if (!parseResult.success) {
-      const errors: FieldError[] = parseResult.error.issues.map((issue) => ({
-        field: issue.path.join('.') || 'unknown',
-        message: issue.message,
-        rule: issue.code,
-      }))
-      throw new ValidationError(errors)
-    }
-
-    const validated = parseResult.data
+    const validated = validateOrThrow(createNoticeSchema, input)
 
     // Step 2: Validate building/flat references (Requirement 12.12)
     if (validated.targetAudience === NOTICE_TARGETS.SPECIFIC_BUILDING) {
@@ -230,17 +221,7 @@ export class NoticeService {
     input: UpdateNoticeInput,
   ): Promise<NoticeResult> {
     // Step 1: Validate input
-    const parseResult = updateNoticeSchema.safeParse(input)
-    if (!parseResult.success) {
-      const errors: FieldError[] = parseResult.error.issues.map((issue) => ({
-        field: issue.path.join('.') || 'unknown',
-        message: issue.message,
-        rule: issue.code,
-      }))
-      throw new ValidationError(errors)
-    }
-
-    const validated = parseResult.data
+    const validated = validateOrThrow(updateNoticeSchema, input)
 
     // Step 2: Verify notice exists and belongs to the owner's account
     const existing = await this.db.query.notices.findFirst({

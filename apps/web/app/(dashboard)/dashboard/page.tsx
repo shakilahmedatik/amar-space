@@ -13,7 +13,6 @@ import { OwnerDashboard } from './owner-dashboard'
 export default function DashboardPage() {
   const { t } = useTranslation()
   const { user, role, isLoading } = useSession()
-
   if (isLoading || !user) {
     return <LoadingSkeleton rows={5} showHeader />
   }

@@ -13,7 +13,9 @@ if (typeof window === 'undefined' && !process.env.NEXT_PUBLIC_API_URL) {
 }
 
 export const BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001'
+  typeof window !== 'undefined'
+    ? ''
+    : (process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001')
 
 /**
  * Generic fetch wrapper with error handling.

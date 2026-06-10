@@ -12,10 +12,11 @@ import {
   NotFoundError,
   ValidationError,
 } from '@repo/shared/errors'
-import type { FieldError, RequestContext } from '@repo/shared/types'
+import type { PaginationInput, RequestContext } from '@repo/shared/types'
 import {
   type ApplyAdjustmentInput,
   applyAdjustmentSchema,
+  validateOrThrow,
 } from '@repo/shared/validation'
 import { and, count, desc, eq, inArray } from 'drizzle-orm'
 import type { AuditLogger } from '../plugins/audit-logger'
@@ -40,11 +41,6 @@ export interface AdjustmentResult {
   note: string | null
   adjustedBy: string
   createdAt: Date
-}
-
-export interface PaginationInput {
-  page: number
-  pageSize: number
 }
 
 export interface PaginatedAdjustments {
@@ -117,17 +113,7 @@ export class DepositService {
     }
 
     // Validate input using Zod schema
-    const parseResult = applyAdjustmentSchema.safeParse(data)
-    if (!parseResult.success) {
-      const errors: FieldError[] = parseResult.error.issues.map((issue) => ({
-        field: issue.path.join('.') || 'unknown',
-        message: issue.message,
-        rule: issue.code,
-      }))
-      throw new ValidationError(errors)
-    }
-
-    const validated = parseResult.data
+    const validated = validateOrThrow(applyAdjustmentSchema, data)
 
     // Find the contract with tenant isolation
     const contract = await this.db.query.rentalContracts.findFirst({

@@ -29,6 +29,37 @@ import { PaymentService } from '../../src/services/payment'
 
 // --- Mock Helpers ---
 
+function mockDbWithTransaction<
+  T extends {
+    transaction?: unknown
+    select?: unknown
+    query: {
+      bills: {
+        findFirst: () => Promise<unknown>
+      }
+      [key: string]: unknown
+    }
+    [key: string]: unknown
+  },
+>(db: T): T {
+  const dbObj = db as Record<string, unknown>
+  dbObj.transaction = vi.fn((cb) => cb(db))
+  dbObj.select = vi.fn().mockReturnValue({
+    from: vi.fn().mockReturnValue({
+      where: vi.fn().mockReturnValue({
+        for: vi.fn().mockImplementation(async () => {
+          const query = db.query as {
+            bills: { findFirst: () => Promise<unknown> }
+          }
+          const bill = await query.bills.findFirst()
+          return bill ? [bill] : []
+        }),
+      }),
+    }),
+  })
+  return db
+}
+
 function createMockAuditLogger() {
   return {
     log: vi.fn(),
@@ -147,7 +178,7 @@ describe('PaymentService', () => {
 
   describe('recordPayment', () => {
     it('should record a full payment and update bill status to Paid (Requirement 8.2)', async () => {
-      const db = {
+      const db = mockDbWithTransaction({
         query: {
           bills: {
             findFirst: vi.fn().mockResolvedValue(defaultBill),
@@ -174,7 +205,7 @@ describe('PaymentService', () => {
             where: vi.fn().mockResolvedValue([]),
           }),
         }),
-      }
+      })
 
       const ctx = createOwnerContext()
       const service = new PaymentService(
@@ -196,7 +227,7 @@ describe('PaymentService', () => {
     })
 
     it('should record a partial payment and update bill status to Partially_Paid (Requirement 8.3)', async () => {
-      const db = {
+      const db = mockDbWithTransaction({
         query: {
           bills: {
             findFirst: vi.fn().mockResolvedValue(defaultBill),
@@ -218,7 +249,7 @@ describe('PaymentService', () => {
             where: vi.fn().mockResolvedValue([]),
           }),
         }),
-      }
+      })
 
       const ctx = createOwnerContext()
       const service = new PaymentService(
@@ -245,7 +276,7 @@ describe('PaymentService', () => {
     })
 
     it('should reject payment exceeding remaining balance (Requirement 8.4)', async () => {
-      const db = {
+      const db = mockDbWithTransaction({
         query: {
           bills: {
             findFirst: vi.fn().mockResolvedValue(defaultBill),
@@ -259,7 +290,7 @@ describe('PaymentService', () => {
         },
         insert: vi.fn(),
         update: vi.fn(),
-      }
+      })
 
       const ctx = createOwnerContext()
       const service = new PaymentService(
@@ -284,7 +315,7 @@ describe('PaymentService', () => {
         paidAmount: '15000.00',
       }
 
-      const db = {
+      const db = mockDbWithTransaction({
         query: {
           bills: {
             findFirst: vi.fn().mockResolvedValue(paidBill),
@@ -298,7 +329,7 @@ describe('PaymentService', () => {
         },
         insert: vi.fn(),
         update: vi.fn(),
-      }
+      })
 
       const ctx = createOwnerContext()
       const service = new PaymentService(
@@ -478,7 +509,7 @@ describe('PaymentService', () => {
     })
 
     it('should generate receipt reference between 12-20 alphanumeric chars (Requirement 8.8)', async () => {
-      const db = {
+      const db = mockDbWithTransaction({
         query: {
           bills: {
             findFirst: vi.fn().mockResolvedValue(defaultBill),
@@ -500,7 +531,7 @@ describe('PaymentService', () => {
             where: vi.fn().mockResolvedValue([]),
           }),
         }),
-      }
+      })
 
       const ctx = createOwnerContext()
       const service = new PaymentService(
@@ -525,7 +556,7 @@ describe('PaymentService', () => {
     })
 
     it('should allow manager to record payments for assigned buildings', async () => {
-      const db = {
+      const db = mockDbWithTransaction({
         query: {
           bills: {
             findFirst: vi.fn().mockResolvedValue(defaultBill),
@@ -547,7 +578,7 @@ describe('PaymentService', () => {
             where: vi.fn().mockResolvedValue([]),
           }),
         }),
-      }
+      })
 
       const ctx = createManagerContext()
       const service = new PaymentService(
@@ -571,7 +602,7 @@ describe('PaymentService', () => {
         buildingId: UNASSIGNED_BUILDING_ID,
       }
 
-      const db = {
+      const db = mockDbWithTransaction({
         query: {
           bills: {
             findFirst: vi.fn().mockResolvedValue(defaultBill),
@@ -585,7 +616,7 @@ describe('PaymentService', () => {
         },
         insert: vi.fn(),
         update: vi.fn(),
-      }
+      })
 
       const ctx = createManagerContext({ assignedBuildingIds: [BUILDING_ID] })
       const service = new PaymentService(
@@ -604,7 +635,7 @@ describe('PaymentService', () => {
     })
 
     it('should record audit event when payment is recorded (Requirement 8.7)', async () => {
-      const db = {
+      const db = mockDbWithTransaction({
         query: {
           bills: {
             findFirst: vi.fn().mockResolvedValue(defaultBill),
@@ -626,7 +657,7 @@ describe('PaymentService', () => {
             where: vi.fn().mockResolvedValue([]),
           }),
         }),
-      }
+      })
 
       const ctx = createOwnerContext()
       const service = new PaymentService(
@@ -660,7 +691,7 @@ describe('PaymentService', () => {
         status: 'partially_paid',
       }
 
-      const db = {
+      const db = mockDbWithTransaction({
         query: {
           bills: {
             findFirst: vi.fn().mockResolvedValue(partiallyPaidBill),
@@ -684,7 +715,7 @@ describe('PaymentService', () => {
             where: vi.fn().mockResolvedValue([]),
           }),
         }),
-      }
+      })
 
       const ctx = createOwnerContext()
       const service = new PaymentService(
@@ -711,7 +742,7 @@ describe('PaymentService', () => {
     })
 
     it('should throw NotFoundError for non-existent bill', async () => {
-      const db = {
+      const db = mockDbWithTransaction({
         query: {
           bills: {
             findFirst: vi.fn().mockResolvedValue(null),
@@ -725,7 +756,7 @@ describe('PaymentService', () => {
         },
         insert: vi.fn(),
         update: vi.fn(),
-      }
+      })
 
       const ctx = createOwnerContext()
       const service = new PaymentService(

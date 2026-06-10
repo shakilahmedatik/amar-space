@@ -19,11 +19,12 @@ import {
   NotFoundError,
   ValidationError,
 } from '@repo/shared/errors'
-import type { FieldError, RequestContext } from '@repo/shared/types'
+import type { PaginationInput, RequestContext } from '@repo/shared/types'
 import {
   type AddUtilityChargeInput,
   addUtilityChargeSchema,
   billingMonthSchema,
+  validateOrThrow,
 } from '@repo/shared/validation'
 import { and, count, eq, inArray, sql } from 'drizzle-orm'
 import type { AuditLogger } from '../plugins/audit-logger'
@@ -124,11 +125,6 @@ export interface ListBillsFilters {
   status?: BillStatus | BillStatus[]
 }
 
-export interface PaginationInput {
-  page: number
-  pageSize: number
-}
-
 export interface PaginatedBills {
   data: BillResult[]
   total: number
@@ -165,16 +161,7 @@ export class BillingService {
       throw new ForbiddenError()
     }
 
-    const monthResult = billingMonthSchema.safeParse(billingMonth)
-    if (!monthResult.success) {
-      throw new ValidationError([
-        {
-          field: 'billingMonth',
-          message: 'Billing month must be in YYYY-MM format',
-          rule: 'format',
-        },
-      ])
-    }
+    validateOrThrow(billingMonthSchema, billingMonth)
 
     const contract = await this.db.query.rentalContracts.findFirst({
       where: and(
@@ -224,24 +211,43 @@ export class BillingService {
       totalAmountVal += Number.parseFloat(item.amount)
     }
 
-    const [newBill] = await this.db
-      .insert(bills)
-      .values({
-        ownerAccountId: ctx.ownerAccountId,
-        contractId: contract.id,
-        flatId: contract.flatId,
-        renterId: contract.renterId,
-        billingMonth,
-        dueDate,
-        baseRent: rentCalc.baseRent,
-        rentDays: rentCalc.rentDays,
-        totalDaysInMonth: rentCalc.totalDaysInMonth,
-        monthlyRent: contract.monthlyRent,
-        totalAmount: totalAmountVal.toFixed(2),
-        paidAmount: '0',
-        status: BILL_STATUS.UNPAID,
-      })
-      .returning()
+    let newBill: typeof bills.$inferSelect | undefined
+    try {
+      const [inserted] = await this.db
+        .insert(bills)
+        .values({
+          ownerAccountId: ctx.ownerAccountId,
+          contractId: contract.id,
+          flatId: contract.flatId,
+          renterId: contract.renterId,
+          billingMonth,
+          dueDate,
+          baseRent: rentCalc.baseRent,
+          rentDays: rentCalc.rentDays,
+          totalDaysInMonth: rentCalc.totalDaysInMonth,
+          monthlyRent: contract.monthlyRent,
+          totalAmount: totalAmountVal.toFixed(2),
+          paidAmount: '0',
+          status: BILL_STATUS.UNPAID,
+        })
+        .returning()
+      newBill = inserted
+    } catch (error) {
+      const err = error as { code?: string; message?: string }
+      if (
+        err.code === '23505' ||
+        err.message?.includes('bills_flat_billing_month_unique')
+      ) {
+        throw new ValidationError([
+          {
+            field: 'billingMonth',
+            message: `A bill already exists for this flat in ${billingMonth}`,
+            rule: 'duplicate',
+          },
+        ])
+      }
+      throw error
+    }
 
     if (!newBill) {
       throw new Error('Failed to create bill')
@@ -311,18 +317,7 @@ export class BillingService {
       throw new ForbiddenError()
     }
 
-    const monthResult = billingMonthSchema.safeParse(month)
-    if (!monthResult.success) {
-      throw new ValidationError([
-        {
-          field: 'billingMonth',
-          message: 'Billing month must be in YYYY-MM format',
-          rule: 'format',
-        },
-      ])
-    }
-
-    const billingMonth = monthResult.data
+    const billingMonth = validateOrThrow(billingMonthSchema, month)
 
     const conditions = [
       eq(flats.ownerAccountId, ctx.ownerAccountId),
@@ -410,24 +405,41 @@ export class BillingService {
         totalAmountVal += Number.parseFloat(item.amount)
       }
 
-      const [newBill] = await this.db
-        .insert(bills)
-        .values({
-          ownerAccountId: ctx.ownerAccountId,
-          contractId: contract.id,
-          flatId: flat.id,
-          renterId: contract.renterId,
-          billingMonth,
-          dueDate,
-          baseRent: rentCalc.baseRent,
-          rentDays: rentCalc.rentDays,
-          totalDaysInMonth: rentCalc.totalDaysInMonth,
-          monthlyRent: contract.monthlyRent,
-          totalAmount: totalAmountVal.toFixed(2),
-          paidAmount: '0',
-          status: BILL_STATUS.UNPAID,
-        })
-        .returning()
+      let newBill: typeof bills.$inferSelect | undefined
+      try {
+        const [inserted] = await this.db
+          .insert(bills)
+          .values({
+            ownerAccountId: ctx.ownerAccountId,
+            contractId: contract.id,
+            flatId: flat.id,
+            renterId: contract.renterId,
+            billingMonth,
+            dueDate,
+            baseRent: rentCalc.baseRent,
+            rentDays: rentCalc.rentDays,
+            totalDaysInMonth: rentCalc.totalDaysInMonth,
+            monthlyRent: contract.monthlyRent,
+            totalAmount: totalAmountVal.toFixed(2),
+            paidAmount: '0',
+            status: BILL_STATUS.UNPAID,
+          })
+          .returning()
+        newBill = inserted
+      } catch (error) {
+        const err = error as { code?: string; message?: string }
+        if (
+          err.code === '23505' ||
+          err.message?.includes('bills_flat_billing_month_unique')
+        ) {
+          result.skipped.push({
+            flatId: flat.id,
+            reason: `Bill already exists for flat ${flat.flatNumber} in ${billingMonth}`,
+          })
+          continue
+        }
+        throw error
+      }
 
       if (!newBill) {
         result.skipped.push({
@@ -477,17 +489,7 @@ export class BillingService {
       throw new ForbiddenError()
     }
 
-    const parseResult = addUtilityChargeSchema.safeParse(charge)
-    if (!parseResult.success) {
-      const errors: FieldError[] = parseResult.error.issues.map((issue) => ({
-        field: issue.path.join('.') || 'unknown',
-        message: issue.message,
-        rule: issue.code,
-      }))
-      throw new ValidationError(errors)
-    }
-
-    const validated = parseResult.data
+    const validated = validateOrThrow(addUtilityChargeSchema, charge)
     const bill = await this.findBillWithAccess(ctx, billId)
 
     const existingLineItems = await this.db
@@ -680,13 +682,29 @@ export class BillingService {
   async deleteBill(ctx: RequestContext, billId: string): Promise<void> {
     const bill = await this.findBillWithAccess(ctx, billId)
 
+    const existingPayments = await this.db
+      .select({ count: count() })
+      .from(payments)
+      .where(eq(payments.billId, billId))
+    const paymentsCount = existingPayments[0]?.count ?? 0
+
+    if (paymentsCount > 0) {
+      throw new ValidationError([
+        {
+          field: 'billId',
+          message:
+            'Cannot delete a bill that has associated payments. Delete the payments first.',
+          rule: 'has_payments',
+        },
+      ])
+    }
+
     await this.db.transaction(async (tx) => {
       await tx
         .update(advanceAdjustments)
         .set({ billId: null })
         .where(eq(advanceAdjustments.billId, billId))
 
-      await tx.delete(payments).where(eq(payments.billId, billId))
       await tx.delete(billLineItems).where(eq(billLineItems.billId, billId))
       await tx.delete(bills).where(eq(bills.id, billId))
     })

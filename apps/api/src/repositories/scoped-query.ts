@@ -11,6 +11,7 @@ export interface ScopeContext {
     | 'renter'
   assignedBuildingIds?: string[]
   assignedFlatId?: string
+  isSuperadmin?: boolean
 }
 
 export abstract class BaseRepository {

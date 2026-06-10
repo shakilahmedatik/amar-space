@@ -1,6 +1,7 @@
 import { relations } from 'drizzle-orm'
 import {
   date,
+  index,
   integer,
   numeric,
   pgTable,
@@ -54,6 +55,10 @@ export const bills = pgTable(
       table.flatId,
       table.billingMonth,
     ),
+    ownerStatusIdx: index('bills_owner_status_idx').on(
+      table.ownerAccountId,
+      table.status,
+    ),
   }),
 )
 
@@ -69,25 +74,31 @@ export const billLineItems = pgTable('bill_line_items', {
     .defaultNow(),
 })
 
-export const payments = pgTable('payments', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  ownerAccountId: text('owner_account_id')
-    .notNull()
-    .references(() => users.id),
-  billId: uuid('bill_id')
-    .notNull()
-    .references(() => bills.id),
-  receiptReference: varchar('receipt_reference', { length: 20 })
-    .notNull()
-    .unique(),
-  amount: numeric('amount', { precision: 12, scale: 2 }).notNull(),
-  paymentDate: date('payment_date').notNull(),
-  paymentMethod: varchar('payment_method', { length: 20 }).notNull(),
-  note: varchar('note', { length: 500 }),
-  createdAt: timestamp('created_at', { withTimezone: true })
-    .notNull()
-    .defaultNow(),
-})
+export const payments = pgTable(
+  'payments',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    ownerAccountId: text('owner_account_id')
+      .notNull()
+      .references(() => users.id),
+    billId: uuid('bill_id')
+      .notNull()
+      .references(() => bills.id),
+    receiptReference: varchar('receipt_reference', { length: 20 })
+      .notNull()
+      .unique(),
+    amount: numeric('amount', { precision: 12, scale: 2 }).notNull(),
+    paymentDate: date('payment_date').notNull(),
+    paymentMethod: varchar('payment_method', { length: 20 }).notNull(),
+    note: varchar('note', { length: 500 }),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => ({
+    billIdIdx: index('payments_bill_id_idx').on(table.billId),
+  }),
+)
 
 // Relations
 

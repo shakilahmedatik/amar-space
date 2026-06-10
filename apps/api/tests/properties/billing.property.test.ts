@@ -1,4 +1,5 @@
 import type { Database } from '@repo/db'
+import { bills, flats, rentalContracts } from '@repo/db'
 import { BILL_STATUS } from '@repo/shared/constants'
 import type { RequestContext } from '@repo/shared/types'
 import fc from 'fast-check'
@@ -90,6 +91,58 @@ const lineItemsArb = fc.array(
   }),
   { minLength: 0, maxLength: 20 },
 )
+
+function createMockDbForGenerate({
+  occupiedFlats = [] as unknown[],
+  existingBills = [] as unknown[],
+  activeContracts = [] as unknown[],
+  insertedBill = null as unknown,
+} = {}) {
+  return {
+    select: vi.fn().mockImplementation((selectArg) => {
+      // Check if it's a count query
+      if (selectArg && typeof selectArg === 'object' && 'count' in selectArg) {
+        return {
+          from: vi.fn().mockReturnValue({
+            where: vi.fn().mockResolvedValue([{ count: 0 }]),
+          }),
+        }
+      }
+
+      // Default select implementation
+      return {
+        from: vi.fn().mockImplementation((table) => {
+          let result: unknown[] = []
+          if (table === flats) {
+            result = occupiedFlats
+          } else if (table === rentalContracts) {
+            result = activeContracts
+          } else if (table === bills) {
+            result = existingBills
+          }
+          return {
+            where: vi.fn().mockResolvedValue(result),
+          }
+        }),
+      }
+    }),
+    insert: vi.fn().mockReturnValue({
+      values: vi.fn().mockReturnValue({
+        returning: vi
+          .fn()
+          .mockResolvedValue(insertedBill ? [insertedBill] : []),
+      }),
+    }),
+    query: {
+      bills: {
+        findFirst: vi.fn().mockResolvedValue(null),
+      },
+      rentalContracts: {
+        findFirst: vi.fn().mockResolvedValue(null),
+      },
+    },
+  }
+}
 
 // --- Property 10: Bill total equals base rent plus line items ---
 
@@ -238,62 +291,45 @@ describe('Feature: amarspace-full-implementation, Property 10: Bill total equals
 
         // Simulate bill generation: when a bill is created with no line items,
         // totalAmount should equal baseRent
-        const db = {
-          query: {
-            bills: {
-              findFirst: vi.fn().mockResolvedValue(null), // No existing bill
+        const db = createMockDbForGenerate({
+          occupiedFlats: [
+            {
+              id: flatId,
+              ownerAccountId,
+              buildingId: 'building-1',
+              flatNumber: 'A101',
+              floor: 1,
+              status: 'occupied',
+              createdAt: new Date(),
+              updatedAt: new Date(),
             },
-            rentalContracts: {
-              findFirst: vi.fn().mockResolvedValue({
-                id: 'contract-1',
-                flatId,
-                ownerAccountId,
-                monthlyRent: baseRent,
-                renterId: 'renter-1',
-                status: 'active',
-              }),
+          ],
+          activeContracts: [
+            {
+              id: 'contract-1',
+              flatId,
+              ownerAccountId,
+              monthlyRent: baseRent,
+              renterId: 'renter-1',
+              status: 'active',
+              startDate: '2020-01-01',
             },
-            flats: { findFirst: vi.fn() },
-            renters: { findFirst: vi.fn() },
+          ],
+          insertedBill: {
+            id: billId,
+            ownerAccountId,
+            contractId: 'contract-1',
+            flatId,
+            renterId: 'renter-1',
+            billingMonth,
+            baseRent,
+            totalAmount: baseRent,
+            paidAmount: '0',
+            status: BILL_STATUS.UNPAID,
+            createdAt: new Date(),
+            updatedAt: new Date(),
           },
-          select: vi.fn().mockReturnValue({
-            from: vi.fn().mockReturnValue({
-              where: vi.fn().mockResolvedValue([
-                {
-                  id: flatId,
-                  ownerAccountId,
-                  buildingId: 'building-1',
-                  flatNumber: 'A101',
-                  floor: 1,
-                  status: 'occupied',
-                  createdAt: new Date(),
-                  updatedAt: new Date(),
-                },
-              ]),
-            }),
-          }),
-          insert: vi.fn().mockReturnValue({
-            values: vi.fn().mockReturnValue({
-              returning: vi.fn().mockResolvedValue([
-                {
-                  id: billId,
-                  ownerAccountId,
-                  contractId: 'contract-1',
-                  flatId,
-                  renterId: 'renter-1',
-                  billingMonth,
-                  baseRent,
-                  totalAmount: baseRent, // totalAmount = baseRent when no line items
-                  paidAmount: '0',
-                  status: BILL_STATUS.UNPAID,
-                  createdAt: new Date(),
-                  updatedAt: new Date(),
-                },
-              ]),
-            }),
-          }),
-          update: vi.fn(),
-        }
+        })
 
         const service = new BillingService(
           db as unknown as Database,
@@ -432,47 +468,32 @@ describe('Feature: amarspace-full-implementation, Property 11: No duplicate bill
         const flatId = 'flat-1'
 
         // Simulate: flat is occupied, but a bill already exists for this month
-        const db = {
-          query: {
-            bills: {
-              findFirst: vi.fn().mockResolvedValue({
-                id: 'existing-bill-1',
-                ownerAccountId,
-                contractId: 'contract-1',
-                flatId,
-                renterId: 'renter-1',
-                billingMonth,
-                baseRent: '10000.00',
-                totalAmount: '10000.00',
-                paidAmount: '0',
-                status: BILL_STATUS.UNPAID,
-                createdAt: new Date(),
-                updatedAt: new Date(),
-              }),
+        const db = createMockDbForGenerate({
+          occupiedFlats: [
+            {
+              id: flatId,
+              ownerAccountId,
+              buildingId: 'building-1',
+              flatNumber: 'A101',
+              floor: 1,
+              status: 'occupied',
+              createdAt: new Date(),
+              updatedAt: new Date(),
             },
-            rentalContracts: { findFirst: vi.fn() },
-            flats: { findFirst: vi.fn() },
-            renters: { findFirst: vi.fn() },
-          },
-          select: vi.fn().mockReturnValue({
-            from: vi.fn().mockReturnValue({
-              where: vi.fn().mockResolvedValue([
-                {
-                  id: flatId,
-                  ownerAccountId,
-                  buildingId: 'building-1',
-                  flatNumber: 'A101',
-                  floor: 1,
-                  status: 'occupied',
-                  createdAt: new Date(),
-                  updatedAt: new Date(),
-                },
-              ]),
-            }),
-          }),
-          insert: vi.fn(),
-          update: vi.fn(),
-        }
+          ],
+          activeContracts: [
+            {
+              id: 'contract-1',
+              flatId,
+              ownerAccountId,
+              monthlyRent: '10000.00',
+              renterId: 'renter-1',
+              status: 'active',
+              startDate: '2020-01-01',
+            },
+          ],
+          existingBills: [{ flatId }],
+        })
 
         const service = new BillingService(
           db as unknown as Database,
@@ -509,62 +530,45 @@ describe('Feature: amarspace-full-implementation, Property 11: No duplicate bill
           const baseRent = '15000.00'
 
           // Simulate: no existing bill for month2
-          const db = {
-            query: {
-              bills: {
-                findFirst: vi.fn().mockResolvedValue(null), // No existing bill
+          const db = createMockDbForGenerate({
+            occupiedFlats: [
+              {
+                id: flatId,
+                ownerAccountId,
+                buildingId: 'building-1',
+                flatNumber: 'A101',
+                floor: 1,
+                status: 'occupied',
+                createdAt: new Date(),
+                updatedAt: new Date(),
               },
-              rentalContracts: {
-                findFirst: vi.fn().mockResolvedValue({
-                  id: 'contract-1',
-                  flatId,
-                  ownerAccountId,
-                  monthlyRent: baseRent,
-                  renterId: 'renter-1',
-                  status: 'active',
-                }),
+            ],
+            activeContracts: [
+              {
+                id: 'contract-1',
+                flatId,
+                ownerAccountId,
+                monthlyRent: baseRent,
+                renterId: 'renter-1',
+                status: 'active',
+                startDate: '2020-01-01',
               },
-              flats: { findFirst: vi.fn() },
-              renters: { findFirst: vi.fn() },
+            ],
+            insertedBill: {
+              id: 'new-bill-1',
+              ownerAccountId,
+              contractId: 'contract-1',
+              flatId,
+              renterId: 'renter-1',
+              billingMonth: month2,
+              baseRent,
+              totalAmount: baseRent,
+              paidAmount: '0',
+              status: BILL_STATUS.UNPAID,
+              createdAt: new Date(),
+              updatedAt: new Date(),
             },
-            select: vi.fn().mockReturnValue({
-              from: vi.fn().mockReturnValue({
-                where: vi.fn().mockResolvedValue([
-                  {
-                    id: flatId,
-                    ownerAccountId,
-                    buildingId: 'building-1',
-                    flatNumber: 'A101',
-                    floor: 1,
-                    status: 'occupied',
-                    createdAt: new Date(),
-                    updatedAt: new Date(),
-                  },
-                ]),
-              }),
-            }),
-            insert: vi.fn().mockReturnValue({
-              values: vi.fn().mockReturnValue({
-                returning: vi.fn().mockResolvedValue([
-                  {
-                    id: 'new-bill-1',
-                    ownerAccountId,
-                    contractId: 'contract-1',
-                    flatId,
-                    renterId: 'renter-1',
-                    billingMonth: month2,
-                    baseRent,
-                    totalAmount: baseRent,
-                    paidAmount: '0',
-                    status: BILL_STATUS.UNPAID,
-                    createdAt: new Date(),
-                    updatedAt: new Date(),
-                  },
-                ]),
-              }),
-            }),
-            update: vi.fn(),
-          }
+          })
 
           const service = new BillingService(
             db as unknown as Database,
@@ -595,48 +599,76 @@ describe('Feature: amarspace-full-implementation, Property 11: No duplicate bill
 
         // Simulate: two occupied flats, neither has a bill for this month
         const db = {
-          query: {
-            bills: {
-              findFirst: vi.fn().mockResolvedValue(null), // No existing bills
-            },
-            rentalContracts: {
-              findFirst: vi.fn().mockResolvedValue({
-                id: 'contract-1',
-                flatId: flat1Id,
-                ownerAccountId,
-                monthlyRent: baseRent,
-                renterId: 'renter-1',
-                status: 'active',
+          select: vi.fn().mockImplementation((selectArg) => {
+            // Check if it's a count query
+            if (
+              selectArg &&
+              typeof selectArg === 'object' &&
+              'count' in selectArg
+            ) {
+              return {
+                from: vi.fn().mockReturnValue({
+                  where: vi.fn().mockResolvedValue([{ count: 0 }]),
+                }),
+              }
+            }
+
+            // Default select implementation
+            return {
+              from: vi.fn().mockImplementation((table) => {
+                let result: unknown[] = []
+                if (table === flats) {
+                  result = [
+                    {
+                      id: flat1Id,
+                      ownerAccountId,
+                      buildingId: 'building-1',
+                      flatNumber: 'A101',
+                      floor: 1,
+                      status: 'occupied',
+                      createdAt: new Date(),
+                      updatedAt: new Date(),
+                    },
+                    {
+                      id: flat2Id,
+                      ownerAccountId,
+                      buildingId: 'building-1',
+                      flatNumber: 'A102',
+                      floor: 1,
+                      status: 'occupied',
+                      createdAt: new Date(),
+                      updatedAt: new Date(),
+                    },
+                  ]
+                } else if (table === rentalContracts) {
+                  result = [
+                    {
+                      id: 'contract-1',
+                      flatId: flat1Id,
+                      ownerAccountId,
+                      monthlyRent: baseRent,
+                      renterId: 'renter-1',
+                      status: 'active',
+                      startDate: '2020-01-01',
+                    },
+                    {
+                      id: 'contract-2',
+                      flatId: flat2Id,
+                      ownerAccountId,
+                      monthlyRent: baseRent,
+                      renterId: 'renter-1',
+                      status: 'active',
+                      startDate: '2020-01-01',
+                    },
+                  ]
+                } else if (table === bills) {
+                  result = []
+                }
+                return {
+                  where: vi.fn().mockResolvedValue(result),
+                }
               }),
-            },
-            flats: { findFirst: vi.fn() },
-            renters: { findFirst: vi.fn() },
-          },
-          select: vi.fn().mockReturnValue({
-            from: vi.fn().mockReturnValue({
-              where: vi.fn().mockResolvedValue([
-                {
-                  id: flat1Id,
-                  ownerAccountId,
-                  buildingId: 'building-1',
-                  flatNumber: 'A101',
-                  floor: 1,
-                  status: 'occupied',
-                  createdAt: new Date(),
-                  updatedAt: new Date(),
-                },
-                {
-                  id: flat2Id,
-                  ownerAccountId,
-                  buildingId: 'building-1',
-                  flatNumber: 'A102',
-                  floor: 1,
-                  status: 'occupied',
-                  createdAt: new Date(),
-                  updatedAt: new Date(),
-                },
-              ]),
-            }),
+            }
           }),
           insert: vi.fn().mockReturnValue({
             values: vi.fn().mockReturnValue({
@@ -661,6 +693,14 @@ describe('Feature: amarspace-full-implementation, Property 11: No duplicate bill
               }),
             }),
           }),
+          query: {
+            bills: {
+              findFirst: vi.fn().mockResolvedValue(null),
+            },
+            rentalContracts: {
+              findFirst: vi.fn().mockResolvedValue(null),
+            },
+          },
           update: vi.fn(),
         }
 

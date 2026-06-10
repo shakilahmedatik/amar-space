@@ -1,4 +1,4 @@
-import { createDbClient, type Database } from '@repo/db'
+import type { Database } from '@repo/db'
 import { auditLogs } from '@repo/db/schema'
 import { and, count, desc, eq } from 'drizzle-orm'
 import type { FastifyInstance } from 'fastify'
@@ -314,10 +314,7 @@ declare module 'fastify' {
 
 export default fp(
   async function auditLoggerPlugin(fastify: FastifyInstance) {
-    const { env } = fastify
-
-    const db = createDbClient(env.DATABASE_URL)
-    const auditLogger = new AuditLogger(db)
+    const auditLogger = new AuditLogger(fastify.db)
 
     fastify.decorate('auditLogger', auditLogger)
 
@@ -328,6 +325,6 @@ export default fp(
   },
   {
     name: 'audit-logger',
-    dependencies: ['env'],
+    dependencies: ['env', 'db'],
   },
 )

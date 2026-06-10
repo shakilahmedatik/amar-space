@@ -1,4 +1,4 @@
-import { createDbClient, type Database } from '@repo/db'
+import type { Database } from '@repo/db'
 import { betterAuth } from 'better-auth'
 import { drizzleAdapter } from 'better-auth/adapters/drizzle'
 import type { FastifyInstance } from 'fastify'
@@ -95,11 +95,9 @@ declare module 'fastify' {
 export default fp(
   async function authPlugin(fastify: FastifyInstance) {
     const { env } = fastify
-    console.log(env.AUTH_TRUSTED_ORIGINS)
-    const db = createDbClient(env.DATABASE_URL)
 
     const auth = createAuth({
-      db,
+      db: fastify.db,
       secret: env.AUTH_SECRET,
       baseURL: env.AUTH_BASE_URL,
       trustedOrigins: env.AUTH_TRUSTED_ORIGINS,
@@ -114,6 +112,6 @@ export default fp(
   },
   {
     name: 'auth',
-    dependencies: ['env'],
+    dependencies: ['env', 'db'],
   },
 )

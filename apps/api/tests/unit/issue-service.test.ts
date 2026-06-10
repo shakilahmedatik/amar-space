@@ -3,6 +3,7 @@ import { NotFoundError, ValidationError } from '@repo/shared/errors'
 import type { RequestContext } from '@repo/shared/types'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { AuditLogger } from '../../src/plugins/audit-logger'
+import type { R2Client } from '../../src/plugins/r2'
 import { IssueService } from '../../src/services/issue.service'
 
 /**
@@ -19,6 +20,12 @@ import { IssueService } from '../../src/services/issue.service'
  */
 
 // --- Mock Helpers ---
+
+const mockR2 = {
+  upload: vi.fn().mockResolvedValue('storage-key'),
+  getPresignedUrl: vi.fn().mockResolvedValue('https://example.com/file'),
+  delete: vi.fn().mockResolvedValue(undefined),
+} as unknown as R2Client
 
 function createMockAuditLogger() {
   return {
@@ -114,14 +121,19 @@ function createMockDb(
   })
 
   const mockSelect = vi.fn().mockReturnValue({
-    from: vi.fn().mockReturnValue({
-      where: vi.fn().mockReturnValue({
-        orderBy: vi.fn().mockReturnValue({
-          limit: vi.fn().mockReturnValue({
-            offset: vi.fn().mockResolvedValue(defaultSelectResult),
+    from: vi.fn().mockImplementation(() => {
+      const fromObj = {
+        leftJoin: vi.fn(),
+        where: vi.fn().mockReturnValue({
+          orderBy: vi.fn().mockReturnValue({
+            limit: vi.fn().mockReturnValue({
+              offset: vi.fn().mockResolvedValue(defaultSelectResult),
+            }),
           }),
         }),
-      }),
+      }
+      fromObj.leftJoin.mockImplementation(() => fromObj)
+      return fromObj
     }),
   })
 
@@ -196,6 +208,7 @@ describe('IssueService', () => {
       const service = new IssueService(
         db as unknown as Database,
         auditLogger as unknown as AuditLogger,
+        mockR2,
       )
 
       const result = await service.createIssue(ctx, {
@@ -218,6 +231,7 @@ describe('IssueService', () => {
       const service = new IssueService(
         db as unknown as Database,
         auditLogger as unknown as AuditLogger,
+        mockR2,
       )
 
       await expect(
@@ -236,6 +250,7 @@ describe('IssueService', () => {
       const service = new IssueService(
         db as unknown as Database,
         auditLogger as unknown as AuditLogger,
+        mockR2,
       )
 
       await expect(
@@ -254,6 +269,7 @@ describe('IssueService', () => {
       const service = new IssueService(
         db as unknown as Database,
         auditLogger as unknown as AuditLogger,
+        mockR2,
       )
 
       await expect(
@@ -272,6 +288,7 @@ describe('IssueService', () => {
       const service = new IssueService(
         db as unknown as Database,
         auditLogger as unknown as AuditLogger,
+        mockR2,
       )
 
       await expect(
@@ -290,6 +307,7 @@ describe('IssueService', () => {
       const service = new IssueService(
         db as unknown as Database,
         auditLogger as unknown as AuditLogger,
+        mockR2,
       )
 
       await expect(
@@ -308,6 +326,7 @@ describe('IssueService', () => {
       const service = new IssueService(
         db as unknown as Database,
         auditLogger as unknown as AuditLogger,
+        mockR2,
       )
 
       await service.createIssue(ctx, {
@@ -334,6 +353,7 @@ describe('IssueService', () => {
       const service = new IssueService(
         db as unknown as Database,
         auditLogger as unknown as AuditLogger,
+        mockR2,
       )
 
       await expect(
@@ -378,6 +398,7 @@ describe('IssueService', () => {
       const service = new IssueService(
         db as unknown as Database,
         auditLogger as unknown as AuditLogger,
+        mockR2,
       )
 
       const result = await service.assignIssue(ctx, ISSUE_ID, {
@@ -410,6 +431,7 @@ describe('IssueService', () => {
       const service = new IssueService(
         db as unknown as Database,
         auditLogger as unknown as AuditLogger,
+        mockR2,
       )
 
       await expect(
@@ -440,6 +462,7 @@ describe('IssueService', () => {
       const service = new IssueService(
         db as unknown as Database,
         auditLogger as unknown as AuditLogger,
+        mockR2,
       )
 
       await expect(
@@ -454,6 +477,7 @@ describe('IssueService', () => {
       const service = new IssueService(
         db as unknown as Database,
         auditLogger as unknown as AuditLogger,
+        mockR2,
       )
 
       await expect(
@@ -487,6 +511,7 @@ describe('IssueService', () => {
       const service = new IssueService(
         db as unknown as Database,
         auditLogger as unknown as AuditLogger,
+        mockR2,
       )
 
       await service.assignIssue(ctx, ISSUE_ID, { assigneeId: MANAGER_ID })
@@ -528,6 +553,7 @@ describe('IssueService', () => {
       const service = new IssueService(
         db as unknown as Database,
         auditLogger as unknown as AuditLogger,
+        mockR2,
       )
 
       const result = await service.updateIssueStatus(ctx, ISSUE_ID, {
@@ -565,6 +591,7 @@ describe('IssueService', () => {
       const service = new IssueService(
         db as unknown as Database,
         auditLogger as unknown as AuditLogger,
+        mockR2,
       )
 
       const result = await service.updateIssueStatus(ctx, ISSUE_ID, {
@@ -596,6 +623,7 @@ describe('IssueService', () => {
       const service = new IssueService(
         db as unknown as Database,
         auditLogger as unknown as AuditLogger,
+        mockR2,
       )
 
       await expect(
@@ -623,6 +651,7 @@ describe('IssueService', () => {
       const service = new IssueService(
         db as unknown as Database,
         auditLogger as unknown as AuditLogger,
+        mockR2,
       )
 
       await expect(
@@ -653,6 +682,7 @@ describe('IssueService', () => {
       const service = new IssueService(
         db as unknown as Database,
         auditLogger as unknown as AuditLogger,
+        mockR2,
       )
 
       await expect(
@@ -680,6 +710,7 @@ describe('IssueService', () => {
       const service = new IssueService(
         db as unknown as Database,
         auditLogger as unknown as AuditLogger,
+        mockR2,
       )
 
       await expect(
@@ -710,6 +741,7 @@ describe('IssueService', () => {
       const service = new IssueService(
         db as unknown as Database,
         auditLogger as unknown as AuditLogger,
+        mockR2,
       )
 
       const result = await service.updateIssueStatus(ctx, ISSUE_ID, {
@@ -724,6 +756,7 @@ describe('IssueService', () => {
       const service = new IssueService(
         db as unknown as Database,
         auditLogger as unknown as AuditLogger,
+        mockR2,
       )
 
       await expect(
@@ -756,6 +789,7 @@ describe('IssueService', () => {
       const service = new IssueService(
         db as unknown as Database,
         auditLogger as unknown as AuditLogger,
+        mockR2,
       )
 
       await service.updateIssueStatus(ctx, ISSUE_ID, {
@@ -781,6 +815,7 @@ describe('IssueService', () => {
       const service = new IssueService(
         db as unknown as Database,
         auditLogger as unknown as AuditLogger,
+        mockR2,
       )
 
       const result = await service.listIssues(ctx, {
@@ -796,6 +831,7 @@ describe('IssueService', () => {
       const service = new IssueService(
         db as unknown as Database,
         auditLogger as unknown as AuditLogger,
+        mockR2,
       )
 
       const result = await service.listIssues(ctx, {
@@ -828,6 +864,7 @@ describe('IssueService', () => {
       const service = new IssueService(
         db as unknown as Database,
         auditLogger as unknown as AuditLogger,
+        mockR2,
       )
 
       const result = await service.listIssues(ctx, {

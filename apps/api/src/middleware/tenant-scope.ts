@@ -12,6 +12,8 @@ export interface TenantScope {
   assignedBuildingIds?: string[]
   /** Optional flat ID for renter-scoped access */
   assignedFlatId?: string
+  /** Flag for superadmin */
+  isSuperadmin?: boolean
 }
 
 declare module 'fastify' {
@@ -52,7 +54,7 @@ export async function tenantScope(
 
   // Superadmin bypasses tenant scoping — access resources across all owner accounts
   if (user.role === 'superadmin') {
-    request.tenantScope = { ownerAccountId: '__all__' }
+    request.tenantScope = { ownerAccountId: '__all__', isSuperadmin: true }
     return
   }
 

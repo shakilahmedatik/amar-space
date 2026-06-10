@@ -197,7 +197,7 @@ export default function IssuesPage() {
               <Button
                 variant="outline"
                 size="sm"
-                className="rounded-full text-xs h-8 text-error-text border-error-text cursor-pointer"
+                className="rounded-full text-xs h-8 min-h-[44px] text-error-text border-error-text cursor-pointer"
                 onClick={() => setDeleteTarget(row.id)}
               >
                 {t('common.delete') || 'Delete'}

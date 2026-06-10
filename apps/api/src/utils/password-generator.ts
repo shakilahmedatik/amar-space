@@ -1,4 +1,4 @@
-import { randomBytes } from 'node:crypto'
+import { randomInt } from 'node:crypto'
 
 /**
  * Generates a cryptographically secure temporary password.
@@ -22,23 +22,23 @@ export function generateTemporaryPassword(length = 16): string {
 
   // Ensure at least one of each required character type
   const required = [
-    uppercase[randomBytes(1)[0]! % uppercase.length],
-    lowercase[randomBytes(1)[0]! % lowercase.length],
-    numbers[randomBytes(1)[0]! % numbers.length],
-    special[randomBytes(1)[0]! % special.length],
+    uppercase[randomInt(0, uppercase.length)]!,
+    lowercase[randomInt(0, lowercase.length)]!,
+    numbers[randomInt(0, numbers.length)]!,
+    special[randomInt(0, special.length)]!,
   ]
 
   // Fill remaining positions with random chars from the full pool
-  const remaining = Array.from(
-    randomBytes(effectiveLength - 4),
-    (byte) => allChars[byte % allChars.length],
-  )
+  const remaining: string[] = []
+  for (let i = 0; i < effectiveLength - 4; i++) {
+    remaining.push(allChars[randomInt(0, allChars.length)]!)
+  }
 
   // Shuffle all characters together using Fisher-Yates with cryptographic randomness
   const password = [...required, ...remaining]
   for (let i = password.length - 1; i > 0; i--) {
-    const j = randomBytes(1)[0]! % (i + 1)
-    ;[password[i], password[j]] = [password[j], password[i]]
+    const j = randomInt(0, i + 1)
+    ;[password[i], password[j]] = [password[j]!, password[i]!]
   }
 
   return password.join('')

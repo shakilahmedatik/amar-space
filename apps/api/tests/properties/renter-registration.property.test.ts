@@ -394,6 +394,12 @@ describe('Feature: amarspace-full-implementation, Property 6: Flat assignment re
 
           // Mock DB where the flat exists but is NOT Vacant
           const db = {
+            transaction: vi.fn().mockImplementation(async function (
+              this: unknown,
+              cb: (tx: unknown) => Promise<unknown>,
+            ) {
+              return await cb(this)
+            }),
             query: {
               flats: {
                 findFirst: vi.fn().mockResolvedValue({
@@ -443,6 +449,12 @@ describe('Feature: amarspace-full-implementation, Property 6: Flat assignment re
 
         // Mock DB where the flat exists and IS Vacant
         const db = {
+          transaction: vi.fn().mockImplementation(async function (
+            this: unknown,
+            cb: (tx: unknown) => Promise<unknown>,
+          ) {
+            return await cb(this)
+          }),
           query: {
             flats: {
               findFirst: vi.fn().mockResolvedValue({
@@ -558,6 +570,12 @@ describe('Feature: amarspace-full-implementation, Property 6: Flat assignment re
 
         // Mock DB where the flat does NOT exist
         const db = {
+          transaction: vi.fn().mockImplementation(async function (
+            this: unknown,
+            cb: (tx: unknown) => Promise<unknown>,
+          ) {
+            return await cb(this)
+          }),
           query: {
             flats: {
               findFirst: vi.fn().mockResolvedValue(null),
