@@ -30,7 +30,7 @@ coverage
 out/
 build
 dist
-api/index.js
+apps/api/api/
 
 
 # Debug
