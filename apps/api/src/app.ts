@@ -337,14 +337,22 @@ export function buildApp(opts: Record<string, unknown> = {}) {
     return reply.send(spec)
   })
 
-  // Register Scalar interactive UI at /api/docs
-  app.register(apiReference, {
-    routePrefix: '/api/docs',
-    configuration: {
-      spec: { url: '/api/openapi.json' },
-      title: 'AmarSpace API Reference',
-    },
-  })
+  // Register Scalar interactive UI at /api/docs (disabled in production to avoid Vercel bundler file-system resolution issues with .bun symlinks)
+  if (process.env.NODE_ENV !== 'production') {
+    app.register(apiReference, {
+      routePrefix: '/api/docs',
+      configuration: {
+        spec: { url: '/api/openapi.json' },
+        title: 'AmarSpace API Reference',
+      },
+    })
+  } else {
+    app.get('/api/docs', async (_request, reply) => {
+      return reply.send({
+        message: 'API documentation is only available in development environment.',
+      })
+    })
+  }
 
   // Register routes
   app.register(import('./routes/system/health'), { prefix: '/api/health' })
