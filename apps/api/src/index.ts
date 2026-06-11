@@ -16,7 +16,9 @@ const app = buildApp({ loggerInstance: getLogTapeFastifyLogger() })
 export default async function handler(req: Request): Promise<Response> {
   await app.ready()
 
-  const url = new URL(req.url)
+  const url = req.url.startsWith('/')
+    ? new URL(req.url, 'http://localhost')
+    : new URL(req.url)
   const body = req.body ? await req.text() : undefined
 
   const res = await app.inject({
