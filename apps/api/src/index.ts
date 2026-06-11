@@ -13,11 +13,6 @@ const logger = getLogger()
 // Vercel keeps the module in memory between invocations,
 // so subsequent requests skip the initialization cost.
 const app = buildApp({ loggerInstance: getLogTapeFastifyLogger() })
-
-export const config = {
-  runtime: 'edge',
-}
-
 export default async function handler(req: Request): Promise<Response> {
   await app.ready()
 

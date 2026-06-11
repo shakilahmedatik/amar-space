@@ -5,5 +5,6 @@ export default defineConfig({
   format: ['esm'],
   clean: true,
   shims: true,
+  splitting: false,
   noExternal: ['@repo/shared', '@repo/db'],
 })
