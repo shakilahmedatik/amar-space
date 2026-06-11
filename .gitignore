@@ -30,7 +30,7 @@ coverage
 out/
 build
 dist
-dist
+apps/api/api/
 
 
 # Debug

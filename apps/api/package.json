@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "tsx watch --env-file=.env src/index.ts",
     "build": "tsup",
-    "start": "node dist/index.js",
+    "start": "node api/[[...path]].js",
     "lint": "biome lint .",
     "format": "biome format --write .",
     "check": "biome check --write .",
