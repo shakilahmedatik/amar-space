@@ -14,14 +14,10 @@ const logger = getLogger()
 // so subsequent requests skip the initialization cost.
 const app = buildApp({ loggerInstance: getLogTapeFastifyLogger() })
 
-/**
- * Vercel serverless handler.
- *
- * - Receives a Web API Request and returns a Response via Fastify's .inject() method.
- * - app.ready() is idempotent — safe to call on every request to ensure plugins are loaded.
- * - Stateless: no request-scoped state persists between invocations.
- * - All route handlers must complete within 10s (Vercel execution limit).
- */
+export const config = {
+  runtime: 'edge',
+}
+
 export default async function handler(req: Request): Promise<Response> {
   await app.ready()
 

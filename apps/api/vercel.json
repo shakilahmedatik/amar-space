@@ -1,14 +1,9 @@
 {
   "version": 2,
-  "functions": {
-    "src/index.ts": {
-      "runtime": "edge"
-    }
-  },
   "rewrites": [
     {
       "source": "/(.*)",
-      "destination": "src/index.ts"
+      "destination": "/dist/index.js"
     }
   ]
 }
