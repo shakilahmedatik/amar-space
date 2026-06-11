@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import * as schema from '../../../../packages/db/src/schema'
 import { buildApp } from '../../src/app'
 import { hashAccessCode } from '../../src/utils/access-code-hash'
 
@@ -10,6 +11,7 @@ const mockInsert = vi.fn()
 
 // Mock @repo/db to avoid real database connections
 vi.mock('@repo/db', () => ({
+  ...schema,
   createDbClient: vi.fn(() => ({
     execute: vi.fn(),
     query: {
@@ -34,42 +36,6 @@ vi.mock('@repo/db', () => ({
     insert: mockInsert,
   })),
   validateConnection: vi.fn(),
-  emergencyContacts: {
-    name: 'name',
-    role: 'role',
-    phone: 'phone',
-    type: 'type',
-    sortOrder: 'sort_order',
-    buildingId: 'building_id',
-  },
-  flatSlugs: {
-    slug: 'slug',
-    flatId: 'flat_id',
-  },
-  registrationRequests: {
-    flatId: 'flat_id',
-    status: 'status',
-  },
-  renterAccessCodes: {
-    flatId: 'flat_id',
-    id: 'id',
-  },
-  portalSessions: {
-    id: 'id',
-    flatId: 'flat_id',
-    renterId: 'renter_id',
-    expiresAt: 'expires_at',
-  },
-  notices: {
-    id: 'id',
-    title: 'title',
-    body: 'body',
-    createdAt: 'created_at',
-    isPinned: 'is_pinned',
-    ownerAccountId: 'owner_account_id',
-    targetAudience: 'target_audience',
-    targetBuildingId: 'target_building_id',
-  },
 }))
 
 describe('Portal Access Route - POST /api/portal/flat/:slug/access', () => {

@@ -112,6 +112,29 @@ const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp'] as const
 const MAX_ATTACHMENTS = 5
 const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
 
+export interface MaintenanceDb {
+  query: {
+    renters: {
+      findFirst: Database['query']['renters']['findFirst']
+    }
+    flats: {
+      findFirst: Database['query']['flats']['findFirst']
+    }
+    maintenanceRequests: {
+      findFirst: Database['query']['maintenanceRequests']['findFirst']
+    }
+    maintenanceComments: {
+      findMany: Database['query']['maintenanceComments']['findMany']
+    }
+    rentalContracts: {
+      findFirst: Database['query']['rentalContracts']['findFirst']
+    }
+  }
+  insert: Database['insert']
+  update: Database['update']
+  select: Database['select']
+}
+
 // --- Service ---
 
 /**
@@ -132,7 +155,7 @@ const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
  */
 export class MaintenanceService {
   constructor(
-    private db: Database,
+    private db: MaintenanceDb,
     private auditLogger: AuditLogger,
     private r2: R2Client,
   ) {}

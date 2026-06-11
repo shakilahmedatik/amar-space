@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useCallback, useRef, useState } from 'react'
+import { DevLoginPanel } from '@/components/auth/dev-login-panel'
 import { AuthLayout } from '@/components/layout/auth-layout'
 import { Button } from '@/components/ui/button'
 import { ErrorFeedback } from '@/components/ui/error-feedback'
@@ -111,7 +112,7 @@ export default function LoginPage() {
       password,
       validateForm,
       t, // redirect to dashboard on success
-      router.push,
+      router,
     ],
   )
 
@@ -203,6 +204,8 @@ export default function LoginPage() {
           {t('auth.register')}
         </Link>
       </p>
+
+      <DevLoginPanel />
     </AuthLayout>
   )
 }

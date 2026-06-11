@@ -11,14 +11,9 @@
  *
  * Used by both Sidebar (desktop ≥768px) and BottomTabBar (mobile <768px).
  */
+import type { UserRole } from '@repo/shared'
 
-export type UserRole =
-  | 'owner'
-  | 'manager'
-  | 'security_guard'
-  | 'care_taker'
-  | 'renter'
-  | 'superadmin'
+export type { UserRole }
 
 export interface NavigationItem {
   /** Unique identifier for the navigation item */
@@ -44,6 +39,7 @@ export interface NavigationItem {
  *
  * Owner: Dashboard, Buildings, Flats, Renters, Bills, Maintenance, Issues, Notices, Audit, Settings
  * Manager: Dashboard, Buildings, Flats, Renters, Bills, Maintenance, Issues, Notices, Settings
+ * Superadmin: Dashboard, Owner Approvals, User Management, Audit, Settings
  * Renter: Dashboard, Bills, Maintenance, Notices, Settings
  *
  * Each section is reachable in one click/tap from the dashboard.
@@ -58,7 +54,7 @@ export const navigationItems: NavigationItem[] = [
     labelEn: 'Dashboard',
     href: '/dashboard',
     icon: 'dashboard',
-    roles: ['owner', 'manager'],
+    roles: ['owner', 'manager', 'superadmin'],
     showInBottomTab: true,
   },
   {
@@ -158,7 +154,27 @@ export const navigationItems: NavigationItem[] = [
     labelEn: 'Audit Log',
     href: '/audit',
     icon: 'audit',
-    roles: ['owner'],
+    roles: ['owner', 'superadmin'],
+    showInBottomTab: false,
+  },
+  {
+    id: 'adminOwners',
+    labelKey: 'nav.adminOwners',
+    labelBn: 'মালিক অনুমোদন',
+    labelEn: 'Owner Approvals',
+    href: '/admin/owners',
+    icon: 'renters',
+    roles: ['superadmin'],
+    showInBottomTab: false,
+  },
+  {
+    id: 'adminUsers',
+    labelKey: 'nav.adminUsers',
+    labelBn: 'ব্যবহারকারী ব্যবস্থাপনা',
+    labelEn: 'User Management',
+    href: '/admin/users',
+    icon: 'users',
+    roles: ['superadmin'],
     showInBottomTab: false,
   },
   {
@@ -168,7 +184,7 @@ export const navigationItems: NavigationItem[] = [
     labelEn: 'Settings',
     href: '/settings',
     icon: 'settings',
-    roles: ['owner', 'manager'],
+    roles: ['owner', 'manager', 'superadmin'],
     showInBottomTab: false,
   },
 ]

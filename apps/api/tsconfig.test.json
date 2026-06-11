@@ -1,12 +1,12 @@
 {
   "extends": "@repo/typescript-config/api.json",
   "compilerOptions": {
-    "composite": true,
-    "incremental": true,
     "strict": true,
-    "outDir": "./dist-test",
-    "rootDir": ".",
-    "emitDeclarationOnly": true,
+    "noEmit": true,
+    "composite": false,
+    "declaration": false,
+    "declarationMap": false,
+    "rootDir": "../..",
     "types": ["node", "vitest/globals"]
   },
   "include": ["src/**/*.ts", "tests/**/*.ts"],

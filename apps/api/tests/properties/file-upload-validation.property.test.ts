@@ -6,6 +6,7 @@ import type { AuditLogger } from '../../src/plugins/audit-logger'
 import type { R2Client } from '../../src/plugins/r2'
 import {
   type FileAttachment,
+  type MaintenanceDb,
   MaintenanceService,
 } from '../../src/services/maintenance.service'
 
@@ -77,9 +78,8 @@ function createRenterContext(): RequestContext {
 function createServiceWithMockDb(
   auditLogger: AuditLogger,
   r2: R2Client,
-  // biome-ignore lint/suspicious/noExplicitAny: test mock
-): { service: MaintenanceService; db: any } {
-  const db = {
+): { service: MaintenanceService; db: MaintenanceDb } {
+  const db: MaintenanceDb = {
     query: {
       renters: {
         findFirst: vi.fn().mockResolvedValue({
@@ -99,34 +99,60 @@ function createServiceWithMockDb(
         }),
       },
       maintenanceRequests: {
-        findFirst: vi.fn(),
+        findFirst: vi.fn().mockResolvedValue(null),
+      },
+      maintenanceComments: {
+        findMany: vi.fn().mockResolvedValue([]),
+      },
+      rentalContracts: {
+        findFirst: vi.fn().mockResolvedValue(null),
       },
     },
-    insert: vi.fn().mockReturnValue({
-      values: vi.fn().mockReturnValue({
-        returning: vi.fn().mockResolvedValue([
-          {
-            id: 'request-1',
-            ownerAccountId: 'owner-1',
-            flatId: 'flat-1',
-            renterId: 'renter-1',
-            buildingId: 'building-1',
-            title: 'Test Request',
-            description: 'Test description for maintenance',
-            priority: 'low',
-            status: 'open',
-            createdAt: new Date(),
-            updatedAt: new Date(),
-          },
-        ]),
-      }),
+    insert: vi.fn().mockImplementation(() => {
+      const insertChain = {
+        values: vi.fn().mockImplementation(() => {
+          const valuesChain = {
+            returning: vi.fn().mockResolvedValue([
+              {
+                id: 'request-1',
+                ownerAccountId: 'owner-1',
+                flatId: 'flat-1',
+                renterId: 'renter-1',
+                buildingId: 'building-1',
+                title: 'Test Request',
+                description: 'Test description for maintenance',
+                priority: 'low',
+                status: 'open',
+                createdAt: new Date(),
+                updatedAt: new Date(),
+              },
+            ]),
+          }
+          return valuesChain
+        }),
+      }
+      return insertChain
     }),
-    update: vi.fn(),
-    delete: vi.fn(),
+    update: vi.fn().mockImplementation(() => {
+      const updateChain = {
+        set: vi.fn().mockImplementation(() => {
+          const setChain = {
+            where: vi.fn().mockImplementation(() => {
+              const whereChain = {
+                returning: vi.fn().mockResolvedValue([]),
+              }
+              return whereChain
+            }),
+          }
+          return setChain
+        }),
+      }
+      return updateChain
+    }),
     select: vi.fn(),
   }
 
-  const service = new MaintenanceService(db as never, auditLogger, r2)
+  const service = new MaintenanceService(db, auditLogger, r2)
   return { service, db }
 }
 

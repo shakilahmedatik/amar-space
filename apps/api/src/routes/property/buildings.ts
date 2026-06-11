@@ -1,9 +1,9 @@
-import type { RequestContext, UserRole } from '@repo/shared/types'
+import type { RequestContext } from '@repo/shared/types'
 import {
   createBuildingSchema,
   updateBuildingSchema,
 } from '@repo/shared/validation'
-import type { FastifyInstance } from 'fastify'
+import type { FastifyInstance, FastifyRequest } from 'fastify'
 import { z } from 'zod'
 import { approvalGuard } from '../../middleware/approval-guard'
 import { authGuard } from '../../middleware/auth-guard'
@@ -38,23 +38,22 @@ async function buildingRoutes(fastify: FastifyInstance) {
   /**
    * Helper to build RequestContext from the Fastify request.
    */
-  function buildRequestContext(request: {
-    user: {
-      id: string
-      role: UserRole
-      ownerAccountId: string
-    }
-    tenantScope: { ownerAccountId: string; assignedBuildingIds?: string[] }
-    ip: string
-    headers: Record<string, string | string[] | undefined>
-  }): RequestContext {
+  function buildRequestContext(request: FastifyRequest): RequestContext {
+    const userAgentHeader = request.headers['user-agent']
+    const userAgent =
+      typeof userAgentHeader === 'string'
+        ? userAgentHeader
+        : Array.isArray(userAgentHeader)
+          ? (userAgentHeader[0] ?? '')
+          : ''
     return {
       userId: request.user.id,
       role: request.user.role,
       ownerAccountId: request.tenantScope.ownerAccountId,
       assignedBuildingIds: request.tenantScope.assignedBuildingIds,
+      assignedFlatId: request.tenantScope.assignedFlatId,
       ipAddress: request.ip,
-      userAgent: (request.headers['user-agent'] as string) || '',
+      userAgent,
     }
   }
 
@@ -122,7 +121,7 @@ async function buildingRoutes(fastify: FastifyInstance) {
         page: number
         pageSize: number
       }
-      const ctx = buildRequestContext(request as never)
+      const ctx = buildRequestContext(request)
 
       const result = await buildingService.listBuildings(ctx, {
         page,
@@ -177,7 +176,7 @@ async function buildingRoutes(fastify: FastifyInstance) {
       },
     },
     async (request, reply) => {
-      const ctx = buildRequestContext(request as never)
+      const ctx = buildRequestContext(request)
       const input = request.body as {
         name: string
         address: string
@@ -264,7 +263,7 @@ async function buildingRoutes(fastify: FastifyInstance) {
     },
     async (request, reply) => {
       const { id } = request.params as { id: string }
-      const ctx = buildRequestContext(request as never)
+      const ctx = buildRequestContext(request)
 
       const building = await buildingService.getBuilding(ctx, id)
 
@@ -333,7 +332,7 @@ async function buildingRoutes(fastify: FastifyInstance) {
     },
     async (request, reply) => {
       const { id } = request.params as { id: string }
-      const ctx = buildRequestContext(request as never)
+      const ctx = buildRequestContext(request)
       const input = request.body as {
         name?: string
         address?: string

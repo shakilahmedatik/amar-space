@@ -1,5 +1,4 @@
 import type { Database } from '@repo/db'
-import type { R2Client } from '../../src/plugins/r2'
 import {
   ISSUE_STATUS,
   ISSUE_STATUS_TRANSITIONS,
@@ -10,6 +9,7 @@ import type { RequestContext } from '@repo/shared/types'
 import fc from 'fast-check'
 import { describe, expect, it, vi } from 'vitest'
 import type { AuditLogger } from '../../src/plugins/audit-logger'
+import type { R2Client } from '../../src/plugins/r2'
 import { IssueService } from '../../src/services/issue.service'
 
 /**

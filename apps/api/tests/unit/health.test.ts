@@ -1,4 +1,12 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  type Mock,
+  vi,
+} from 'vitest'
 import { buildApp } from '../../src/app'
 
 // Mock @repo/db to avoid real database connections in unit tests
@@ -34,7 +42,7 @@ describe('Health Check Route', () => {
 
   it('should return 200 with status ok when database is healthy', async () => {
     const { validateConnection } = await import('@repo/db')
-    vi.mocked(validateConnection).mockResolvedValue(true)
+    ;(validateConnection as Mock).mockResolvedValue(true)
 
     const app = buildApp({ logger: false })
     await app.ready()
@@ -60,7 +68,7 @@ describe('Health Check Route', () => {
 
   it('should return 503 with status degraded when database is unreachable', async () => {
     const { validateConnection } = await import('@repo/db')
-    vi.mocked(validateConnection).mockRejectedValue(
+    ;(validateConnection as Mock).mockRejectedValue(
       new Error('Database connection validation failed: connection refused'),
     )
 
@@ -85,7 +93,7 @@ describe('Health Check Route', () => {
 
   it('should include uptime in seconds', async () => {
     const { validateConnection } = await import('@repo/db')
-    vi.mocked(validateConnection).mockResolvedValue(true)
+    ;(validateConnection as Mock).mockResolvedValue(true)
 
     const app = buildApp({ logger: false })
     await app.ready()
@@ -104,7 +112,7 @@ describe('Health Check Route', () => {
 
   it('should include a valid ISO timestamp', async () => {
     const { validateConnection } = await import('@repo/db')
-    vi.mocked(validateConnection).mockResolvedValue(true)
+    ;(validateConnection as Mock).mockResolvedValue(true)
 
     const app = buildApp({ logger: false })
     await app.ready()

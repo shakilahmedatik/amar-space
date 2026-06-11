@@ -1,4 +1,5 @@
 import { portalSessions } from '@repo/db'
+import type { ApprovalStatus, UserRole } from '@repo/shared'
 import type { ApiErrorResponse } from '@repo/shared/types'
 import { eq } from 'drizzle-orm'
 import type { FastifyReply, FastifyRequest } from 'fastify'
@@ -8,16 +9,10 @@ import type { FastifyReply, FastifyRequest } from 'fastify'
  */
 export interface AuthUser {
   id: string
-  role:
-    | 'superadmin'
-    | 'owner'
-    | 'manager'
-    | 'security_guard'
-    | 'care_taker'
-    | 'renter'
+  role: UserRole
   ownerAccountId: string
   email: string
-  approvalStatus?: 'pending' | 'approved' | 'rejected'
+  approvalStatus?: ApprovalStatus
   isActive?: boolean
 }
 
@@ -93,21 +88,14 @@ async function authenticatePortalSession(
     const now = new Date()
     if (portalSession.expiresAt <= now) return null
 
-    const renter = portalSession.renter as {
-      user: {
-        id: string
-        email: string
-        ownerAccountId: string
-        isActive?: boolean
-      }
-    }
+    const renter = portalSession.renter
 
     if (!renter?.user) return null
 
     return {
       id: renter.user.id,
       role: 'renter',
-      ownerAccountId: renter.user.ownerAccountId,
+      ownerAccountId: renter.user.ownerAccountId || renter.user.id,
       email: renter.user.email,
       approvalStatus: 'approved',
       isActive: renter.user.isActive ?? true,

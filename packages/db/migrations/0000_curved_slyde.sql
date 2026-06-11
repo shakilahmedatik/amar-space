@@ -25,6 +25,15 @@ CREATE TABLE "advance_adjustments" (
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
+CREATE TABLE "analytics_events" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"event_name" varchar(50) NOT NULL,
+	"flat_slug" varchar(100) NOT NULL,
+	"user_agent" text,
+	"metadata" jsonb,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
 CREATE TABLE "audit_logs" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"owner_account_id" text NOT NULL,
@@ -53,7 +62,11 @@ CREATE TABLE "bills" (
 	"flat_id" uuid NOT NULL,
 	"renter_id" uuid NOT NULL,
 	"billing_month" varchar(7) NOT NULL,
+	"due_date" date NOT NULL,
 	"base_rent" numeric(12, 2) NOT NULL,
+	"rent_days" integer,
+	"total_days_in_month" integer,
+	"monthly_rent" numeric(12, 2) NOT NULL,
 	"total_amount" numeric(12, 2) NOT NULL,
 	"paid_amount" numeric(12, 2) DEFAULT '0' NOT NULL,
 	"status" varchar(20) DEFAULT 'unpaid' NOT NULL,
@@ -81,9 +94,27 @@ CREATE TABLE "buildings" (
 	"name" varchar(200) NOT NULL,
 	"address" varchar(500) NOT NULL,
 	"total_floors" integer,
+	"whatsapp_group_link" varchar(500),
+	"manager_phone" varchar(20),
+	"logo_url" varchar(500),
+	"cover_image_url" varchar(500),
+	"rules" text,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
 	CONSTRAINT "buildings_owner_name_unique" UNIQUE("owner_account_id","name")
+);
+--> statement-breakpoint
+CREATE TABLE "emergency_contacts" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"building_id" uuid NOT NULL,
+	"owner_account_id" text NOT NULL,
+	"name" varchar(100) NOT NULL,
+	"role" varchar(50) NOT NULL,
+	"phone" varchar(20),
+	"type" varchar(20) NOT NULL,
+	"sort_order" integer NOT NULL,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "file_references" (
@@ -98,6 +129,15 @@ CREATE TABLE "file_references" (
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
+CREATE TABLE "flat_slugs" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"flat_id" uuid NOT NULL,
+	"slug" varchar(100) NOT NULL,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	CONSTRAINT "flat_slugs_flat_id_unique" UNIQUE("flat_id"),
+	CONSTRAINT "flat_slugs_slug_unique" UNIQUE("slug")
+);
+--> statement-breakpoint
 CREATE TABLE "flats" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"owner_account_id" text NOT NULL,
@@ -108,6 +148,16 @@ CREATE TABLE "flats" (
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
 	CONSTRAINT "flats_building_flat_number_unique" UNIQUE("building_id","flat_number")
+);
+--> statement-breakpoint
+CREATE TABLE "issue_attachments" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"issue_id" uuid NOT NULL,
+	"file_url" varchar(500) NOT NULL,
+	"file_name" varchar(255) NOT NULL,
+	"file_size" integer NOT NULL,
+	"mime_type" varchar(50) NOT NULL,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "issues" (
@@ -175,6 +225,17 @@ CREATE TABLE "manager_assignments" (
 	CONSTRAINT "manager_assignments_manager_building_unique" UNIQUE("manager_id","building_id")
 );
 --> statement-breakpoint
+CREATE TABLE "notice_templates" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"owner_account_id" text NOT NULL,
+	"name" varchar(200) NOT NULL,
+	"title" varchar(200) NOT NULL,
+	"body" varchar(5000) NOT NULL,
+	"target_audience" varchar(20) NOT NULL,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
 CREATE TABLE "notices" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"owner_account_id" text NOT NULL,
@@ -186,6 +247,50 @@ CREATE TABLE "notices" (
 	"target_flat_id" uuid,
 	"is_pinned" boolean DEFAULT false NOT NULL,
 	"pinned_at" timestamp with time zone,
+	"expires_at" timestamp with time zone,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE "permissions" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"key" text NOT NULL,
+	"label" text NOT NULL,
+	"group" text NOT NULL,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	CONSTRAINT "permissions_key_unique" UNIQUE("key")
+);
+--> statement-breakpoint
+CREATE TABLE "portal_sessions" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"flat_id" uuid NOT NULL,
+	"renter_id" uuid NOT NULL,
+	"expires_at" timestamp with time zone NOT NULL,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE "registration_requests" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"flat_id" uuid NOT NULL,
+	"owner_account_id" text NOT NULL,
+	"full_name" varchar(100) NOT NULL,
+	"phone" varchar(11) NOT NULL,
+	"nid_number" varchar(17) NOT NULL,
+	"nid_photo_url" varchar(500),
+	"blood_group" varchar(3) NOT NULL,
+	"occupation" varchar(100) NOT NULL,
+	"family_members" integer NOT NULL,
+	"emergency_contact" varchar(11) NOT NULL,
+	"rental_start_date" date NOT NULL,
+	"advance_amount" numeric(12, 2) NOT NULL,
+	"digital_signature_url" varchar(500) NOT NULL,
+	"status" varchar(20) DEFAULT 'PENDING_APPROVAL' NOT NULL,
+	"access_code" varchar(6),
+	"access_code_hash" varchar(255),
+	"family_member_names" jsonb,
+	"emergency_contact_name" varchar(200),
+	"emergency_contact_relationship" varchar(100),
+	"selfie_photo_url" varchar(500),
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
 );
@@ -200,7 +305,27 @@ CREATE TABLE "rental_contracts" (
 	"end_date" date,
 	"security_deposit_amount" numeric(12, 2) NOT NULL,
 	"remaining_deposit_balance" numeric(12, 2) NOT NULL,
+	"gas_bill" numeric(12, 2) DEFAULT '0.00' NOT NULL,
+	"water_bill" numeric(12, 2) DEFAULT '0.00' NOT NULL,
+	"service_charge" numeric(12, 2) DEFAULT '0.00' NOT NULL,
+	"other_charges" numeric(12, 2) DEFAULT '0.00' NOT NULL,
 	"status" varchar(20) DEFAULT 'active' NOT NULL,
+	"scheduled_termination_date" date,
+	"notice_given_at" timestamp with time zone,
+	"termination_reason" varchar(500),
+	"terminated_by" text,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE "renter_access_codes" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"flat_id" uuid NOT NULL,
+	"renter_id" uuid NOT NULL,
+	"code_hash" varchar(255) NOT NULL,
+	"failed_attempts" integer DEFAULT 0 NOT NULL,
+	"locked_until" timestamp with time zone,
+	"expires_at" timestamp with time zone,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
 );
@@ -222,8 +347,17 @@ CREATE TABLE "renters" (
 	"emergency_contact_number" varchar(20) NOT NULL,
 	"emergency_contact_relationship" varchar(100) NOT NULL,
 	"digital_signature_url" varchar(500),
+	"selfie_photo_url" varchar(500),
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE "role_permissions" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"role_id" uuid NOT NULL,
+	"permission_id" uuid NOT NULL,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	CONSTRAINT "role_permission_unique" UNIQUE("role_id","permission_id")
 );
 --> statement-breakpoint
 CREATE TABLE "sessions" (
@@ -238,6 +372,35 @@ CREATE TABLE "sessions" (
 	CONSTRAINT "sessions_token_unique" UNIQUE("token")
 );
 --> statement-breakpoint
+CREATE TABLE "staff_building_assignments" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"owner_account_id" text NOT NULL,
+	"staff_id" text NOT NULL,
+	"building_id" uuid NOT NULL,
+	"assigned_at" timestamp with time zone DEFAULT now() NOT NULL,
+	CONSTRAINT "staff_building_unique" UNIQUE("staff_id","building_id")
+);
+--> statement-breakpoint
+CREATE TABLE "staff_roles" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"owner_account_id" text,
+	"name" text NOT NULL,
+	"slug" text NOT NULL,
+	"description" text,
+	"is_system_role" boolean DEFAULT false NOT NULL,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE "user_permission_overrides" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"user_id" text NOT NULL,
+	"permission_id" uuid NOT NULL,
+	"effect" varchar(10) DEFAULT 'grant' NOT NULL,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	CONSTRAINT "user_permission_unique" UNIQUE("user_id","permission_id")
+);
+--> statement-breakpoint
 CREATE TABLE "users" (
 	"id" text PRIMARY KEY NOT NULL,
 	"name" text NOT NULL,
@@ -247,9 +410,12 @@ CREATE TABLE "users" (
 	"created_at" timestamp with time zone NOT NULL,
 	"updated_at" timestamp with time zone NOT NULL,
 	"role" varchar(20) DEFAULT 'owner' NOT NULL,
-	"owner_account_id" uuid,
+	"owner_account_id" text,
 	"phone" varchar(20),
 	"language_preference" varchar(5) DEFAULT 'bn',
+	"approval_status" varchar(20) DEFAULT 'pending',
+	"is_active" boolean DEFAULT true NOT NULL,
+	"deactivated_at" timestamp with time zone,
 	CONSTRAINT "users_email_unique" UNIQUE("email")
 );
 --> statement-breakpoint
@@ -277,9 +443,13 @@ ALTER TABLE "bills" ADD CONSTRAINT "bills_renter_id_renters_id_fk" FOREIGN KEY (
 ALTER TABLE "payments" ADD CONSTRAINT "payments_owner_account_id_users_id_fk" FOREIGN KEY ("owner_account_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "payments" ADD CONSTRAINT "payments_bill_id_bills_id_fk" FOREIGN KEY ("bill_id") REFERENCES "public"."bills"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "buildings" ADD CONSTRAINT "buildings_owner_account_id_users_id_fk" FOREIGN KEY ("owner_account_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "emergency_contacts" ADD CONSTRAINT "emergency_contacts_building_id_buildings_id_fk" FOREIGN KEY ("building_id") REFERENCES "public"."buildings"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "emergency_contacts" ADD CONSTRAINT "emergency_contacts_owner_account_id_users_id_fk" FOREIGN KEY ("owner_account_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "file_references" ADD CONSTRAINT "file_references_owner_account_id_users_id_fk" FOREIGN KEY ("owner_account_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "flat_slugs" ADD CONSTRAINT "flat_slugs_flat_id_flats_id_fk" FOREIGN KEY ("flat_id") REFERENCES "public"."flats"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "flats" ADD CONSTRAINT "flats_owner_account_id_users_id_fk" FOREIGN KEY ("owner_account_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "flats" ADD CONSTRAINT "flats_building_id_buildings_id_fk" FOREIGN KEY ("building_id") REFERENCES "public"."buildings"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "issue_attachments" ADD CONSTRAINT "issue_attachments_issue_id_issues_id_fk" FOREIGN KEY ("issue_id") REFERENCES "public"."issues"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "issues" ADD CONSTRAINT "issues_owner_account_id_users_id_fk" FOREIGN KEY ("owner_account_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "issues" ADD CONSTRAINT "issues_building_id_buildings_id_fk" FOREIGN KEY ("building_id") REFERENCES "public"."buildings"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "issues" ADD CONSTRAINT "issues_assignee_id_users_id_fk" FOREIGN KEY ("assignee_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
@@ -291,19 +461,43 @@ ALTER TABLE "maintenance_requests" ADD CONSTRAINT "maintenance_requests_flat_id_
 ALTER TABLE "maintenance_requests" ADD CONSTRAINT "maintenance_requests_renter_id_renters_id_fk" FOREIGN KEY ("renter_id") REFERENCES "public"."renters"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "maintenance_requests" ADD CONSTRAINT "maintenance_requests_building_id_buildings_id_fk" FOREIGN KEY ("building_id") REFERENCES "public"."buildings"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "manager_assignments" ADD CONSTRAINT "manager_assignments_owner_account_id_users_id_fk" FOREIGN KEY ("owner_account_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "manager_assignments" ADD CONSTRAINT "manager_assignments_manager_id_users_id_fk" FOREIGN KEY ("manager_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "manager_assignments" ADD CONSTRAINT "manager_assignments_manager_id_users_id_fk" FOREIGN KEY ("manager_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "manager_assignments" ADD CONSTRAINT "manager_assignments_building_id_buildings_id_fk" FOREIGN KEY ("building_id") REFERENCES "public"."buildings"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "notice_templates" ADD CONSTRAINT "notice_templates_owner_account_id_users_id_fk" FOREIGN KEY ("owner_account_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "notices" ADD CONSTRAINT "notices_owner_account_id_users_id_fk" FOREIGN KEY ("owner_account_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "notices" ADD CONSTRAINT "notices_author_id_users_id_fk" FOREIGN KEY ("author_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "notices" ADD CONSTRAINT "notices_target_building_id_buildings_id_fk" FOREIGN KEY ("target_building_id") REFERENCES "public"."buildings"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "notices" ADD CONSTRAINT "notices_target_flat_id_flats_id_fk" FOREIGN KEY ("target_flat_id") REFERENCES "public"."flats"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "portal_sessions" ADD CONSTRAINT "portal_sessions_flat_id_flats_id_fk" FOREIGN KEY ("flat_id") REFERENCES "public"."flats"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "portal_sessions" ADD CONSTRAINT "portal_sessions_renter_id_renters_id_fk" FOREIGN KEY ("renter_id") REFERENCES "public"."renters"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "registration_requests" ADD CONSTRAINT "registration_requests_flat_id_flats_id_fk" FOREIGN KEY ("flat_id") REFERENCES "public"."flats"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "registration_requests" ADD CONSTRAINT "registration_requests_owner_account_id_users_id_fk" FOREIGN KEY ("owner_account_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "rental_contracts" ADD CONSTRAINT "rental_contracts_owner_account_id_users_id_fk" FOREIGN KEY ("owner_account_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "rental_contracts" ADD CONSTRAINT "rental_contracts_renter_id_renters_id_fk" FOREIGN KEY ("renter_id") REFERENCES "public"."renters"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "rental_contracts" ADD CONSTRAINT "rental_contracts_flat_id_flats_id_fk" FOREIGN KEY ("flat_id") REFERENCES "public"."flats"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "rental_contracts" ADD CONSTRAINT "rental_contracts_terminated_by_users_id_fk" FOREIGN KEY ("terminated_by") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "renter_access_codes" ADD CONSTRAINT "renter_access_codes_flat_id_flats_id_fk" FOREIGN KEY ("flat_id") REFERENCES "public"."flats"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "renter_access_codes" ADD CONSTRAINT "renter_access_codes_renter_id_renters_id_fk" FOREIGN KEY ("renter_id") REFERENCES "public"."renters"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "renters" ADD CONSTRAINT "renters_owner_account_id_users_id_fk" FOREIGN KEY ("owner_account_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "renters" ADD CONSTRAINT "renters_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "role_permissions" ADD CONSTRAINT "role_permissions_role_id_staff_roles_id_fk" FOREIGN KEY ("role_id") REFERENCES "public"."staff_roles"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "role_permissions" ADD CONSTRAINT "role_permissions_permission_id_permissions_id_fk" FOREIGN KEY ("permission_id") REFERENCES "public"."permissions"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "sessions" ADD CONSTRAINT "sessions_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "staff_building_assignments" ADD CONSTRAINT "staff_building_assignments_owner_account_id_users_id_fk" FOREIGN KEY ("owner_account_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "staff_building_assignments" ADD CONSTRAINT "staff_building_assignments_staff_id_users_id_fk" FOREIGN KEY ("staff_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "staff_building_assignments" ADD CONSTRAINT "staff_building_assignments_building_id_buildings_id_fk" FOREIGN KEY ("building_id") REFERENCES "public"."buildings"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "staff_roles" ADD CONSTRAINT "staff_roles_owner_account_id_users_id_fk" FOREIGN KEY ("owner_account_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "user_permission_overrides" ADD CONSTRAINT "user_permission_overrides_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "user_permission_overrides" ADD CONSTRAINT "user_permission_overrides_permission_id_permissions_id_fk" FOREIGN KEY ("permission_id") REFERENCES "public"."permissions"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 CREATE INDEX "audit_logs_entity_type_idx" ON "audit_logs" USING btree ("entity_type");--> statement-breakpoint
 CREATE INDEX "audit_logs_actor_idx" ON "audit_logs" USING btree ("actor_id");--> statement-breakpoint
 CREATE INDEX "audit_logs_owner_account_idx" ON "audit_logs" USING btree ("owner_account_id");--> statement-breakpoint
-CREATE INDEX "audit_logs_created_at_idx" ON "audit_logs" USING btree ("created_at");
+CREATE INDEX "audit_logs_created_at_idx" ON "audit_logs" USING btree ("created_at");--> statement-breakpoint
+CREATE INDEX "bills_owner_status_idx" ON "bills" USING btree ("owner_account_id","status");--> statement-breakpoint
+CREATE INDEX "payments_bill_id_idx" ON "payments" USING btree ("bill_id");--> statement-breakpoint
+CREATE UNIQUE INDEX "flat_slugs_slug_idx" ON "flat_slugs" USING btree ("slug");--> statement-breakpoint
+CREATE INDEX "notices_owner_audience_idx" ON "notices" USING btree ("owner_account_id","target_audience");--> statement-breakpoint
+CREATE UNIQUE INDEX "registration_requests_flat_phone_pending_idx" ON "registration_requests" USING btree ("flat_id","phone") WHERE "registration_requests"."status" = 'PENDING_APPROVAL';--> statement-breakpoint
+CREATE INDEX "rental_contracts_renter_status_idx" ON "rental_contracts" USING btree ("renter_id","status");--> statement-breakpoint
+CREATE INDEX "renters_user_id_idx" ON "renters" USING btree ("user_id");--> statement-breakpoint
+CREATE INDEX "renters_owner_account_id_idx" ON "renters" USING btree ("owner_account_id");

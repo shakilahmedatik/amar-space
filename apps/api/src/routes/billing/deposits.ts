@@ -1,6 +1,6 @@
-import type { RequestContext, UserRole } from '@repo/shared/types'
+import type { RequestContext } from '@repo/shared/types'
 import { applyAdjustmentSchema } from '@repo/shared/validation'
-import type { FastifyInstance } from 'fastify'
+import type { FastifyInstance, FastifyRequest } from 'fastify'
 import { z } from 'zod'
 import { approvalGuard } from '../../middleware/approval-guard'
 import { authGuard } from '../../middleware/auth-guard'
@@ -31,20 +31,14 @@ async function depositRoutes(fastify: FastifyInstance) {
   /**
    * Helper to build RequestContext from the Fastify request.
    */
-  function buildRequestContext(request: {
-    user: {
-      id: string
-      role: UserRole
-      ownerAccountId: string
-    }
-    tenantScope: {
-      ownerAccountId: string
-      assignedBuildingIds?: string[]
-      assignedFlatId?: string
-    }
-    ip: string
-    headers: Record<string, string | string[] | undefined>
-  }): RequestContext {
+  function buildRequestContext(request: FastifyRequest): RequestContext {
+    const userAgentHeader = request.headers['user-agent']
+    const userAgent =
+      typeof userAgentHeader === 'string'
+        ? userAgentHeader
+        : Array.isArray(userAgentHeader)
+          ? (userAgentHeader[0] ?? '')
+          : ''
     return {
       userId: request.user.id,
       role: request.user.role,
@@ -52,7 +46,7 @@ async function depositRoutes(fastify: FastifyInstance) {
       assignedBuildingIds: request.tenantScope.assignedBuildingIds,
       assignedFlatId: request.tenantScope.assignedFlatId,
       ipAddress: request.ip,
-      userAgent: (request.headers['user-agent'] as string) || '',
+      userAgent,
     }
   }
 
@@ -94,7 +88,7 @@ async function depositRoutes(fastify: FastifyInstance) {
     },
     async (request, reply) => {
       const { contractId } = request.params as { contractId: string }
-      const ctx = buildRequestContext(request as never)
+      const ctx = buildRequestContext(request)
 
       const deposit = await depositService.getDeposit(ctx, contractId)
 
@@ -146,7 +140,7 @@ async function depositRoutes(fastify: FastifyInstance) {
     },
     async (request, reply) => {
       const { contractId } = request.params as { contractId: string }
-      const ctx = buildRequestContext(request as never)
+      const ctx = buildRequestContext(request)
       const data = request.body as {
         amount: number
         billId?: string
@@ -225,7 +219,7 @@ async function depositRoutes(fastify: FastifyInstance) {
         page: number
         pageSize: number
       }
-      const ctx = buildRequestContext(request as never)
+      const ctx = buildRequestContext(request)
 
       const result = await depositService.listAdjustments(ctx, contractId, {
         page,

@@ -1,3 +1,4 @@
+import { sql } from 'drizzle-orm'
 import { drizzle } from 'drizzle-orm/postgres-js'
 import postgres from 'postgres'
 import * as schema from './schema'
@@ -30,12 +31,14 @@ function resolveConfig(options?: DbClientConfig): Required<DbClientConfig> {
     idleTimeout:
       options?.idleTimeout ??
       (process.env.DB_IDLE_TIMEOUT
-        ? parseInt(process.env.DB_IDLE_TIMEOUT, 10) / 1000
+        ? // DB_IDLE_TIMEOUT is specified in milliseconds (e.g. 30000ms), but postgres-js expects seconds (30s)
+          parseInt(process.env.DB_IDLE_TIMEOUT, 10) / 1000
         : DEFAULT_CONFIG.idleTimeout),
     connectionTimeout:
       options?.connectionTimeout ??
       (process.env.DB_CONNECTION_TIMEOUT
-        ? parseInt(process.env.DB_CONNECTION_TIMEOUT, 10) / 1000
+        ? // DB_CONNECTION_TIMEOUT is specified in milliseconds (e.g. 10000ms), but postgres-js expects seconds (10s)
+          parseInt(process.env.DB_CONNECTION_TIMEOUT, 10) / 1000
         : DEFAULT_CONFIG.connectionTimeout),
   }
 }
@@ -83,7 +86,7 @@ export function createDbClient(databaseUrl?: string, options?: DbClientConfig) {
  */
 export async function validateConnection(db: Database): Promise<boolean> {
   try {
-    await db.execute('SELECT 1' as never)
+    await db.execute(sql`SELECT 1`)
     return true
   } catch (error) {
     const message =
@@ -96,3 +99,6 @@ export async function validateConnection(db: Database): Promise<boolean> {
 
 /** The database client type for consumers */
 export type Database = ReturnType<typeof createDbClient>
+
+export type TxClient = Parameters<Parameters<Database['transaction']>[0]>[0]
+export type DatabaseOrTransaction = Database | TxClient

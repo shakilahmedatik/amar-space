@@ -85,7 +85,7 @@ export default function AuditPage() {
     })
   }, [])
   // Owner-only access guard
-  if (role !== 'owner') {
+  if (role !== 'owner' && role !== 'superadmin') {
     return (
       <div className="flex flex-col items-center justify-center min-h-[300px] text-center p-8">
         <h1 className="text-2xl font-bold text-error-text mb-3">

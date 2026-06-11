@@ -1,9 +1,9 @@
-import type { RequestContext, UserRole } from '@repo/shared/types'
+import type { RequestContext } from '@repo/shared/types'
 import {
   addMaintenanceCommentSchema,
   updateMaintenanceStatusSchema,
 } from '@repo/shared/validation'
-import type { FastifyInstance } from 'fastify'
+import type { FastifyInstance, FastifyRequest } from 'fastify'
 import { z } from 'zod'
 import { approvalGuard } from '../../middleware/approval-guard'
 import { authGuard } from '../../middleware/auth-guard'
@@ -41,20 +41,14 @@ async function maintenanceRoutes(fastify: FastifyInstance) {
   /**
    * Helper to build RequestContext from the Fastify request.
    */
-  function buildRequestContext(request: {
-    user: {
-      id: string
-      role: UserRole
-      ownerAccountId: string
-    }
-    tenantScope: {
-      ownerAccountId: string
-      assignedBuildingIds?: string[]
-      assignedFlatId?: string
-    }
-    ip: string
-    headers: Record<string, string | string[] | undefined>
-  }): RequestContext {
+  function buildRequestContext(request: FastifyRequest): RequestContext {
+    const userAgentHeader = request.headers['user-agent']
+    const userAgent =
+      typeof userAgentHeader === 'string'
+        ? userAgentHeader
+        : Array.isArray(userAgentHeader)
+          ? (userAgentHeader[0] ?? '')
+          : ''
     return {
       userId: request.user.id,
       role: request.user.role,
@@ -62,7 +56,7 @@ async function maintenanceRoutes(fastify: FastifyInstance) {
       assignedBuildingIds: request.tenantScope.assignedBuildingIds,
       assignedFlatId: request.tenantScope.assignedFlatId,
       ipAddress: request.ip,
-      userAgent: (request.headers['user-agent'] as string) || '',
+      userAgent,
     }
   }
 
@@ -130,7 +124,7 @@ async function maintenanceRoutes(fastify: FastifyInstance) {
           status?: 'open' | 'in_progress' | 'resolved' | 'closed'
           priority?: 'low' | 'medium' | 'high' | 'urgent'
         }
-      const ctx = buildRequestContext(request as never)
+      const ctx = buildRequestContext(request)
 
       const result = await maintenanceService.listRequests(
         ctx,
@@ -190,7 +184,7 @@ async function maintenanceRoutes(fastify: FastifyInstance) {
       },
     },
     async (request, reply) => {
-      const ctx = buildRequestContext(request as never)
+      const ctx = buildRequestContext(request)
 
       // Parse multipart form data
       const parts = request.parts()
@@ -277,7 +271,7 @@ async function maintenanceRoutes(fastify: FastifyInstance) {
     },
     async (request, reply) => {
       const { id } = request.params as { id: string }
-      const ctx = buildRequestContext(request as never)
+      const ctx = buildRequestContext(request)
 
       const result = await maintenanceService.getRequest(ctx, id)
 
@@ -329,7 +323,7 @@ async function maintenanceRoutes(fastify: FastifyInstance) {
     },
     async (request, reply) => {
       const { id } = request.params as { id: string }
-      const ctx = buildRequestContext(request as never)
+      const ctx = buildRequestContext(request)
       const { status } = request.body as { status: string }
 
       const result = await maintenanceService.updateRequestStatus(
@@ -382,7 +376,7 @@ async function maintenanceRoutes(fastify: FastifyInstance) {
     },
     async (request, reply) => {
       const { id } = request.params as { id: string }
-      const ctx = buildRequestContext(request as never)
+      const ctx = buildRequestContext(request)
       const data = request.body as { content: string }
 
       const result = await maintenanceService.addComment(ctx, id, data)

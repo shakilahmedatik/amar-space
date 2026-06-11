@@ -38,8 +38,13 @@ describe('Monorepo Wiring Integration', () => {
 
     it('should resolve Database type from @repo/db correctly', async () => {
       const { createDbClient } = await import('@repo/db/client')
-      // Verify the function signature works - calling without URL should throw
-      expect(() => createDbClient()).toThrow()
+      const oldUrl = process.env.DATABASE_URL
+      delete process.env.DATABASE_URL
+      try {
+        expect(() => createDbClient()).toThrow()
+      } finally {
+        process.env.DATABASE_URL = oldUrl
+      }
     })
   })
 

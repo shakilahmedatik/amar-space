@@ -1,5 +1,6 @@
 'use client'
 
+import type { UserRole } from '@repo/shared'
 import { useRouter } from 'next/navigation'
 import {
   createContext,
@@ -9,14 +10,6 @@ import {
   useState,
 } from 'react'
 import { getSession } from '@/lib/auth-client'
-
-export type UserRole =
-  | 'owner'
-  | 'manager'
-  | 'security_guard'
-  | 'care_taker'
-  | 'renter'
-  | 'superadmin'
 
 export interface SessionUser {
   id: string
@@ -70,7 +63,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     <SessionContext.Provider
       value={{
         user,
-        role: user?.role ?? 'owner',
+        role: user?.role ?? 'renter',
         isLoading,
       }}
     >

@@ -5,11 +5,8 @@ import { useSession } from '@/contexts/session-context'
 import { useTranslation } from '@/lib/i18n'
 import { ManagerDashboard } from './manager-dashboard'
 import { OwnerDashboard } from './owner-dashboard'
+import { SuperadminDashboard } from './superadmin-dashboard'
 
-/**
- * Dashboard page — /dashboard
- * Detects user role from session and renders the appropriate role-specific dashboard.
- */
 export default function DashboardPage() {
   const { t } = useTranslation()
   const { user, role, isLoading } = useSession()
@@ -23,6 +20,7 @@ export default function DashboardPage() {
         {t('dashboard.title')}
       </h1>
 
+      {role === 'superadmin' && <SuperadminDashboard />}
       {role === 'owner' && <OwnerDashboard />}
       {role === 'manager' && <ManagerDashboard />}
     </>

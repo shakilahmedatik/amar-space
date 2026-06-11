@@ -1,11 +1,11 @@
-import type { RequestContext, UserRole } from '@repo/shared/types'
+import type { RequestContext } from '@repo/shared/types'
 import {
   type CreateNoticeInput,
   createNoticeSchema,
   type UpdateNoticeInput,
   updateNoticeSchema,
 } from '@repo/shared/validation'
-import type { FastifyInstance } from 'fastify'
+import type { FastifyInstance, FastifyRequest } from 'fastify'
 import { z } from 'zod'
 import { approvalGuard } from '../../middleware/approval-guard'
 import { authGuard } from '../../middleware/auth-guard'
@@ -38,20 +38,14 @@ async function noticeRoutes(fastify: FastifyInstance) {
   /**
    * Helper to build RequestContext from the Fastify request.
    */
-  function buildRequestContext(request: {
-    user: {
-      id: string
-      role: UserRole
-      ownerAccountId: string
-    }
-    tenantScope: {
-      ownerAccountId: string
-      assignedBuildingIds?: string[]
-      assignedFlatId?: string
-    }
-    ip: string
-    headers: Record<string, string | string[] | undefined>
-  }): RequestContext {
+  function buildRequestContext(request: FastifyRequest): RequestContext {
+    const userAgentHeader = request.headers['user-agent']
+    const userAgent =
+      typeof userAgentHeader === 'string'
+        ? userAgentHeader
+        : Array.isArray(userAgentHeader)
+          ? (userAgentHeader[0] ?? '')
+          : ''
     return {
       userId: request.user.id,
       role: request.user.role,
@@ -59,7 +53,7 @@ async function noticeRoutes(fastify: FastifyInstance) {
       assignedBuildingIds: request.tenantScope.assignedBuildingIds,
       assignedFlatId: request.tenantScope.assignedFlatId,
       ipAddress: request.ip,
-      userAgent: (request.headers['user-agent'] as string) || '',
+      userAgent,
     }
   }
 
@@ -134,7 +128,7 @@ async function noticeRoutes(fastify: FastifyInstance) {
           isPinned?: boolean
           status?: 'active' | 'archived' | 'all'
         }
-      const ctx = buildRequestContext(request as never)
+      const ctx = buildRequestContext(request)
 
       const result = await noticeService.listNotices(ctx, {
         targetAudience,
@@ -187,7 +181,7 @@ async function noticeRoutes(fastify: FastifyInstance) {
       },
     },
     async (request, reply) => {
-      const ctx = buildRequestContext(request as never)
+      const ctx = buildRequestContext(request)
       const data = request.body as CreateNoticeInput
 
       const result = await noticeService.createNotice(ctx, data)
@@ -241,7 +235,7 @@ async function noticeRoutes(fastify: FastifyInstance) {
     },
     async (request, reply) => {
       const { id } = request.params as { id: string }
-      const ctx = buildRequestContext(request as never)
+      const ctx = buildRequestContext(request)
 
       const result = await noticeService.getNotice(ctx, id)
 
@@ -294,7 +288,7 @@ async function noticeRoutes(fastify: FastifyInstance) {
     },
     async (request, reply) => {
       const { id } = request.params as { id: string }
-      const ctx = buildRequestContext(request as never)
+      const ctx = buildRequestContext(request)
       const data = request.body as UpdateNoticeInput
 
       const result = await noticeService.updateNotice(ctx, id, data)
@@ -336,7 +330,7 @@ async function noticeRoutes(fastify: FastifyInstance) {
     },
     async (request, reply) => {
       const { id } = request.params as { id: string }
-      const ctx = buildRequestContext(request as never)
+      const ctx = buildRequestContext(request)
 
       await noticeService.deleteNotice(ctx, id)
 
@@ -382,7 +376,7 @@ async function noticeRoutes(fastify: FastifyInstance) {
     },
     async (request, reply) => {
       const { id } = request.params as { id: string }
-      const ctx = buildRequestContext(request as never)
+      const ctx = buildRequestContext(request)
 
       const result = await noticeService.togglePin(ctx, id)
 

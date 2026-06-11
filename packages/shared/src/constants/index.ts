@@ -1,9 +1,11 @@
 /** User roles */
 export const ROLES = {
+  SUPERADMIN: 'superadmin',
   OWNER: 'owner',
   MANAGER: 'manager',
   SECURITY_GUARD: 'security_guard',
   CARE_TAKER: 'care_taker',
+  RENTER: 'renter',
 } as const
 
 export type Role = (typeof ROLES)[keyof typeof ROLES]
@@ -191,6 +193,34 @@ export const ISSUE_STATUS_TRANSITIONS: Record<IssueStatus, IssueStatus[]> = {
 
 /** Role permissions - defines what each role can access */
 export const ROLE_PERMISSIONS = {
+  [ROLES.SUPERADMIN]: [
+    'buildings:read',
+    'buildings:write',
+    'flats:read',
+    'flats:write',
+    'flats:delete',
+    'renters:read',
+    'renters:write',
+    'bills:read',
+    'bills:write',
+    'payments:read',
+    'payments:write',
+    'deposits:read',
+    'deposits:write',
+    'maintenance:read',
+    'maintenance:write',
+    'issues:read',
+    'issues:write',
+    'notices:read',
+    'notices:write',
+    'notices:delete',
+    'audit:read',
+    'roles:write',
+    'staff:read',
+    'staff:write',
+    'contracts:terminate',
+    'terminations:execute',
+  ],
   [ROLES.OWNER]: [
     'buildings:read',
     'buildings:write',
@@ -250,6 +280,17 @@ export const ROLE_PERMISSIONS = {
   [ROLES.CARE_TAKER]: [
     'buildings:read',
     'flats:read',
+    'maintenance:read',
+    'maintenance:write',
+    'issues:read',
+    'issues:write',
+    'notices:read',
+  ],
+  [ROLES.RENTER]: [
+    'buildings:read',
+    'flats:read',
+    'bills:read',
+    'payments:read',
     'maintenance:read',
     'maintenance:write',
     'issues:read',

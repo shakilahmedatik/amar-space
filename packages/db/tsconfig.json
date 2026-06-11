@@ -8,7 +8,7 @@
     "moduleResolution": "Bundler",
     "outDir": "./dist",
     "rootDir": "./src",
-    "types": ["node"]
+    "types": ["node", "bun"]
   },
   "include": ["src/**/*.ts"],
   "exclude": ["node_modules", "dist", "migrations"]

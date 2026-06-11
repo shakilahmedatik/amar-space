@@ -1,13 +1,13 @@
 import { flats } from '@repo/db'
 import type { FlatStatus } from '@repo/shared/constants'
-import type { RequestContext, UserRole } from '@repo/shared/types'
+import type { RequestContext } from '@repo/shared/types'
 import {
   createFlatSchema,
   flatStatusEnum,
   updateFlatSchema,
 } from '@repo/shared/validation'
 import { and, eq } from 'drizzle-orm'
-import type { FastifyInstance } from 'fastify'
+import type { FastifyInstance, FastifyRequest } from 'fastify'
 import { z } from 'zod'
 import { approvalGuard } from '../../middleware/approval-guard'
 import { authGuard } from '../../middleware/auth-guard'
@@ -40,20 +40,14 @@ async function flatRoutes(fastify: FastifyInstance) {
   /**
    * Helper to build RequestContext from the Fastify request.
    */
-  function buildRequestContext(request: {
-    user: {
-      id: string
-      role: UserRole
-      ownerAccountId: string
-    }
-    tenantScope: {
-      ownerAccountId: string
-      assignedBuildingIds?: string[]
-      assignedFlatId?: string
-    }
-    ip: string
-    headers: Record<string, string | string[] | undefined>
-  }): RequestContext {
+  function buildRequestContext(request: FastifyRequest): RequestContext {
+    const userAgentHeader = request.headers['user-agent']
+    const userAgent =
+      typeof userAgentHeader === 'string'
+        ? userAgentHeader
+        : Array.isArray(userAgentHeader)
+          ? (userAgentHeader[0] ?? '')
+          : ''
     return {
       userId: request.user.id,
       role: request.user.role,
@@ -61,7 +55,7 @@ async function flatRoutes(fastify: FastifyInstance) {
       assignedBuildingIds: request.tenantScope.assignedBuildingIds,
       assignedFlatId: request.tenantScope.assignedFlatId,
       ipAddress: request.ip,
-      userAgent: (request.headers['user-agent'] as string) || '',
+      userAgent,
     }
   }
 
@@ -127,7 +121,7 @@ async function flatRoutes(fastify: FastifyInstance) {
         page: number
         pageSize: number
       }
-      const ctx = buildRequestContext(request as never)
+      const ctx = buildRequestContext(request)
 
       const result = await flatService.listFlats(ctx, {
         buildingId,
@@ -169,7 +163,7 @@ async function flatRoutes(fastify: FastifyInstance) {
       },
     },
     async (request, reply) => {
-      const ctx = buildRequestContext(request as never)
+      const ctx = buildRequestContext(request)
       const input = request.body as {
         buildingId: string
         flatNumber: string
@@ -215,7 +209,7 @@ async function flatRoutes(fastify: FastifyInstance) {
     },
     async (request, reply) => {
       const { id } = request.params as { id: string }
-      const ctx = buildRequestContext(request as never)
+      const ctx = buildRequestContext(request)
 
       const flat = await fastify.db.query.flats.findFirst({
         where: and(
@@ -275,7 +269,7 @@ async function flatRoutes(fastify: FastifyInstance) {
     },
     async (request, reply) => {
       const { id } = request.params as { id: string }
-      const ctx = buildRequestContext(request as never)
+      const ctx = buildRequestContext(request)
       const input = request.body as {
         flatNumber?: string
         floor?: number
@@ -315,7 +309,7 @@ async function flatRoutes(fastify: FastifyInstance) {
     },
     async (request, reply) => {
       const { id } = request.params as { id: string }
-      const ctx = buildRequestContext(request as never)
+      const ctx = buildRequestContext(request)
 
       await flatService.deleteFlat(ctx, id)
 
@@ -360,7 +354,7 @@ async function flatRoutes(fastify: FastifyInstance) {
     },
     async (request, reply) => {
       const { id } = request.params as { id: string }
-      const ctx = buildRequestContext(request as never)
+      const ctx = buildRequestContext(request)
       const { status } = request.body as { status: FlatStatus }
 
       const flat = await flatService.transitionStatus(ctx, id, status)

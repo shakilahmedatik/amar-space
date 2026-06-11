@@ -1,12 +1,12 @@
 import type { BillStatus } from '@repo/shared/constants'
-import type { RequestContext, UserRole } from '@repo/shared/types'
+import type { RequestContext } from '@repo/shared/types'
 import {
   addUtilityChargeSchema,
   billStatusEnum,
   generateBillForContractSchema,
   generateBillsSchema,
 } from '@repo/shared/validation'
-import type { FastifyInstance } from 'fastify'
+import type { FastifyInstance, FastifyRequest } from 'fastify'
 import { z } from 'zod'
 import { approvalGuard } from '../../middleware/approval-guard'
 import { authGuard } from '../../middleware/auth-guard'
@@ -42,20 +42,14 @@ const billItemSchema = z.object({
 async function billRoutes(fastify: FastifyInstance) {
   const billingService = new BillingService(fastify.db, fastify.auditLogger)
 
-  function buildRequestContext(request: {
-    user: {
-      id: string
-      role: UserRole
-      ownerAccountId: string
-    }
-    tenantScope: {
-      ownerAccountId: string
-      assignedBuildingIds?: string[]
-      assignedFlatId?: string
-    }
-    ip: string
-    headers: Record<string, string | string[] | undefined>
-  }): RequestContext {
+  function buildRequestContext(request: FastifyRequest): RequestContext {
+    const userAgentHeader = request.headers['user-agent']
+    const userAgent =
+      typeof userAgentHeader === 'string'
+        ? userAgentHeader
+        : Array.isArray(userAgentHeader)
+          ? (userAgentHeader[0] ?? '')
+          : ''
     return {
       userId: request.user.id,
       role: request.user.role,
@@ -63,7 +57,7 @@ async function billRoutes(fastify: FastifyInstance) {
       assignedBuildingIds: request.tenantScope.assignedBuildingIds,
       assignedFlatId: request.tenantScope.assignedFlatId,
       ipAddress: request.ip,
-      userAgent: (request.headers['user-agent'] as string) || '',
+      userAgent,
     }
   }
 
@@ -128,7 +122,7 @@ async function billRoutes(fastify: FastifyInstance) {
         page: number
         pageSize: number
       }
-      const ctx = buildRequestContext(request as never)
+      const ctx = buildRequestContext(request)
 
       const result = await billingService.listBills(
         ctx,
@@ -202,7 +196,7 @@ async function billRoutes(fastify: FastifyInstance) {
       },
     },
     async (request, reply) => {
-      const ctx = buildRequestContext(request as never)
+      const ctx = buildRequestContext(request)
       const { billingMonth } = request.body as { billingMonth: string }
 
       const result = await billingService.generateBills(ctx, billingMonth)
@@ -250,7 +244,7 @@ async function billRoutes(fastify: FastifyInstance) {
     async (request, reply) => {
       const { contractId } = request.params as { contractId: string }
       const { billingMonth } = request.body as { billingMonth: string }
-      const ctx = buildRequestContext(request as never)
+      const ctx = buildRequestContext(request)
 
       const bill = await billingService.generateBillForContract(
         ctx,
@@ -362,7 +356,7 @@ async function billRoutes(fastify: FastifyInstance) {
     },
     async (request, reply) => {
       const { id } = request.params as { id: string }
-      const ctx = buildRequestContext(request as never)
+      const ctx = buildRequestContext(request)
 
       const bill = await billingService.getBill(ctx, id)
       const totalAmount = Number.parseFloat(bill.totalAmount)
@@ -451,7 +445,7 @@ async function billRoutes(fastify: FastifyInstance) {
     },
     async (request, reply) => {
       const { id } = request.params as { id: string }
-      const ctx = buildRequestContext(request as never)
+      const ctx = buildRequestContext(request)
       const charge = request.body as { description: string; amount: number }
 
       const lineItem = await billingService.addUtilityCharge(ctx, id, charge)
@@ -500,7 +494,7 @@ async function billRoutes(fastify: FastifyInstance) {
     },
     async (request, reply) => {
       const { id } = request.params as { id: string }
-      const ctx = buildRequestContext(request as never)
+      const ctx = buildRequestContext(request)
 
       await billingService.deleteBill(ctx, id)
 

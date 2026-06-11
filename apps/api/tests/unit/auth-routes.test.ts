@@ -340,9 +340,9 @@ describe('Auth Routes', () => {
       })
 
       expect(response.statusCode).toBe(200)
-      expect(response.headers['set-cookie']).toBe(
-        'session=abc123; HttpOnly; Secure',
-      )
+      const setCookie = response.headers['set-cookie']
+      const cookieStr = Array.isArray(setCookie) ? setCookie[0] : setCookie
+      expect(cookieStr).toBe('session=abc123; HttpOnly; Secure')
 
       app.auth.handler = originalHandler
       await app.close()
@@ -500,7 +500,11 @@ describe('Auth Routes', () => {
 
       expect(response.statusCode).toBe(200)
       // Session cookie should be cleared
-      expect(response.headers['set-cookie']).toContain('Max-Age=0')
+      const setCookie = response.headers['set-cookie']
+      const cookieStr = Array.isArray(setCookie)
+        ? setCookie.join(', ')
+        : setCookie || ''
+      expect(cookieStr).toContain('Max-Age=0')
 
       app.auth.handler = originalHandler
       await app.close()
