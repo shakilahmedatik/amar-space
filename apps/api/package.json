@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch --env-file=.env src/index.ts",
-    "build": "tsc",
+    "build": "tsup",
     "start": "node dist/index.js",
     "lint": "biome lint .",
     "format": "biome format --write .",
@@ -50,6 +50,7 @@
     "adm-zip": "^0.5.17",
     "fast-check": "4.8.0",
     "jsqr": "^1.4.0",
+    "tsup": "^8.5.1",
     "tsx": "4.19.4",
     "typescript": "5.9.2",
     "vitest": "4.1.7"

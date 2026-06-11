@@ -25,8 +25,12 @@ async function main() {
   // Run migrations
   await runMigrations(db)
 
-  // Seed data
-  await seed(db)
+  // Seed data (skip in production unless explicitly requested)
+  if (process.env.NODE_ENV !== 'production' || process.env.SEED === 'true') {
+    await seed(db)
+  } else {
+    console.log('[reset] Skipping seeding in production environment.')
+  }
 
   console.log('[reset] Database reset completed successfully.')
 }
