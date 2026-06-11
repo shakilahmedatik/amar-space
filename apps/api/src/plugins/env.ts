@@ -50,17 +50,14 @@ export default fp(
     const result = envSchema.safeParse(process.env)
 
     if (!result.success) {
-      for (const issue of result.error.issues) {
+      const messages = result.error.issues.map((issue) => {
         const path = issue.path.join('.')
         if (issue.code === 'invalid_type' && issue.input === undefined) {
-          process.stderr.write(`Environment variable ${path} is missing\n`)
-        } else {
-          process.stderr.write(
-            `Environment variable ${path} is invalid: ${issue.message}\n`,
-          )
+          return `Environment variable ${path} is missing`
         }
-      }
-      process.exit(1)
+        return `Environment variable ${path} is invalid: ${issue.message}`
+      })
+      throw new Error(`Environment validation failed:\n${messages.join('\n')}`)
     }
 
     fastify.decorate('env', result.data)
