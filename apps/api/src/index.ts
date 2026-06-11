@@ -21,6 +21,11 @@ export default async function handler(req: Request): Promise<Response> {
     : new URL(req.url)
   const body = req.body ? await req.text() : undefined
 
+  const headers =
+    req.headers instanceof Headers
+      ? Object.fromEntries(req.headers.entries())
+      : (req.headers as unknown as Record<string, string | string[] | undefined>)
+
   const res = await app.inject({
     method: req.method as
       | 'GET'
@@ -31,7 +36,7 @@ export default async function handler(req: Request): Promise<Response> {
       | 'HEAD'
       | 'OPTIONS',
     url: url.pathname + url.search,
-    headers: Object.fromEntries(req.headers.entries()),
+    headers,
     body,
   })
 
