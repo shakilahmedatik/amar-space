@@ -3,6 +3,7 @@ services:
   - type: web
     name: amar-space-api
     env: docker
+    plan: free
     dockerfilePath: ./docker/api.Dockerfile
     envVars:
       - key: NODE_ENV
@@ -14,18 +15,4 @@ services:
       - key: AUTH_SECRET
         sync: false
       - key: AUTH_BASE_URL
-        sync: false
-
-  # The Next.js Frontend Web
-  - type: web
-    name: amar-space-web
-    env: docker
-    dockerfilePath: ./docker/web.Dockerfile
-    envVars:
-      - key: NODE_ENV
-        value: production
-      - key: PORT
-        value: 3000
-      # You need to fill this in manually via the Render dashboard once the amar-space-api URL is known
-      - key: NEXT_PUBLIC_API_URL
         sync: false
