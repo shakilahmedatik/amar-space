@@ -7,5 +7,5 @@ export default defineConfig({
   clean: true,
   shims: true,
   splitting: false,
-  noExternal: ['@repo/shared', '@repo/db'],
+  noExternal: [/(.*)/],
 })
