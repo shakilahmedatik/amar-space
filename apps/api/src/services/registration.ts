@@ -33,7 +33,10 @@ export function validateRegistrationInput(input: RegisterInput): {
   email: string
   password: string
 } {
-  return validateOrThrow(registerSchema, input)
+  return validateOrThrow(registerSchema, input) as {
+    email: string
+    password: string
+  }
 }
 
 /**
