@@ -140,7 +140,7 @@ function isPortalRequest(request: FastifyRequest): boolean {
 export async function authGuard(
   request: FastifyRequest,
   reply: FastifyReply,
-): Promise<FastifyReply | undefined> {
+): Promise<void> {
   const { auth, env } = request.server
 
   // ── Portal request path ──────────────────────────────────────────────
@@ -177,7 +177,8 @@ export async function authGuard(
         error: 'Unauthorized',
         message: 'Authentication required',
       }
-      return reply.status(401).send(response)
+      await reply.status(401).send(response)
+      return
     }
 
     const user = session.user as Record<string, unknown>
@@ -203,7 +204,8 @@ export async function authGuard(
         error: 'Unauthorized',
         message: 'Account is deactivated',
       }
-      return reply.status(401).send(response)
+      await reply.status(401).send(response)
+      return
     }
 
     const role = (user.role as string) || 'owner'
@@ -231,6 +233,7 @@ export async function authGuard(
       error: 'Unauthorized',
       message: 'Session is invalid or has expired',
     }
-    return reply.status(401).send(response)
+    await reply.status(401).send(response)
+    return
   }
 }

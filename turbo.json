@@ -12,7 +12,10 @@
     "R2_BUCKET_NAME",
     "R2_PUBLIC_BASE_URL",
     "AUTH_TRUSTED_ORIGINS",
-    "FRONTEND_URL"
+    "FRONTEND_URL",
+    "DB_POOL_SIZE",
+    "DB_IDLE_TIMEOUT",
+    "DB_CONNECTION_TIMEOUT"
   ],
   "tasks": {
     "build": {
