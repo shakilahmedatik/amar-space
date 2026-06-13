@@ -1,4 +1,5 @@
 import { CONTRACT_STATUS } from '@repo/shared/constants'
+import { and, eq, inArray } from 'drizzle-orm'
 import type { RequestContext } from '@repo/shared/types'
 import {
   processDepositRefundSchema,
@@ -246,7 +247,7 @@ async function terminationRoutes(fastify: FastifyInstance) {
 
       // Look up the renter's terminated/pending_termination contract
       const renter = await fastify.db.query.renters.findFirst({
-        where: (renters, { and, eq }) =>
+        where: (renters) =>
           and(
             eq(renters.id, id),
             eq(renters.ownerAccountId, ctx.ownerAccountId),
@@ -263,7 +264,7 @@ async function terminationRoutes(fastify: FastifyInstance) {
       }
 
       const contract = await fastify.db.query.rentalContracts.findFirst({
-        where: (contracts, { and, eq, inArray }) =>
+        where: (contracts) =>
           and(
             eq(contracts.renterId, id),
             eq(contracts.ownerAccountId, ctx.ownerAccountId),
@@ -338,7 +339,7 @@ async function terminationRoutes(fastify: FastifyInstance) {
 
       // Look up the renter's terminated contract
       const renter = await fastify.db.query.renters.findFirst({
-        where: (renters, { and, eq }) =>
+        where: (renters) =>
           and(
             eq(renters.id, id),
             eq(renters.ownerAccountId, ctx.ownerAccountId),
@@ -355,7 +356,7 @@ async function terminationRoutes(fastify: FastifyInstance) {
       }
 
       const contract = await fastify.db.query.rentalContracts.findFirst({
-        where: (contracts, { and, eq, inArray }) =>
+        where: (contracts) =>
           and(
             eq(contracts.renterId, id),
             eq(contracts.ownerAccountId, ctx.ownerAccountId),

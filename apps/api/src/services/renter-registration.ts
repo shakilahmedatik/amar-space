@@ -16,7 +16,7 @@ import {
   registerRenterSchema,
   validateOrThrow,
 } from '@repo/shared/validation'
-import { and, count, desc, eq } from 'drizzle-orm'
+import { and, count, desc, eq, inArray } from 'drizzle-orm'
 import type { AuditLogger } from '../plugins/audit-logger'
 import type { R2Client } from '../plugins/r2'
 import { hashAccessCode } from '../utils/access-code-hash'
@@ -359,7 +359,7 @@ export class RenterRegistrationService {
       ),
       with: {
         rentalContracts: {
-          where: (contracts, { inArray }) =>
+          where: (contracts) =>
             inArray(contracts.status, ['active', 'pending_termination']),
           with: {
             flat: {
@@ -438,7 +438,7 @@ export class RenterRegistrationService {
       ),
       with: {
         rentalContracts: {
-          where: (contracts, { eq }) => eq(contracts.status, 'active'),
+          where: (contracts) => eq(contracts.status, 'active'),
         },
       },
     })
@@ -529,7 +529,7 @@ export class RenterRegistrationService {
         offset: offset,
         with: {
           rentalContracts: {
-            where: (contracts, { eq }) => eq(contracts.status, 'active'),
+            where: (contracts) => eq(contracts.status, 'active'),
             with: {
               flat: {
                 with: {

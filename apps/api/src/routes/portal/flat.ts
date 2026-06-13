@@ -908,7 +908,7 @@ async function portalFlatRoutes(fastify: FastifyInstance) {
           renter: {
             with: {
               rentalContracts: {
-                where: (contracts, { eq }) => eq(contracts.status, 'active'),
+                where: (contracts) => eq(contracts.status, 'active'),
                 with: {
                   flat: {
                     with: {
