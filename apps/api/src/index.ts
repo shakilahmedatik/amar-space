@@ -1,10 +1,11 @@
+import type { IncomingMessage, ServerResponse } from 'node:http'
 import { getLogTapeFastifyLogger } from '@logtape/fastify'
 import { validateConnection } from '@repo/db'
 import { buildApp } from './app'
 import { configureLogging, getLogger } from './lib/logger'
 
 let app: ReturnType<typeof buildApp> | null = null
-let readyPromise: Promise<void> | null = null
+let readyPromise: Promise<ReturnType<typeof buildApp>> | null = null
 
 async function initApp() {
   await configureLogging()
@@ -15,7 +16,7 @@ async function initApp() {
   return app
 }
 
-export default async function handler(req: Request): Promise<Response> {
+export default async function handler(req: IncomingMessage, res: ServerResponse): Promise<void> {
   if (!readyPromise) {
     readyPromise = initApp()
   }
@@ -28,45 +29,16 @@ export default async function handler(req: Request): Promise<Response> {
       ),
     ])
 
-    const url = req.url.startsWith('/')
-      ? new URL(req.url, 'http://localhost')
-      : new URL(req.url)
-    const body = req.body ? await req.text() : undefined
-
-    const headers =
-      req.headers instanceof Headers
-        ? Object.fromEntries(req.headers.entries())
-        : (req.headers as unknown as Record<string, string | string[] | undefined>)
-
-    const res = await app.inject({
-      method: req.method as
-        | 'GET'
-        | 'POST'
-        | 'PUT'
-        | 'DELETE'
-        | 'PATCH'
-        | 'HEAD'
-        | 'OPTIONS',
-      url: url.pathname + url.search,
-      headers,
-      body,
-    })
-
-    return new Response(res.body, {
-      status: res.statusCode,
-      headers: res.headers as HeadersInit,
-    })
+    app.server.emit('request', req, res)
   } catch (err) {
-    return new Response(
+    res.statusCode = 503
+    res.setHeader('Content-Type', 'application/json')
+    res.end(
       JSON.stringify({
         statusCode: 503,
         error: 'Service Unavailable',
         message: err instanceof Error ? err.message : 'Internal error',
       }),
-      {
-        status: 503,
-        headers: { 'content-type': 'application/json' },
-      },
     )
   }
 }
