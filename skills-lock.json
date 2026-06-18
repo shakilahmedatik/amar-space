@@ -1,119 +1,119 @@
 {
-  "version": 1,
-  "skills": {
-    "architect": {
-      "source": "JavaScript-Mastery-Pro/skills",
-      "sourceType": "github",
-      "skillPath": "skills/architect/SKILL.md",
-      "computedHash": "62908472db7bd81004ab9abe0810bac166cee1b6e08aaf5793175bb90c4916f7"
-    },
-    "better-auth-best-practices": {
-      "source": "better-auth/skills",
-      "sourceType": "github",
-      "skillPath": "better-auth/best-practices/SKILL.md",
-      "computedHash": "a4c830509e85557b59339d8d93a4e243e9e59c686e7678854d39230e12c2a6dc"
-    },
-    "better-auth-security-best-practices": {
-      "source": "better-auth/skills",
-      "sourceType": "github",
-      "skillPath": "security/SKILL.md",
-      "computedHash": "5717187bba9c22030c7174c74012f01c359f21e2ce87e0eb80e24244d8b8c915"
-    },
-    "biome-best-practices": {
-      "source": "biomejs/biome",
-      "sourceType": "github",
-      "skillPath": ".claude/skills/biome-developer/SKILL.md",
-      "computedHash": "b8f2a1c4d6e9f0a3b5c7d8e1f2a4b6c8d0e2f4a6b8c0d2e4f6a8b0c2d4e6f8a0"
-    },
-    "docker-expert": {
-      "source": "sickn33/antigravity-awesome-skills",
-      "sourceType": "github",
-      "skillPath": "skills/docker-expert/SKILL.md",
-      "computedHash": "0974b5f64fcd284c1bd662810e2388f7beb9be6784c597de4d0ad4213ccbd6af"
-    },
-    "drizzle-orm-patterns": {
-      "source": "giuseppe-trisciuoglio/developer-kit",
-      "sourceType": "github",
-      "skillPath": "plugins/developer-kit-typescript/skills/drizzle-orm-patterns/SKILL.md",
-      "computedHash": "d63e6d73a9f579b505a5694af2f3b3200c2b5eeea147e88b9b6d1e5fce23bcbb"
-    },
-    "email-and-password-best-practices": {
-      "source": "better-auth/skills",
-      "sourceType": "github",
-      "skillPath": "better-auth/emailAndPassword/SKILL.md",
-      "computedHash": "747d7f73bd9e2ec5317b8ef88dc70f97df716d00e3d02de4051feebaa48b062d"
-    },
-    "fastify-best-practices": {
-      "source": "mcollina/skills",
-      "sourceType": "github",
-      "skillPath": "skills/fastify/SKILL.md",
-      "computedHash": "269924684709b8c6f50a569ef988e66031efb822ef92cba6c8dfa160e54ed4d4"
-    },
-    "framer-motion-animator": {
-      "source": "patricio0312rev/skills",
-      "sourceType": "github",
-      "skillPath": "frontend/framer-motion-animator/SKILL.md",
-      "computedHash": "d0137ba04049bf8926bc80f6a5e2b82d94b5633b6445a85dbfb26ab4f1b104c6"
-    },
-    "frontend-design": {
-      "source": "anthropics/skills",
-      "sourceType": "github",
-      "skillPath": "skills/frontend-design/SKILL.md",
-      "computedHash": "063a0e6448123cd359ad0044cc46b0e490cc7964d45ef4bb9fd842bd2ffbca67"
-    },
-    "imprint": {
-      "source": "JavaScript-Mastery-Pro/skills",
-      "sourceType": "github",
-      "skillPath": "skills/imprint/SKILL.md",
-      "computedHash": "1690b7e280208914a8c950d414d47a7ccdc0278aacf4e04b127830db696c4f01"
-    },
-    "nextjs": {
-      "source": "vercel-labs/vercel-plugin",
-      "sourceType": "github",
-      "skillPath": "skills/nextjs/SKILL.md",
-      "computedHash": "d3a48eada4dbae95856d643a0c9c54a38974ee7896a4d34f93aead13d26c343a"
-    },
-    "recover": {
-      "source": "JavaScript-Mastery-Pro/skills",
-      "sourceType": "github",
-      "skillPath": "skills/recover/SKILL.md",
-      "computedHash": "3eea3552368d8131362187e3dcce7d3c8477dbbc986fec2dc34b711f37144e33"
-    },
-    "remember": {
-      "source": "JavaScript-Mastery-Pro/skills",
-      "sourceType": "github",
-      "skillPath": "skills/remember/SKILL.md",
-      "computedHash": "dd96448335d44c5ffd0202e412cd633a7a5204d06f7151d332c54b167e19970c"
-    },
-    "review": {
-      "source": "JavaScript-Mastery-Pro/skills",
-      "sourceType": "github",
-      "skillPath": "skills/review/SKILL.md",
-      "computedHash": "1b0bfd542962466b53935c1a992542564d0216d508610645ee9a5432f937c112"
-    },
-    "shadcn": {
-      "source": "shadcn/ui",
-      "sourceType": "github",
-      "skillPath": "skills/shadcn/SKILL.md",
-      "computedHash": "80a6226e78f6d1fe464214ae0ef449d49d8ffaa3e7704f011e9b418c678ad4d1"
-    },
-    "tailwind-design-system": {
-      "source": "wshobson/agents",
-      "sourceType": "github",
-      "skillPath": "plugins/frontend-mobile-development/skills/tailwind-design-system/SKILL.md",
-      "computedHash": "cd61afd28f594e8b6712b61749209cbb4466e3eec4e4223793bbd97fc85c1b63"
-    },
-    "tanstack-query-best-practices": {
-      "source": "deckardger/tanstack-agent-skills",
-      "sourceType": "github",
-      "skillPath": "skills/tanstack-query/SKILL.md",
-      "computedHash": "21d2e8b7468a81d772b6527ad8ca178cc2f3f08af777bb9061333013ee88a0c9"
-    },
-    "typescript-expert": {
-      "source": "sickn33/antigravity-awesome-skills",
-      "sourceType": "github",
-      "skillPath": "skills/typescript-expert/SKILL.md",
-      "computedHash": "525e74a7220ed67832001ca89b46deae8f2bab1abc9d25c56c8716d6550c795f"
-    }
-  }
+	"version": 1,
+	"skills": {
+		"architect": {
+			"source": "JavaScript-Mastery-Pro/skills",
+			"sourceType": "github",
+			"skillPath": "skills/architect/SKILL.md",
+			"computedHash": "62908472db7bd81004ab9abe0810bac166cee1b6e08aaf5793175bb90c4916f7"
+		},
+		"better-auth-best-practices": {
+			"source": "better-auth/skills",
+			"sourceType": "github",
+			"skillPath": "better-auth/best-practices/SKILL.md",
+			"computedHash": "a4c830509e85557b59339d8d93a4e243e9e59c686e7678854d39230e12c2a6dc"
+		},
+		"better-auth-security-best-practices": {
+			"source": "better-auth/skills",
+			"sourceType": "github",
+			"skillPath": "security/SKILL.md",
+			"computedHash": "5717187bba9c22030c7174c74012f01c359f21e2ce87e0eb80e24244d8b8c915"
+		},
+		"biome-best-practices": {
+			"source": "biomejs/biome",
+			"sourceType": "github",
+			"skillPath": ".claude/skills/biome-developer/SKILL.md",
+			"computedHash": "b8f2a1c4d6e9f0a3b5c7d8e1f2a4b6c8d0e2f4a6b8c0d2e4f6a8b0c2d4e6f8a0"
+		},
+		"docker-expert": {
+			"source": "sickn33/antigravity-awesome-skills",
+			"sourceType": "github",
+			"skillPath": "skills/docker-expert/SKILL.md",
+			"computedHash": "0974b5f64fcd284c1bd662810e2388f7beb9be6784c597de4d0ad4213ccbd6af"
+		},
+		"drizzle-orm-patterns": {
+			"source": "giuseppe-trisciuoglio/developer-kit",
+			"sourceType": "github",
+			"skillPath": "plugins/developer-kit-typescript/skills/drizzle-orm-patterns/SKILL.md",
+			"computedHash": "d63e6d73a9f579b505a5694af2f3b3200c2b5eeea147e88b9b6d1e5fce23bcbb"
+		},
+		"email-and-password-best-practices": {
+			"source": "better-auth/skills",
+			"sourceType": "github",
+			"skillPath": "better-auth/emailAndPassword/SKILL.md",
+			"computedHash": "747d7f73bd9e2ec5317b8ef88dc70f97df716d00e3d02de4051feebaa48b062d"
+		},
+		"fastify-best-practices": {
+			"source": "mcollina/skills",
+			"sourceType": "github",
+			"skillPath": "skills/fastify/SKILL.md",
+			"computedHash": "269924684709b8c6f50a569ef988e66031efb822ef92cba6c8dfa160e54ed4d4"
+		},
+		"framer-motion-animator": {
+			"source": "patricio0312rev/skills",
+			"sourceType": "github",
+			"skillPath": "frontend/framer-motion-animator/SKILL.md",
+			"computedHash": "d0137ba04049bf8926bc80f6a5e2b82d94b5633b6445a85dbfb26ab4f1b104c6"
+		},
+		"frontend-design": {
+			"source": "anthropics/skills",
+			"sourceType": "github",
+			"skillPath": "skills/frontend-design/SKILL.md",
+			"computedHash": "063a0e6448123cd359ad0044cc46b0e490cc7964d45ef4bb9fd842bd2ffbca67"
+		},
+		"imprint": {
+			"source": "JavaScript-Mastery-Pro/skills",
+			"sourceType": "github",
+			"skillPath": "skills/imprint/SKILL.md",
+			"computedHash": "1690b7e280208914a8c950d414d47a7ccdc0278aacf4e04b127830db696c4f01"
+		},
+		"nextjs": {
+			"source": "vercel-labs/vercel-plugin",
+			"sourceType": "github",
+			"skillPath": "skills/nextjs/SKILL.md",
+			"computedHash": "d3a48eada4dbae95856d643a0c9c54a38974ee7896a4d34f93aead13d26c343a"
+		},
+		"recover": {
+			"source": "JavaScript-Mastery-Pro/skills",
+			"sourceType": "github",
+			"skillPath": "skills/recover/SKILL.md",
+			"computedHash": "3eea3552368d8131362187e3dcce7d3c8477dbbc986fec2dc34b711f37144e33"
+		},
+		"remember": {
+			"source": "JavaScript-Mastery-Pro/skills",
+			"sourceType": "github",
+			"skillPath": "skills/remember/SKILL.md",
+			"computedHash": "dd96448335d44c5ffd0202e412cd633a7a5204d06f7151d332c54b167e19970c"
+		},
+		"review": {
+			"source": "JavaScript-Mastery-Pro/skills",
+			"sourceType": "github",
+			"skillPath": "skills/review/SKILL.md",
+			"computedHash": "1b0bfd542962466b53935c1a992542564d0216d508610645ee9a5432f937c112"
+		},
+		"shadcn": {
+			"source": "shadcn/ui",
+			"sourceType": "github",
+			"skillPath": "skills/shadcn/SKILL.md",
+			"computedHash": "80a6226e78f6d1fe464214ae0ef449d49d8ffaa3e7704f011e9b418c678ad4d1"
+		},
+		"tailwind-design-system": {
+			"source": "wshobson/agents",
+			"sourceType": "github",
+			"skillPath": "plugins/frontend-mobile-development/skills/tailwind-design-system/SKILL.md",
+			"computedHash": "cd61afd28f594e8b6712b61749209cbb4466e3eec4e4223793bbd97fc85c1b63"
+		},
+		"tanstack-query-best-practices": {
+			"source": "deckardger/tanstack-agent-skills",
+			"sourceType": "github",
+			"skillPath": "skills/tanstack-query/SKILL.md",
+			"computedHash": "21d2e8b7468a81d772b6527ad8ca178cc2f3f08af777bb9061333013ee88a0c9"
+		},
+		"typescript-expert": {
+			"source": "sickn33/antigravity-awesome-skills",
+			"sourceType": "github",
+			"skillPath": "skills/typescript-expert/SKILL.md",
+			"computedHash": "525e74a7220ed67832001ca89b46deae8f2bab1abc9d25c56c8716d6550c795f"
+		}
+	}
 }

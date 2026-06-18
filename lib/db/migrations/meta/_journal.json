@@ -1,0 +1,34 @@
+{
+	"version": "7",
+	"dialect": "postgresql",
+	"entries": [
+		{
+			"idx": 0,
+			"version": "7",
+			"when": 1781164319483,
+			"tag": "0000_curved_slyde",
+			"breakpoints": true
+		},
+		{
+			"idx": 1,
+			"version": "7",
+			"when": 1781368357351,
+			"tag": "0001_peaceful_doctor_faustus",
+			"breakpoints": true
+		},
+		{
+			"idx": 2,
+			"version": "7",
+			"when": 1781368545421,
+			"tag": "0002_greedy_radioactive_man",
+			"breakpoints": true
+		},
+		{
+			"idx": 3,
+			"version": "7",
+			"when": 1781814698986,
+			"tag": "0003_workable_vulcan",
+			"breakpoints": true
+		}
+	]
+}

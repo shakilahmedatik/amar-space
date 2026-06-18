@@ -1,7 +1,0 @@
-export { LandingCtaBanner } from './cta-banner'
-export { LandingFeatures } from './features'
-export { LandingFooter } from './footer'
-export { LandingHero } from './hero'
-export { LandingHowItWorks } from './how-it-works'
-export { LandingNavbar } from './navbar'
-export { LandingPricing } from './pricing'
