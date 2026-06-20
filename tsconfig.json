@@ -1,15 +1,38 @@
 {
-  "extends": "./packages/typescript-config/base.json",
-  "compilerOptions": {
-    "module": "ESNext",
-    "moduleResolution": "Bundler",
-    "types": ["node"]
-  },
-  "include": [
-    "apps/**/*.ts",
-    "apps/**/*.tsx",
-    "packages/**/*.ts",
-    "packages/**/*.tsx"
-  ],
-  "exclude": ["**/node_modules", "**/dist", "**/dist-test", "**/.turbo"]
+	"compilerOptions": {
+		"target": "es2022",
+		"lib": ["dom", "dom.iterable", "esnext"],
+		"allowJs": true,
+		"skipLibCheck": true,
+		"strict": true,
+		"noEmit": true,
+		"esModuleInterop": true,
+		"module": "esnext",
+		"moduleResolution": "bundler",
+		"resolveJsonModule": true,
+		"isolatedModules": true,
+		"jsx": "react-jsx",
+		"incremental": true,
+		"plugins": [
+			{
+				"name": "next"
+			}
+		],
+		"paths": {
+			"@/*": ["./*"],
+			"@repo/db": ["./lib/db/index.ts"],
+			"@repo/db/schema": ["./lib/db/schema/index.ts"],
+			"@repo/shared/*": ["./lib/shared/*"],
+			"@repo/shared": ["./lib/shared/index.ts"]
+		}
+	},
+	"include": [
+		"next-env.d.ts",
+		"**/*.ts",
+		"**/*.tsx",
+		".next/types/**/*.ts",
+		"next.config.js",
+		".next/dev/types/**/*.ts"
+	],
+	"exclude": ["node_modules", "old_api_src", "lib/**/tests"]
 }

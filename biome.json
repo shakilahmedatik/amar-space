@@ -1,67 +1,65 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.4.15/schema.json",
-  "assist": { "actions": { "source": { "organizeImports": "on" } } },
-  "linter": {
-    "enabled": true,
-    "rules": {
-      "recommended": true,
-      "correctness": {
-        "noUnusedImports": "warn",
-        "noUnusedVariables": "warn"
-      },
-      "style": {
-        "noNonNullAssertion": "off",
-        "useConsistentArrayType": {
-          "level": "warn",
-          "options": {
-            "syntax": "shorthand"
-          }
-        }
-      },
-      "suspicious": {
-        "noExplicitAny": "warn"
-      }
-    }
-  },
-  "formatter": {
-    "enabled": true,
-    "indentStyle": "space",
-    "indentWidth": 2,
-    "lineWidth": 80
-  },
-  "javascript": {
-    "formatter": {
-      "quoteStyle": "single",
-      "semicolons": "asNeeded",
-      "trailingCommas": "all",
-      "arrowParentheses": "always"
-    }
-  },
-  "css": {
-    "parser": {
-      "cssModules": false,
-      "allowWrongLineComments": false,
-      "tailwindDirectives": true
-    },
-    "linter": {
-      "enabled": true
-    },
-    "formatter": {
-      "enabled": true
-    }
-  },
-  "files": {
-    "includes": [
-      "**",
-      "!**/node_modules",
-      "!**/dist",
-      "!**/.next",
-      "!**/build",
-      "!**/coverage",
-      "!**/*.min.js",
-      "!**/.turbo",
-      "!.vscode",
-      "!.agents"
-    ]
-  }
+	"$schema": "https://biomejs.dev/schemas/1.9.4/schema.json",
+	"organizeImports": {
+		"enabled": true
+	},
+	"linter": {
+		"enabled": true,
+		"rules": {
+			"recommended": true,
+			"correctness": {
+				"useExhaustiveDependencies": "warn",
+				"useJsxKeyInIterable": "error"
+			},
+			"a11y": {
+				"useAltText": "error",
+				"useButtonType": "warn",
+				"useSemanticElements": "off"
+			},
+			"suspicious": {
+				"noArrayIndexKey": "off",
+				"noExplicitAny": "off"
+			}
+		}
+	},
+	"formatter": {
+		"enabled": true,
+		"indentStyle": "tab",
+		"lineWidth": 80
+	},
+	"javascript": {
+		"formatter": {
+			"quoteStyle": "double"
+		}
+	},
+	"css": {
+		"linter": {
+			"enabled": false
+		},
+		"parser": {
+			"cssModules": true
+		}
+	},
+	"files": {
+		"ignore": [
+			"node_modules",
+			"dist",
+			".next",
+			"build",
+			".agents",
+			"old_api_src"
+		]
+	},
+	"overrides": [
+		{
+			"include": ["tests/**/*.ts", "tests/**/*.tsx"],
+			"linter": {
+				"rules": {
+					"style": {
+						"noNonNullAssertion": "off"
+					}
+				}
+			}
+		}
+	]
 }

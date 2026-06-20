@@ -1,0 +1,1897 @@
+{
+	"issues": [
+		{
+			"file": "hooks/use-delete-with-confirm.ts",
+			"binaries": [],
+			"catalog": [],
+			"dependencies": [],
+			"devDependencies": [],
+			"duplicates": [],
+			"enumMembers": [],
+			"exports": [],
+			"files": [{ "name": "hooks/use-delete-with-confirm.ts" }],
+			"namespaceMembers": [],
+			"optionalPeerDependencies": [],
+			"types": [],
+			"unlisted": [],
+			"unresolved": []
+		},
+		{
+			"file": "hooks/use-page-feedback.ts",
+			"binaries": [],
+			"catalog": [],
+			"dependencies": [],
+			"devDependencies": [],
+			"duplicates": [],
+			"enumMembers": [],
+			"exports": [],
+			"files": [{ "name": "hooks/use-page-feedback.ts" }],
+			"namespaceMembers": [],
+			"optionalPeerDependencies": [],
+			"types": [],
+			"unlisted": [],
+			"unresolved": []
+		},
+		{
+			"file": "hooks/use-permissions.ts",
+			"binaries": [],
+			"catalog": [],
+			"dependencies": [],
+			"devDependencies": [],
+			"duplicates": [],
+			"enumMembers": [],
+			"exports": [],
+			"files": [{ "name": "hooks/use-permissions.ts" }],
+			"namespaceMembers": [],
+			"optionalPeerDependencies": [],
+			"types": [],
+			"unlisted": [],
+			"unresolved": []
+		},
+		{
+			"file": "components/ui/delete-action-button.tsx",
+			"binaries": [],
+			"catalog": [],
+			"dependencies": [],
+			"devDependencies": [],
+			"duplicates": [],
+			"enumMembers": [],
+			"exports": [],
+			"files": [{ "name": "components/ui/delete-action-button.tsx" }],
+			"namespaceMembers": [],
+			"optionalPeerDependencies": [],
+			"types": [],
+			"unlisted": [],
+			"unresolved": []
+		},
+		{
+			"file": "components/ui/entity-detail-page.tsx",
+			"binaries": [],
+			"catalog": [],
+			"dependencies": [],
+			"devDependencies": [],
+			"duplicates": [],
+			"enumMembers": [],
+			"exports": [],
+			"files": [{ "name": "components/ui/entity-detail-page.tsx" }],
+			"namespaceMembers": [],
+			"optionalPeerDependencies": [],
+			"types": [],
+			"unlisted": [],
+			"unresolved": []
+		},
+		{
+			"file": "components/ui/permission-guard.tsx",
+			"binaries": [],
+			"catalog": [],
+			"dependencies": [],
+			"devDependencies": [],
+			"duplicates": [],
+			"enumMembers": [],
+			"exports": [],
+			"files": [{ "name": "components/ui/permission-guard.tsx" }],
+			"namespaceMembers": [],
+			"optionalPeerDependencies": [],
+			"types": [],
+			"unlisted": [],
+			"unresolved": []
+		},
+		{
+			"file": "lib/services/permission.service.ts",
+			"binaries": [],
+			"catalog": [],
+			"dependencies": [],
+			"devDependencies": [],
+			"duplicates": [],
+			"enumMembers": [],
+			"exports": [],
+			"files": [{ "name": "lib/services/permission.service.ts" }],
+			"namespaceMembers": [],
+			"optionalPeerDependencies": [],
+			"types": [],
+			"unlisted": [],
+			"unresolved": []
+		},
+		{
+			"file": "lib/services/qr-code.ts",
+			"binaries": [],
+			"catalog": [],
+			"dependencies": [],
+			"devDependencies": [],
+			"duplicates": [],
+			"enumMembers": [],
+			"exports": [],
+			"files": [{ "name": "lib/services/qr-code.ts" }],
+			"namespaceMembers": [],
+			"optionalPeerDependencies": [],
+			"types": [],
+			"unlisted": [],
+			"unresolved": []
+		},
+		{
+			"file": "lib/services/termination.service.ts",
+			"binaries": [],
+			"catalog": [],
+			"dependencies": [],
+			"devDependencies": [],
+			"duplicates": [],
+			"enumMembers": [],
+			"exports": [],
+			"files": [{ "name": "lib/services/termination.service.ts" }],
+			"namespaceMembers": [],
+			"optionalPeerDependencies": [],
+			"types": [],
+			"unlisted": [],
+			"unresolved": []
+		},
+		{
+			"file": "lib/utils/notice-formatting.ts",
+			"binaries": [],
+			"catalog": [],
+			"dependencies": [],
+			"devDependencies": [],
+			"duplicates": [],
+			"enumMembers": [],
+			"exports": [],
+			"files": [{ "name": "lib/utils/notice-formatting.ts" }],
+			"namespaceMembers": [],
+			"optionalPeerDependencies": [],
+			"types": [],
+			"unlisted": [],
+			"unresolved": []
+		},
+		{
+			"file": "lib/utils/schemas.ts",
+			"binaries": [],
+			"catalog": [],
+			"dependencies": [],
+			"devDependencies": [],
+			"duplicates": [],
+			"enumMembers": [],
+			"exports": [],
+			"files": [{ "name": "lib/utils/schemas.ts" }],
+			"namespaceMembers": [],
+			"optionalPeerDependencies": [],
+			"types": [],
+			"unlisted": [],
+			"unresolved": []
+		},
+		{
+			"file": "lib/db/reset.ts",
+			"binaries": [],
+			"catalog": [],
+			"dependencies": [],
+			"devDependencies": [],
+			"duplicates": [],
+			"enumMembers": [],
+			"exports": [],
+			"files": [{ "name": "lib/db/reset.ts" }],
+			"namespaceMembers": [],
+			"optionalPeerDependencies": [],
+			"types": [],
+			"unlisted": [],
+			"unresolved": []
+		},
+		{
+			"file": "lib/db/seed.ts",
+			"binaries": [],
+			"catalog": [],
+			"dependencies": [],
+			"devDependencies": [],
+			"duplicates": [],
+			"enumMembers": [],
+			"exports": [],
+			"files": [{ "name": "lib/db/seed.ts" }],
+			"namespaceMembers": [],
+			"optionalPeerDependencies": [],
+			"types": [],
+			"unlisted": [],
+			"unresolved": []
+		},
+		{
+			"file": "lib/shared/errors/errors.test.ts",
+			"binaries": [],
+			"catalog": [],
+			"dependencies": [],
+			"devDependencies": [],
+			"duplicates": [],
+			"enumMembers": [],
+			"exports": [],
+			"files": [{ "name": "lib/shared/errors/errors.test.ts" }],
+			"namespaceMembers": [],
+			"optionalPeerDependencies": [],
+			"types": [],
+			"unlisted": [],
+			"unresolved": []
+		},
+		{
+			"file": "lib/shared/formatters/formatters.test.ts",
+			"binaries": [],
+			"catalog": [],
+			"dependencies": [],
+			"devDependencies": [],
+			"duplicates": [],
+			"enumMembers": [],
+			"exports": [],
+			"files": [{ "name": "lib/shared/formatters/formatters.test.ts" }],
+			"namespaceMembers": [],
+			"optionalPeerDependencies": [],
+			"types": [],
+			"unlisted": [],
+			"unresolved": []
+		},
+		{
+			"file": "lib/shared/validation/validation.test.ts",
+			"binaries": [],
+			"catalog": [],
+			"dependencies": [],
+			"devDependencies": [],
+			"duplicates": [],
+			"enumMembers": [],
+			"exports": [],
+			"files": [{ "name": "lib/shared/validation/validation.test.ts" }],
+			"namespaceMembers": [],
+			"optionalPeerDependencies": [],
+			"types": [],
+			"unlisted": [],
+			"unresolved": []
+		},
+		{
+			"file": "lib/shared/portal/analytics-validation.test.ts",
+			"binaries": [],
+			"catalog": [],
+			"dependencies": [],
+			"devDependencies": [],
+			"duplicates": [],
+			"enumMembers": [],
+			"exports": [],
+			"files": [{ "name": "lib/shared/portal/analytics-validation.test.ts" }],
+			"namespaceMembers": [],
+			"optionalPeerDependencies": [],
+			"types": [],
+			"unlisted": [],
+			"unresolved": []
+		},
+		{
+			"file": "lib/shared/portal/registration-validation.test.ts",
+			"binaries": [],
+			"catalog": [],
+			"dependencies": [],
+			"devDependencies": [],
+			"duplicates": [],
+			"enumMembers": [],
+			"exports": [],
+			"files": [
+				{ "name": "lib/shared/portal/registration-validation.test.ts" }
+			],
+			"namespaceMembers": [],
+			"optionalPeerDependencies": [],
+			"types": [],
+			"unlisted": [],
+			"unresolved": []
+		},
+		{
+			"file": "lib/shared/portal/slug-validation.test.ts",
+			"binaries": [],
+			"catalog": [],
+			"dependencies": [],
+			"devDependencies": [],
+			"duplicates": [],
+			"enumMembers": [],
+			"exports": [],
+			"files": [{ "name": "lib/shared/portal/slug-validation.test.ts" }],
+			"namespaceMembers": [],
+			"optionalPeerDependencies": [],
+			"types": [],
+			"unlisted": [],
+			"unresolved": []
+		},
+		{
+			"file": ".agents/skills/typescript-expert/references/utility-types.ts",
+			"binaries": [],
+			"catalog": [],
+			"dependencies": [],
+			"devDependencies": [],
+			"duplicates": [],
+			"enumMembers": [],
+			"exports": [],
+			"files": [
+				{
+					"name": ".agents/skills/typescript-expert/references/utility-types.ts"
+				}
+			],
+			"namespaceMembers": [],
+			"optionalPeerDependencies": [],
+			"types": [],
+			"unlisted": [],
+			"unresolved": []
+		},
+		{
+			"file": "lib/shared/tests/properties/analytics-validation.property.test.ts",
+			"binaries": [],
+			"catalog": [],
+			"dependencies": [],
+			"devDependencies": [],
+			"duplicates": [],
+			"enumMembers": [],
+			"exports": [],
+			"files": [
+				{
+					"name": "lib/shared/tests/properties/analytics-validation.property.test.ts"
+				}
+			],
+			"namespaceMembers": [],
+			"optionalPeerDependencies": [],
+			"types": [],
+			"unlisted": [],
+			"unresolved": []
+		},
+		{
+			"file": "lib/shared/tests/properties/error-handling.property.test.ts",
+			"binaries": [],
+			"catalog": [],
+			"dependencies": [],
+			"devDependencies": [],
+			"duplicates": [],
+			"enumMembers": [],
+			"exports": [],
+			"files": [
+				{
+					"name": "lib/shared/tests/properties/error-handling.property.test.ts"
+				}
+			],
+			"namespaceMembers": [],
+			"optionalPeerDependencies": [],
+			"types": [],
+			"unlisted": [],
+			"unresolved": []
+		},
+		{
+			"file": "lib/shared/tests/properties/formatting.property.test.ts",
+			"binaries": [],
+			"catalog": [],
+			"dependencies": [],
+			"devDependencies": [],
+			"duplicates": [],
+			"enumMembers": [],
+			"exports": [],
+			"files": [
+				{ "name": "lib/shared/tests/properties/formatting.property.test.ts" }
+			],
+			"namespaceMembers": [],
+			"optionalPeerDependencies": [],
+			"types": [],
+			"unlisted": [],
+			"unresolved": []
+		},
+		{
+			"file": "lib/shared/tests/properties/registration-validation.property.test.ts",
+			"binaries": [],
+			"catalog": [],
+			"dependencies": [],
+			"devDependencies": [],
+			"duplicates": [],
+			"enumMembers": [],
+			"exports": [],
+			"files": [
+				{
+					"name": "lib/shared/tests/properties/registration-validation.property.test.ts"
+				}
+			],
+			"namespaceMembers": [],
+			"optionalPeerDependencies": [],
+			"types": [],
+			"unlisted": [],
+			"unresolved": []
+		},
+		{
+			"file": "lib/shared/tests/properties/slug-validation.property.test.ts",
+			"binaries": [],
+			"catalog": [],
+			"dependencies": [],
+			"devDependencies": [],
+			"duplicates": [],
+			"enumMembers": [],
+			"exports": [],
+			"files": [
+				{
+					"name": "lib/shared/tests/properties/slug-validation.property.test.ts"
+				}
+			],
+			"namespaceMembers": [],
+			"optionalPeerDependencies": [],
+			"types": [],
+			"unlisted": [],
+			"unresolved": []
+		},
+		{
+			"file": "lib/db/tests/properties/seed.test.ts",
+			"binaries": [],
+			"catalog": [],
+			"dependencies": [],
+			"devDependencies": [],
+			"duplicates": [],
+			"enumMembers": [],
+			"exports": [],
+			"files": [{ "name": "lib/db/tests/properties/seed.test.ts" }],
+			"namespaceMembers": [],
+			"optionalPeerDependencies": [],
+			"types": [],
+			"unlisted": [],
+			"unresolved": []
+		},
+		{
+			"file": "package.json",
+			"binaries": [],
+			"catalog": [],
+			"dependencies": [
+				{
+					"name": "@aws-sdk/s3-request-presigner",
+					"line": 20,
+					"col": 4,
+					"pos": 497
+				},
+				{ "name": "@logtape/logtape", "line": 21, "col": 4, "pos": 545 },
+				{ "name": "archiver", "line": 29, "col": 4, "pos": 853 },
+				{ "name": "bcryptjs", "line": 30, "col": 4, "pos": 877 },
+				{ "name": "pngjs", "line": 37, "col": 4, "pos": 1064 },
+				{ "name": "qrcode", "line": 40, "col": 4, "pos": 1132 }
+			],
+			"devDependencies": [
+				{
+					"name": "@testing-library/jest-dom",
+					"line": 49,
+					"col": 4,
+					"pos": 1332
+				},
+				{ "name": "@types/adm-zip", "line": 51, "col": 4, "pos": 1412 },
+				{ "name": "@types/archiver", "line": 52, "col": 4, "pos": 1442 },
+				{ "name": "@types/bcryptjs", "line": 53, "col": 4, "pos": 1473 },
+				{ "name": "@types/pngjs", "line": 55, "col": 4, "pos": 1533 },
+				{ "name": "@types/qrcode", "line": 56, "col": 4, "pos": 1561 },
+				{ "name": "adm-zip", "line": 59, "col": 4, "pos": 1650 },
+				{ "name": "jsqr", "line": 63, "col": 4, "pos": 1749 },
+				{ "name": "ts-morph", "line": 64, "col": 4, "pos": 1769 }
+			],
+			"duplicates": [],
+			"enumMembers": [],
+			"exports": [],
+			"files": [],
+			"namespaceMembers": [],
+			"optionalPeerDependencies": [],
+			"types": [],
+			"unlisted": [],
+			"unresolved": []
+		},
+		{
+			"file": "lib/i18n/context.tsx",
+			"binaries": [],
+			"catalog": [],
+			"dependencies": [],
+			"devDependencies": [],
+			"duplicates": [],
+			"enumMembers": [],
+			"exports": [{ "name": "useI18n", "line": 138, "col": 17, "pos": 3506 }],
+			"files": [],
+			"namespaceMembers": [],
+			"optionalPeerDependencies": [],
+			"types": [],
+			"unlisted": [],
+			"unresolved": []
+		},
+		{
+			"file": "lib/i18n/index.ts",
+			"binaries": [],
+			"catalog": [],
+			"dependencies": [],
+			"devDependencies": [],
+			"duplicates": [],
+			"enumMembers": [],
+			"exports": [
+				{ "name": "useI18n", "line": 1, "col": 24, "pos": 23 },
+				{ "name": "DEFAULT_LOCALE", "line": 3, "col": 10, "pos": 115 },
+				{ "name": "LOCALE_STORAGE_KEY", "line": 3, "col": 26, "pos": 131 },
+				{ "name": "SUPPORTED_LOCALES", "line": 3, "col": 46, "pos": 151 }
+			],
+			"files": [],
+			"namespaceMembers": [],
+			"optionalPeerDependencies": [],
+			"types": [],
+			"unlisted": [],
+			"unresolved": []
+		},
+		{
+			"file": "components/layout/index.ts",
+			"binaries": [],
+			"catalog": [],
+			"dependencies": [],
+			"devDependencies": [],
+			"duplicates": [],
+			"enumMembers": [],
+			"exports": [
+				{ "name": "AuthLayout", "line": 1, "col": 10, "pos": 9 },
+				{ "name": "BottomTabBar", "line": 2, "col": 10, "pos": 53 },
+				{ "name": "NavIcon", "line": 4, "col": 10, "pos": 156 },
+				{ "name": "getBottomTabItems", "line": 6, "col": 2, "pos": 195 },
+				{ "name": "getNavigationForRole", "line": 7, "col": 2, "pos": 215 },
+				{ "name": "getOverflowItems", "line": 8, "col": 2, "pos": 238 },
+				{ "name": "isNavItemActive", "line": 9, "col": 2, "pos": 257 },
+				{ "name": "navigationItems", "line": 11, "col": 2, "pos": 297 },
+				{ "name": "Sidebar", "line": 14, "col": 10, "pos": 368 },
+				{ "name": "TopNavbar", "line": 15, "col": 10, "pos": 405 }
+			],
+			"files": [],
+			"namespaceMembers": [],
+			"optionalPeerDependencies": [],
+			"types": [
+				{ "name": "NavigationItem", "line": 10, "col": 7, "pos": 280 },
+				{ "name": "UserRole", "line": 12, "col": 7, "pos": 320 }
+			],
+			"unlisted": [],
+			"unresolved": []
+		},
+		{
+			"file": "components/ui/loading-skeleton.tsx",
+			"binaries": [],
+			"catalog": [],
+			"dependencies": [],
+			"devDependencies": [],
+			"duplicates": [],
+			"enumMembers": [],
+			"exports": [
+				{ "name": "SkeletonTable", "line": 81, "col": 17, "pos": 1622 }
+			],
+			"files": [],
+			"namespaceMembers": [],
+			"optionalPeerDependencies": [],
+			"types": [],
+			"unlisted": [],
+			"unresolved": []
+		},
+		{
+			"file": "hooks/use-bills.ts",
+			"binaries": [],
+			"catalog": [],
+			"dependencies": [],
+			"devDependencies": [],
+			"duplicates": [],
+			"enumMembers": [],
+			"exports": [
+				{
+					"name": "useGenerateBillForContract",
+					"line": 48,
+					"col": 17,
+					"pos": 1078
+				}
+			],
+			"files": [],
+			"namespaceMembers": [],
+			"optionalPeerDependencies": [],
+			"types": [],
+			"unlisted": [],
+			"unresolved": []
+		},
+		{
+			"file": "lib/api-client.ts",
+			"binaries": [],
+			"catalog": [],
+			"dependencies": [],
+			"devDependencies": [],
+			"duplicates": [],
+			"enumMembers": [],
+			"exports": [{ "name": "apiFetch", "line": 1, "col": 10, "pos": 9 }],
+			"files": [],
+			"namespaceMembers": [],
+			"optionalPeerDependencies": [],
+			"types": [],
+			"unlisted": [],
+			"unresolved": []
+		},
+		{
+			"file": "components/ui/table.tsx",
+			"binaries": [],
+			"catalog": [],
+			"dependencies": [],
+			"devDependencies": [],
+			"duplicates": [],
+			"enumMembers": [],
+			"exports": [
+				{ "name": "TableCaption", "line": 111, "col": 2, "pos": 2589 },
+				{ "name": "TableFooter", "line": 113, "col": 2, "pos": 2616 }
+			],
+			"files": [],
+			"namespaceMembers": [],
+			"optionalPeerDependencies": [],
+			"types": [],
+			"unlisted": [],
+			"unresolved": []
+		},
+		{
+			"file": "hooks/use-notice-templates.ts",
+			"binaries": [],
+			"catalog": [],
+			"dependencies": [],
+			"devDependencies": [],
+			"duplicates": [],
+			"enumMembers": [],
+			"exports": [
+				{ "name": "useNoticeTemplate", "line": 23, "col": 17, "pos": 551 },
+				{
+					"name": "useUpdateNoticeTemplate",
+					"line": 43,
+					"col": 17,
+					"pos": 1045
+				}
+			],
+			"files": [],
+			"namespaceMembers": [],
+			"optionalPeerDependencies": [],
+			"types": [],
+			"unlisted": [],
+			"unresolved": []
+		},
+		{
+			"file": "hooks/use-issues.ts",
+			"binaries": [],
+			"catalog": [],
+			"dependencies": [],
+			"devDependencies": [],
+			"duplicates": [],
+			"enumMembers": [],
+			"exports": [
+				{ "name": "useManagerOptions", "line": 104, "col": 17, "pos": 2412 }
+			],
+			"files": [],
+			"namespaceMembers": [],
+			"optionalPeerDependencies": [],
+			"types": [],
+			"unlisted": [],
+			"unresolved": []
+		},
+		{
+			"file": "components/ui/badge.tsx",
+			"binaries": [],
+			"catalog": [],
+			"dependencies": [],
+			"devDependencies": [],
+			"duplicates": [],
+			"enumMembers": [],
+			"exports": [
+				{ "name": "badgeVariants", "line": 36, "col": 17, "pos": 1065 }
+			],
+			"files": [],
+			"namespaceMembers": [],
+			"optionalPeerDependencies": [],
+			"types": [{ "name": "BadgeProps", "line": 26, "col": 18, "pos": 795 }],
+			"unlisted": [],
+			"unresolved": []
+		},
+		{
+			"file": "components/ui/card.tsx",
+			"binaries": [],
+			"catalog": [],
+			"dependencies": [],
+			"devDependencies": [],
+			"duplicates": [],
+			"enumMembers": [],
+			"exports": [
+				{ "name": "CardDescription", "line": 82, "col": 2, "pos": 1755 },
+				{ "name": "CardFooter", "line": 83, "col": 2, "pos": 1773 }
+			],
+			"files": [],
+			"namespaceMembers": [],
+			"optionalPeerDependencies": [],
+			"types": [],
+			"unlisted": [],
+			"unresolved": []
+		},
+		{
+			"file": "components/ui/index.ts",
+			"binaries": [],
+			"catalog": [],
+			"dependencies": [],
+			"devDependencies": [],
+			"duplicates": [],
+			"enumMembers": [],
+			"exports": [
+				{ "name": "Alert", "line": 1, "col": 10, "pos": 9 },
+				{ "name": "AlertDialog", "line": 2, "col": 10, "pos": 42 },
+				{ "name": "Badge", "line": 3, "col": 10, "pos": 88 },
+				{ "name": "Button", "line": 4, "col": 10, "pos": 121 },
+				{ "name": "Card", "line": 6, "col": 2, "pos": 157 },
+				{ "name": "CardContent", "line": 7, "col": 2, "pos": 164 },
+				{ "name": "CardDescription", "line": 8, "col": 2, "pos": 178 },
+				{ "name": "CardFooter", "line": 9, "col": 2, "pos": 196 },
+				{ "name": "CardHeader", "line": 10, "col": 2, "pos": 209 },
+				{ "name": "CardTitle", "line": 11, "col": 2, "pos": 222 },
+				{ "name": "ConfirmDialog", "line": 13, "col": 10, "pos": 259 },
+				{ "name": "CurrencyDisplay", "line": 14, "col": 10, "pos": 309 },
+				{ "name": "DataTable", "line": 16, "col": 10, "pos": 433 },
+				{ "name": "DateDisplay", "line": 17, "col": 10, "pos": 475 },
+				{ "name": "DialogClose", "line": 20, "col": 2, "pos": 531 },
+				{ "name": "DialogTrigger", "line": 26, "col": 2, "pos": 625 },
+				{ "name": "ErrorFeedback", "line": 28, "col": 10, "pos": 668 },
+				{ "name": "FileUpload", "line": 29, "col": 10, "pos": 718 },
+				{ "name": "FormField", "line": 30, "col": 10, "pos": 762 },
+				{ "name": "FormInput", "line": 30, "col": 21, "pos": 773 },
+				{ "name": "ImageCapture", "line": 31, "col": 10, "pos": 815 },
+				{ "name": "Input", "line": 32, "col": 10, "pos": 863 },
+				{ "name": "Label", "line": 33, "col": 10, "pos": 896 },
+				{ "name": "LoadingSkeleton", "line": 34, "col": 10, "pos": 929 },
+				{ "name": "SkeletonTable", "line": 34, "col": 27, "pos": 946 },
+				{ "name": "Skeleton", "line": 35, "col": 10, "pos": 998 },
+				{ "name": "StatusBadge", "line": 36, "col": 10, "pos": 1037 },
+				{ "name": "Table", "line": 38, "col": 2, "pos": 1084 },
+				{ "name": "TableBody", "line": 39, "col": 2, "pos": 1092 },
+				{ "name": "TableCell", "line": 40, "col": 2, "pos": 1104 },
+				{ "name": "TableHead", "line": 41, "col": 2, "pos": 1116 },
+				{ "name": "TableHeader", "line": 42, "col": 2, "pos": 1128 },
+				{ "name": "TableRow", "line": 43, "col": 2, "pos": 1142 }
+			],
+			"files": [],
+			"namespaceMembers": [],
+			"optionalPeerDependencies": [],
+			"types": [
+				{ "name": "DataTableColumn", "line": 15, "col": 15, "pos": 368 },
+				{ "name": "DataTableFilter", "line": 15, "col": 32, "pos": 385 }
+			],
+			"unlisted": [],
+			"unresolved": []
+		},
+		{
+			"file": "lib/shared/dummies.ts",
+			"binaries": [],
+			"catalog": [],
+			"dependencies": [],
+			"devDependencies": [],
+			"duplicates": [],
+			"enumMembers": [],
+			"exports": [
+				{ "name": "DummyAuditLogger", "line": 3, "col": 14, "pos": 70 },
+				{ "name": "DummyR2Client", "line": 9, "col": 14, "pos": 204 },
+				{ "name": "dummyR2Client", "line": 27, "col": 14, "pos": 551 }
+			],
+			"files": [],
+			"namespaceMembers": [],
+			"optionalPeerDependencies": [],
+			"types": [],
+			"unlisted": [],
+			"unresolved": []
+		},
+		{
+			"file": "lib/shared/validation/index.ts",
+			"binaries": [],
+			"catalog": [],
+			"dependencies": [],
+			"devDependencies": [],
+			"duplicates": [],
+			"enumMembers": [],
+			"exports": [
+				{ "name": "paginationSchema", "line": 5, "col": 14, "pos": 120 },
+				{ "name": "uuidSchema", "line": 10, "col": 14, "pos": 268 },
+				{ "name": "emailSchema", "line": 14, "col": 14, "pos": 395 },
+				{ "name": "passwordSchema", "line": 20, "col": 14, "pos": 494 },
+				{ "name": "loginSchema", "line": 39, "col": 14, "pos": 966 },
+				{
+					"name": "emergencyContactInputSchema",
+					"line": 46,
+					"col": 14,
+					"pos": 1157
+				},
+				{ "name": "bloodGroupEnum", "line": 112, "col": 14, "pos": 3235 },
+				{ "name": "bdPhoneSchema", "line": 123, "col": 14, "pos": 3337 },
+				{ "name": "nidSchema", "line": 127, "col": 14, "pos": 3464 },
+				{
+					"name": "scheduleTerminationSchema",
+					"line": 178,
+					"col": 14,
+					"pos": 4931
+				},
+				{
+					"name": "cancelTerminationSchema",
+					"line": 183,
+					"col": 14,
+					"pos": 5068
+				},
+				{
+					"name": "processDepositRefundSchema",
+					"line": 185,
+					"col": 14,
+					"pos": 5122
+				},
+				{ "name": "priorityEnum", "line": 223, "col": 14, "pos": 6242 },
+				{
+					"name": "maintenanceStatusEnum",
+					"line": 225,
+					"col": 14,
+					"pos": 6316
+				},
+				{ "name": "issueCategoryEnum", "line": 248, "col": 14, "pos": 6855 },
+				{ "name": "issueStatusEnum", "line": 257, "col": 14, "pos": 6981 },
+				{ "name": "noticeTargetEnum", "line": 283, "col": 14, "pos": 7570 },
+				{ "name": "expiryDateTimeSchema", "line": 290, "col": 14, "pos": 7690 },
+				{ "name": "allowedMimeTypes", "line": 354, "col": 14, "pos": 9509 },
+				{ "name": "fileUploadSchema", "line": 361, "col": 14, "pos": 9620 },
+				{ "name": "auditLogQuerySchema", "line": 373, "col": 14, "pos": 9901 },
+				{ "name": "staffRoleEnum", "line": 392, "col": 14, "pos": 10412 },
+				{
+					"name": "permissionEffectEnum",
+					"line": 398,
+					"col": 14,
+					"pos": 10501
+				},
+				{ "name": "approvalStatusEnum", "line": 428, "col": 14, "pos": 11350 },
+				{ "name": "userRoleEnum", "line": 430, "col": 14, "pos": 11430 },
+				{
+					"name": "adminUserListQuerySchema",
+					"line": 442,
+					"col": 14,
+					"pos": 11750
+				},
+				{ "name": "ownerListQuerySchema", "line": 448, "col": 14, "pos": 11937 }
+			],
+			"files": [],
+			"namespaceMembers": [],
+			"optionalPeerDependencies": [],
+			"types": [
+				{ "name": "RegisterInput", "line": 456, "col": 13, "pos": 12209 },
+				{ "name": "LoginInput", "line": 457, "col": 13, "pos": 12269 },
+				{ "name": "CreateFlatInput", "line": 460, "col": 13, "pos": 12467 },
+				{ "name": "UpdateFlatInput", "line": 461, "col": 13, "pos": 12531 },
+				{ "name": "GenerateBillsInput", "line": 463, "col": 13, "pos": 12667 },
+				{
+					"name": "GenerateBillForContractInput",
+					"line": 464,
+					"col": 13,
+					"pos": 12737
+				},
+				{
+					"name": "ScheduleTerminationInput",
+					"line": 467,
+					"col": 13,
+					"pos": 12830
+				},
+				{
+					"name": "CancelTerminationInput",
+					"line": 470,
+					"col": 13,
+					"pos": 12915
+				},
+				{
+					"name": "ProcessDepositRefundInput",
+					"line": 471,
+					"col": 13,
+					"pos": 12993
+				},
+				{
+					"name": "CreateMaintenanceRequestInput",
+					"line": 477,
+					"col": 13,
+					"pos": 13300
+				},
+				{
+					"name": "UpdateMaintenanceStatusInput",
+					"line": 480,
+					"col": 13,
+					"pos": 13395
+				},
+				{
+					"name": "AddMaintenanceCommentInput",
+					"line": 483,
+					"col": 13,
+					"pos": 13488
+				},
+				{ "name": "FileUploadInput", "line": 497, "col": 13, "pos": 14097 },
+				{ "name": "AuditLogQueryInput", "line": 498, "col": 13, "pos": 14161 },
+				{
+					"name": "UpdateApprovalStatusInput",
+					"line": 505,
+					"col": 13,
+					"pos": 14524
+				},
+				{
+					"name": "AdminUserListQueryInput",
+					"line": 508,
+					"col": 13,
+					"pos": 14611
+				},
+				{ "name": "OwnerListQueryInput", "line": 509, "col": 13, "pos": 14691 }
+			],
+			"unlisted": [],
+			"unresolved": []
+		},
+		{
+			"file": "lib/shared/r2.ts",
+			"binaries": [],
+			"catalog": [],
+			"dependencies": [],
+			"devDependencies": [],
+			"duplicates": [],
+			"enumMembers": [],
+			"exports": [
+				{ "name": "CloudflareR2Client", "line": 26, "col": 14, "pos": 657 }
+			],
+			"files": [],
+			"namespaceMembers": [],
+			"optionalPeerDependencies": [],
+			"types": [],
+			"unlisted": [],
+			"unresolved": []
+		},
+		{
+			"file": "lib/services/registration.ts",
+			"binaries": [],
+			"catalog": [],
+			"dependencies": [],
+			"devDependencies": [],
+			"duplicates": [],
+			"enumMembers": [],
+			"exports": [
+				{
+					"name": "validateRegistrationInput",
+					"line": 33,
+					"col": 17,
+					"pos": 730
+				}
+			],
+			"files": [],
+			"namespaceMembers": [],
+			"optionalPeerDependencies": [],
+			"types": [],
+			"unlisted": [],
+			"unresolved": []
+		},
+		{
+			"file": "lib/api.ts",
+			"binaries": [],
+			"catalog": [],
+			"dependencies": [],
+			"devDependencies": [],
+			"duplicates": [],
+			"enumMembers": [],
+			"exports": [{ "name": "ApiError", "line": 20, "col": 14, "pos": 657 }],
+			"files": [],
+			"namespaceMembers": [],
+			"optionalPeerDependencies": [],
+			"types": [],
+			"unlisted": [],
+			"unresolved": []
+		},
+		{
+			"file": "app/portal/[flatSlug]/_components/index.ts",
+			"binaries": [],
+			"catalog": [],
+			"dependencies": [],
+			"devDependencies": [],
+			"duplicates": [],
+			"enumMembers": [],
+			"exports": [
+				{ "name": "AccessCodeInput", "line": 1, "col": 10, "pos": 9 },
+				{ "name": "LanguageToggle", "line": 6, "col": 10, "pos": 238 },
+				{ "name": "PortalOccupiedView", "line": 10, "col": 10, "pos": 496 },
+				{ "name": "RegistrationForm", "line": 12, "col": 10, "pos": 635 }
+			],
+			"files": [],
+			"namespaceMembers": [],
+			"optionalPeerDependencies": [],
+			"types": [],
+			"unlisted": [],
+			"unresolved": []
+		},
+		{
+			"file": "lib/shared/constants/index.ts",
+			"binaries": [],
+			"catalog": [],
+			"dependencies": [],
+			"devDependencies": [],
+			"duplicates": [],
+			"enumMembers": [],
+			"exports": [
+				{ "name": "PAYMENT_METHODS", "line": 55, "col": 14, "pos": 1279 },
+				{ "name": "ISSUE_CATEGORIES", "line": 65, "col": 14, "pos": 1518 },
+				{ "name": "PRIORITIES", "line": 78, "col": 14, "pos": 1816 },
+				{ "name": "BLOOD_GROUPS", "line": 98, "col": 14, "pos": 2312 },
+				{
+					"name": "BILL_STATUS_TRANSITIONS",
+					"line": 128,
+					"col": 14,
+					"pos": 3021
+				},
+				{
+					"name": "CONTRACT_STATUS_TRANSITIONS",
+					"line": 149,
+					"col": 14,
+					"pos": 3492
+				},
+				{ "name": "ROLE_PERMISSIONS", "line": 195, "col": 14, "pos": 4661 },
+				{ "name": "PAGINATION", "line": 306, "col": 14, "pos": 6774 }
+			],
+			"files": [],
+			"namespaceMembers": [],
+			"optionalPeerDependencies": [],
+			"types": [
+				{ "name": "Role", "line": 11, "col": 13, "pos": 212 },
+				{ "name": "IssueCategory", "line": 74, "col": 13, "pos": 1704 },
+				{ "name": "BloodGroup", "line": 109, "col": 13, "pos": 2412 },
+				{ "name": "ContractStatus", "line": 118, "col": 13, "pos": 2636 },
+				{ "name": "Permission", "line": 302, "col": 13, "pos": 6653 }
+			],
+			"unlisted": [],
+			"unresolved": []
+		},
+		{
+			"file": "lib/query-client.ts",
+			"binaries": [],
+			"catalog": [],
+			"dependencies": [],
+			"devDependencies": [],
+			"duplicates": [],
+			"enumMembers": [],
+			"exports": [
+				{ "name": "makeQueryClient", "line": 3, "col": 17, "pos": 70 }
+			],
+			"files": [],
+			"namespaceMembers": [],
+			"optionalPeerDependencies": [],
+			"types": [],
+			"unlisted": [],
+			"unresolved": []
+		},
+		{
+			"file": "components/layout/navigation-items.ts",
+			"binaries": [],
+			"catalog": [],
+			"dependencies": [],
+			"devDependencies": [],
+			"duplicates": [],
+			"enumMembers": [],
+			"exports": [
+				{ "name": "navigationItems", "line": 49, "col": 14, "pos": 1719 }
+			],
+			"files": [],
+			"namespaceMembers": [],
+			"optionalPeerDependencies": [],
+			"types": [],
+			"unlisted": [],
+			"unresolved": []
+		},
+		{
+			"file": "components/ui/alert.tsx",
+			"binaries": [],
+			"catalog": [],
+			"dependencies": [],
+			"devDependencies": [],
+			"duplicates": [],
+			"enumMembers": [],
+			"exports": [{ "name": "AlertTitle", "line": 59, "col": 35, "pos": 1517 }],
+			"files": [],
+			"namespaceMembers": [],
+			"optionalPeerDependencies": [],
+			"types": [],
+			"unlisted": [],
+			"unresolved": []
+		},
+		{
+			"file": "components/ui/alert-dialog.tsx",
+			"binaries": [],
+			"catalog": [],
+			"dependencies": [],
+			"devDependencies": [],
+			"duplicates": [],
+			"enumMembers": [],
+			"exports": [
+				{ "name": "AlertDialogOverlay", "line": 136, "col": 2, "pos": 4237 },
+				{ "name": "AlertDialogPortal", "line": 137, "col": 2, "pos": 4258 },
+				{ "name": "AlertDialogTrigger", "line": 139, "col": 2, "pos": 4297 }
+			],
+			"files": [],
+			"namespaceMembers": [],
+			"optionalPeerDependencies": [],
+			"types": [],
+			"unlisted": [],
+			"unresolved": []
+		},
+		{
+			"file": "lib/shared/roles.ts",
+			"binaries": [],
+			"catalog": [],
+			"dependencies": [],
+			"devDependencies": [],
+			"duplicates": [],
+			"enumMembers": [],
+			"exports": [
+				{ "name": "STAFF_ROLE_LABELS", "line": 30, "col": 14, "pos": 728 }
+			],
+			"files": [],
+			"namespaceMembers": [],
+			"optionalPeerDependencies": [],
+			"types": [{ "name": "StaffRole", "line": 14, "col": 13, "pos": 341 }],
+			"unlisted": [],
+			"unresolved": []
+		},
+		{
+			"file": "lib/db/migrate.ts",
+			"binaries": [],
+			"catalog": [],
+			"dependencies": [],
+			"devDependencies": [],
+			"duplicates": [],
+			"enumMembers": [],
+			"exports": [
+				{ "name": "runMigrations", "line": 17, "col": 23, "pos": 696 }
+			],
+			"files": [],
+			"namespaceMembers": [],
+			"optionalPeerDependencies": [],
+			"types": [],
+			"unlisted": [],
+			"unresolved": []
+		},
+		{
+			"file": "components/ui/dialog.tsx",
+			"binaries": [],
+			"catalog": [],
+			"dependencies": [],
+			"devDependencies": [],
+			"duplicates": [],
+			"enumMembers": [],
+			"exports": [
+				{ "name": "DialogClose", "line": 109, "col": 2, "pos": 3620 },
+				{ "name": "DialogOverlay", "line": 114, "col": 2, "pos": 3700 },
+				{ "name": "DialogPortal", "line": 115, "col": 2, "pos": 3716 },
+				{ "name": "DialogTrigger", "line": 117, "col": 2, "pos": 3745 }
+			],
+			"files": [],
+			"namespaceMembers": [],
+			"optionalPeerDependencies": [],
+			"types": [],
+			"unlisted": [],
+			"unresolved": []
+		},
+		{
+			"file": "lib/repositories/index.ts",
+			"binaries": [],
+			"catalog": [],
+			"dependencies": [],
+			"devDependencies": [],
+			"duplicates": [],
+			"enumMembers": [],
+			"exports": [
+				{ "name": "BuildingRepository", "line": 2, "col": 10, "pos": 90 },
+				{ "name": "DepositRepository", "line": 3, "col": 10, "pos": 150 },
+				{ "name": "FlatRepository", "line": 4, "col": 10, "pos": 208 },
+				{ "name": "MaintenanceRepository", "line": 8, "col": 2, "pos": 345 },
+				{ "name": "NoticeRepository", "line": 10, "col": 10, "pos": 412 },
+				{ "name": "PaymentRepository", "line": 13, "col": 2, "pos": 496 },
+				{ "name": "RenterRepository", "line": 15, "col": 10, "pos": 555 },
+				{ "name": "BaseRepository", "line": 16, "col": 10, "pos": 611 },
+				{ "name": "StaffRepository", "line": 17, "col": 10, "pos": 679 }
+			],
+			"files": [],
+			"namespaceMembers": [],
+			"optionalPeerDependencies": [],
+			"types": [
+				{ "name": "ListMaintenanceFilters", "line": 7, "col": 7, "pos": 320 },
+				{ "name": "ListPaymentsFilters", "line": 12, "col": 7, "pos": 474 }
+			],
+			"unlisted": [],
+			"unresolved": []
+		},
+		{
+			"file": "lib/utils/bill-calculation.ts",
+			"binaries": [],
+			"catalog": [],
+			"dependencies": [],
+			"devDependencies": [],
+			"duplicates": [],
+			"enumMembers": [],
+			"exports": [
+				{ "name": "getLastDayOfMonth", "line": 84, "col": 17, "pos": 2614 },
+				{ "name": "isMidMonthStart", "line": 147, "col": 17, "pos": 4332 }
+			],
+			"files": [],
+			"namespaceMembers": [],
+			"optionalPeerDependencies": [],
+			"types": [],
+			"unlisted": [],
+			"unresolved": []
+		},
+		{
+			"file": "lib/utils/access-code-hash.ts",
+			"binaries": [],
+			"catalog": [],
+			"dependencies": [],
+			"devDependencies": [],
+			"duplicates": [],
+			"enumMembers": [],
+			"exports": [
+				{ "name": "compareAccessCode", "line": 28, "col": 23, "pos": 904 }
+			],
+			"files": [],
+			"namespaceMembers": [],
+			"optionalPeerDependencies": [],
+			"types": [],
+			"unlisted": [],
+			"unresolved": []
+		},
+		{
+			"file": "lib/shared/formatters/index.ts",
+			"binaries": [],
+			"catalog": [],
+			"dependencies": [],
+			"devDependencies": [],
+			"duplicates": [],
+			"enumMembers": [],
+			"exports": [{ "name": "parseDate", "line": 75, "col": 17, "pos": 2068 }],
+			"files": [],
+			"namespaceMembers": [],
+			"optionalPeerDependencies": [],
+			"types": [],
+			"unlisted": [],
+			"unresolved": []
+		},
+		{
+			"file": "app/portal/[flatSlug]/_components/layout/portal-header.tsx",
+			"binaries": [],
+			"catalog": [],
+			"dependencies": [],
+			"devDependencies": [],
+			"duplicates": [],
+			"enumMembers": [],
+			"exports": [
+				{ "name": "truncateBuildingName", "line": 24, "col": 17, "pos": 482 }
+			],
+			"files": [],
+			"namespaceMembers": [],
+			"optionalPeerDependencies": [],
+			"types": [],
+			"unlisted": [],
+			"unresolved": []
+		},
+		{
+			"file": "lib/shared/portal/registration-validation.ts",
+			"binaries": [],
+			"catalog": [],
+			"dependencies": [],
+			"devDependencies": [],
+			"duplicates": [],
+			"enumMembers": [],
+			"exports": [
+				{ "name": "portalBloodGroupEnum", "line": 6, "col": 14, "pos": 193 },
+				{ "name": "portalPhoneSchema", "line": 11, "col": 14, "pos": 331 },
+				{ "name": "portalNidSchema", "line": 17, "col": 14, "pos": 504 },
+				{
+					"name": "portalEmergencyContactSchema",
+					"line": 23,
+					"col": 14,
+					"pos": 693
+				},
+				{
+					"name": "portalRentalStartDateSchema",
+					"line": 33,
+					"col": 14,
+					"pos": 1011
+				},
+				{
+					"name": "portalDigitalSignatureSchema",
+					"line": 60,
+					"col": 14,
+					"pos": 1803
+				},
+				{ "name": "registrationFormSchema", "line": 78, "col": 14, "pos": 2384 }
+			],
+			"files": [],
+			"namespaceMembers": [],
+			"optionalPeerDependencies": [],
+			"types": [],
+			"unlisted": [],
+			"unresolved": []
+		},
+		{
+			"file": "lib/shared/portal/slug-validation.ts",
+			"binaries": [],
+			"catalog": [],
+			"dependencies": [],
+			"devDependencies": [],
+			"duplicates": [],
+			"enumMembers": [],
+			"exports": [
+				{ "name": "FLAT_SLUG_PATTERN", "line": 15, "col": 14, "pos": 443 }
+			],
+			"files": [],
+			"namespaceMembers": [],
+			"optionalPeerDependencies": [],
+			"types": [],
+			"unlisted": [],
+			"unresolved": []
+		},
+		{
+			"file": "lib/repositories/deposit.repository.ts",
+			"binaries": [],
+			"catalog": [],
+			"dependencies": [],
+			"devDependencies": [],
+			"duplicates": [],
+			"enumMembers": [],
+			"exports": [
+				{ "name": "DepositRepository", "line": 11, "col": 14, "pos": 264 }
+			],
+			"files": [],
+			"namespaceMembers": [],
+			"optionalPeerDependencies": [],
+			"types": [],
+			"unlisted": [],
+			"unresolved": []
+		},
+		{
+			"file": "lib/repositories/maintenance.repository.ts",
+			"binaries": [],
+			"catalog": [],
+			"dependencies": [],
+			"devDependencies": [],
+			"duplicates": [],
+			"enumMembers": [],
+			"exports": [
+				{ "name": "MaintenanceRepository", "line": 23, "col": 14, "pos": 554 }
+			],
+			"files": [],
+			"namespaceMembers": [],
+			"optionalPeerDependencies": [],
+			"types": [
+				{ "name": "ListMaintenanceFilters", "line": 16, "col": 18, "pos": 422 }
+			],
+			"unlisted": [],
+			"unresolved": []
+		},
+		{
+			"file": "lib/repositories/notice.repository.ts",
+			"binaries": [],
+			"catalog": [],
+			"dependencies": [],
+			"devDependencies": [],
+			"duplicates": [],
+			"enumMembers": [],
+			"exports": [
+				{ "name": "NoticeRepository", "line": 11, "col": 14, "pos": 256 }
+			],
+			"files": [],
+			"namespaceMembers": [],
+			"optionalPeerDependencies": [],
+			"types": [],
+			"unlisted": [],
+			"unresolved": []
+		},
+		{
+			"file": "lib/repositories/payment.repository.ts",
+			"binaries": [],
+			"catalog": [],
+			"dependencies": [],
+			"devDependencies": [],
+			"duplicates": [],
+			"enumMembers": [],
+			"exports": [
+				{ "name": "PaymentRepository", "line": 22, "col": 14, "pos": 491 }
+			],
+			"files": [],
+			"namespaceMembers": [],
+			"optionalPeerDependencies": [],
+			"types": [
+				{ "name": "ListPaymentsFilters", "line": 14, "col": 18, "pos": 343 }
+			],
+			"unlisted": [],
+			"unresolved": []
+		},
+		{
+			"file": "lib/repositories/renter.repository.ts",
+			"binaries": [],
+			"catalog": [],
+			"dependencies": [],
+			"devDependencies": [],
+			"duplicates": [],
+			"enumMembers": [],
+			"exports": [
+				{ "name": "RenterRepository", "line": 11, "col": 14, "pos": 272 }
+			],
+			"files": [],
+			"namespaceMembers": [],
+			"optionalPeerDependencies": [],
+			"types": [],
+			"unlisted": [],
+			"unresolved": []
+		},
+		{
+			"file": "lib/repositories/staff.repository.ts",
+			"binaries": [],
+			"catalog": [],
+			"dependencies": [],
+			"devDependencies": [],
+			"duplicates": [],
+			"enumMembers": [],
+			"exports": [
+				{ "name": "StaffRepository", "line": 16, "col": 14, "pos": 374 }
+			],
+			"files": [],
+			"namespaceMembers": [],
+			"optionalPeerDependencies": [],
+			"types": [],
+			"unlisted": [],
+			"unresolved": []
+		},
+		{
+			"file": "hooks/use-session-expiry.ts",
+			"binaries": [],
+			"catalog": [],
+			"dependencies": [],
+			"devDependencies": [],
+			"duplicates": [],
+			"enumMembers": [],
+			"exports": [
+				{ "name": "useSessionExpiry", "line": 27, "col": 17, "pos": 873 }
+			],
+			"files": [],
+			"namespaceMembers": [],
+			"optionalPeerDependencies": [],
+			"types": [],
+			"unlisted": [],
+			"unresolved": []
+		},
+		{
+			"file": "hooks/use-deposits.ts",
+			"binaries": [],
+			"catalog": [],
+			"dependencies": [],
+			"devDependencies": [],
+			"duplicates": [],
+			"enumMembers": [],
+			"exports": [{ "name": "useDeposit", "line": 16, "col": 17, "pos": 370 }],
+			"files": [],
+			"namespaceMembers": [],
+			"optionalPeerDependencies": [],
+			"types": [],
+			"unlisted": [],
+			"unresolved": []
+		},
+		{
+			"file": "app/portal/[flatSlug]/_components/portal/sub-components/notice-board.tsx",
+			"binaries": [],
+			"catalog": [],
+			"dependencies": [],
+			"devDependencies": [],
+			"duplicates": [],
+			"enumMembers": [],
+			"exports": [
+				{ "name": "formatBanglaDate", "line": 50, "col": 17, "pos": 892 }
+			],
+			"files": [],
+			"namespaceMembers": [],
+			"optionalPeerDependencies": [],
+			"types": [],
+			"unlisted": [],
+			"unresolved": []
+		},
+		{
+			"file": "components/ui/button.tsx",
+			"binaries": [],
+			"catalog": [],
+			"dependencies": [],
+			"devDependencies": [],
+			"duplicates": [],
+			"enumMembers": [],
+			"exports": [],
+			"files": [],
+			"namespaceMembers": [],
+			"optionalPeerDependencies": [],
+			"types": [{ "name": "ButtonProps", "line": 36, "col": 18, "pos": 1290 }],
+			"unlisted": [],
+			"unresolved": []
+		},
+		{
+			"file": "lib/services/audit-log-query.service.ts",
+			"binaries": [],
+			"catalog": [],
+			"dependencies": [],
+			"devDependencies": [],
+			"duplicates": [],
+			"enumMembers": [],
+			"exports": [],
+			"files": [],
+			"namespaceMembers": [],
+			"optionalPeerDependencies": [],
+			"types": [{ "name": "AuditLogEntry", "line": 25, "col": 18, "pos": 568 }],
+			"unlisted": [],
+			"unresolved": []
+		},
+		{
+			"file": "lib/services/billing.ts",
+			"binaries": [],
+			"catalog": [],
+			"dependencies": [],
+			"devDependencies": [],
+			"duplicates": [],
+			"enumMembers": [],
+			"exports": [],
+			"files": [],
+			"namespaceMembers": [],
+			"optionalPeerDependencies": [],
+			"types": [
+				{ "name": "PaymentResult", "line": 110, "col": 18, "pos": 2251 }
+			],
+			"unlisted": [],
+			"unresolved": []
+		},
+		{
+			"file": "lib/services/building.ts",
+			"binaries": [],
+			"catalog": [],
+			"dependencies": [],
+			"devDependencies": [],
+			"duplicates": [],
+			"enumMembers": [],
+			"exports": [],
+			"files": [],
+			"namespaceMembers": [],
+			"optionalPeerDependencies": [],
+			"types": [
+				{ "name": "EmergencyContact", "line": 27, "col": 18, "pos": 743 }
+			],
+			"unlisted": [],
+			"unresolved": []
+		},
+		{
+			"file": "lib/services/issue.service.ts",
+			"binaries": [],
+			"catalog": [],
+			"dependencies": [],
+			"devDependencies": [],
+			"duplicates": [],
+			"enumMembers": [],
+			"exports": [],
+			"files": [],
+			"namespaceMembers": [],
+			"optionalPeerDependencies": [],
+			"types": [
+				{ "name": "AttachmentResult", "line": 41, "col": 18, "pos": 920 }
+			],
+			"unlisted": [],
+			"unresolved": []
+		},
+		{
+			"file": "lib/services/maintenance.service.ts",
+			"binaries": [],
+			"catalog": [],
+			"dependencies": [],
+			"devDependencies": [],
+			"duplicates": [],
+			"enumMembers": [],
+			"exports": [],
+			"files": [],
+			"namespaceMembers": [],
+			"optionalPeerDependencies": [],
+			"types": [
+				{
+					"name": "MaintenanceAttachmentResult",
+					"line": 63,
+					"col": 18,
+					"pos": 1294
+				}
+			],
+			"unlisted": [],
+			"unresolved": []
+		},
+		{
+			"file": "lib/services/notice.service.ts",
+			"binaries": [],
+			"catalog": [],
+			"dependencies": [],
+			"devDependencies": [],
+			"duplicates": [],
+			"enumMembers": [],
+			"exports": [],
+			"files": [],
+			"namespaceMembers": [],
+			"optionalPeerDependencies": [],
+			"types": [{ "name": "NoticeStatus", "line": 28, "col": 13, "pos": 647 }],
+			"unlisted": [],
+			"unresolved": []
+		},
+		{
+			"file": "lib/shared/types/index.ts",
+			"binaries": [],
+			"catalog": [],
+			"dependencies": [],
+			"devDependencies": [],
+			"duplicates": [],
+			"enumMembers": [],
+			"exports": [],
+			"files": [],
+			"namespaceMembers": [],
+			"optionalPeerDependencies": [],
+			"types": [
+				{ "name": "ServiceContext", "line": 22, "col": 18, "pos": 451 }
+			],
+			"unlisted": [],
+			"unresolved": []
+		},
+		{
+			"file": "lib/services/renter-registration.ts",
+			"binaries": [],
+			"catalog": [],
+			"dependencies": [],
+			"devDependencies": [],
+			"duplicates": [],
+			"enumMembers": [],
+			"exports": [],
+			"files": [],
+			"namespaceMembers": [],
+			"optionalPeerDependencies": [],
+			"types": [
+				{ "name": "RentalContractResult", "line": 72, "col": 18, "pos": 1841 }
+			],
+			"unlisted": [],
+			"unresolved": []
+		},
+		{
+			"file": "app/portal/[flatSlug]/_components/types.ts",
+			"binaries": [],
+			"catalog": [],
+			"dependencies": [],
+			"devDependencies": [],
+			"duplicates": [],
+			"enumMembers": [],
+			"exports": [],
+			"files": [],
+			"namespaceMembers": [],
+			"optionalPeerDependencies": [],
+			"types": [
+				{ "name": "PortalIssuesResponse", "line": 50, "col": 2, "pos": 934 }
+			],
+			"unlisted": [],
+			"unresolved": []
+		},
+		{
+			"file": "lib/i18n/types.ts",
+			"binaries": [],
+			"catalog": [],
+			"dependencies": [],
+			"devDependencies": [],
+			"duplicates": [],
+			"enumMembers": [],
+			"exports": [],
+			"files": [],
+			"namespaceMembers": [],
+			"optionalPeerDependencies": [],
+			"types": [
+				{ "name": "TranslationValue", "line": 3, "col": 13, "pos": 47 }
+			],
+			"unlisted": [],
+			"unresolved": []
+		},
+		{
+			"file": "lib/db/client.ts",
+			"binaries": [],
+			"catalog": [],
+			"dependencies": [],
+			"devDependencies": [],
+			"duplicates": [],
+			"enumMembers": [],
+			"exports": [],
+			"files": [],
+			"namespaceMembers": [],
+			"optionalPeerDependencies": [],
+			"types": [{ "name": "TxClient", "line": 103, "col": 13, "pos": 3247 }],
+			"unlisted": [],
+			"unresolved": []
+		},
+		{
+			"file": "lib/shared/portal/analytics-validation.ts",
+			"binaries": [],
+			"catalog": [],
+			"dependencies": [],
+			"devDependencies": [],
+			"duplicates": [],
+			"enumMembers": [],
+			"exports": [],
+			"files": [],
+			"namespaceMembers": [],
+			"optionalPeerDependencies": [],
+			"types": [
+				{ "name": "AnalyticsEventInput", "line": 21, "col": 13, "pos": 632 }
+			],
+			"unlisted": [],
+			"unresolved": []
+		},
+		{
+			"file": "lib/api/admin.ts",
+			"binaries": [],
+			"catalog": [],
+			"dependencies": [],
+			"devDependencies": [],
+			"duplicates": [],
+			"enumMembers": [],
+			"exports": [],
+			"files": [],
+			"namespaceMembers": [],
+			"optionalPeerDependencies": [],
+			"types": [
+				{ "name": "AdminOwnerListItem", "line": 12, "col": 18, "pos": 203 },
+				{ "name": "AdminUserListItem", "line": 34, "col": 18, "pos": 611 }
+			],
+			"unlisted": [],
+			"unresolved": []
+		},
+		{
+			"file": "lib/api/bills.ts",
+			"binaries": [],
+			"catalog": [],
+			"dependencies": [],
+			"devDependencies": [],
+			"duplicates": [],
+			"enumMembers": [],
+			"exports": [],
+			"files": [],
+			"namespaceMembers": [],
+			"optionalPeerDependencies": [],
+			"types": [
+				{ "name": "BillLineItem", "line": 31, "col": 18, "pos": 571 },
+				{ "name": "BillPayment", "line": 38, "col": 18, "pos": 678 }
+			],
+			"unlisted": [],
+			"unresolved": []
+		},
+		{
+			"file": "lib/api/buildings.ts",
+			"binaries": [],
+			"catalog": [],
+			"dependencies": [],
+			"devDependencies": [],
+			"duplicates": [],
+			"enumMembers": [],
+			"exports": [],
+			"files": [],
+			"namespaceMembers": [],
+			"optionalPeerDependencies": [],
+			"types": [
+				{ "name": "EmergencyContactInput", "line": 3, "col": 18, "pos": 53 },
+				{ "name": "EmergencyContact", "line": 10, "col": 18, "pos": 181 }
+			],
+			"unlisted": [],
+			"unresolved": []
+		},
+		{
+			"file": "lib/api/dashboard.ts",
+			"binaries": [],
+			"catalog": [],
+			"dependencies": [],
+			"devDependencies": [],
+			"duplicates": [],
+			"enumMembers": [],
+			"exports": [],
+			"files": [],
+			"namespaceMembers": [],
+			"optionalPeerDependencies": [],
+			"types": [
+				{ "name": "BuildingSummary", "line": 20, "col": 18, "pos": 485 },
+				{ "name": "FlatWithOccupancy", "line": 27, "col": 18, "pos": 590 },
+				{
+					"name": "MaintenanceRequestSummary",
+					"line": 35,
+					"col": 18,
+					"pos": 757
+				},
+				{ "name": "AuditEntrySummary", "line": 45, "col": 18, "pos": 1006 }
+			],
+			"unlisted": [],
+			"unresolved": []
+		},
+		{
+			"file": "lib/api/deposits.ts",
+			"binaries": [],
+			"catalog": [],
+			"dependencies": [],
+			"devDependencies": [],
+			"duplicates": [],
+			"enumMembers": [],
+			"exports": [],
+			"files": [],
+			"namespaceMembers": [],
+			"optionalPeerDependencies": [],
+			"types": [{ "name": "BillOption", "line": 35, "col": 18, "pos": 636 }],
+			"unlisted": [],
+			"unresolved": []
+		},
+		{
+			"file": "lib/api/flats.ts",
+			"binaries": [],
+			"catalog": [],
+			"dependencies": [],
+			"devDependencies": [],
+			"duplicates": [],
+			"enumMembers": [],
+			"exports": [],
+			"files": [],
+			"namespaceMembers": [],
+			"optionalPeerDependencies": [],
+			"types": [
+				{ "name": "BuildingOption", "line": 102, "col": 18, "pos": 2334 },
+				{ "name": "VacantFlat", "line": 118, "col": 18, "pos": 2660 }
+			],
+			"unlisted": [],
+			"unresolved": []
+		},
+		{
+			"file": "lib/api/issues.ts",
+			"binaries": [],
+			"catalog": [],
+			"dependencies": [],
+			"devDependencies": [],
+			"duplicates": [],
+			"enumMembers": [],
+			"exports": [],
+			"files": [],
+			"namespaceMembers": [],
+			"optionalPeerDependencies": [],
+			"types": [
+				{ "name": "IssueAttachment", "line": 15, "col": 18, "pos": 310 },
+				{ "name": "ManagerOption", "line": 92, "col": 18, "pos": 1804 }
+			],
+			"unlisted": [],
+			"unresolved": []
+		},
+		{
+			"file": "lib/api/maintenance.ts",
+			"binaries": [],
+			"catalog": [],
+			"dependencies": [],
+			"devDependencies": [],
+			"duplicates": [],
+			"enumMembers": [],
+			"exports": [],
+			"files": [],
+			"namespaceMembers": [],
+			"optionalPeerDependencies": [],
+			"types": [
+				{ "name": "MaintenanceAttachment", "line": 17, "col": 18, "pos": 439 }
+			],
+			"unlisted": [],
+			"unresolved": []
+		},
+		{
+			"file": "lib/api/renters.ts",
+			"binaries": [],
+			"catalog": [],
+			"dependencies": [],
+			"devDependencies": [],
+			"duplicates": [],
+			"enumMembers": [],
+			"exports": [],
+			"files": [],
+			"namespaceMembers": [],
+			"optionalPeerDependencies": [],
+			"types": [
+				{ "name": "RenterOption", "line": 145, "col": 18, "pos": 3794 }
+			],
+			"unlisted": [],
+			"unresolved": []
+		}
+	]
+}
