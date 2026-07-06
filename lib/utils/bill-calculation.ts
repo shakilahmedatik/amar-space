@@ -33,6 +33,17 @@ export function calculateRentForMonth(
 	const firstOfMonth = new Date(year, month - 1, 1);
 	const startDate = new Date(contractStartDate);
 
+	// If contract starts after the billing month, no rent is due
+	const lastDayStr = getLastDayOfMonth(billingMonth);
+	if (contractStartDate > lastDayStr) {
+		return {
+			baseRent: "0.00",
+			rentDays: 0,
+			totalDaysInMonth,
+			monthlyRent,
+		};
+	}
+
 	// If contract started on or before the 1st of the billing month, full rent
 	if (startDate <= firstOfMonth) {
 		return {

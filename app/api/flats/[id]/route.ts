@@ -42,6 +42,17 @@ export const GET = withAuth(
 				);
 			}
 
+			if (
+				requestContext.role === "manager" &&
+				requestContext.assignedBuildingIds &&
+				!requestContext.assignedBuildingIds.includes(flat.buildingId)
+			) {
+				return NextResponse.json(
+					{ error: "Forbidden", message: "Insufficient permissions" },
+					{ status: 403 },
+				);
+			}
+
 			let slug = flat.flatSlug?.slug;
 			if (!slug) {
 				slug = randomBytes(6).toString("hex");

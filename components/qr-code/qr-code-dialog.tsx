@@ -89,6 +89,7 @@ export function QrCodeDialog({
 					/>
 					<Dialog.Content
 						aria-labelledby={titleId}
+						aria-describedby={undefined}
 						className={cn(
 							// Mobile: full-screen sheet
 							"fixed inset-0 z-50 flex flex-col bg-background p-6 overflow-y-auto",

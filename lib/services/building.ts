@@ -1,7 +1,11 @@
 import { randomUUID } from "node:crypto";
 import type { IAuditLogger, IR2Client } from "@/lib/shared/types";
 import { type Database, emergencyContacts } from "@repo/db";
-import { ConflictError, NotFoundError } from "@repo/shared/errors";
+import {
+	ConflictError,
+	ForbiddenError,
+	NotFoundError,
+} from "@repo/shared/errors";
 import type { PaginationInput, RequestContext } from "@repo/shared/types";
 import {
 	type CreateBuildingInput,
@@ -535,6 +539,12 @@ export class BuildingService {
 
 		if (!building) {
 			throw new NotFoundError("Building");
+		}
+
+		if (ctx.role === "manager" && ctx.assignedBuildingIds) {
+			if (!ctx.assignedBuildingIds.includes(buildingId)) {
+				throw new ForbiddenError();
+			}
 		}
 
 		return building;

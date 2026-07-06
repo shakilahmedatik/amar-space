@@ -124,6 +124,21 @@ export class TerminationService {
 			})
 			.where(eq(rentalContracts.id, contract.id));
 
+		// Cancel future unpaid bills for months after termination
+		await this.db
+			.update(bills)
+			.set({
+				status: BILL_STATUS.CANCELLED,
+				updatedAt: new Date(),
+			})
+			.where(
+				and(
+					eq(bills.contractId, contract.id),
+					sql`${bills.billingMonth} > ${effectiveDateStr.substring(0, 7)}`,
+					inArray(bills.status, [BILL_STATUS.UNPAID, BILL_STATUS.OVERDUE]),
+				),
+			);
+
 		// Set access code expiry
 		const accessCode = await this.db.query.renterAccessCodes.findFirst({
 			where: eq(renterAccessCodes.renterId, renterId),
@@ -204,23 +219,7 @@ export class TerminationService {
 			}
 		}
 
-		// Cancel future unpaid bills for months after termination
-		if (contract.scheduledTerminationDate) {
-			const lastMonth = contract.scheduledTerminationDate.substring(0, 7);
-			await this.db
-				.update(bills)
-				.set({
-					status: BILL_STATUS.CANCELLED,
-					updatedAt: new Date(),
-				})
-				.where(
-					and(
-						eq(bills.contractId, contract.id),
-						sql`${bills.billingMonth} > ${lastMonth}`,
-						inArray(bills.status, [BILL_STATUS.UNPAID, BILL_STATUS.OVERDUE]),
-					),
-				);
-		}
+		// Cancel future unpaid bills for months after termination was removed because cancellation keeps contract active
 
 		await this.db
 			.update(rentalContracts)
@@ -497,14 +496,27 @@ export class TerminationService {
 				})
 				.where(eq(flats.id, contract.flatId));
 
-			await tx
-				.update(users)
-				.set({
-					isActive: false,
-					deactivatedAt: new Date(),
-					updatedAt: new Date(),
-				})
-				.where(eq(users.id, userId));
+			const otherContracts = await tx
+				.select({ id: rentalContracts.id })
+				.from(rentalContracts)
+				.innerJoin(renters, eq(rentalContracts.renterId, renters.id))
+				.where(
+					and(
+						eq(renters.userId, userId),
+						eq(rentalContracts.status, CONTRACT_STATUS.ACTIVE),
+					),
+				);
+
+			if (otherContracts.length === 0) {
+				await tx
+					.update(users)
+					.set({
+						isActive: false,
+						deactivatedAt: new Date(),
+						updatedAt: new Date(),
+					})
+					.where(eq(users.id, userId));
+			}
 
 			await tx
 				.update(renterAccessCodes)

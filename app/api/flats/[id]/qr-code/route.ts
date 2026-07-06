@@ -53,7 +53,9 @@ export const GET = withAuth(
 			}
 
 			const frontendUrl =
-				process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+				process.env.FRONTEND_URL ||
+				process.env.NEXT_PUBLIC_API_URL ||
+				"http://localhost:3000";
 			const qrCodeService = new QrCodeService(frontendUrl);
 
 			const buffer = await qrCodeService.generateQrCode(slug, {

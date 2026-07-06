@@ -6,7 +6,7 @@ import {
 	flats,
 } from "@repo/db";
 import type { FlatStatus } from "@repo/shared/constants";
-import { and, count, eq } from "drizzle-orm";
+import { and, count, eq, inArray } from "drizzle-orm";
 
 export class FlatRepository {
 	constructor(private db: Database) {}
@@ -94,7 +94,11 @@ export class FlatRepository {
 	 */
 	async list(
 		ownerAccountId: string,
-		filters: { buildingId?: string; status?: FlatStatus },
+		filters: {
+			buildingId?: string;
+			status?: FlatStatus;
+			buildingIds?: string[];
+		},
 		page: number,
 		pageSize: number,
 		tx?: DatabaseOrTransaction,
@@ -105,6 +109,9 @@ export class FlatRepository {
 		const conditions = [eq(flats.ownerAccountId, ownerAccountId)];
 		if (filters.buildingId) {
 			conditions.push(eq(flats.buildingId, filters.buildingId));
+		}
+		if (filters.buildingIds && filters.buildingIds.length > 0) {
+			conditions.push(inArray(flats.buildingId, filters.buildingIds));
 		}
 		if (filters.status) {
 			conditions.push(eq(flats.status, filters.status));
@@ -136,7 +143,11 @@ export class FlatRepository {
 	 */
 	async count(
 		ownerAccountId: string,
-		filters: { buildingId?: string; status?: FlatStatus },
+		filters: {
+			buildingId?: string;
+			status?: FlatStatus;
+			buildingIds?: string[];
+		},
 		tx?: DatabaseOrTransaction,
 	) {
 		const client = tx ?? this.db;
@@ -144,6 +155,9 @@ export class FlatRepository {
 		const conditions = [eq(flats.ownerAccountId, ownerAccountId)];
 		if (filters.buildingId) {
 			conditions.push(eq(flats.buildingId, filters.buildingId));
+		}
+		if (filters.buildingIds && filters.buildingIds.length > 0) {
+			conditions.push(inArray(flats.buildingId, filters.buildingIds));
 		}
 		if (filters.status) {
 			conditions.push(eq(flats.status, filters.status));

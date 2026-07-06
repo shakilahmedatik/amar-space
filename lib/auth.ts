@@ -33,7 +33,7 @@ export const auth = betterAuth({
 	},
 	session: {
 		expiresIn: SEVEN_DAYS_IN_SECONDS,
-		updateAge: 0,
+		updateAge: 24 * 60 * 60,
 	},
 	rateLimit: {
 		enabled: true,

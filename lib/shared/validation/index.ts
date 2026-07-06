@@ -120,13 +120,31 @@ export const bloodGroupEnum = z.enum([
 	"O-",
 ]);
 
-export const bdPhoneSchema = z.string().regex(/^01\d{9}$/, {
-	message: "Phone number must be 11 digits starting with 01",
-});
+export const bdPhoneSchema = z.preprocess(
+	(val) => {
+		if (typeof val !== "string") return val;
+		let cleaned = val.replace(/[\s\-\(\)]/g, "");
+		if (cleaned.startsWith("+880")) {
+			cleaned = `0${cleaned.substring(4)}`;
+		} else if (cleaned.startsWith("880")) {
+			cleaned = `0${cleaned.substring(3)}`;
+		}
+		return cleaned;
+	},
+	z.string().regex(/^01\d{9}$/, {
+		message: "Phone number must be 11 digits starting with 01",
+	}),
+);
 
-export const nidSchema = z.string().regex(/^\d{10,17}$/, {
-	message: "NID must be 10-17 numeric digits",
-});
+export const nidSchema = z.preprocess(
+	(val) => {
+		if (typeof val !== "string") return val;
+		return val.replace(/[\s\-]/g, "");
+	},
+	z.string().regex(/^\d{10,17}$/, {
+		message: "NID must be 10-17 numeric digits",
+	}),
+);
 
 export const registerRenterSchema = z.object({
 	fullName: z.string().min(1).max(255),
@@ -289,7 +307,17 @@ export const noticeTargetEnum = z.enum([
 	"managers_only",
 ]);
 
-export const expiryDateTimeSchema = z.string().optional();
+export const expiryDateTimeSchema = z
+	.string()
+	.optional()
+	.refine(
+		(val) => {
+			if (!val) return true;
+			const expiry = new Date(val);
+			return expiry > new Date();
+		},
+		{ message: "Expiration date must be in the future" },
+	);
 
 export const createNoticeSchema = z
 	.object({
@@ -332,7 +360,18 @@ export const updateNoticeSchema = z.object({
 	targetAudience: noticeTargetEnum.optional(),
 	targetBuildingId: uuidSchema.optional().nullable(),
 	targetFlatId: uuidSchema.optional().nullable(),
-	expiresAt: z.string().optional().nullable(),
+	expiresAt: z
+		.string()
+		.optional()
+		.nullable()
+		.refine(
+			(val) => {
+				if (!val) return true;
+				const expiry = new Date(val);
+				return expiry > new Date();
+			},
+			{ message: "Expiration date must be in the future" },
+		),
 });
 
 // ─── Notice Template Schemas ─────────────────────────────────────────────────

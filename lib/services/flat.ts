@@ -7,6 +7,7 @@ import {
 } from "@repo/shared/constants";
 import {
 	ConflictError,
+	ForbiddenError,
 	NotFoundError,
 	ValidationError,
 } from "@repo/shared/errors";
@@ -103,6 +104,12 @@ export class FlatService {
 			throw new NotFoundError("Building");
 		}
 
+		if (ctx.role === "manager" && ctx.assignedBuildingIds) {
+			if (!ctx.assignedBuildingIds.includes(input.buildingId)) {
+				throw new ForbiddenError();
+			}
+		}
+
 		// Check flat number uniqueness within building (Requirement 6.12)
 		const existingFlat = await this.flatRepository.findByNumberAndBuilding(
 			input.flatNumber,
@@ -176,6 +183,12 @@ export class FlatService {
 
 		if (!existing) {
 			throw new NotFoundError("Flat");
+		}
+
+		if (ctx.role === "manager" && ctx.assignedBuildingIds) {
+			if (!ctx.assignedBuildingIds.includes(existing.buildingId)) {
+				throw new ForbiddenError();
+			}
 		}
 
 		// If flatNumber is being changed, check uniqueness within building
@@ -256,6 +269,12 @@ export class FlatService {
 			throw new NotFoundError("Flat");
 		}
 
+		if (ctx.role === "manager" && ctx.assignedBuildingIds) {
+			if (!ctx.assignedBuildingIds.includes(existing.buildingId)) {
+				throw new ForbiddenError();
+			}
+		}
+
 		// Only allow deletion if status is Vacant (Requirement 6.13)
 		if (existing.status !== FLAT_STATUS.VACANT) {
 			throw new ValidationError([
@@ -300,10 +319,27 @@ export class FlatService {
 		const pageSize = Math.min(Math.max(input.pageSize, 1), 50);
 		const page = Math.max(input.page, 1);
 
-		const filters = {
+		const filters: {
+			buildingId?: string;
+			status?: FlatStatus;
+			buildingIds?: string[];
+		} = {
 			buildingId: input.buildingId,
 			status: input.status,
 		};
+
+		if (ctx.role === "manager" && ctx.assignedBuildingIds) {
+			if (ctx.assignedBuildingIds.length === 0) {
+				return { data: [], total: 0, page, pageSize, totalPages: 0 };
+			}
+			if (input.buildingId) {
+				if (!ctx.assignedBuildingIds.includes(input.buildingId)) {
+					throw new ForbiddenError();
+				}
+			} else {
+				filters.buildingIds = ctx.assignedBuildingIds;
+			}
+		}
 
 		const [data, total] = await Promise.all([
 			this.flatRepository.list(ctx.ownerAccountId, filters, page, pageSize),
@@ -353,6 +389,12 @@ export class FlatService {
 
 		if (!existing) {
 			throw new NotFoundError("Flat");
+		}
+
+		if (ctx.role === "manager" && ctx.assignedBuildingIds) {
+			if (!ctx.assignedBuildingIds.includes(existing.buildingId)) {
+				throw new ForbiddenError();
+			}
 		}
 
 		const currentStatus = existing.status;

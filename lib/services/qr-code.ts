@@ -1,6 +1,5 @@
 import type { Readable } from "node:stream";
 import { PassThrough } from "node:stream";
-import { db } from "@/lib/db";
 import { ValidationError } from "@repo/shared/errors";
 import { ZipArchive } from "archiver";
 import { PNG } from "pngjs";
@@ -162,10 +161,18 @@ export class QrCodeService {
 
 		archive.pipe(passThrough);
 
-		for (const flat of flats) {
-			const buffer = await this.generateQrCode(flat.slug, options);
-			const filename = `${buildingName}_${flat.flatNumber}.png`;
-			archive.append(buffer, { name: filename });
+		const qrCodes = await Promise.all(
+			flats.map(async (flat) => {
+				const buffer = await this.generateQrCode(flat.slug, options);
+				return {
+					buffer,
+					filename: `${buildingName}_${flat.flatNumber}.png`,
+				};
+			}),
+		);
+
+		for (const item of qrCodes) {
+			archive.append(item.buffer, { name: item.filename });
 		}
 
 		archive.finalize();

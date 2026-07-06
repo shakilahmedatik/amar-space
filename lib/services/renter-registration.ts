@@ -10,7 +10,11 @@ import {
 	users,
 } from "@repo/db";
 import { FLAT_STATUS } from "@repo/shared/constants";
-import { NotFoundError, ValidationError } from "@repo/shared/errors";
+import {
+	ForbiddenError,
+	NotFoundError,
+	ValidationError,
+} from "@repo/shared/errors";
 import type { FieldError, RequestContext } from "@repo/shared/types";
 import {
 	type RegisterRenterInput,
@@ -164,6 +168,12 @@ export class RenterRegistrationService {
 			throw new NotFoundError("Flat");
 		}
 
+		if (ctx.role === "manager" && ctx.assignedBuildingIds) {
+			if (!ctx.assignedBuildingIds.includes(flat.buildingId)) {
+				throw new ForbiddenError();
+			}
+		}
+
 		// Step 4: Reject if flat is not Vacant (Requirement 4.13)
 		if (flat.status !== FLAT_STATUS.VACANT) {
 			throw new ValidationError([
@@ -176,110 +186,163 @@ export class RenterRegistrationService {
 			]);
 		}
 
-		// Step 5: Create user account and associated renter/contract records in a transaction
-		const renterEmail = `renter_${validated.phone}@amarspace.local`;
+		// Step 5: Upload files to R2 before starting the database transaction (prevents holding DB connection locks open)
+		let nidPhotoUrl: string | null = null;
+		let digitalSignatureUrl: string | null = null;
+		const userId = randomUUID();
 
-		const result = await this.db.transaction(async (tx) => {
-			// Create user account (Requirement 4.8) - role is 'renter'
-			const [renterUser] = await tx
-				.insert(users)
-				.values({
-					id: randomUUID(),
-					email: renterEmail,
-					name: validated.fullName,
-					role: "renter",
-					ownerAccountId: ctx.ownerAccountId,
-					phone: validated.phone,
-					approvalStatus: null,
-					createdAt: new Date(),
-					updatedAt: new Date(),
-				})
-				.returning();
-
-			if (!renterUser) {
-				throw new Error("Failed to create renter user account");
-			}
-
-			// Handle file uploads inside transaction
-			let nidPhotoUrl: string | null = null;
-			let digitalSignatureUrl: string | null = null;
-
-			if (data.nidPhoto) {
-				nidPhotoUrl = await this.uploadFile(
-					tx,
+		try {
+			if (data.nidPhoto && this.r2) {
+				nidPhotoUrl = await this.r2.upload(
 					ctx.ownerAccountId,
 					"renter_nid",
-					renterUser.id,
-					data.nidPhoto,
+					userId,
+					data.nidPhoto.filename,
+					data.nidPhoto.buffer,
+					data.nidPhoto.mimeType,
 				);
 			}
 
-			if (data.digitalSignature) {
-				digitalSignatureUrl = await this.uploadFile(
-					tx,
+			if (data.digitalSignature && this.r2) {
+				digitalSignatureUrl = await this.r2.upload(
 					ctx.ownerAccountId,
 					"signature",
-					renterUser.id,
-					data.digitalSignature,
+					userId,
+					data.digitalSignature.filename,
+					data.digitalSignature.buffer,
+					data.digitalSignature.mimeType,
 				);
 			}
-
-			// Create renter record (Requirements 4.1, 4.2)
-			const [renter] = await tx
-				.insert(renters)
-				.values({
-					ownerAccountId: ctx.ownerAccountId,
-					userId: renterUser.id,
-					fullName: validated.fullName,
-					phone: validated.phone,
-					nidNumber: validated.nidNumber,
-					nidPhotoUrl,
-					dateOfBirth: validated.dateOfBirth ?? null,
-					occupation: validated.occupation,
-					bloodGroup: validated.bloodGroup,
-					totalFamilyMembers: validated.totalFamilyMembers,
-					familyMemberNames: validated.familyMemberNames ?? null,
-					emergencyContactName: validated.emergencyContactName,
-					emergencyContactNumber: validated.emergencyContactNumber,
-					emergencyContactRelationship: validated.emergencyContactRelationship,
-					digitalSignatureUrl,
-				})
-				.returning();
-
-			if (!renter) {
-				throw new Error("Failed to create renter record");
+		} catch (uploadError) {
+			// Cleanup any uploaded file on upload failure
+			if (nidPhotoUrl && this.r2) {
+				await this.r2.delete(nidPhotoUrl).catch(() => {});
 			}
+			throw uploadError;
+		}
 
-			// Create rental contract (Requirement 4.7)
-			const [contract] = await tx
-				.insert(rentalContracts)
-				.values({
-					ownerAccountId: ctx.ownerAccountId,
-					renterId: renter.id,
-					flatId: validated.flatId,
-					monthlyRent: validated.monthlyRent.toFixed(2),
-					startDate: validated.startDate,
-					securityDepositAmount: validated.advanceAmount.toFixed(2),
-					remainingDepositBalance: validated.advanceAmount.toFixed(2),
-					status: "active",
-				})
-				.returning();
+		// Step 6: Create user account and associated renter/contract records in a transaction
+		const renterEmail = `renter_${validated.phone}@amarspace.local`;
 
-			if (!contract) {
-				throw new Error("Failed to create rental contract");
+		let result: {
+			renterUser: typeof users.$inferSelect;
+			renter: typeof renters.$inferSelect;
+			contract: typeof rentalContracts.$inferSelect;
+		};
+		try {
+			result = await this.db.transaction(async (tx) => {
+				// Create user account (Requirement 4.8) - role is 'renter'
+				const [renterUser] = await tx
+					.insert(users)
+					.values({
+						id: userId,
+						email: renterEmail,
+						name: validated.fullName,
+						role: "renter",
+						ownerAccountId: ctx.ownerAccountId,
+						phone: validated.phone,
+						approvalStatus: null,
+						createdAt: new Date(),
+						updatedAt: new Date(),
+					})
+					.returning();
+
+				if (!renterUser) {
+					throw new Error("Failed to create renter user account");
+				}
+
+				// Insert file references in the transaction
+				if (nidPhotoUrl && data.nidPhoto) {
+					await tx.insert(fileReferences).values({
+						ownerAccountId: ctx.ownerAccountId,
+						entityType: "renter_nid",
+						entityId: userId,
+						storageKey: nidPhotoUrl,
+						fileName: data.nidPhoto.filename,
+						fileSize: data.nidPhoto.fileSize,
+						mimeType: data.nidPhoto.mimeType,
+					});
+				}
+
+				if (digitalSignatureUrl && data.digitalSignature) {
+					await tx.insert(fileReferences).values({
+						ownerAccountId: ctx.ownerAccountId,
+						entityType: "signature",
+						entityId: userId,
+						storageKey: digitalSignatureUrl,
+						fileName: data.digitalSignature.filename,
+						fileSize: data.digitalSignature.fileSize,
+						mimeType: data.digitalSignature.mimeType,
+					});
+				}
+
+				// Create renter record (Requirements 4.1, 4.2)
+				const [renter] = await tx
+					.insert(renters)
+					.values({
+						ownerAccountId: ctx.ownerAccountId,
+						userId: renterUser.id,
+						fullName: validated.fullName,
+						phone: validated.phone,
+						nidNumber: validated.nidNumber,
+						nidPhotoUrl,
+						dateOfBirth: validated.dateOfBirth ?? null,
+						occupation: validated.occupation,
+						bloodGroup: validated.bloodGroup,
+						totalFamilyMembers: validated.totalFamilyMembers,
+						familyMemberNames: validated.familyMemberNames ?? null,
+						emergencyContactName: validated.emergencyContactName,
+						emergencyContactNumber: validated.emergencyContactNumber,
+						emergencyContactRelationship:
+							validated.emergencyContactRelationship,
+						digitalSignatureUrl,
+					})
+					.returning();
+
+				if (!renter) {
+					throw new Error("Failed to create renter record");
+				}
+
+				// Create rental contract (Requirement 4.7)
+				const [contract] = await tx
+					.insert(rentalContracts)
+					.values({
+						ownerAccountId: ctx.ownerAccountId,
+						renterId: renter.id,
+						flatId: validated.flatId,
+						monthlyRent: validated.monthlyRent.toFixed(2),
+						startDate: validated.startDate,
+						securityDepositAmount: validated.advanceAmount.toFixed(2),
+						remainingDepositBalance: validated.advanceAmount.toFixed(2),
+						status: "active",
+					})
+					.returning();
+
+				if (!contract) {
+					throw new Error("Failed to create rental contract");
+				}
+
+				// Update flat status to Occupied (Requirement 6.4)
+				await tx
+					.update(flats)
+					.set({
+						status: FLAT_STATUS.OCCUPIED,
+						updatedAt: new Date(),
+					})
+					.where(eq(flats.id, validated.flatId));
+
+				return { renterUser, renter, contract };
+			});
+		} catch (txError) {
+			// Cleanup R2 uploaded files on database transaction failure
+			if (nidPhotoUrl && this.r2) {
+				await this.r2.delete(nidPhotoUrl).catch(() => {});
 			}
-
-			// Update flat status to Occupied (Requirement 6.4)
-			await tx
-				.update(flats)
-				.set({
-					status: FLAT_STATUS.OCCUPIED,
-					updatedAt: new Date(),
-				})
-				.where(eq(flats.id, validated.flatId));
-
-			return { renterUser, renter, contract };
-		});
+			if (digitalSignatureUrl && this.r2) {
+				await this.r2.delete(digitalSignatureUrl).catch(() => {});
+			}
+			throw txError;
+		}
 
 		// Record audit event (Requirement 4.10)
 		this.auditLogger.log({
@@ -520,7 +583,29 @@ export class RenterRegistrationService {
 		const page = Math.max(pagination.page, 1);
 		const offset = (page - 1) * pageSize;
 
-		const whereClause = eq(renters.ownerAccountId, ctx.ownerAccountId);
+		const conditions = [eq(renters.ownerAccountId, ctx.ownerAccountId)];
+
+		if (ctx.role === "manager" && ctx.assignedBuildingIds) {
+			if (ctx.assignedBuildingIds.length === 0) {
+				return { data: [], total: 0, page, pageSize, totalPages: 0 };
+			}
+
+			// Subquery to filter renters with active contracts in manager's assigned buildings
+			const managerContractsSubquery = this.db
+				.select({ renterId: rentalContracts.renterId })
+				.from(rentalContracts)
+				.innerJoin(flats, eq(rentalContracts.flatId, flats.id))
+				.where(
+					and(
+						eq(rentalContracts.status, "active"),
+						inArray(flats.buildingId, ctx.assignedBuildingIds),
+					),
+				);
+
+			conditions.push(inArray(renters.id, managerContractsSubquery));
+		}
+
+		const whereClause = and(...conditions);
 
 		const [data, totalResult] = await Promise.all([
 			this.db.query.renters.findMany({

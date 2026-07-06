@@ -9,7 +9,17 @@ import {
 } from "@repo/db";
 import { ForbiddenError } from "@repo/shared/errors";
 import type { PaginationInput, RequestContext } from "@repo/shared/types";
-import { and, count, desc, eq, gte, inArray, lte } from "drizzle-orm";
+import {
+	and,
+	count,
+	desc,
+	eq,
+	exists,
+	gte,
+	inArray,
+	lte,
+	or,
+} from "drizzle-orm";
 
 // --- Types ---
 
@@ -98,13 +108,67 @@ export class AuditLogQueryService {
 
 		// Manager: restrict to entities in assigned buildings (Requirement 13.4)
 		if (ctx.role === "manager") {
-			const managerEntityIds = await this.getManagerAccessibleEntityIds(ctx);
+			let assignedBuildingIds = ctx.assignedBuildingIds;
 
-			if (managerEntityIds.length > 0) {
-				conditions.push(inArray(auditLogs.entityId, managerEntityIds));
-			} else {
-				// If no accessible entities, restrict to logs where manager is the actor
+			if (!assignedBuildingIds || assignedBuildingIds.length === 0) {
+				const assignments = await this.db
+					.select({ buildingId: managerAssignments.buildingId })
+					.from(managerAssignments)
+					.where(
+						and(
+							eq(managerAssignments.managerId, ctx.userId),
+							eq(managerAssignments.ownerAccountId, ctx.ownerAccountId),
+						),
+					);
+
+				assignedBuildingIds = assignments.map((a) => a.buildingId);
+			}
+
+			if (assignedBuildingIds.length === 0) {
 				conditions.push(eq(auditLogs.actorId, ctx.userId));
+			} else {
+				conditions.push(
+					or(
+						eq(auditLogs.actorId, ctx.userId),
+						inArray(auditLogs.entityId, assignedBuildingIds),
+						exists(
+							this.db
+								.select()
+								.from(flats)
+								.where(
+									and(
+										eq(flats.id, auditLogs.entityId),
+										inArray(flats.buildingId, assignedBuildingIds),
+									),
+								),
+						),
+						exists(
+							this.db
+								.select()
+								.from(maintenanceRequests)
+								.where(
+									and(
+										eq(maintenanceRequests.id, auditLogs.entityId),
+										inArray(
+											maintenanceRequests.buildingId,
+											assignedBuildingIds,
+										),
+									),
+								),
+						),
+						exists(
+							this.db
+								.select()
+								.from(issues)
+								.where(
+									and(
+										eq(issues.id, auditLogs.entityId),
+										inArray(issues.buildingId, assignedBuildingIds),
+									),
+								),
+						),
+					),
+				);
 			}
 		}
 
@@ -180,83 +244,5 @@ export class AuditLogQueryService {
 			pageSize,
 			totalPages: Math.ceil(total / pageSize),
 		};
-	}
-
-	/**
-	 * Gets all entity IDs accessible to a manager based on their assigned buildings.
-	 *
-	 * This includes:
-	 * - Building IDs assigned to the manager
-	 * - Flat IDs within those buildings
-	 * - Maintenance request IDs for those buildings
-	 * - Issue IDs for those buildings
-	 */
-	private async getManagerAccessibleEntityIds(
-		ctx: RequestContext,
-	): Promise<string[]> {
-		// Get assigned building IDs from context or query
-		let assignedBuildingIds = ctx.assignedBuildingIds;
-
-		if (!assignedBuildingIds || assignedBuildingIds.length === 0) {
-			const assignments = await this.db
-				.select({ buildingId: managerAssignments.buildingId })
-				.from(managerAssignments)
-				.where(
-					and(
-						eq(managerAssignments.managerId, ctx.userId),
-						eq(managerAssignments.ownerAccountId, ctx.ownerAccountId),
-					),
-				);
-
-			assignedBuildingIds = assignments.map((a) => a.buildingId);
-		}
-
-		if (assignedBuildingIds.length === 0) {
-			return [];
-		}
-
-		// Collect all entity IDs the manager can access
-		const entityIds: string[] = [...assignedBuildingIds];
-
-		// Get flat IDs in assigned buildings
-		const assignedFlats = await this.db
-			.select({ id: flats.id })
-			.from(flats)
-			.where(
-				and(
-					inArray(flats.buildingId, assignedBuildingIds),
-					eq(flats.ownerAccountId, ctx.ownerAccountId),
-				),
-			);
-
-		entityIds.push(...assignedFlats.map((f) => f.id));
-
-		// Get maintenance request IDs for assigned buildings
-		const assignedMaintenance = await this.db
-			.select({ id: maintenanceRequests.id })
-			.from(maintenanceRequests)
-			.where(
-				and(
-					inArray(maintenanceRequests.buildingId, assignedBuildingIds),
-					eq(maintenanceRequests.ownerAccountId, ctx.ownerAccountId),
-				),
-			);
-
-		entityIds.push(...assignedMaintenance.map((m) => m.id));
-
-		// Get issue IDs for assigned buildings
-		const assignedIssues = await this.db
-			.select({ id: issues.id })
-			.from(issues)
-			.where(
-				and(
-					inArray(issues.buildingId, assignedBuildingIds),
-					eq(issues.ownerAccountId, ctx.ownerAccountId),
-				),
-			);
-
-		entityIds.push(...assignedIssues.map((i) => i.id));
-
-		return entityIds;
 	}
 }

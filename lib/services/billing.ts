@@ -39,6 +39,7 @@ import {
 	calculateDueDate,
 	calculateRentForMonth,
 	getDefaultLineItems,
+	getLastDayOfMonth,
 } from "../utils/bill-calculation";
 
 export interface BillResult {
@@ -199,7 +200,16 @@ export class BillingService {
 				},
 			]);
 		}
-
+		const lastDayStr = getLastDayOfMonth(billingMonth);
+		if (contract.startDate > lastDayStr) {
+			throw new ValidationError([
+				{
+					field: "billingMonth",
+					message: `Contract starts on ${contract.startDate}, cannot generate bill for earlier month ${billingMonth}`,
+					rule: "future_contract",
+				},
+			]);
+		}
 		const rentCalc = calculateRentForMonth(
 			contract.monthlyRent,
 			contract.startDate,
@@ -379,6 +389,15 @@ export class BillingService {
 				result.skipped.push({
 					flatId: flat.id,
 					reason: `No active rental contract for flat ${flat.flatNumber}`,
+				});
+				continue;
+			}
+
+			const lastDayOfBillingMonth = getLastDayOfMonth(billingMonth);
+			if (contract.startDate > lastDayOfBillingMonth) {
+				result.skipped.push({
+					flatId: flat.id,
+					reason: `Contract for flat ${flat.flatNumber} starts on ${contract.startDate}, skipping generation for billing month ${billingMonth}`,
 				});
 				continue;
 			}

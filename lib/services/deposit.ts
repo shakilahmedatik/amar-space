@@ -115,139 +115,147 @@ export class DepositService {
 		// Validate input using Zod schema
 		const validated = validateOrThrow(applyAdjustmentSchema, data);
 
-		// Find the contract with tenant isolation
-		const contract = await this.db.query.rentalContracts.findFirst({
-			where: and(
-				eq(rentalContracts.id, contractId),
-				eq(rentalContracts.ownerAccountId, ctx.ownerAccountId),
-			),
-		});
+		// Find and lock the contract with tenant isolation in a transaction
+		const result = await this.db.transaction(async (tx) => {
+			const [contract] = await tx
+				.select()
+				.from(rentalContracts)
+				.where(
+					and(
+						eq(rentalContracts.id, contractId),
+						eq(rentalContracts.ownerAccountId, ctx.ownerAccountId),
+					),
+				)
+				.for("update");
 
-		if (!contract) {
-			throw new NotFoundError("Contract");
-		}
-
-		const remainingBalance = Number.parseFloat(
-			contract.remainingDepositBalance,
-		);
-
-		// Reject if adjustment exceeds remaining deposit balance (Requirement 9.4)
-		if (validated.amount > remainingBalance) {
-			throw new ValidationError([
-				{
-					field: "amount",
-					message: `Adjustment amount exceeds remaining deposit balance. Maximum adjustable amount is ${remainingBalance.toFixed(2)}`,
-					rule: "exceeds_balance",
-				},
-			]);
-		}
-
-		// If linked to a bill, validate the bill (Requirement 9.5, 9.6)
-		if (validated.billId) {
-			const bill = await this.db.query.bills.findFirst({
-				where: and(
-					eq(bills.id, validated.billId),
-					eq(bills.ownerAccountId, ctx.ownerAccountId),
-				),
-			});
-
-			if (!bill) {
-				throw new NotFoundError("Bill");
+			if (!contract) {
+				throw new NotFoundError("Contract");
 			}
 
-			// Reject if bill is already Paid (Requirement 9.6)
-			if (bill.status === BILL_STATUS.PAID) {
-				throw new ValidationError([
-					{
-						field: "billId",
-						message:
-							"Bill is already fully paid and not eligible for adjustment",
-						rule: "bill_status",
-					},
-				]);
-			}
+			const remainingBalance = Number.parseFloat(
+				contract.remainingDepositBalance,
+			);
 
-			// Calculate bill outstanding balance
-			const billTotal = Number.parseFloat(bill.totalAmount);
-			const billPaid = Number.parseFloat(bill.paidAmount);
-			const billOutstanding = billTotal - billPaid;
-
-			// Reject if adjustment exceeds bill outstanding (Requirement 9.6)
-			if (validated.amount > billOutstanding) {
+			// Reject if adjustment exceeds remaining deposit balance (Requirement 9.4)
+			if (validated.amount > remainingBalance) {
 				throw new ValidationError([
 					{
 						field: "amount",
-						message: `Adjustment amount exceeds bill outstanding balance. Bill outstanding is ${billOutstanding.toFixed(2)}`,
-						rule: "exceeds_bill_outstanding",
+						message: `Adjustment amount exceeds remaining deposit balance. Maximum adjustable amount is ${remainingBalance.toFixed(2)}`,
+						rule: "exceeds_balance",
 					},
 				]);
 			}
 
-			// Apply adjustment as payment against the bill (Requirement 9.5)
-			const newPaidAmount = billPaid + validated.amount;
-			const newBillStatus =
-				newPaidAmount >= billTotal
-					? BILL_STATUS.PAID
-					: BILL_STATUS.PARTIALLY_PAID;
+			// If linked to a bill, validate the bill (Requirement 9.5, 9.6)
+			if (validated.billId) {
+				const bill = await tx.query.bills.findFirst({
+					where: and(
+						eq(bills.id, validated.billId),
+						eq(bills.ownerAccountId, ctx.ownerAccountId),
+					),
+				});
 
-			await this.db
-				.update(bills)
+				if (!bill) {
+					throw new NotFoundError("Bill");
+				}
+
+				// Reject if bill is already Paid (Requirement 9.6)
+				if (bill.status === BILL_STATUS.PAID) {
+					throw new ValidationError([
+						{
+							field: "billId",
+							message:
+								"Bill is already fully paid and not eligible for adjustment",
+							rule: "bill_status",
+						},
+					]);
+				}
+
+				// Calculate bill outstanding balance
+				const billTotal = Number.parseFloat(bill.totalAmount);
+				const billPaid = Number.parseFloat(bill.paidAmount);
+				const billOutstanding = billTotal - billPaid;
+
+				// Reject if adjustment exceeds bill outstanding (Requirement 9.6)
+				if (validated.amount > billOutstanding) {
+					throw new ValidationError([
+						{
+							field: "amount",
+							message: `Adjustment amount exceeds bill outstanding balance. Bill outstanding is ${billOutstanding.toFixed(2)}`,
+							rule: "exceeds_bill_outstanding",
+						},
+					]);
+				}
+
+				// Apply adjustment as payment against the bill (Requirement 9.5)
+				const newPaidAmount = billPaid + validated.amount;
+				const newBillStatus =
+					newPaidAmount >= billTotal
+						? BILL_STATUS.PAID
+						: BILL_STATUS.PARTIALLY_PAID;
+
+				await tx
+					.update(bills)
+					.set({
+						paidAmount: newPaidAmount.toFixed(2),
+						status: newBillStatus,
+						updatedAt: new Date(),
+					})
+					.where(eq(bills.id, validated.billId));
+			}
+
+			// Deduct from remaining deposit balance (Requirement 9.3)
+			const oldBalance = remainingBalance;
+			const newBalance = remainingBalance - validated.amount;
+
+			await tx
+				.update(rentalContracts)
 				.set({
-					paidAmount: newPaidAmount.toFixed(2),
-					status: newBillStatus,
+					remainingDepositBalance: newBalance.toFixed(2),
 					updatedAt: new Date(),
 				})
-				.where(eq(bills.id, validated.billId));
-		}
+				.where(eq(rentalContracts.id, contractId));
 
-		// Deduct from remaining deposit balance (Requirement 9.3)
-		const oldBalance = remainingBalance;
-		const newBalance = remainingBalance - validated.amount;
+			// Create the advance adjustment record (Requirement 9.2)
+			const [adjustment] = await tx
+				.insert(advanceAdjustments)
+				.values({
+					ownerAccountId: ctx.ownerAccountId,
+					contractId,
+					amount: validated.amount.toFixed(2),
+					billId: validated.billId ?? null,
+					note: validated.note ?? null,
+					adjustedBy: ctx.userId,
+				})
+				.returning();
 
-		await this.db
-			.update(rentalContracts)
-			.set({
-				remainingDepositBalance: newBalance.toFixed(2),
-				updatedAt: new Date(),
-			})
-			.where(eq(rentalContracts.id, contractId));
+			if (!adjustment) {
+				throw new Error("Failed to create advance adjustment");
+			}
 
-		// Create the advance adjustment record (Requirement 9.2)
-		const [adjustment] = await this.db
-			.insert(advanceAdjustments)
-			.values({
+			// Record audit event with old/new balance values (Requirement 9.10)
+			this.auditLogger.log({
+				actorId: ctx.userId,
+				action: "deposit_adjustment_applied",
+				entityType: "rental_contract",
+				entityId: contractId,
 				ownerAccountId: ctx.ownerAccountId,
-				contractId,
-				amount: validated.amount.toFixed(2),
-				billId: validated.billId ?? null,
-				note: validated.note ?? null,
-				adjustedBy: ctx.userId,
-			})
-			.returning();
+				oldValues: {
+					remainingDepositBalance: oldBalance.toFixed(2),
+				},
+				newValues: {
+					remainingDepositBalance: newBalance.toFixed(2),
+					adjustmentId: adjustment.id,
+					adjustmentAmount: validated.amount.toFixed(2),
+					billId: validated.billId ?? null,
+				},
+			});
 
-		if (!adjustment) {
-			throw new Error("Failed to create advance adjustment");
-		}
-
-		// Record audit event with old/new balance values (Requirement 9.10)
-		this.auditLogger.log({
-			actorId: ctx.userId,
-			action: "deposit_adjustment_applied",
-			entityType: "rental_contract",
-			entityId: contractId,
-			ownerAccountId: ctx.ownerAccountId,
-			oldValues: {
-				remainingDepositBalance: oldBalance.toFixed(2),
-			},
-			newValues: {
-				remainingDepositBalance: newBalance.toFixed(2),
-				adjustmentId: adjustment.id,
-				adjustmentAmount: validated.amount.toFixed(2),
-				billId: validated.billId ?? null,
-			},
+			return adjustment;
 		});
 
-		return this.mapToAdjustmentResult(adjustment);
+		return this.mapToAdjustmentResult(result);
 	}
 
 	/**
