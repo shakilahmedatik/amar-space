@@ -1,5 +1,4 @@
-import { PHONE_REGEX } from "@/lib/shared/validation/constants";
-("use client");
+"use client";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -8,6 +7,7 @@ import { FormField, FormInput } from "@/components/ui/form-field";
 import { useBuildingOptions } from "@/hooks/use-options";
 import { useCreateStaff, useStaffRoles } from "@/hooks/use-staff";
 import { useTranslation } from "@/lib/i18n";
+import { PHONE_REGEX } from "@/lib/shared/validation/constants";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { type FormEvent, useState } from "react";

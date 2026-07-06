@@ -9,7 +9,7 @@ import { useBuildings } from "@/hooks/use-buildings";
 import type { Building } from "@/lib/api-client";
 import { useTranslation } from "@/lib/i18n";
 import Link from "next/link";
-import { useState, useMemo } from "react";
+import { useMemo, useState } from "react";
 
 /**
  * Building list page — /buildings
@@ -22,7 +22,6 @@ export default function BuildingsPage() {
 	const [page, setPage] = useState(1);
 	const { data, isLoading, isError, error } = useBuildings(page, 50);
 	const isOwner = role === "owner";
-
 	const columns = useMemo<DataTableColumn<Building>[]>(
 		() => [
 			{

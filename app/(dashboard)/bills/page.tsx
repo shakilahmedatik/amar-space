@@ -1,5 +1,4 @@
-import { useMemo } from "react";
-("use client");
+"use client";
 
 import { Button } from "@/components/ui/button";
 import { CurrencyDisplay } from "@/components/ui/currency-display";
@@ -17,7 +16,7 @@ import {
 import type { BillListItem, BillStatus } from "@/lib/api-client";
 import { useTranslation } from "@/lib/i18n";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useMemo } from "react";
 import { type FormEvent, useCallback, useState } from "react";
 
 /**
