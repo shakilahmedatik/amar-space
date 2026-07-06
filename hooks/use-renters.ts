@@ -9,16 +9,19 @@ import {
 	resetRenterAccessCode,
 } from "@/lib/api-client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { DEFAULT_STALE_TIME } from "./constants";
 
 /**
  * TanStack Query hook for renter list with pagination.
  */
-export function useRenters(page = 1, pageSize = 50) {
+export function useRenters(
+	page = 1,
+	pageSize = 50,
+	options?: { enabled?: boolean },
+) {
 	return useQuery({
 		queryKey: ["renters", { page, pageSize }],
 		queryFn: () => fetchRenters(page, pageSize),
-		staleTime: DEFAULT_STALE_TIME,
+		enabled: options?.enabled,
 	});
 }
 
@@ -30,7 +33,6 @@ export function useRenter(id: string) {
 		queryKey: ["renters", id],
 		queryFn: () => fetchRenter(id),
 		enabled: !!id,
-		staleTime: DEFAULT_STALE_TIME,
 	});
 }
 
@@ -41,7 +43,6 @@ export function useVacantFlats() {
 	return useQuery({
 		queryKey: ["flats", { status: "vacant" }],
 		queryFn: fetchVacantFlats,
-		staleTime: DEFAULT_STALE_TIME,
 	});
 }
 

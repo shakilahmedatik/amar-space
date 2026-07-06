@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { ErrorFeedback } from "@/components/ui/error-feedback";
 import { LoadingSkeleton } from "@/components/ui/loading-skeleton";
 import {
@@ -31,14 +32,14 @@ export default function AdminUsersPage() {
 	});
 	const deactivateMutation = useDeactivateUser();
 
-	const handleDeactivate = useCallback(
-		(userId: string, _userName: string) => {
-			if (window.confirm(t("adminUsers.confirmDeactivate"))) {
-				deactivateMutation.mutate(userId);
-			}
-		},
-		[deactivateMutation, t],
-	);
+	const [userToDeactivate, setUserToDeactivate] = useState<{
+		id: string;
+		name: string;
+	} | null>(null);
+
+	const handleDeactivate = useCallback((userId: string, userName: string) => {
+		setUserToDeactivate({ id: userId, name: userName });
+	}, []);
 
 	if (role !== "superadmin") {
 		return (
@@ -226,6 +227,25 @@ export default function AdminUsersPage() {
 					)}
 				</>
 			)}
+
+			<ConfirmDialog
+				open={!!userToDeactivate}
+				onClose={() => setUserToDeactivate(null)}
+				onConfirm={() => {
+					if (userToDeactivate) {
+						deactivateMutation.mutate(userToDeactivate.id, {
+							onSettled: () => setUserToDeactivate(null),
+						});
+					}
+				}}
+				title={t("adminUsers.confirmDeactivate")}
+				description={
+					t("adminUsers.confirmDeactivateDesc") ||
+					`Are you sure you want to deactivate ${userToDeactivate?.name}? This action can be reversed later.`
+				}
+				destructive
+				loading={deactivateMutation.isPending}
+			/>
 		</>
 	);
 }

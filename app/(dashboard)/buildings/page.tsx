@@ -9,7 +9,7 @@ import { useBuildings } from "@/hooks/use-buildings";
 import type { Building } from "@/lib/api-client";
 import { useTranslation } from "@/lib/i18n";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 
 /**
  * Building list page — /buildings
@@ -23,31 +23,34 @@ export default function BuildingsPage() {
 	const { data, isLoading, isError, error } = useBuildings(page, 50);
 	const isOwner = role === "owner";
 
-	const columns: DataTableColumn<Building>[] = [
-		{
-			key: "name",
-			header: t("buildings.buildingName"),
-			render: (row) => (
-				<Link
-					href={`/buildings/${row.id}`}
-					className="text-brand-blue-deep font-medium no-underline hover:underline"
-				>
-					{row.name}
-				</Link>
-			),
-		},
-		{
-			key: "address",
-			header: t("buildings.address"),
-			render: (row) => <span>{row.address}</span>,
-		},
-		{
-			key: "totalFloors",
-			header: t("buildings.totalFloors"),
-			render: (row) => <span>{row.totalFloors ?? "—"}</span>,
-			width: "120px",
-		},
-	];
+	const columns = useMemo<DataTableColumn<Building>[]>(
+		() => [
+			{
+				key: "name",
+				header: t("buildings.buildingName"),
+				render: (row) => (
+					<Link
+						href={`/buildings/${row.id}`}
+						className="text-brand-blue-deep font-medium no-underline hover:underline"
+					>
+						{row.name}
+					</Link>
+				),
+			},
+			{
+				key: "address",
+				header: t("buildings.address"),
+				render: (row) => <span>{row.address}</span>,
+			},
+			{
+				key: "totalFloors",
+				header: t("buildings.totalFloors"),
+				render: (row) => <span>{row.totalFloors ?? "—"}</span>,
+				width: "120px",
+			},
+		],
+		[t],
+	);
 
 	return (
 		<>

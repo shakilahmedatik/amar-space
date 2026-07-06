@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { ErrorFeedback } from "@/components/ui/error-feedback";
 import { LoadingSkeleton } from "@/components/ui/loading-skeleton";
 import {
@@ -27,24 +28,18 @@ export default function AdminOwnersPage() {
 	});
 	const updateApproval = useUpdateOwnerApproval();
 
+	const [ownerToUpdate, setOwnerToUpdate] = useState<{
+		id: string;
+		status: "approved" | "rejected";
+	} | null>(null);
+
 	const handleStatusChange = useCallback(
 		(newStatus: "approved" | "rejected") => {
 			return (ownerId: string) => {
-				const confirmMsg =
-					newStatus === "approved"
-						? t("adminOwners.confirmApprove")
-						: t("adminOwners.confirmReject");
-				if (window.confirm(confirmMsg)) {
-					updateApproval.mutate(
-						{ ownerId, newStatus },
-						{
-							onSuccess: () => {},
-						},
-					);
-				}
+				setOwnerToUpdate({ id: ownerId, status: newStatus });
 			};
 		},
-		[updateApproval, t],
+		[],
 	);
 
 	if (role !== "superadmin") {
@@ -228,6 +223,28 @@ export default function AdminOwnersPage() {
 					</Table>
 				</div>
 			)}
+			<ConfirmDialog
+				open={!!ownerToUpdate}
+				onClose={() => setOwnerToUpdate(null)}
+				onConfirm={() => {
+					if (ownerToUpdate) {
+						updateApproval.mutate(
+							{ ownerId: ownerToUpdate.id, newStatus: ownerToUpdate.status },
+							{ onSettled: () => setOwnerToUpdate(null) },
+						);
+					}
+				}}
+				title={
+					ownerToUpdate?.status === "approved"
+						? t("adminOwners.confirmApprove")
+						: t("adminOwners.confirmReject")
+				}
+				description={
+					t("adminOwners.confirmStatusChangeDesc") ||
+					"Are you sure you want to change this owner's status?"
+				}
+				loading={updateApproval.isPending}
+			/>
 		</>
 	);
 }

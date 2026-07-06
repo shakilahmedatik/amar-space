@@ -11,7 +11,7 @@ import type { NoticeListItem, NoticeTargetAudience } from "@/lib/api-client";
 import { useTranslation } from "@/lib/i18n";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 /**
  * Notice list page — /notices
@@ -56,12 +56,15 @@ export default function NoticesPage() {
 	}, []);
 	const canCreate = role === "owner" || role === "manager";
 
-	const audienceLabels: Record<NoticeTargetAudience, string> = {
-		all_renters: t("notices.allRenters"),
-		specific_building: t("notices.specificBuilding"),
-		specific_flat: t("notices.specificFlat"),
-		managers_only: t("notices.managersOnly"),
-	};
+	const audienceLabels = useMemo<Record<NoticeTargetAudience, string>>(
+		() => ({
+			all_renters: t("notices.allRenters"),
+			specific_building: t("notices.specificBuilding"),
+			specific_flat: t("notices.specificFlat"),
+			managers_only: t("notices.managersOnly"),
+		}),
+		[t],
+	);
 
 	const filters = [
 		{
@@ -93,104 +96,110 @@ export default function NoticesPage() {
 		pinned: pinnedFilter === "" ? "" : String(pinnedFilter),
 	};
 
-	function handleUseAsTemplate(notice: NoticeListItem) {
-		const name = `${notice.title} ${t("notices.templateSuffix")}`;
-		createTemplateMutation.mutate(
-			{
-				name,
-				title: notice.title,
-				body: notice.body || "",
-				targetAudience: notice.targetAudience,
-			},
-			{
-				onSuccess: () => {
-					router.push("/notices/templates");
+	const handleUseAsTemplate = useCallback(
+		(notice: NoticeListItem) => {
+			const name = `${notice.title} ${t("notices.templateSuffix")}`;
+			createTemplateMutation.mutate(
+				{
+					name,
+					title: notice.title,
+					body: notice.body || "",
+					targetAudience: notice.targetAudience,
 				},
-			},
-		);
-	}
-
-	const columns: DataTableColumn<NoticeListItem>[] = [
-		{
-			key: "title",
-			header: t("notices.noticeTitle"),
-			render: (row) => (
-				<div className="flex items-center gap-2">
-					{row.isPinned && (
-						<span
-							className="inline-flex items-center justify-center w-5 h-5 text-xs text-brand-orange"
-							title={t("notices.pinned")}
-						>
-							📌
-						</span>
-					)}
-					<Link
-						href={`/notices/${row.id}`}
-						className="text-brand-blue-deep font-medium no-underline hover:underline"
-					>
-						{row.title}
-					</Link>
-				</div>
-			),
-		},
-		{
-			key: "targetAudience",
-			header: t("notices.targetAudience"),
-			render: (row) => (
-				<span className="text-[0.8125rem] text-ink">
-					{audienceLabels[row.targetAudience]}
-					{row.targetBuildingName && ` — ${row.targetBuildingName}`}
-					{row.targetFlatNumber && ` — ${row.targetFlatNumber}`}
-				</span>
-			),
-		},
-		{
-			key: "authorName",
-			header: t("notices.author"),
-			render: (row) => <span className="text-ink">{row.authorName}</span>,
-			width: "140px",
-		},
-		{
-			key: "expiresAt",
-			header: t("notices.expiresAt"),
-			render: (row) => (
-				<span className="text-[0.8125rem] text-steel">
-					{row.expiresAt ? new Date(row.expiresAt).toLocaleDateString() : "—"}
-				</span>
-			),
-			width: "110px",
-		},
-		{
-			key: "createdAt",
-			header: t("notices.createdAt"),
-			render: (row) => (
-				<span className="text-[0.8125rem] text-steel">
-					{new Date(row.createdAt).toLocaleDateString()}
-				</span>
-			),
-			width: "110px",
-		},
-		...(statusFilter === "archived"
-			? [
-					{
-						key: "actions" as string,
-						header: "",
-						render: (row: NoticeListItem) => (
-							<Button
-								type="button"
-								variant="outline"
-								size="sm"
-								onClick={() => handleUseAsTemplate(row)}
-								className="rounded-full text-xs"
-							>
-								{t("notices.useAsTemplate")}
-							</Button>
-						),
-						width: "140px",
+				{
+					onSuccess: () => {
+						router.push("/notices/templates");
 					},
-				]
-			: []),
-	];
+				},
+			);
+		},
+		[t, createTemplateMutation, router],
+	);
+
+	const columns = useMemo<DataTableColumn<NoticeListItem>[]>(
+		() => [
+			{
+				key: "title",
+				header: t("notices.noticeTitle"),
+				render: (row) => (
+					<div className="flex items-center gap-2">
+						{row.isPinned && (
+							<span
+								className="inline-flex items-center justify-center w-5 h-5 text-xs text-brand-orange"
+								title={t("notices.pinned")}
+							>
+								📌
+							</span>
+						)}
+						<Link
+							href={`/notices/${row.id}`}
+							className="text-brand-blue-deep font-medium no-underline hover:underline"
+						>
+							{row.title}
+						</Link>
+					</div>
+				),
+			},
+			{
+				key: "targetAudience",
+				header: t("notices.targetAudience"),
+				render: (row) => (
+					<span className="text-[0.8125rem] text-ink">
+						{audienceLabels[row.targetAudience]}
+						{row.targetBuildingName && ` — ${row.targetBuildingName}`}
+						{row.targetFlatNumber && ` — ${row.targetFlatNumber}`}
+					</span>
+				),
+			},
+			{
+				key: "authorName",
+				header: t("notices.author"),
+				render: (row) => <span className="text-ink">{row.authorName}</span>,
+				width: "140px",
+			},
+			{
+				key: "expiresAt",
+				header: t("notices.expiresAt"),
+				render: (row) => (
+					<span className="text-[0.8125rem] text-steel">
+						{row.expiresAt ? new Date(row.expiresAt).toLocaleDateString() : "—"}
+					</span>
+				),
+				width: "110px",
+			},
+			{
+				key: "createdAt",
+				header: t("notices.createdAt"),
+				render: (row) => (
+					<span className="text-[0.8125rem] text-steel">
+						{new Date(row.createdAt).toLocaleDateString()}
+					</span>
+				),
+				width: "110px",
+			},
+			...(statusFilter === "archived"
+				? [
+						{
+							key: "actions" as string,
+							header: "",
+							render: (row: NoticeListItem) => (
+								<Button
+									type="button"
+									variant="outline"
+									size="sm"
+									onClick={() => handleUseAsTemplate(row)}
+									className="rounded-full text-xs"
+								>
+									{t("notices.useAsTemplate")}
+								</Button>
+							),
+							width: "140px",
+						},
+					]
+				: []),
+		],
+		[t, statusFilter, audienceLabels, handleUseAsTemplate],
+	);
 
 	return (
 		<>

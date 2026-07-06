@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ErrorFeedback } from "@/components/ui/error-feedback";
 import { FormField, FormInput } from "@/components/ui/form-field";
-import { useBuildings, useCreateFlat } from "@/hooks/use-flats";
+import { useBuildingOptions } from "@/hooks/use-options";
+import { useCreateFlat } from "@/hooks/use-flats";
 import { useTranslation } from "@/lib/i18n";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -23,7 +24,8 @@ export default function CreateFlatPage() {
 	const [errors, setErrors] = useState<Record<string, string>>({});
 	const [successMessage, setSuccessMessage] = useState("");
 
-	const { data: buildingsData, isLoading: buildingsLoading } = useBuildings();
+	const { data: buildingsData, isLoading: buildingsLoading } =
+		useBuildingOptions();
 	const createFlatMutation = useCreateFlat();
 	const validate = useCallback((): boolean => {
 		const newErrors: Record<string, string> = {};
@@ -66,10 +68,7 @@ export default function CreateFlatPage() {
 				setFloor("");
 				setBuildingId("");
 				setErrors({});
-				// Redirect after short delay
-				setTimeout(() => {
-					router.push("/flats");
-				}, 1500);
+				router.push("/flats");
 			} catch (err) {
 				setErrors({
 					form: err instanceof Error ? err.message : t("common.error"),
@@ -135,7 +134,9 @@ export default function CreateFlatPage() {
 									id="flatNumber"
 									type="text"
 									value={flatNumber}
-									onChange={(e) => setFlatNumber(e.target.value)}
+									onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+										setFlatNumber(e.target.value)
+									}
 									maxLength={20}
 									hasError={!!errors.flatNumber}
 									aria-describedby={
@@ -154,7 +155,9 @@ export default function CreateFlatPage() {
 									id="floor"
 									type="number"
 									value={floor}
-									onChange={(e) => setFloor(e.target.value)}
+									onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+										setFloor(e.target.value)
+									}
 									min={1}
 									max={200}
 									hasError={!!errors.floor}

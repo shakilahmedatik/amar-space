@@ -10,13 +10,11 @@ import {
 	updateNoticeTemplate,
 } from "@/lib/api-client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { DEFAULT_STALE_TIME } from "./constants";
 
 export function useNoticeTemplates() {
 	return useQuery({
 		queryKey: ["notice-templates"],
 		queryFn: () => fetchNoticeTemplates(),
-		staleTime: DEFAULT_STALE_TIME,
 	});
 }
 
@@ -25,7 +23,6 @@ export function useNoticeTemplate(id: string) {
 		queryKey: ["notice-templates", id],
 		queryFn: () => fetchNoticeTemplate(id),
 		enabled: !!id,
-		staleTime: DEFAULT_STALE_TIME,
 	});
 }
 

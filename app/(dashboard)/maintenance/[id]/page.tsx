@@ -62,7 +62,6 @@ export default function MaintenanceDetailPage() {
 	const { role } = useSession();
 	const { t } = useTranslation();
 	const params = useParams();
-	const _router = useRouter();
 	const requestId = params.id as string;
 	// Comment form state
 	const [commentContent, setCommentContent] = useState("");

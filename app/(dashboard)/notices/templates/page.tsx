@@ -16,7 +16,7 @@ import { updateNoticeTemplate } from "@/lib/api-client";
 import { useTranslation } from "@/lib/i18n";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
-import { useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 export default function NoticeTemplatesPage() {
 	const { t } = useTranslation();
@@ -39,23 +39,26 @@ export default function NoticeTemplatesPage() {
 		},
 	});
 
-	function startEdit(template: NoticeTemplate) {
+	const startEdit = useCallback((template: NoticeTemplate) => {
 		setEditingId(template.id);
 		setEditName(template.name);
-	}
+	}, []);
 
-	function cancelEdit() {
+	const cancelEdit = useCallback(() => {
 		setEditingId(null);
 		setEditName("");
-	}
+	}, []);
 
-	async function handleSaveEdit(template: NoticeTemplate) {
-		if (!editName.trim()) return;
-		updateMutation.mutate({
-			id: template.id,
-			name: editName.trim(),
-		});
-	}
+	const handleSaveEdit = useCallback(
+		async (template: NoticeTemplate) => {
+			if (!editName.trim()) return;
+			updateMutation.mutate({
+				id: template.id,
+				name: editName.trim(),
+			});
+		},
+		[editName, updateMutation],
+	);
 
 	async function handleDelete() {
 		if (!deleteId) return;
@@ -67,97 +70,101 @@ export default function NoticeTemplatesPage() {
 		});
 	}
 
-	const columns: DataTableColumn<NoticeTemplate>[] = [
-		{
-			key: "name",
-			header: t("notices.templateName"),
-			render: (row) =>
-				editingId === row.id ? (
-					<FormInput
-						type="text"
-						value={editName}
-						onChange={(e) => setEditName(e.target.value)}
-						className="max-w-xs"
-					/>
-				) : (
-					<span className="font-medium text-ink-strong">{row.name}</span>
+	const columns = useMemo<DataTableColumn<NoticeTemplate>[]>(
+		() => [
+			{
+				key: "name",
+				header: t("notices.templateName"),
+				render: (row) =>
+					editingId === row.id ? (
+						<FormInput
+							type="text"
+							value={editName}
+							onChange={(e) => setEditName(e.target.value)}
+							className="max-w-xs"
+						/>
+					) : (
+						<span className="font-medium text-ink-strong">{row.name}</span>
+					),
+			},
+			{
+				key: "title",
+				header: t("notices.noticeTitle"),
+				render: (row) => <span className="text-ink">{row.title || "—"}</span>,
+			},
+			{
+				key: "targetAudience",
+				header: t("notices.targetAudience"),
+				render: (row) => (
+					<span className="text-[0.8125rem] text-ink">
+						{audienceLabels[
+							row.targetAudience as keyof typeof audienceLabels
+						] || row.targetAudience}
+					</span>
 				),
-		},
-		{
-			key: "title",
-			header: t("notices.noticeTitle"),
-			render: (row) => <span className="text-ink">{row.title || "—"}</span>,
-		},
-		{
-			key: "targetAudience",
-			header: t("notices.targetAudience"),
-			render: (row) => (
-				<span className="text-[0.8125rem] text-ink">
-					{audienceLabels[row.targetAudience as keyof typeof audienceLabels] ||
-						row.targetAudience}
-				</span>
-			),
-		},
-		{
-			key: "actions",
-			header: "",
-			render: (row) =>
-				editingId === row.id ? (
-					<div className="flex gap-2">
-						<Button
-							type="button"
-							size="sm"
-							onClick={() => handleSaveEdit(row)}
-							disabled={!editName.trim()}
-							className="rounded-full text-xs"
-						>
-							{t("common.save")}
-						</Button>
-						<Button
-							type="button"
-							variant="outline"
-							size="sm"
-							onClick={cancelEdit}
-							className="rounded-full text-xs"
-						>
-							{t("common.cancel")}
-						</Button>
-					</div>
-				) : (
-					<div className="flex gap-2">
-						<Button
-							asChild
-							variant="outline"
-							size="sm"
-							className="rounded-full text-xs"
-						>
-							<Link href={`/notices/new?templateId=${row.id}`}>
-								{t("notices.useTemplate")}
-							</Link>
-						</Button>
-						<Button
-							type="button"
-							variant="outline"
-							size="sm"
-							onClick={() => startEdit(row)}
-							className="rounded-full text-xs"
-						>
-							{t("common.edit")}
-						</Button>
-						<Button
-							type="button"
-							variant="outline"
-							size="sm"
-							onClick={() => setDeleteId(row.id)}
-							className="rounded-full text-xs border-error-text text-error-text hover:bg-error-bg"
-						>
-							{t("common.delete")}
-						</Button>
-					</div>
-				),
-			width: "280px",
-		},
-	];
+			},
+			{
+				key: "actions",
+				header: "",
+				render: (row) =>
+					editingId === row.id ? (
+						<div className="flex gap-2">
+							<Button
+								type="button"
+								size="sm"
+								onClick={() => handleSaveEdit(row)}
+								disabled={!editName.trim()}
+								className="rounded-full text-xs"
+							>
+								{t("common.save")}
+							</Button>
+							<Button
+								type="button"
+								variant="outline"
+								size="sm"
+								onClick={cancelEdit}
+								className="rounded-full text-xs"
+							>
+								{t("common.cancel")}
+							</Button>
+						</div>
+					) : (
+						<div className="flex gap-2">
+							<Button
+								asChild
+								variant="outline"
+								size="sm"
+								className="rounded-full text-xs"
+							>
+								<Link href={`/notices/new?templateId=${row.id}`}>
+									{t("notices.useTemplate")}
+								</Link>
+							</Button>
+							<Button
+								type="button"
+								variant="outline"
+								size="sm"
+								onClick={() => startEdit(row)}
+								className="rounded-full text-xs"
+							>
+								{t("common.edit")}
+							</Button>
+							<Button
+								type="button"
+								variant="outline"
+								size="sm"
+								onClick={() => setDeleteId(row.id)}
+								className="rounded-full text-xs border-error-text text-error-text hover:bg-error-bg"
+							>
+								{t("common.delete")}
+							</Button>
+						</div>
+					),
+				width: "280px",
+			},
+		],
+		[t, editingId, editName, startEdit, handleSaveEdit, cancelEdit],
+	);
 
 	const audienceLabels: Record<string, string> = {
 		all_renters: t("notices.allRenters"),

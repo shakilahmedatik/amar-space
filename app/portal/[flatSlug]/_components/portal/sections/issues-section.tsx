@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ErrorFeedback } from "@/components/ui/error-feedback";
+import { FileUpload } from "@/components/ui/file-upload";
 import { useTranslation } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import { Bug, Image as ImageIcon } from "lucide-react";
@@ -18,12 +19,6 @@ export function IssuesSection({ flatSlug, buildingId }: IssuesSectionProps) {
 	const { t } = useTranslation();
 	const { form, feedback, setFeedback, isSubmitting, handleSubmit } =
 		usePortalIssues(flatSlug, buildingId);
-
-	const handleIssueFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-		if (e.target.files) {
-			form.setIssueAttachments(Array.from(e.target.files));
-		}
-	};
 
 	return (
 		<div className="flex flex-col gap-6">
@@ -191,50 +186,19 @@ export function IssuesSection({ flatSlug, buildingId }: IssuesSectionProps) {
 							</div>
 						</div>
 
-						<div>
+						<div className="mb-6">
 							<label
-								htmlFor="issue-files"
+								htmlFor="issue-photo-upload"
 								className="block text-sm font-semibold text-ink mb-1.5"
 							>
 								{t("issues.photoUpload") || "ছবি সংযুক্তি (ঐচ্ছিক)"}
 							</label>
-							<div className="relative">
-								<input
-									id="issue-files"
-									type="file"
-									multiple
-									accept="image/jpeg,image/png,image/webp"
-									capture="environment"
-									onChange={handleIssueFileChange}
-									className="hidden"
-								/>
-								<label
-									htmlFor="issue-files"
-									className="flex items-center gap-2 px-4 py-2.5 border border-dashed border-hairline rounded-lg text-sm bg-white cursor-pointer hover:bg-surface/50 transition-colors min-h-11 justify-center text-steel font-medium"
-								>
-									<ImageIcon className="h-4 w-4" />
-									{form.issueAttachments.length > 0
-										? `${form.issueAttachments.length} ${t("issues.filesSelected") || "টি ফাইল নির্বাচিত"}`
-										: t("issues.selectFiles") || "ছবি নির্বাচন করুন"}
-								</label>
-							</div>
-							{form.issueAttachments.length > 0 && (
-								<div className="bg-surface p-3 rounded-lg border border-hairline mt-2">
-									<span className="text-xs text-steel font-semibold block mb-1">
-										{t("issues.attachedFiles") || "সংযুক্ত ফাইল:"}
-									</span>
-									<ul className="text-xs text-ink flex flex-col gap-1.5">
-										{form.issueAttachments.map((f, i) => (
-											<li key={i} className="flex justify-between items-center">
-												<span className="truncate">{f.name}</span>
-												<span className="text-steel font-mono">
-													({(f.size / 1024).toFixed(1)} KB)
-												</span>
-											</li>
-										))}
-									</ul>
-								</div>
-							)}
+							<FileUpload
+								onFilesSelected={(files) => form.setIssueAttachments(files)}
+								maxFiles={5}
+								disabled={isSubmitting}
+								capture="environment"
+							/>
 						</div>
 
 						<Button

@@ -65,9 +65,7 @@ export default function FlatDetailPage() {
 			await deleteFlatMutation.mutateAsync(flatId);
 			setFeedback({ message: t("flats.deleteSuccess"), type: "success" });
 			setShowDeleteDialog(false);
-			setTimeout(() => {
-				router.push("/flats");
-			}, 1500);
+			router.push("/flats");
 		} catch (err) {
 			setFeedback({
 				message: err instanceof Error ? err.message : t("common.error"),

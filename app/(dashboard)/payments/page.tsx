@@ -9,17 +9,13 @@ import {
 } from "@/components/ui/data-table";
 import { ErrorFeedback } from "@/components/ui/error-feedback";
 import { useSession } from "@/contexts/session-context";
-import {
-	useDeletePayment,
-	usePayments,
-	useRenterOptions,
-} from "@/hooks/use-payments";
+import { useRenterOptions } from "@/hooks/use-options";
+import { useDeletePayment, usePayments } from "@/hooks/use-payments";
 import type { Payment, PaymentMethod } from "@/lib/api-client";
 import { useTranslation } from "@/lib/i18n";
 import { Trash2 } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 /**
  * Payment history page — /payments
@@ -34,7 +30,6 @@ export default function PaymentsPage() {
 	const deletePaymentMutation = useDeletePayment();
 	const { role } = useSession();
 	const { t } = useTranslation();
-	const _router = useRouter();
 	const [page, setPage] = useState(1);
 	const [methodFilter, setMethodFilter] = useState<PaymentMethod | "">("");
 	const [renterFilter, setRenterFilter] = useState("");
@@ -70,66 +65,72 @@ export default function PaymentsPage() {
 
 	const canRecord = role === "owner" || role === "manager";
 
-	const formatMethod = (method: PaymentMethod): string => {
-		switch (method) {
-			case "cash":
-				return t("payments.cash");
-			case "bank_transfer":
-				return t("payments.bankTransfer");
-			case "mobile_banking":
-				return t("payments.mobileBanking");
-			default:
-				return method;
-		}
-	};
+	const formatMethod = useCallback(
+		(method: PaymentMethod): string => {
+			switch (method) {
+				case "cash":
+					return t("payments.cash");
+				case "bank_transfer":
+					return t("payments.bankTransfer");
+				case "mobile_banking":
+					return t("payments.mobileBanking");
+				default:
+					return method;
+			}
+		},
+		[t],
+	);
 
-	const columns: DataTableColumn<Payment>[] = [
-		{
-			key: "receiptReference",
-			header: t("payments.receipt"),
-			render: (row) => (
-				<Link
-					href={`/payments/${row.id}`}
-					className="text-brand-blue-deep font-medium no-underline text-sm"
-				>
-					{row.receiptReference}
-				</Link>
-			),
-		},
-		{
-			key: "amount",
-			header: t("payments.amount"),
-			render: (row) => (
-				<span className="font-medium">
-					৳
-					{Number(row.amount).toLocaleString("en-BD", {
-						minimumFractionDigits: 2,
-						maximumFractionDigits: 2,
-					})}
-				</span>
-			),
-		},
-		{
-			key: "paymentDate",
-			header: t("payments.date"),
-			render: (row) => <span>{row.paymentDate}</span>,
-		},
-		{
-			key: "paymentMethod",
-			header: t("payments.method"),
-			render: (row) => <span>{formatMethod(row.paymentMethod)}</span>,
-		},
-		{
-			key: "renterName",
-			header: t("payments.renter"),
-			render: (row) => <span>{row.renterName || "—"}</span>,
-		},
-		{
-			key: "billingMonth",
-			header: t("payments.billMonth"),
-			render: (row) => <span>{row.billingMonth || "—"}</span>,
-		},
-	];
+	const columns = useMemo<DataTableColumn<Payment>[]>(
+		() => [
+			{
+				key: "receiptReference",
+				header: t("payments.receipt"),
+				render: (row) => (
+					<Link
+						href={`/payments/${row.id}`}
+						className="text-brand-blue-deep font-medium no-underline text-sm"
+					>
+						{row.receiptReference}
+					</Link>
+				),
+			},
+			{
+				key: "amount",
+				header: t("payments.amount"),
+				render: (row) => (
+					<span className="font-medium">
+						৳
+						{Number(row.amount).toLocaleString("en-BD", {
+							minimumFractionDigits: 2,
+							maximumFractionDigits: 2,
+						})}
+					</span>
+				),
+			},
+			{
+				key: "paymentDate",
+				header: t("payments.date"),
+				render: (row) => <span>{row.paymentDate}</span>,
+			},
+			{
+				key: "paymentMethod",
+				header: t("payments.method"),
+				render: (row) => <span>{formatMethod(row.paymentMethod)}</span>,
+			},
+			{
+				key: "renterName",
+				header: t("payments.renter"),
+				render: (row) => <span>{row.renterName || "—"}</span>,
+			},
+			{
+				key: "billingMonth",
+				header: t("payments.billMonth"),
+				render: (row) => <span>{row.billingMonth || "—"}</span>,
+			},
+		],
+		[t, formatMethod],
+	);
 
 	if (role === "owner" || role === "manager") {
 		columns.push({

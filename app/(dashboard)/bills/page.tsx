@@ -1,4 +1,5 @@
-"use client";
+import { useMemo } from "react";
+("use client");
 
 import { Button } from "@/components/ui/button";
 import { CurrencyDisplay } from "@/components/ui/currency-display";
@@ -7,13 +8,12 @@ import { ErrorFeedback } from "@/components/ui/error-feedback";
 import { LoadingSkeleton } from "@/components/ui/loading-skeleton";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { useSession } from "@/contexts/session-context";
+import { useBills, useGenerateBills } from "@/hooks/use-bills";
 import {
-	useBills,
+	useBuildingOptions,
 	useFlatOptions,
-	useGenerateBills,
 	useRenterOptions,
-} from "@/hooks/use-bills";
-import { useBuildings } from "@/hooks/use-buildings";
+} from "@/hooks/use-options";
 import type { BillListItem, BillStatus } from "@/lib/api-client";
 import { useTranslation } from "@/lib/i18n";
 import Link from "next/link";
@@ -28,7 +28,6 @@ import { type FormEvent, useCallback, useState } from "react";
 export default function BillsPage() {
 	const { role } = useSession();
 	const { t } = useTranslation();
-	const _router = useRouter();
 	const [page, setPage] = useState(1);
 
 	// Filter state
@@ -53,7 +52,7 @@ export default function BillsPage() {
 		status: statusFilter || undefined,
 	});
 
-	const { data: buildingsData } = useBuildings(1, 100);
+	const { data: buildingsData } = useBuildingOptions();
 	const { data: flatOptionsData } = useFlatOptions();
 	const { data: renterOptionsData } = useRenterOptions();
 	const generateMutation = useGenerateBills();
@@ -165,76 +164,79 @@ export default function BillsPage() {
 		status: statusFilter,
 	};
 
-	const columns: DataTableColumn<BillListItem>[] = [
-		{
-			key: "billingMonth",
-			header: t("bills.billMonth"),
-			render: (row) => (
-				<Link
-					href={`/bills/${row.id}`}
-					className="text-brand-blue-deep font-medium no-underline hover:underline"
-				>
-					{row.billingMonth}
-				</Link>
-			),
-			width: "110px",
-		},
-		{
-			key: "dueDate",
-			header: "Due Date",
-			render: (row) => (
-				<span>
-					{row.dueDate
-						? new Date(`${row.dueDate}T00:00:00`).toLocaleDateString()
-						: "—"}
-				</span>
-			),
-			width: "110px",
-		},
-		{
-			key: "renterName",
-			header: t("bills.renter"),
-			render: (row) => (
-				<span>
-					{row.renterName}
-					{row.rentDays !== null && row.totalDaysInMonth !== null && (
-						<span className="ml-1 text-xs text-steel">
-							({row.rentDays}/{row.totalDaysInMonth})
-						</span>
-					)}
-				</span>
-			),
-		},
-		{
-			key: "flatNumber",
-			header: t("bills.flat"),
-			render: (row) => <span>{row.flatNumber}</span>,
-			width: "100px",
-		},
-		{
-			key: "buildingName",
-			header: t("bills.building"),
-			render: (row) => <span>{row.buildingName}</span>,
-		},
-		{
-			key: "totalAmount",
-			header: t("bills.totalAmount"),
-			render: (row) => <CurrencyDisplay amount={row.totalAmount} />,
-			width: "140px",
-		},
-		{
-			key: "paidAmount",
-			header: t("bills.paidAmount"),
-			render: (row) => <CurrencyDisplay amount={row.paidAmount} />,
-			width: "140px",
-		},
-		{
-			key: "status",
-			header: t("bills.status"),
-			render: (row) => <StatusBadge status={row.status} />,
-			width: "150px",
-		},
-	];
+	const columns = useMemo<DataTableColumn<BillListItem>[]>(
+		() => [
+			{
+				key: "billingMonth",
+				header: t("bills.billMonth"),
+				render: (row) => (
+					<Link
+						href={`/bills/${row.id}`}
+						className="text-brand-blue-deep font-medium no-underline hover:underline"
+					>
+						{row.billingMonth}
+					</Link>
+				),
+				width: "110px",
+			},
+			{
+				key: "dueDate",
+				header: "Due Date",
+				render: (row) => (
+					<span>
+						{row.dueDate
+							? new Date(`${row.dueDate}T00:00:00`).toLocaleDateString()
+							: "—"}
+					</span>
+				),
+				width: "110px",
+			},
+			{
+				key: "renterName",
+				header: t("bills.renter"),
+				render: (row) => (
+					<span>
+						{row.renterName}
+						{row.rentDays !== null && row.totalDaysInMonth !== null && (
+							<span className="ml-1 text-xs text-steel">
+								({row.rentDays}/{row.totalDaysInMonth})
+							</span>
+						)}
+					</span>
+				),
+			},
+			{
+				key: "flatNumber",
+				header: t("bills.flat"),
+				render: (row) => <span>{row.flatNumber}</span>,
+				width: "100px",
+			},
+			{
+				key: "buildingName",
+				header: t("bills.building"),
+				render: (row) => <span>{row.buildingName}</span>,
+			},
+			{
+				key: "totalAmount",
+				header: t("bills.totalAmount"),
+				render: (row) => <CurrencyDisplay amount={row.totalAmount} />,
+				width: "140px",
+			},
+			{
+				key: "paidAmount",
+				header: t("bills.paidAmount"),
+				render: (row) => <CurrencyDisplay amount={row.paidAmount} />,
+				width: "140px",
+			},
+			{
+				key: "status",
+				header: t("bills.status"),
+				render: (row) => <StatusBadge status={row.status} />,
+				width: "150px",
+			},
+		],
+		[t],
+	);
 
 	return (
 		<>

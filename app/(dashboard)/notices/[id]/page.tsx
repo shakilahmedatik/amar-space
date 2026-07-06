@@ -7,7 +7,7 @@ import { ErrorFeedback } from "@/components/ui/error-feedback";
 import { FormField, FormInput } from "@/components/ui/form-field";
 import { LoadingSkeleton } from "@/components/ui/loading-skeleton";
 import { useSession } from "@/contexts/session-context";
-import { useBuildings } from "@/hooks/use-buildings";
+import { useBuildingOptions, useFlatOptions } from "@/hooks/use-options";
 import { useCreateNoticeTemplate } from "@/hooks/use-notice-templates";
 import {
 	useDeleteNotice,
@@ -44,10 +44,16 @@ export default function NoticeDetailPage() {
 	const [editErrors, setEditErrors] = useState<Record<string, string>>({});
 
 	// Flat options for editing
-	const [flatOptions, setFlatOptions] = useState<
-		Array<{ id: string; flatNumber: string }>
-	>([]);
-	const [loadingFlats, setLoadingFlats] = useState(false);
+	const { data: flatOptionsData, isLoading: loadingFlats } = useFlatOptions(
+		editAudience === "specific_flat" && editBuildingId
+			? editBuildingId
+			: undefined,
+	);
+	const flatOptions =
+		flatOptionsData?.data?.map((f) => ({
+			id: f.id,
+			flatNumber: f.flatNumber,
+		})) ?? [];
 
 	// Delete confirmation
 	const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -61,32 +67,7 @@ export default function NoticeDetailPage() {
 	const deleteMutation = useDeleteNotice(noticeId);
 	const pinMutation = useToggleNoticePin(noticeId);
 	const createTemplateMutation = useCreateNoticeTemplate();
-	const { data: buildingsData } = useBuildings(1, 100);
-	// Load flats when editing with specific_flat audience
-	useEffect(() => {
-		async function loadFlats() {
-			if (editAudience === "specific_flat" && editBuildingId) {
-				setLoadingFlats(true);
-				try {
-					const response = await fetchFlats({
-						buildingId: editBuildingId,
-						pageSize: 100,
-					});
-					setFlatOptions(
-						(response.data ?? []).map((f) => ({
-							id: f.id,
-							flatNumber: f.flatNumber,
-						})),
-					);
-				} catch {
-					setFlatOptions([]);
-				} finally {
-					setLoadingFlats(false);
-				}
-			}
-		}
-		loadFlats();
-	}, [editAudience, editBuildingId]);
+	const { data: buildingsData } = useBuildingOptions();
 
 	function startEditing() {
 		if (!notice) return;
@@ -169,9 +150,7 @@ export default function NoticeDetailPage() {
 		try {
 			await deleteMutation.mutateAsync();
 			setSuccessMessage(t("notices.deleteSuccess"));
-			setTimeout(() => {
-				router.push("/notices");
-			}, 1500);
+			router.push("/notices");
 		} catch (err) {
 			setSuccessMessage("");
 			setEditErrors({
@@ -431,7 +410,6 @@ export default function NoticeDetailPage() {
 													);
 													setEditBuildingId("");
 													setEditFlatId("");
-													setFlatOptions([]);
 												}}
 												className={[
 													"w-full px-3 py-2 text-sm rounded-md border min-h-11 bg-canvas",
@@ -473,7 +451,6 @@ export default function NoticeDetailPage() {
 													onChange={(e) => {
 														setEditBuildingId(e.target.value);
 														setEditFlatId("");
-														setFlatOptions([]);
 													}}
 													className={[
 														"w-full px-3 py-2 text-sm rounded-md border min-h-11 bg-canvas",

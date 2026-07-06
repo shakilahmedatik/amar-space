@@ -23,7 +23,6 @@ interface FormErrors {
  */
 export default function RecordPaymentPage() {
 	const { t } = useTranslation();
-	const _router = useRouter();
 	// Form state
 	const [billId, setBillId] = useState("");
 	const [amount, setAmount] = useState("");

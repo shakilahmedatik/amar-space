@@ -14,7 +14,7 @@ import {
 	updateIssueStatus,
 } from "@/lib/api-client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { DEFAULT_STALE_TIME, OPTIONS_STALE_TIME } from "./constants";
+import { OPTIONS_STALE_TIME } from "./constants";
 
 /**
  * TanStack Query hook for issue list with filters and pagination.
@@ -23,7 +23,6 @@ export function useIssues(params: IssueListParams = {}) {
 	return useQuery({
 		queryKey: ["issues", params],
 		queryFn: () => fetchIssues(params),
-		staleTime: DEFAULT_STALE_TIME,
 	});
 }
 
@@ -35,7 +34,6 @@ export function useIssue(id: string) {
 		queryKey: ["issues", id],
 		queryFn: () => fetchIssue(id),
 		enabled: !!id,
-		staleTime: DEFAULT_STALE_TIME,
 	});
 }
 

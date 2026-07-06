@@ -15,13 +15,12 @@ import {
 	updateStaffPermissions,
 } from "@/lib/api-client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { DEFAULT_STALE_TIME, OPTIONS_STALE_TIME } from "./constants";
+import { OPTIONS_STALE_TIME } from "./constants";
 
 export function useStaff(page = 1, pageSize = 20, role?: string) {
 	return useQuery({
 		queryKey: ["staff", { page, pageSize, role }],
 		queryFn: () => fetchStaff(page, pageSize, role),
-		staleTime: DEFAULT_STALE_TIME,
 	});
 }
 
@@ -29,7 +28,6 @@ export function useStaffMember(id: string) {
 	return useQuery({
 		queryKey: ["staff", id],
 		queryFn: () => fetchStaffMember(id),
-		staleTime: DEFAULT_STALE_TIME,
 		enabled: !!id,
 	});
 }

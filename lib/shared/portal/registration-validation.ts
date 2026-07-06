@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { PHONE_REGEX } from "../validation/constants";
 
 // ─── Portal Registration Form Validation ────────────────────────────────────
 // Validates renter registration form inputs with Bangla error messages.
@@ -10,7 +11,7 @@ export const portalBloodGroupEnum = z.enum(
 
 export const portalPhoneSchema = z
 	.string({ error: "ফোন নম্বর আবশ্যক" })
-	.regex(/^01\d{9}$/, {
+	.regex(PHONE_REGEX, {
 		message: "ফোন নম্বর ১১ সংখ্যার হতে হবে এবং 01 দিয়ে শুরু হতে হবে",
 	});
 
@@ -22,7 +23,7 @@ export const portalNidSchema = z
 
 export const portalEmergencyContactSchema = z
 	.string({ error: "জরুরি যোগাযোগ নম্বর আবশ্যক" })
-	.regex(/^01\d{9}$/, {
+	.regex(PHONE_REGEX, {
 		message: "জরুরি যোগাযোগ নম্বর ১১ সংখ্যার হতে হবে এবং 01 দিয়ে শুরু হতে হবে",
 	});
 

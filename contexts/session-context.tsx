@@ -22,6 +22,7 @@ interface SessionContextValue {
 	user: SessionUser | null;
 	role: UserRole;
 	isLoading: boolean;
+	error: Error | null;
 }
 
 const SessionContext = createContext<SessionContextValue | null>(null);
@@ -35,6 +36,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
 	const router = useRouter();
 	const [user, setUser] = useState<SessionUser | null>(null);
 	const [isLoading, setIsLoading] = useState(true);
+	const [error, setError] = useState<Error | null>(null);
 
 	useEffect(() => {
 		async function loadSession() {
@@ -50,7 +52,10 @@ export function SessionProvider({ children }: { children: ReactNode }) {
 					name: session.name,
 					role: session.role as UserRole,
 				});
-			} catch {
+			} catch (err) {
+				setError(
+					err instanceof Error ? err : new Error("Failed to load session"),
+				);
 				router.push("/login");
 			} finally {
 				setIsLoading(false);
@@ -65,6 +70,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
 				user,
 				role: user?.role ?? "renter",
 				isLoading,
+				error,
 			}}
 		>
 			{children}

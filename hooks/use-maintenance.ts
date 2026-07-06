@@ -12,7 +12,6 @@ import {
 	updateMaintenanceStatus,
 } from "@/lib/api-client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { DEFAULT_STALE_TIME } from "./constants";
 
 /**
  * TanStack Query hook for maintenance request list with filters and pagination.
@@ -21,7 +20,6 @@ export function useMaintenanceRequests(params: MaintenanceListParams = {}) {
 	return useQuery({
 		queryKey: ["maintenance", params],
 		queryFn: () => fetchMaintenanceRequests(params),
-		staleTime: DEFAULT_STALE_TIME,
 	});
 }
 
@@ -33,7 +31,6 @@ export function useMaintenanceRequest(id: string) {
 		queryKey: ["maintenance", id],
 		queryFn: () => fetchMaintenanceRequest(id),
 		enabled: !!id,
-		staleTime: DEFAULT_STALE_TIME,
 	});
 }
 

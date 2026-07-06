@@ -27,7 +27,6 @@ import { useCallback, useState } from "react";
 export default function AuditPage() {
 	const { role } = useSession();
 	const { t } = useTranslation();
-	const _router = useRouter();
 	const [page, setPage] = useState(1);
 	const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
 

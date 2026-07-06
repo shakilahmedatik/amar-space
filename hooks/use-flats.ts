@@ -13,7 +13,6 @@ import {
 	updateFlat,
 } from "@/lib/api-client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { DEFAULT_STALE_TIME, OPTIONS_STALE_TIME } from "./constants";
 
 /**
  * TanStack Query hook for flat list with filters and pagination.
@@ -22,7 +21,6 @@ export function useFlats(params: FlatListParams = {}) {
 	return useQuery({
 		queryKey: ["flats", params],
 		queryFn: () => fetchFlats(params),
-		staleTime: DEFAULT_STALE_TIME,
 	});
 }
 
@@ -34,18 +32,6 @@ export function useFlat(id: string) {
 		queryKey: ["flats", id],
 		queryFn: () => fetchFlat(id),
 		enabled: !!id,
-		staleTime: DEFAULT_STALE_TIME,
-	});
-}
-
-/**
- * TanStack Query hook for buildings list (used in flat creation form).
- */
-export function useBuildings() {
-	return useQuery({
-		queryKey: ["buildings", { type: "list" }],
-		queryFn: fetchBuildingsList,
-		staleTime: OPTIONS_STALE_TIME,
 	});
 }
 

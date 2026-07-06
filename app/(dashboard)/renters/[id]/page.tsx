@@ -45,7 +45,6 @@ export default function RenterDetailPage() {
 	const { role } = useSession();
 	const { t } = useTranslation();
 	const params = useParams();
-	const _router = useRouter();
 	const renterId = params.id as string;
 	const { data: renter, isLoading, isError, error } = useRenter(renterId);
 	return (

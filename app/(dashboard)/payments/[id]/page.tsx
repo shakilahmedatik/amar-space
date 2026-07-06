@@ -15,7 +15,6 @@ import { useParams, useRouter } from "next/navigation";
 export default function PaymentReceiptPage() {
 	const { t } = useTranslation();
 	const params = useParams();
-	const _router = useRouter();
 	const paymentId = params.id as string;
 	const { data: receipt, isLoading, error } = usePaymentReceipt(paymentId);
 

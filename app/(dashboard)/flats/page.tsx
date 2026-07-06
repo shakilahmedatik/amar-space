@@ -8,12 +8,13 @@ import {
 } from "@/components/ui/data-table";
 import { ErrorFeedback } from "@/components/ui/error-feedback";
 import { StatusBadge } from "@/components/ui/status-badge";
+import { useBuildingOptions } from "@/hooks/use-options";
+import { useFlats } from "@/hooks/use-flats";
 import { useSession } from "@/contexts/session-context";
-import { useBuildings, useFlats } from "@/hooks/use-flats";
 import type { Flat, FlatStatus } from "@/lib/api-client";
 import { useTranslation } from "@/lib/i18n";
 import Link from "next/link";
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 /**
  * Flat list page — /flats
@@ -33,7 +34,7 @@ export default function FlatsPage() {
 		buildingId: buildingFilter || undefined,
 	});
 
-	const { data: buildingsData } = useBuildings();
+	const { data: buildingsData } = useBuildingOptions();
 
 	const handleFilterChange = useCallback((key: string, value: string) => {
 		setPage(1);
@@ -48,40 +49,43 @@ export default function FlatsPage() {
 		setPage(newPage);
 	}, []);
 
-	const columns: DataTableColumn<Flat>[] = [
-		{
-			key: "flatNumber",
-			header: t("flats.flatNumber"),
-			render: (row) => <span className="font-medium">{row.flatNumber}</span>,
-		},
-		{
-			key: "floor",
-			header: t("flats.floor"),
-			render: (row) => <span>{row.floor}</span>,
-		},
-		{
-			key: "building",
-			header: t("flats.building"),
-			render: (row) => <span>{row.buildingName || "—"}</span>,
-		},
-		{
-			key: "status",
-			header: t("flats.status"),
-			render: (row) => <StatusBadge status={row.status} />,
-		},
-		{
-			key: "actions",
-			header: t("flats.actions"),
-			render: (row) => (
-				<Link
-					href={`/flats/${row.id}`}
-					className="inline-flex items-center min-w-[44px] min-h-11 text-sm font-medium text-brand-blue-deep no-underline"
-				>
-					{t("flats.viewDetail")}
-				</Link>
-			),
-		},
-	];
+	const columns = useMemo<DataTableColumn<Flat>[]>(
+		() => [
+			{
+				key: "flatNumber",
+				header: t("flats.flatNumber"),
+				render: (row) => <span className="font-medium">{row.flatNumber}</span>,
+			},
+			{
+				key: "floor",
+				header: t("flats.floor"),
+				render: (row) => <span>{row.floor}</span>,
+			},
+			{
+				key: "building",
+				header: t("flats.building"),
+				render: (row) => <span>{row.buildingName || "—"}</span>,
+			},
+			{
+				key: "status",
+				header: t("flats.status"),
+				render: (row) => <StatusBadge status={row.status} />,
+			},
+			{
+				key: "actions",
+				header: t("flats.actions"),
+				render: (row) => (
+					<Link
+						href={`/flats/${row.id}`}
+						className="inline-flex items-center min-w-[44px] min-h-11 text-sm font-medium text-brand-blue-deep no-underline"
+					>
+						{t("flats.viewDetail")}
+					</Link>
+				),
+			},
+		],
+		[t],
+	);
 
 	const filters: DataTableFilter[] = [
 		{

@@ -13,7 +13,7 @@ const SESSION_CHECK_INTERVAL_MS = 60 * 1000;
 /**
  * Session expired message in Bangla, stored as a URL search param.
  */
-const SESSION_EXPIRED_MESSAGE =
+export const SESSION_EXPIRED_MESSAGE =
 	"সেশনের মেয়াদ শেষ হয়েছে। অনুগ্রহ করে আবার লগইন করুন।";
 
 /**
@@ -80,4 +80,3 @@ export function useSessionExpiry(flatSlug: string, enabled = true): void {
  * to display the Bangla message when redirected due to session expiry.
  */
 export const SESSION_EXPIRED_PARAM = "session_expired";
-export const SESSION_EXPIRED_BANGLA_MESSAGE = SESSION_EXPIRED_MESSAGE;

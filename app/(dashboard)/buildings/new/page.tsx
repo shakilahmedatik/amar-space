@@ -7,160 +7,80 @@ import { FileUpload } from "@/components/ui/file-upload";
 import { FormField, FormInput } from "@/components/ui/form-field";
 import { useCreateBuilding } from "@/hooks/use-buildings";
 import { useTranslation } from "@/lib/i18n";
+import {
+	type CreateBuildingInput,
+	createBuildingSchema,
+} from "@/lib/shared/validation";
+import { fileToBase64 } from "@/lib/utils/file";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Plus, Trash2 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { type FormEvent, useState } from "react";
+import { useState } from "react";
+import { Controller, useFieldArray, useForm } from "react-hook-form";
 
-/**
- * Helper to convert File to base64 string
- */
-function fileToBase64(file: File): Promise<string> {
-	return new Promise((resolve, reject) => {
-		const reader = new FileReader();
-		reader.readAsDataURL(file);
-		reader.onload = () => resolve(reader.result as string);
-		reader.onerror = (error) => reject(error);
-	});
-}
-
-/**
- * Building creation page — /buildings/new
- * Form with name, address, whatsapp link, cover photo, and emergency contacts.
- * Only accessible by Owner role.
- */
 export default function NewBuildingPage() {
-	const { t, locale } = useTranslation();
+	const { t } = useTranslation();
 	const router = useRouter();
-	const [name, setName] = useState("");
-	const [address, setAddress] = useState("");
-	const [totalFloors, setTotalFloors] = useState("");
-	const [whatsappGroupLink, setWhatsappGroupLink] = useState("");
-	const [managerPhone, setManagerPhone] = useState("");
-	const [buildingPhoto, setBuildingPhoto] = useState<string | null>(null);
-	const [logoPhoto, setLogoPhoto] = useState<string | null>(null);
-	const [rules, setRules] = useState("");
-	const [emergencyContacts, setEmergencyContacts] = useState<
-		Array<{
-			name: string;
-			role: string;
-			phone: string;
-			type: "building" | "nearby";
-		}>
-	>([]);
-	const [errors, setErrors] = useState<Record<string, string>>({});
+	const [globalError, setGlobalError] = useState("");
 	const [successMessage, setSuccessMessage] = useState("");
 
 	const createMutation = useCreateBuilding();
 
-	function validate(): boolean {
-		const newErrors: Record<string, string> = {};
+	const {
+		register,
+		control,
+		handleSubmit,
+		setValue,
+		watch,
+		formState: { errors, isSubmitting },
+	} = useForm<CreateBuildingInput>({
+		resolver: zodResolver(createBuildingSchema),
+		defaultValues: {
+			name: "",
+			address: "",
+			whatsappGroupLink: "",
+			managerPhone: "",
+			rules: "",
+			emergencyContacts: [],
+		},
+	});
 
-		if (!name.trim()) {
-			newErrors.name = t("buildings.buildingNameRequired");
-		} else if (name.trim().length > 200) {
-			newErrors.name = t("buildings.buildingNameMaxLength");
-		}
+	const { fields, append, remove } = useFieldArray({
+		control,
+		name: "emergencyContacts",
+	});
 
-		if (!address.trim()) {
-			newErrors.address = t("buildings.addressRequired");
-		} else if (address.trim().length > 500) {
-			newErrors.address = t("buildings.addressMaxLength");
-		}
+	const buildingPhoto = watch("buildingPhoto");
+	const logoPhoto = watch("logoPhoto");
 
-		if (totalFloors.trim()) {
-			const floors = Number.parseInt(totalFloors, 10);
-			if (Number.isNaN(floors) || floors < 1 || floors > 200) {
-				newErrors.totalFloors = t("buildings.totalFloorsRange");
-			}
-		}
-
-		if (whatsappGroupLink.trim() && whatsappGroupLink.trim().length > 500) {
-			newErrors.whatsappGroupLink = t("buildings.addressMaxLength");
-		}
-
-		if (managerPhone.trim() && !/^01\d{9}$/.test(managerPhone.trim())) {
-			newErrors.managerPhone = t("buildings.invalidPhoneFormat");
-		}
-
-		if (rules.trim().length > 5000) {
-			newErrors.rules = "নিয়মাবলী সর্বোচ্চ ৫০০০ অক্ষরের হতে পারে";
-		}
-
-		emergencyContacts.forEach((contact, index) => {
-			if (!contact.name.trim()) {
-				newErrors[`contact-${index}-name`] = t("validation.required");
-			}
-			if (!contact.role.trim()) {
-				newErrors[`contact-${index}-role`] = t("validation.required");
-			}
-			if (contact.phone.trim() && !/^01\d{9}$/.test(contact.phone.trim())) {
-				newErrors[`contact-${index}-phone`] = t("buildings.invalidPhoneFormat");
-			}
-		});
-
-		setErrors(newErrors);
-		return Object.keys(newErrors).length === 0;
-	}
-
-	async function handlePhotoSelected(files: File[]) {
-		if (files.length > 0 && files[0]) {
-			try {
-				const base64 = await fileToBase64(files[0]);
-				setBuildingPhoto(base64);
-			} catch (_err) {
-				setErrors((prev) => ({ ...prev, photo: "ফাইলটি আপলোড করা যায়নি" }));
-			}
-		} else {
-			setBuildingPhoto(null);
-		}
-	}
-
-	async function handleLogoSelected(files: File[]) {
-		if (files.length > 0 && files[0]) {
-			try {
-				const base64 = await fileToBase64(files[0]);
-				setLogoPhoto(base64);
-			} catch (_err) {
-				setErrors((prev) => ({ ...prev, logo: "ফাইলটি আপলোড করা যায়নি" }));
-			}
-		} else {
-			setLogoPhoto(null);
-		}
-	}
-
-	async function handleSubmit(e: FormEvent) {
-		e.preventDefault();
-		if (!validate()) return;
-
+	const onSubmit = async (data: CreateBuildingInput) => {
+		setGlobalError("");
 		try {
-			await createMutation.mutateAsync({
-				name: name.trim(),
-				address: address.trim(),
-				totalFloors: totalFloors.trim()
-					? Number.parseInt(totalFloors, 10)
-					: null,
-				whatsappGroupLink: whatsappGroupLink.trim() || null,
-				managerPhone: managerPhone.trim() || null,
-				buildingPhoto,
-				logoPhoto,
-				rules: rules.trim() || null,
-				emergencyContacts: emergencyContacts.map((c) => ({
-					name: c.name.trim(),
-					role: c.role.trim(),
-					phone: c.phone.trim() || null,
-					type: c.type,
-				})),
-			});
+			await createMutation.mutateAsync(data);
 			setSuccessMessage(t("buildings.createSuccess"));
-			// Redirect to buildings list after short delay
-			setTimeout(() => {
-				router.push("/buildings");
-			}, 1000);
+			router.push("/buildings");
 		} catch (err) {
-			setErrors({
-				form: err instanceof Error ? err.message : t("buildings.saveError"),
-			});
+			setGlobalError(
+				err instanceof Error ? err.message : t("buildings.saveError"),
+			);
+		}
+	};
+
+	async function handlePhotoSelected(
+		files: File[],
+		field: "buildingPhoto" | "logoPhoto",
+	) {
+		if (files.length > 0 && files[0]) {
+			try {
+				const base64 = await fileToBase64(files[0]);
+				setValue(field, base64);
+			} catch (_err) {
+				setGlobalError("ফাইলটি আপলোড করা যায়নি");
+			}
+		} else {
+			setValue(field, null);
 		}
 	}
 
@@ -174,12 +94,12 @@ export default function NewBuildingPage() {
 					onDismiss={() => setSuccessMessage("")}
 				/>
 			)}
-			{errors.form && (
+			{globalError && (
 				<ErrorFeedback
-					message={errors.form}
+					message={globalError}
 					type="error"
 					visible
-					onDismiss={() => setErrors((prev) => ({ ...prev, form: "" }))}
+					onDismiss={() => setGlobalError("")}
 				/>
 			)}
 
@@ -198,19 +118,18 @@ export default function NewBuildingPage() {
 
 			<Card className="max-w-2xl bg-canvas border-hairline">
 				<CardContent className="p-6">
-					<form onSubmit={handleSubmit}>
+					<form onSubmit={handleSubmit(onSubmit)}>
 						<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 							<FormField
 								label={t("buildings.buildingName")}
 								required
-								error={errors.name}
+								error={errors.name?.message}
 								htmlFor="building-name"
 							>
 								<FormInput
 									id="building-name"
 									type="text"
-									value={name}
-									onChange={(e) => setName(e.target.value)}
+									{...register("name")}
 									hasError={!!errors.name}
 									maxLength={200}
 									autoFocus
@@ -219,14 +138,16 @@ export default function NewBuildingPage() {
 
 							<FormField
 								label={t("buildings.totalFloors")}
-								error={errors.totalFloors}
+								error={errors.totalFloors?.message}
 								htmlFor="building-floors"
 							>
 								<FormInput
 									id="building-floors"
 									type="number"
-									value={totalFloors}
-									onChange={(e) => setTotalFloors(e.target.value)}
+									{...register("totalFloors", {
+										setValueAs: (v) =>
+											v === "" ? undefined : Number.parseInt(v, 10),
+									})}
 									hasError={!!errors.totalFloors}
 									min={1}
 									max={200}
@@ -237,14 +158,13 @@ export default function NewBuildingPage() {
 						<FormField
 							label={t("buildings.address")}
 							required
-							error={errors.address}
+							error={errors.address?.message}
 							htmlFor="building-address"
 						>
 							<FormInput
 								id="building-address"
 								type="text"
-								value={address}
-								onChange={(e) => setAddress(e.target.value)}
+								{...register("address")}
 								hasError={!!errors.address}
 								maxLength={500}
 							/>
@@ -252,315 +172,248 @@ export default function NewBuildingPage() {
 
 						<FormField
 							label={t("buildings.whatsappGroupLink")}
-							error={errors.whatsappGroupLink}
+							error={errors.whatsappGroupLink?.message}
 							htmlFor="building-whatsapp"
 						>
 							<FormInput
 								id="building-whatsapp"
 								type="text"
-								placeholder={t("buildings.whatsappGroupLinkPlaceholder")}
-								value={whatsappGroupLink}
-								onChange={(e) => setWhatsappGroupLink(e.target.value)}
+								{...register("whatsappGroupLink")}
 								hasError={!!errors.whatsappGroupLink}
-								maxLength={500}
+								placeholder="https://chat.whatsapp.com/..."
 							/>
 						</FormField>
 
 						<FormField
-							label={t("buildings.managerPhone")}
-							error={errors.managerPhone}
-							htmlFor="building-manager-phone"
+							label="ম্যানেজারের ফোন নম্বর (ঐচ্ছিক)"
+							error={errors.managerPhone?.message}
+							htmlFor="manager-phone"
 						>
 							<FormInput
-								id="building-manager-phone"
-								type="text"
-								placeholder={t("buildings.managerPhonePlaceholder")}
-								value={managerPhone}
-								onChange={(e) => setManagerPhone(e.target.value)}
+								id="manager-phone"
+								type="tel"
+								{...register("managerPhone")}
 								hasError={!!errors.managerPhone}
-								maxLength={20}
+								placeholder="01XXXXXXXXX"
 							/>
 						</FormField>
 
-						<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-							<FormField
-								label={t("buildings.buildingPhoto")}
-								error={errors.photo}
-								htmlFor="building-photo"
-							>
-								<div className="flex flex-col gap-3">
-									<FileUpload
-										maxFiles={1}
-										onFilesSelected={handlePhotoSelected}
-										error={errors.photo}
-									/>
-									{buildingPhoto && (
-										<div className="relative w-full aspect-3/1 rounded-md overflow-hidden border border-hairline mt-2">
+						<div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+							<div>
+								<span className="block text-sm font-semibold text-ink mb-1.5">
+									{t("buildings.buildingPhoto")}
+								</span>
+								<FileUpload
+									onFilesSelected={(f) =>
+										handlePhotoSelected(f, "buildingPhoto")
+									}
+									maxFiles={1}
+									accept="image/jpeg,image/png,image/webp"
+									capture="environment"
+								/>
+								{buildingPhoto && (
+									<div className="mt-2">
+										<p className="text-xs text-stone mb-1">
+											{t("buildings.preview")}:
+										</p>
+										<div className="relative w-full aspect-video rounded overflow-hidden border border-hairline">
 											<Image
 												src={buildingPhoto}
-												alt="Building Photo Preview"
-												className="object-cover"
+												alt="Building preview"
 												fill
-												unoptimized
+												className="object-cover"
 											/>
 										</div>
-									)}
-								</div>
-							</FormField>
+									</div>
+								)}
+							</div>
 
-							<FormField
-								label={t("buildings.buildingLogo")}
-								error={errors.logo}
-								htmlFor="building-logo"
-							>
-								<div className="flex flex-col gap-3">
-									<FileUpload
-										maxFiles={1}
-										onFilesSelected={handleLogoSelected}
-										error={errors.logo}
-									/>
-									{logoPhoto && (
-										<div className="relative w-20 h-20 rounded-md overflow-hidden border border-hairline mt-2">
+							<div>
+								<span className="block text-sm font-semibold text-ink mb-1.5">
+									বিল্ডিং এর লোগো (ঐচ্ছিক)
+								</span>
+								<FileUpload
+									onFilesSelected={(f) => handlePhotoSelected(f, "logoPhoto")}
+									maxFiles={1}
+									accept="image/jpeg,image/png,image/webp"
+								/>
+								{logoPhoto && (
+									<div className="mt-2">
+										<p className="text-xs text-stone mb-1">
+											{t("buildings.preview")}:
+										</p>
+										<div className="relative w-24 h-24 rounded-full overflow-hidden border border-hairline">
 											<Image
 												src={logoPhoto}
-												alt="Building Logo Preview"
-												className="object-contain"
+												alt="Logo preview"
 												fill
-												unoptimized
+												className="object-cover"
 											/>
 										</div>
-									)}
-								</div>
-							</FormField>
-						</div>
-
-						<FormField
-							label={t("buildings.buildingRules")}
-							error={errors.rules}
-							htmlFor="building-rules"
-						>
-							<textarea
-								id="building-rules"
-								value={rules}
-								onChange={(e) => setRules(e.target.value)}
-								placeholder={t("buildings.buildingRulesPlaceholder")}
-								maxLength={5000}
-								rows={5}
-								className={`w-full rounded-md border px-3 py-2 text-sm bg-canvas text-ink placeholder:text-steel focus:outline-none focus:ring-2 focus:ring-brand/50 resize-y ${errors.rules ? "border-error-text" : "border-hairline"}`}
-							/>
-							<p className="text-xs text-steel mt-1">{rules.length}/5000</p>
-						</FormField>
-
-						{/* Emergency Contacts Section */}
-						<div className="mt-8 border-t border-hairline pt-6">
-							<h2 className="text-lg font-semibold text-ink mb-4">
-								{t("buildings.emergencyContacts")} ({t("payments.optional")})
-							</h2>
-
-							<div className="flex flex-col gap-4">
-								{emergencyContacts.map((contact, index) => (
-									<Card
-										key={index}
-										className="bg-canvas border-hairline p-4 relative"
-									>
-										<button
-											type="button"
-											onClick={() => {
-												setEmergencyContacts((prev) =>
-													prev.filter((_, i) => i !== index),
-												);
-											}}
-											className="absolute top-2 right-2 text-error-text hover:text-error-text/80 text-sm font-medium"
-										>
-											{t("common.delete")}
-										</button>
-
-										<div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
-											<FormField
-												label={t("buildings.contactName")}
-												required
-												error={errors[`contact-${index}-name`]}
-												htmlFor={`contact-${index}-name`}
-											>
-												<FormInput
-													id={`contact-${index}-name`}
-													type="text"
-													value={contact.name}
-													onChange={(e) => {
-														const newContacts = [...emergencyContacts];
-														const contact = newContacts[index];
-														if (contact) contact.name = e.target.value;
-														setEmergencyContacts(newContacts);
-													}}
-													hasError={!!errors[`contact-${index}-name`]}
-												/>
-											</FormField>
-
-											<FormField
-												label={t("buildings.contactRole")}
-												required
-												error={errors[`contact-${index}-role`]}
-												htmlFor={`contact-${index}-role`}
-											>
-												<div className="flex flex-col gap-1.5">
-													<FormInput
-														id={`contact-${index}-role`}
-														type="text"
-														value={contact.role}
-														onChange={(e) => {
-															const newContacts = [...emergencyContacts];
-															const contact = newContacts[index];
-															if (contact) contact.role = e.target.value;
-															setEmergencyContacts(newContacts);
-														}}
-														hasError={!!errors[`contact-${index}-role`]}
-														placeholder={t("buildings.contactRole")}
-													/>
-													<div className="flex flex-wrap gap-1.5 mt-1">
-														{contact.type === "building"
-															? (locale === "en"
-																	? [
-																			"Owner",
-																			"Manager",
-																			"Caretaker",
-																			"Security",
-																		]
-																	: ["মালিক", "ম্যানেজার", "কেয়ারটেকার", "সিকিউরিটি"]
-																).map((role) => (
-																	<button
-																		key={role}
-																		type="button"
-																		onClick={() => {
-																			const newContacts = [
-																				...emergencyContacts,
-																			];
-																			const contact = newContacts[index];
-																			if (contact) contact.role = role;
-																			setEmergencyContacts(newContacts);
-																		}}
-																		className="text-xs px-2 py-1 rounded bg-surface border border-hairline text-steel hover:bg-brand-blue-200/20 cursor-pointer"
-																	>
-																		{role}
-																	</button>
-																))
-															: (locale === "en"
-																	? [
-																			"Hospital",
-																			"Police Station",
-																			"Fire Service",
-																			"Ambulance",
-																		]
-																	: [
-																			"হাসপাতাল",
-																			"পুলিশ স্টেশন",
-																			"ফায়ার সার্ভিস",
-																			"অ্যাম্বুলেন্স",
-																		]
-																).map((role) => (
-																	<button
-																		key={role}
-																		type="button"
-																		onClick={() => {
-																			const newContacts = [
-																				...emergencyContacts,
-																			];
-																			const contact = newContacts[index];
-																			if (contact) contact.role = role;
-																			setEmergencyContacts(newContacts);
-																		}}
-																		className="text-xs px-2 py-1 rounded bg-surface border border-hairline text-steel hover:bg-brand-blue-200/20 cursor-pointer"
-																	>
-																		{role}
-																	</button>
-																))}
-													</div>
-												</div>
-											</FormField>
-
-											<FormField
-												label={t("buildings.contactPhone")}
-												error={errors[`contact-${index}-phone`]}
-												htmlFor={`contact-${index}-phone`}
-											>
-												<FormInput
-													id={`contact-${index}-phone`}
-													type="text"
-													value={contact.phone}
-													onChange={(e) => {
-														const newContacts = [...emergencyContacts];
-														const contact = newContacts[index];
-														if (contact) contact.phone = e.target.value;
-														setEmergencyContacts(newContacts);
-													}}
-													hasError={!!errors[`contact-${index}-phone`]}
-												/>
-											</FormField>
-
-											<FormField
-												label={t("buildings.contactType")}
-												htmlFor={`contact-${index}-type`}
-											>
-												<select
-													id={`contact-${index}-type`}
-													value={contact.type}
-													onChange={(e) => {
-														const newContacts = [...emergencyContacts];
-														const contact = newContacts[index];
-														if (contact) {
-															contact.type = e.target.value as
-																| "building"
-																| "nearby";
-															contact.role = "";
-														}
-														setEmergencyContacts(newContacts);
-													}}
-													className="w-full rounded-md border border-hairline min-h-11 px-3 bg-white text-ink text-sm"
-												>
-													<option value="building">
-														{t("buildings.buildingType")}
-													</option>
-													<option value="nearby">
-														{t("buildings.nearbyType")}
-													</option>
-												</select>
-											</FormField>
-										</div>
-									</Card>
-								))}
-
-								<Button
-									type="button"
-									variant="outline"
-									onClick={() => {
-										setEmergencyContacts((prev) => [
-											...prev,
-											{ name: "", role: "", phone: "", type: "building" },
-										]);
-									}}
-									className="rounded-full min-h-11 text-brand-blue-deep border-brand-blue-deep border self-start cursor-pointer"
-								>
-									+ {t("buildings.addEmergencyContact")}
-								</Button>
+									</div>
+								)}
 							</div>
 						</div>
 
-						<div className="flex gap-3 mt-8 border-t border-hairline pt-6">
+						<div className="mt-6">
+							<FormField
+								label="বিল্ডিং এর নিয়মাবলী (ঐচ্ছিক)"
+								error={errors.rules?.message}
+								htmlFor="building-rules"
+							>
+								<textarea
+									id="building-rules"
+									{...register("rules")}
+									rows={5}
+									className={`w-full rounded-md border p-3 text-base min-h-[110px] ${
+										errors.rules
+											? "border-error-text bg-error-bg"
+											: "border-hairline bg-white"
+									} focus:border-brand-blue-deep focus:outline-none focus:ring-1 focus:ring-brand-blue-deep`}
+									placeholder="১. রাত ১১ টার পর মেইন গেট বন্ধ থাকবে..."
+								/>
+							</FormField>
+						</div>
+
+						<div className="mt-8 border-t border-hairline pt-6">
+							<div className="flex items-center justify-between mb-4">
+								<h2 className="text-lg font-bold text-ink">জরুরী যোগাযোগ</h2>
+								<Button
+									type="button"
+									variant="outline"
+									size="sm"
+									onClick={() =>
+										append({ name: "", role: "", phone: "", type: "building" })
+									}
+									className="flex items-center gap-1 min-h-[36px]"
+								>
+									<Plus className="w-4 h-4" />
+									নতুন যোগ করুন
+								</Button>
+							</div>
+
+							{fields.length === 0 ? (
+								<p className="text-sm text-steel mb-4">
+									কোনো জরুরী যোগাযোগ যুক্ত করা হয়নি।
+								</p>
+							) : (
+								<div className="space-y-4">
+									{fields.map((field, index) => (
+										<div
+											key={field.id}
+											className="p-4 border border-hairline rounded-lg bg-surface relative"
+										>
+											<div className="absolute top-2 right-2">
+												<Button
+													type="button"
+													variant="ghost"
+													size="icon"
+													onClick={() => remove(index)}
+													className="text-error-text hover:text-error-text hover:bg-error-bg min-h-[36px] min-w-[36px]"
+													aria-label="Remove contact"
+												>
+													<Trash2 className="w-4 h-4" />
+												</Button>
+											</div>
+											<div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
+												<FormField
+													label="নাম"
+													required
+													error={
+														errors.emergencyContacts?.[index]?.name?.message
+													}
+													htmlFor={`contact-${index}-name`}
+												>
+													<FormInput
+														id={`contact-${index}-name`}
+														{...register(
+															`emergencyContacts.${index}.name` as const,
+														)}
+														hasError={!!errors.emergencyContacts?.[index]?.name}
+													/>
+												</FormField>
+												<FormField
+													label="ভূমিকা/পদবী"
+													required
+													error={
+														errors.emergencyContacts?.[index]?.role?.message
+													}
+													htmlFor={`contact-${index}-role`}
+												>
+													<FormInput
+														id={`contact-${index}-role`}
+														{...register(
+															`emergencyContacts.${index}.role` as const,
+														)}
+														hasError={!!errors.emergencyContacts?.[index]?.role}
+														placeholder="যেমন: কেয়ারটেকার"
+													/>
+												</FormField>
+												<FormField
+													label="ফোন নম্বর (ঐচ্ছিক)"
+													error={
+														errors.emergencyContacts?.[index]?.phone?.message
+													}
+													htmlFor={`contact-${index}-phone`}
+												>
+													<FormInput
+														id={`contact-${index}-phone`}
+														{...register(
+															`emergencyContacts.${index}.phone` as const,
+														)}
+														hasError={
+															!!errors.emergencyContacts?.[index]?.phone
+														}
+														placeholder="01XXXXXXXXX"
+													/>
+												</FormField>
+												<FormField
+													label="ধরন"
+													error={
+														errors.emergencyContacts?.[index]?.type?.message
+													}
+													htmlFor={`contact-${index}-type`}
+												>
+													<select
+														id={`contact-${index}-type`}
+														{...register(
+															`emergencyContacts.${index}.type` as const,
+														)}
+														className={`w-full rounded-md border min-h-11 px-3 py-2 text-base ${
+															errors.emergencyContacts?.[index]?.type
+																? "border-error-text bg-error-bg"
+																: "border-hairline bg-white"
+														} focus:border-brand-blue-deep focus:outline-none focus:ring-1 focus:ring-brand-blue-deep`}
+													>
+														<option value="building">বিল্ডিং স্টাফ</option>
+														<option value="nearby">আশপাশের জরুরী সেবা</option>
+													</select>
+												</FormField>
+											</div>
+										</div>
+									))}
+								</div>
+							)}
+						</div>
+
+						<div className="mt-8 flex justify-end gap-3 pt-6 border-t border-hairline">
+							<Button
+								type="button"
+								variant="outline"
+								onClick={() => router.push("/buildings")}
+								className="min-w-[100px] min-h-11 font-semibold text-steel"
+								disabled={isSubmitting}
+							>
+								{t("common.cancel")}
+							</Button>
 							<Button
 								type="submit"
-								disabled={createMutation.isPending}
-								className="rounded-full min-h-11 bg-primary text-on-primary font-semibold cursor-pointer"
+								disabled={isSubmitting || createMutation.isPending}
+								className="min-w-[120px] min-h-11 bg-primary text-white font-semibold hover:bg-primary/90"
 							>
-								{createMutation.isPending
-									? t("common.loading")
-									: t("common.create")}
-							</Button>
-
-							<Button
-								asChild
-								variant="outline"
-								className="rounded-full min-h-11 text-charcoal border-hairline cursor-pointer"
-							>
-								<Link href="/buildings">{t("common.cancel")}</Link>
+								{isSubmitting || createMutation.isPending
+									? t("common.saving")
+									: t("buildings.saveBuilding")}
 							</Button>
 						</div>
 					</form>

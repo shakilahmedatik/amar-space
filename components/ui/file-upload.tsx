@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
+import { compressImageFile } from "@/lib/utils/file";
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 const ACCEPTED_TYPES = ["image/jpeg", "image/png", "image/webp"];
@@ -65,11 +66,14 @@ export function FileUpload({
 	);
 
 	const handleFiles = useCallback(
-		(files: FileList | File[]) => {
+		async (files: FileList | File[]) => {
 			const validFiles = validateFiles(files);
 			if (validFiles.length > 0) {
-				setSelectedFiles(validFiles);
-				onFilesSelected(validFiles);
+				const compressedFiles = await Promise.all(
+					validFiles.map((file) => compressImageFile(file)),
+				);
+				setSelectedFiles(compressedFiles);
+				onFilesSelected(compressedFiles);
 			}
 		},
 		[validateFiles, onFilesSelected],
@@ -195,7 +199,7 @@ export function FileUpload({
 				<ul className="mt-3 flex flex-col gap-2 list-none">
 					{selectedFiles.map((file, index) => (
 						<li
-							key={`${file.name}-${file.size}`}
+							key={`${file.name}-${file.size}-${file.lastModified}-${index}`}
 							className="flex items-center justify-between px-3 py-2 rounded-md border border-hairline text-[0.8125rem]"
 						>
 							<span className="overflow-hidden text-ellipsis whitespace-nowrap max-w-[70%]">

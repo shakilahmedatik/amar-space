@@ -2,7 +2,6 @@
 
 import { fetchManagerDashboard, fetchOwnerDashboard } from "@/lib/api-client";
 import { useQuery } from "@tanstack/react-query";
-import { DEFAULT_STALE_TIME } from "./constants";
 
 /**
  * TanStack Query hook for Owner dashboard data.
@@ -12,7 +11,6 @@ export function useOwnerDashboard() {
 	return useQuery({
 		queryKey: ["dashboard", "owner"],
 		queryFn: fetchOwnerDashboard,
-		staleTime: DEFAULT_STALE_TIME,
 	});
 }
 
@@ -24,6 +22,5 @@ export function useManagerDashboard() {
 	return useQuery({
 		queryKey: ["dashboard", "manager"],
 		queryFn: fetchManagerDashboard,
-		staleTime: DEFAULT_STALE_TIME,
 	});
 }

@@ -7,7 +7,7 @@ import { ErrorFeedback } from "@/components/ui/error-feedback";
 import { LoadingSkeleton } from "@/components/ui/loading-skeleton";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { useSession } from "@/contexts/session-context";
-import { useBuildings } from "@/hooks/use-buildings";
+import { useBuildingOptions } from "@/hooks/use-options";
 import { useDeleteIssue, useIssues } from "@/hooks/use-issues";
 import type {
 	IssueCategory,
@@ -17,7 +17,7 @@ import type {
 } from "@/lib/api-client";
 import { useTranslation } from "@/lib/i18n";
 import Link from "next/link";
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 /**
  * Issue list page — /issues
@@ -48,7 +48,7 @@ export default function IssuesPage() {
 		assigneeId: assigneeFilter || undefined,
 	});
 
-	const { data: buildingsData } = useBuildings(1, 100);
+	const { data: buildingsData } = useBuildingOptions();
 
 	const handleFilterChange = useCallback((key: string, value: string) => {
 		setPage(1);
@@ -129,84 +129,87 @@ export default function IssuesPage() {
 		assignee: assigneeFilter,
 	};
 
-	const columns: DataTableColumn<IssueListItem>[] = [
-		{
-			key: "title",
-			header: t("issues.issueTitle"),
-			render: (row) => (
-				<Link
-					href={`/issues/${row.id}`}
-					className="text-brand-blue-deep font-medium no-underline hover:underline"
-				>
-					{row.title}
-				</Link>
-			),
-		},
-		{
-			key: "buildingName",
-			header: t("issues.building"),
-			render: (row) => <span>{row.buildingName}</span>,
-		},
-		{
-			key: "category",
-			header: t("issues.category"),
-			render: (row) => (
-				<span className="capitalize">{t(`issues.${row.category}`)}</span>
-			),
-			width: "120px",
-		},
-		{
-			key: "priority",
-			header: t("issues.priority"),
-			render: (row) => <StatusBadge status={row.priority} />,
-			width: "100px",
-		},
-		{
-			key: "status",
-			header: t("issues.status"),
-			render: (row) => <StatusBadge status={row.status} />,
-			width: "130px",
-		},
-		{
-			key: "assigneeName",
-			header: t("issues.assignee"),
-			render: (row) => (
-				<span className={row.assigneeName ? "text-ink" : "text-stone"}>
-					{row.assigneeName || t("issues.unassigned")}
-				</span>
-			),
-			width: "140px",
-		},
-		{
-			key: "createdAt",
-			header: t("issues.createdAt"),
-			render: (row) => (
-				<span className="text-xs text-steel">
-					{new Date(row.createdAt).toLocaleDateString()}
-				</span>
-			),
-			width: "110px",
-		},
-		...(role === "owner"
-			? [
-					{
-						key: "actions" as const,
-						header: t("flats.actions"),
-						width: "100px" as const,
-						render: (row: IssueListItem) => (
-							<Button
-								variant="outline"
-								size="sm"
-								className="rounded-full text-xs h-8 min-h-[44px] text-error-text border-error-text cursor-pointer"
-								onClick={() => setDeleteTarget(row.id)}
-							>
-								{t("common.delete") || "Delete"}
-							</Button>
-						),
-					},
-				]
-			: []),
-	];
+	const columns = useMemo<DataTableColumn<IssueListItem>[]>(
+		() => [
+			{
+				key: "title",
+				header: t("issues.issueTitle"),
+				render: (row) => (
+					<Link
+						href={`/issues/${row.id}`}
+						className="text-brand-blue-deep font-medium no-underline hover:underline"
+					>
+						{row.title}
+					</Link>
+				),
+			},
+			{
+				key: "buildingName",
+				header: t("issues.building"),
+				render: (row) => <span>{row.buildingName}</span>,
+			},
+			{
+				key: "category",
+				header: t("issues.category"),
+				render: (row) => (
+					<span className="capitalize">{t(`issues.${row.category}`)}</span>
+				),
+				width: "120px",
+			},
+			{
+				key: "priority",
+				header: t("issues.priority"),
+				render: (row) => <StatusBadge status={row.priority} />,
+				width: "100px",
+			},
+			{
+				key: "status",
+				header: t("issues.status"),
+				render: (row) => <StatusBadge status={row.status} />,
+				width: "130px",
+			},
+			{
+				key: "assigneeName",
+				header: t("issues.assignee"),
+				render: (row) => (
+					<span className={row.assigneeName ? "text-ink" : "text-stone"}>
+						{row.assigneeName || t("issues.unassigned")}
+					</span>
+				),
+				width: "140px",
+			},
+			{
+				key: "createdAt",
+				header: t("issues.createdAt"),
+				render: (row) => (
+					<span className="text-xs text-steel">
+						{new Date(row.createdAt).toLocaleDateString()}
+					</span>
+				),
+				width: "110px",
+			},
+			...(role === "owner"
+				? [
+						{
+							key: "actions" as const,
+							header: t("flats.actions"),
+							width: "100px" as const,
+							render: (row: IssueListItem) => (
+								<Button
+									variant="outline"
+									size="sm"
+									className="rounded-full text-xs h-8 min-h-[44px] text-error-text border-error-text cursor-pointer"
+									onClick={() => setDeleteTarget(row.id)}
+								>
+									{t("common.delete") || "Delete"}
+								</Button>
+							),
+						},
+					]
+				: []),
+		],
+		[t, role],
+	);
 
 	return (
 		<>

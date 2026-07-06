@@ -26,7 +26,7 @@ export default function BillDetailPage() {
 	const { role } = useSession();
 	const { t } = useTranslation();
 	const params = useParams();
-	const _router = useRouter();
+	const router = useRouter();
 	const billId = params.id as string;
 	// Add charge form state
 	const [showChargeForm, setShowChargeForm] = useState(false);
@@ -50,9 +50,7 @@ export default function BillDetailPage() {
 			await deleteBillMutation.mutateAsync(billId);
 			setSuccessMessage(t("bills.deleteSuccess"));
 			setShowDeleteBillDialog(false);
-			setTimeout(() => {
-				_router.push("/bills");
-			}, 1500);
+			router.push("/bills");
 		} catch (err) {
 			setChargeErrors({
 				form: err instanceof Error ? err.message : t("common.error"),

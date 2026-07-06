@@ -10,13 +10,11 @@ import {
 	updateOwnerApprovalStatus,
 } from "@/lib/api-client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { DEFAULT_STALE_TIME } from "./constants";
 
 export function useAdminDashboard() {
 	return useQuery({
 		queryKey: ["admin", "dashboard"],
 		queryFn: fetchAdminDashboardStats,
-		staleTime: DEFAULT_STALE_TIME,
 	});
 }
 
@@ -24,7 +22,6 @@ export function useAdminOwners(params: AdminOwnerListParams = {}) {
 	return useQuery({
 		queryKey: ["admin", "owners", params],
 		queryFn: () => fetchAdminOwners(params),
-		staleTime: DEFAULT_STALE_TIME,
 	});
 }
 
@@ -50,7 +47,6 @@ export function useAdminUsers(params: AdminUserListParams = {}) {
 	return useQuery({
 		queryKey: ["admin", "users", params],
 		queryFn: () => fetchAdminUsers(params),
-		staleTime: DEFAULT_STALE_TIME,
 	});
 }
 

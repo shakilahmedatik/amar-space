@@ -6,7 +6,7 @@ import { FileUpload } from "@/components/ui/file-upload";
 import { FormField, FormInput } from "@/components/ui/form-field";
 import { useCreateMaintenanceRequest } from "@/hooks/use-maintenance";
 import { useSession } from "@/contexts/session-context";
-import { useBuildings } from "@/hooks/use-flats";
+import { useBuildingOptions } from "@/hooks/use-options";
 import { useBuildingFlats } from "@/hooks/use-buildings";
 import { ApiError } from "@/lib/api";
 import type { MaintenancePriority } from "@/lib/api-client";
@@ -36,7 +36,8 @@ export default function NewMaintenanceRequestPage() {
 	const { role } = useSession();
 	const isStaff = role !== "renter" && role !== undefined;
 
-	const { data: buildingsData, isLoading: isLoadingBuildings } = useBuildings();
+	const { data: buildingsData, isLoading: isLoadingBuildings } =
+		useBuildingOptions();
 	const { data: flatsData, isLoading: isLoadingFlats } = useBuildingFlats(
 		buildingId,
 		1,
@@ -91,10 +92,7 @@ export default function NewMaintenanceRequestPage() {
 				flatId: isStaff && flatId ? flatId : undefined,
 			});
 			setSuccessMessage(t("maintenance.createSuccess"));
-			// Redirect after short delay
-			setTimeout(() => {
-				router.push("/maintenance");
-			}, 1500);
+			router.push("/maintenance");
 		} catch (err) {
 			if (err instanceof ApiError && err.details && err.details.length > 0) {
 				const backendErrors: Record<string, string> = {};

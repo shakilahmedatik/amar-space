@@ -12,11 +12,11 @@ import type { ReactNode } from "react";
  * This eliminates full-page re-renders when clicking sidebar links.
  */
 function DashboardLayoutInner({ children }: { children: ReactNode }) {
-	const { user, role, isLoading } = useSession();
+	const { user, role, isLoading, error } = useSession();
 	const pathname = usePathname();
 	const router = useRouter();
 
-	if (isLoading || !user) {
+	if (isLoading) {
 		return (
 			<div className="flex h-dvh items-center justify-center bg-surface">
 				<div className="w-full max-w-md px-4">
@@ -24,6 +24,12 @@ function DashboardLayoutInner({ children }: { children: ReactNode }) {
 				</div>
 			</div>
 		);
+	}
+
+	if (error || !user) {
+		// If there is an error or no user, SessionProvider has already initiated a redirect to /login.
+		// Returning null prevents rendering children that require a user, avoiding cascading errors.
+		return null;
 	}
 
 	return (

@@ -11,7 +11,6 @@ import {
 	recordPayment,
 } from "@/lib/api-client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { DEFAULT_STALE_TIME, OPTIONS_STALE_TIME } from "./constants";
 
 /**
  * TanStack Query hook for payment list with filters and pagination.
@@ -20,7 +19,6 @@ export function usePayments(params: PaymentListParams = {}) {
 	return useQuery({
 		queryKey: ["payments", params],
 		queryFn: () => fetchPayments(params),
-		staleTime: DEFAULT_STALE_TIME,
 	});
 }
 
@@ -32,7 +30,6 @@ export function usePaymentReceipt(id: string) {
 		queryKey: ["payments", id],
 		queryFn: () => fetchPayment(id),
 		enabled: !!id,
-		staleTime: DEFAULT_STALE_TIME,
 	});
 }
 
@@ -43,18 +40,6 @@ export function useUnpaidBills() {
 	return useQuery({
 		queryKey: ["bills", { status: "unpaid" }],
 		queryFn: fetchUnpaidBills,
-		staleTime: DEFAULT_STALE_TIME,
-	});
-}
-
-/**
- * TanStack Query hook for renter options (used in payment filters).
- */
-export function useRenterOptions() {
-	return useQuery({
-		queryKey: ["renters", { type: "options" }],
-		queryFn: fetchRenterOptions,
-		staleTime: OPTIONS_STALE_TIME,
 	});
 }
 

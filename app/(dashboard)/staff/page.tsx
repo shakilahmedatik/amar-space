@@ -8,7 +8,7 @@ import { ErrorFeedback } from "@/components/ui/error-feedback";
 import { LoadingSkeleton } from "@/components/ui/loading-skeleton";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { useSession } from "@/contexts/session-context";
-import { useBuildings } from "@/hooks/use-buildings";
+import { useBuildingOptions } from "@/hooks/use-options";
 import {
 	useDeactivateStaff,
 	useDeleteStaff,
@@ -17,7 +17,7 @@ import {
 import type { StaffMember } from "@/lib/api-client";
 import { useTranslation } from "@/lib/i18n";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 
 const ROLE_BADGE_COLORS: Record<string, string> = {
 	manager: "bg-blue-100 text-blue-800 border-blue-200",
@@ -40,114 +40,118 @@ export default function StaffPage() {
 	const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
 	const { data, isLoading, isError, error } = useStaff(page, 20, roleFilter);
-	const { data: buildingsData } = useBuildings(1, 100);
+	const { data: buildingsData } = useBuildingOptions();
 	const deactivateMutation = useDeactivateStaff();
 	const deleteMutation = useDeleteStaff();
 
 	const isOwner = role === "owner";
 
-	const buildingMap = new Map(
-		(buildingsData?.data ?? []).map((b) => [b.id, b.name]),
+	const buildingMap = useMemo(
+		() => new Map((buildingsData?.data ?? []).map((b) => [b.id, b.name])),
+		[buildingsData?.data],
 	);
 
-	const columns: DataTableColumn<StaffMember>[] = [
-		{
-			key: "name",
-			header: t("common.name") || "Name",
-			render: (row) => (
-				<Link
-					href={`/staff/${row.id}`}
-					className="text-brand-blue-deep font-medium no-underline hover:underline"
-				>
-					{row.name}
-				</Link>
-			),
-		},
-		{
-			key: "email",
-			header: t("auth.email"),
-			render: (row) => <span className="text-steel">{row.email}</span>,
-		},
-		{
-			key: "role",
-			header: t("common.role") || "Role",
-			render: (row) => {
-				const colors = ROLE_BADGE_COLORS[row.role] ?? "";
-				const label =
-					locale === "bn"
-						? (ROLE_LABELS[row.role]?.bn ?? row.role)
-						: (ROLE_LABELS[row.role]?.en ?? row.role);
-				return (
-					<Badge
-						variant="outline"
-						className={`rounded-full font-medium ${colors}`}
+	const columns = useMemo<DataTableColumn<StaffMember>[]>(
+		() => [
+			{
+				key: "name",
+				header: t("common.name") || "Name",
+				render: (row) => (
+					<Link
+						href={`/staff/${row.id}`}
+						className="text-brand-blue-deep font-medium no-underline hover:underline"
 					>
-						{label}
-					</Badge>
-				);
-			},
-		},
-		{
-			key: "buildings",
-			header: t("nav.buildings"),
-			render: (row) => {
-				const names = row.buildingIds
-					.map((id) => buildingMap.get(id))
-					.filter(Boolean);
-				return (
-					<span className="text-sm text-steel">
-						{names.length > 0 ? names.join(", ") : "—"}
-					</span>
-				);
-			},
-		},
-		{
-			key: "status",
-			header: t("common.status") || "Status",
-			render: (row) =>
-				row.isActive ? (
-					<StatusBadge status="active" />
-				) : (
-					<StatusBadge status="inactive" />
+						{row.name}
+					</Link>
 				),
-			width: "100px",
-		},
-		{
-			key: "actions",
-			header: t("flats.actions"),
-			render: (row) => (
-				<div className="flex gap-2">
-					<Button
-						asChild
-						variant="outline"
-						size="sm"
-						className="rounded-full text-xs h-8 cursor-pointer"
-					>
-						<Link href={`/staff/${row.id}`}>{t("common.edit")}</Link>
-					</Button>
-					{row.isActive && (
+			},
+			{
+				key: "email",
+				header: t("auth.email"),
+				render: (row) => <span className="text-steel">{row.email}</span>,
+			},
+			{
+				key: "role",
+				header: t("common.role") || "Role",
+				render: (row) => {
+					const colors = ROLE_BADGE_COLORS[row.role] ?? "";
+					const label =
+						locale === "bn"
+							? (ROLE_LABELS[row.role]?.bn ?? row.role)
+							: (ROLE_LABELS[row.role]?.en ?? row.role);
+					return (
+						<Badge
+							variant="outline"
+							className={`rounded-full font-medium ${colors}`}
+						>
+							{label}
+						</Badge>
+					);
+				},
+			},
+			{
+				key: "buildings",
+				header: t("nav.buildings"),
+				render: (row) => {
+					const names = row.buildingIds
+						.map((id) => buildingMap.get(id))
+						.filter(Boolean);
+					return (
+						<span className="text-sm text-steel">
+							{names.length > 0 ? names.join(", ") : "—"}
+						</span>
+					);
+				},
+			},
+			{
+				key: "status",
+				header: t("common.status") || "Status",
+				render: (row) =>
+					row.isActive ? (
+						<StatusBadge status="active" />
+					) : (
+						<StatusBadge status="inactive" />
+					),
+				width: "100px",
+			},
+			{
+				key: "actions",
+				header: t("flats.actions"),
+				render: (row) => (
+					<div className="flex gap-2">
+						<Button
+							asChild
+							variant="outline"
+							size="sm"
+							className="rounded-full text-xs h-8 cursor-pointer"
+						>
+							<Link href={`/staff/${row.id}`}>{t("common.edit")}</Link>
+						</Button>
+						{row.isActive && (
+							<Button
+								variant="outline"
+								size="sm"
+								className="rounded-full text-xs h-8 text-error-text border-error-text cursor-pointer"
+								onClick={() => setDeactivateTarget(row.id)}
+							>
+								{t("staff.deactivate") || "Deactivate"}
+							</Button>
+						)}
 						<Button
 							variant="outline"
 							size="sm"
 							className="rounded-full text-xs h-8 text-error-text border-error-text cursor-pointer"
-							onClick={() => setDeactivateTarget(row.id)}
+							onClick={() => setDeleteTarget(row.id)}
 						>
-							{t("staff.deactivate") || "Deactivate"}
+							{t("common.delete") || "Delete"}
 						</Button>
-					)}
-					<Button
-						variant="outline"
-						size="sm"
-						className="rounded-full text-xs h-8 text-error-text border-error-text cursor-pointer"
-						onClick={() => setDeleteTarget(row.id)}
-					>
-						{t("common.delete") || "Delete"}
-					</Button>
-				</div>
-			),
-			width: "180px",
-		},
-	];
+					</div>
+				),
+				width: "180px",
+			},
+		],
+		[t, locale, buildingMap],
+	);
 
 	return (
 		<>

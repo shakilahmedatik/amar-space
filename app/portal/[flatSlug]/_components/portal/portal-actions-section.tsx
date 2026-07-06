@@ -27,6 +27,7 @@ import type {
 } from "../types";
 import { PortalOccupiedView } from "./portal-occupied-view";
 import { RenterHeader } from "./renter-header";
+import { ErrorBoundary } from "@/components/ui/error-boundary";
 
 interface PortalActionsSectionProps {
 	flatSlug: string;
@@ -248,13 +249,15 @@ export function PortalActionsSection({
 								</button>
 							</div>
 							<div className="p-1">
-								<PortalOccupiedView
-									flatSlug={flatSlug}
-									activePanel={activePanel as PortalPanelType}
-									portalData={portalData}
-									emergencyContacts={emergencyContacts}
-									rules={rules}
-								/>
+								<ErrorBoundary fallbackMessage="এই বিভাগটি লোড করতে সমস্যা হয়েছে">
+									<PortalOccupiedView
+										flatSlug={flatSlug}
+										activePanel={activePanel as PortalPanelType}
+										portalData={portalData}
+										emergencyContacts={emergencyContacts}
+										rules={rules}
+									/>
+								</ErrorBoundary>
 							</div>
 						</div>
 					)}

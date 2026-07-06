@@ -1,6 +1,6 @@
 "use client";
 
-import { FormField } from "@/components/ui/form-field";
+import { FormField, FormInput } from "@/components/ui/form-field";
 import { ImageCapture } from "@/components/ui/image-capture";
 import { useTranslation } from "@/lib/i18n";
 import {
@@ -14,18 +14,8 @@ import {
 	User,
 	Users,
 } from "lucide-react";
+import { BLOOD_GROUPS } from "@/lib/shared/constants";
 import { SignaturePad } from "./signature-pad";
-
-const BLOOD_GROUPS = [
-	"A+",
-	"A-",
-	"B+",
-	"B-",
-	"O+",
-	"O-",
-	"AB+",
-	"AB-",
-] as const;
 
 interface RegistrationFieldsProps {
 	formData: {
@@ -80,7 +70,7 @@ export function RegistrationFields({
 				error={fieldErrors.fullName}
 				htmlFor="reg-fullName"
 			>
-				<input
+				<FormInput
 					id="reg-fullName"
 					type="text"
 					name="fullName"
@@ -89,9 +79,7 @@ export function RegistrationFields({
 					onFocus={handleFieldFocus}
 					placeholder="আপনার পূর্ণ নাম লিখুন"
 					maxLength={100}
-					className="w-full rounded-lg border border-hairline bg-white px-3 py-3 text-base text-ink placeholder:text-steel focus:border-brand-blue-deep focus:outline-none focus:ring-1 focus:ring-brand-blue-deep"
-					aria-invalid={!!fieldErrors.fullName}
-					aria-describedby={fieldErrors.fullName ? "fullName-error" : undefined}
+					hasError={!!fieldErrors.fullName}
 				/>
 			</FormField>
 
@@ -102,7 +90,7 @@ export function RegistrationFields({
 				error={fieldErrors.phone}
 				htmlFor="reg-phone"
 			>
-				<input
+				<FormInput
 					id="reg-phone"
 					type="tel"
 					name="phone"
@@ -111,9 +99,7 @@ export function RegistrationFields({
 					onFocus={handleFieldFocus}
 					placeholder="01XXXXXXXXX"
 					maxLength={11}
-					className="w-full rounded-lg border border-hairline bg-white px-3 py-3 text-base text-ink placeholder:text-steel focus:border-brand-blue-deep focus:outline-none focus:ring-1 focus:ring-brand-blue-deep"
-					aria-invalid={!!fieldErrors.phone}
-					aria-describedby={fieldErrors.phone ? "phone-error" : undefined}
+					hasError={!!fieldErrors.phone}
 				/>
 			</FormField>
 
@@ -124,7 +110,7 @@ export function RegistrationFields({
 				error={fieldErrors.nidNumber}
 				htmlFor="reg-nidNumber"
 			>
-				<input
+				<FormInput
 					id="reg-nidNumber"
 					type="text"
 					name="nidNumber"
@@ -134,11 +120,7 @@ export function RegistrationFields({
 					placeholder="১০ বা ১৭ সংখ্যার NID নম্বর"
 					maxLength={17}
 					inputMode="numeric"
-					className="w-full rounded-lg border border-hairline bg-white px-3 py-3 text-base text-ink placeholder:text-steel focus:border-brand-blue-deep focus:outline-none focus:ring-1 focus:ring-brand-blue-deep"
-					aria-invalid={!!fieldErrors.nidNumber}
-					aria-describedby={
-						fieldErrors.nidNumber ? "nidNumber-error" : undefined
-					}
+					hasError={!!fieldErrors.nidNumber}
 				/>
 			</FormField>
 
@@ -195,11 +177,12 @@ export function RegistrationFields({
 					value={formData.bloodGroup}
 					onChange={handleInputChange}
 					onFocus={handleFieldFocus}
-					className="w-full rounded-lg border border-hairline bg-white px-3 py-3 text-base text-ink focus:border-brand-blue-deep focus:outline-none focus:ring-1 focus:ring-brand-blue-deep"
+					className={`w-full rounded-md border min-h-11 px-3 py-2 text-base text-ink focus:border-brand-blue-deep focus:outline-none focus:ring-1 focus:ring-brand-blue-deep ${
+						fieldErrors.bloodGroup
+							? "border-error-text bg-error-bg"
+							: "border-hairline bg-white"
+					}`}
 					aria-invalid={!!fieldErrors.bloodGroup}
-					aria-describedby={
-						fieldErrors.bloodGroup ? "bloodGroup-error" : undefined
-					}
 				>
 					<option value="">
 						{t("renters.selectBloodGroup") || "রক্তের গ্রুপ নির্বাচন করুন"}
@@ -219,7 +202,7 @@ export function RegistrationFields({
 				error={fieldErrors.occupation}
 				htmlFor="reg-occupation"
 			>
-				<input
+				<FormInput
 					id="reg-occupation"
 					type="text"
 					name="occupation"
@@ -228,11 +211,7 @@ export function RegistrationFields({
 					onFocus={handleFieldFocus}
 					placeholder="আপনার পেশা লিখুন"
 					maxLength={100}
-					className="w-full rounded-lg border border-hairline bg-white px-3 py-3 text-base text-ink placeholder:text-steel focus:border-brand-blue-deep focus:outline-none focus:ring-1 focus:ring-brand-blue-deep"
-					aria-invalid={!!fieldErrors.occupation}
-					aria-describedby={
-						fieldErrors.occupation ? "occupation-error" : undefined
-					}
+					hasError={!!fieldErrors.occupation}
 				/>
 			</FormField>
 
@@ -243,7 +222,7 @@ export function RegistrationFields({
 				error={fieldErrors.familyMembers}
 				htmlFor="reg-familyMembers"
 			>
-				<input
+				<FormInput
 					id="reg-familyMembers"
 					type="number"
 					name="familyMembers"
@@ -254,11 +233,7 @@ export function RegistrationFields({
 					min={1}
 					max={20}
 					inputMode="numeric"
-					className="w-full rounded-lg border border-hairline bg-white px-3 py-3 text-base text-ink placeholder:text-steel focus:border-brand-blue-deep focus:outline-none focus:ring-1 focus:ring-brand-blue-deep"
-					aria-invalid={!!fieldErrors.familyMembers}
-					aria-describedby={
-						fieldErrors.familyMembers ? "familyMembers-error" : undefined
-					}
+					hasError={!!fieldErrors.familyMembers}
 				/>
 			</FormField>
 
@@ -277,7 +252,7 @@ export function RegistrationFields({
 							error={fieldErrors[errorKey]}
 							htmlFor={`reg-familyMemberNames-${index}`}
 						>
-							<input
+							<FormInput
 								id={`reg-familyMemberNames-${index}`}
 								type="text"
 								value={name}
@@ -287,8 +262,7 @@ export function RegistrationFields({
 								onFocus={handleFieldFocus}
 								placeholder={`${t("renters.member") || "সদস্য"} ${index + 1}-এর নাম লিখুন`}
 								maxLength={100}
-								className="w-full rounded-lg border border-hairline bg-white px-3 py-2 text-base text-ink placeholder:text-steel focus:border-brand-blue-deep focus:outline-none focus:ring-1 focus:ring-brand-blue-deep"
-								aria-invalid={!!fieldErrors[errorKey]}
+								hasError={!!fieldErrors[errorKey]}
 							/>
 						</FormField>
 					);
@@ -308,7 +282,7 @@ export function RegistrationFields({
 				error={fieldErrors.emergencyContactName}
 				htmlFor="reg-emergencyContactName"
 			>
-				<input
+				<FormInput
 					id="reg-emergencyContactName"
 					type="text"
 					name="emergencyContactName"
@@ -317,8 +291,7 @@ export function RegistrationFields({
 					onFocus={handleFieldFocus}
 					placeholder="জরুরি যোগাযোগের ব্যক্তির নাম লিখুন"
 					maxLength={200}
-					className="w-full rounded-lg border border-hairline bg-white px-3 py-3 text-base text-ink placeholder:text-steel focus:border-brand-blue-deep focus:outline-none focus:ring-1 focus:ring-brand-blue-deep"
-					aria-invalid={!!fieldErrors.emergencyContactName}
+					hasError={!!fieldErrors.emergencyContactName}
 				/>
 			</FormField>
 
@@ -329,7 +302,7 @@ export function RegistrationFields({
 				error={fieldErrors.emergencyContact}
 				htmlFor="reg-emergencyContact"
 			>
-				<input
+				<FormInput
 					id="reg-emergencyContact"
 					type="tel"
 					name="emergencyContact"
@@ -338,11 +311,7 @@ export function RegistrationFields({
 					onFocus={handleFieldFocus}
 					placeholder="01XXXXXXXXX"
 					maxLength={11}
-					className="w-full rounded-lg border border-hairline bg-white px-3 py-3 text-base text-ink placeholder:text-steel focus:border-brand-blue-deep focus:outline-none focus:ring-1 focus:ring-brand-blue-deep"
-					aria-invalid={!!fieldErrors.emergencyContact}
-					aria-describedby={
-						fieldErrors.emergencyContact ? "emergencyContact-error" : undefined
-					}
+					hasError={!!fieldErrors.emergencyContact}
 				/>
 			</FormField>
 
@@ -353,7 +322,7 @@ export function RegistrationFields({
 				error={fieldErrors.emergencyContactRelationship}
 				htmlFor="reg-emergencyContactRelationship"
 			>
-				<input
+				<FormInput
 					id="reg-emergencyContactRelationship"
 					type="text"
 					name="emergencyContactRelationship"
@@ -362,8 +331,7 @@ export function RegistrationFields({
 					onFocus={handleFieldFocus}
 					placeholder="যেমন: পিতা, ভাই, স্বামী ইত্যাদি"
 					maxLength={100}
-					className="w-full rounded-lg border border-hairline bg-white px-3 py-3 text-base text-ink placeholder:text-steel focus:border-brand-blue-deep focus:outline-none focus:ring-1 focus:ring-brand-blue-deep"
-					aria-invalid={!!fieldErrors.emergencyContactRelationship}
+					hasError={!!fieldErrors.emergencyContactRelationship}
 				/>
 			</FormField>
 
@@ -374,7 +342,7 @@ export function RegistrationFields({
 				error={fieldErrors.rentalStartDate}
 				htmlFor="reg-rentalStartDate"
 			>
-				<input
+				<FormInput
 					id="reg-rentalStartDate"
 					type="date"
 					name="rentalStartDate"
@@ -387,11 +355,7 @@ export function RegistrationFields({
 						maxDate.setDate(maxDate.getDate() + 90);
 						return maxDate.toISOString().split("T")[0];
 					})()}
-					className="w-full rounded-lg border border-hairline bg-white px-3 py-3 text-base text-ink focus:border-brand-blue-deep focus:outline-none focus:ring-1 focus:ring-brand-blue-deep"
-					aria-invalid={!!fieldErrors.rentalStartDate}
-					aria-describedby={
-						fieldErrors.rentalStartDate ? "rentalStartDate-error" : undefined
-					}
+					hasError={!!fieldErrors.rentalStartDate}
 				/>
 			</FormField>
 
@@ -402,7 +366,7 @@ export function RegistrationFields({
 				error={fieldErrors.advanceAmount}
 				htmlFor="reg-advanceAmount"
 			>
-				<input
+				<FormInput
 					id="reg-advanceAmount"
 					type="number"
 					name="advanceAmount"
@@ -413,11 +377,7 @@ export function RegistrationFields({
 					min={0}
 					max={99999999}
 					inputMode="numeric"
-					className="w-full rounded-lg border border-hairline bg-white px-3 py-3 text-base text-ink placeholder:text-steel focus:border-brand-blue-deep focus:outline-none focus:ring-1 focus:ring-brand-blue-deep"
-					aria-invalid={!!fieldErrors.advanceAmount}
-					aria-describedby={
-						fieldErrors.advanceAmount ? "advanceAmount-error" : undefined
-					}
+					hasError={!!fieldErrors.advanceAmount}
 				/>
 			</FormField>
 

@@ -7,223 +7,114 @@ import { FileUpload } from "@/components/ui/file-upload";
 import { FormField, FormInput } from "@/components/ui/form-field";
 import { useCreateRenter, useVacantFlats } from "@/hooks/use-renters";
 import { useTranslation } from "@/lib/i18n";
+import { BLOOD_GROUPS } from "@/lib/shared/constants";
+import { registerRenterSchema } from "@/lib/shared/validation";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Plus, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { type FormEvent, useCallback, useState } from "react";
+import { useCallback, useState } from "react";
+import { useFieldArray, useForm } from "react-hook-form";
+import { z } from "zod";
 
-const BLOOD_GROUPS = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
+const formSchema = registerRenterSchema.extend({
+	familyMemberNamesArray: z
+		.array(z.object({ name: z.string().max(100) }))
+		.max(20)
+		.optional(),
+	nidPhoto: z.any().optional(),
+	digitalSignature: z.any().optional(),
+});
+type FormValues = z.infer<typeof formSchema>;
 
-/**
- * Renter registration form — /renters/new
- * Multi-field form with all required and optional fields.
- * NID photo upload and digital signature upload.
- * Flat selection (only Vacant flats).
- * Field-level validation with Bangla error messages.
- */
 export default function NewRenterPage() {
 	const { t } = useTranslation();
 	const router = useRouter();
-	// Required fields
-	const [fullName, setFullName] = useState("");
-	const [phone, setPhone] = useState("");
-	const [nidNumber, setNidNumber] = useState("");
-	const [occupation, setOccupation] = useState("");
-	const [bloodGroup, setBloodGroup] = useState("");
-	const [totalFamilyMembers, setTotalFamilyMembers] = useState("");
-	const [emergencyContactName, setEmergencyContactName] = useState("");
-	const [emergencyContactNumber, setEmergencyContactNumber] = useState("");
-	const [emergencyContactRelationship, setEmergencyContactRelationship] =
-		useState("");
-	const [rentalStartDate, setRentalStartDate] = useState("");
-	const [advanceAmountPaid, setAdvanceAmountPaid] = useState("");
-	const [flatId, setFlatId] = useState("");
-	const [monthlyRentAmount, setMonthlyRentAmount] = useState("");
-
-	// Optional fields
-	const [dateOfBirth, setDateOfBirth] = useState("");
-	const [familyMemberNames, setFamilyMemberNames] = useState<string[]>([]);
-	const [familyMemberInput, setFamilyMemberInput] = useState("");
-	const [nidPhoto, setNidPhoto] = useState<File | null>(null);
-	const [digitalSignature, setDigitalSignature] = useState<File | null>(null);
-
-	const [errors, setErrors] = useState<Record<string, string>>({});
+	const [globalError, setGlobalError] = useState("");
 	const [successMessage, setSuccessMessage] = useState("");
 
 	const createMutation = useCreateRenter();
 	const { data: vacantFlatsData, isLoading: isLoadingFlats } = useVacantFlats();
-	function validate(): boolean {
-		const newErrors: Record<string, string> = {};
 
-		// Full Name
-		if (!fullName.trim()) {
-			newErrors.fullName = t("renters.fullNameRequired");
-		}
+	const {
+		register,
+		control,
+		handleSubmit,
+		setValue,
+		watch,
+		formState: { errors, isSubmitting },
+	} = useForm<FormValues>({
+		resolver: zodResolver(formSchema),
+		defaultValues: {
+			fullName: "",
+			phone: "",
+			nidNumber: "",
+			occupation: "",
+			bloodGroup: undefined,
+			emergencyContactName: "",
+			emergencyContactNumber: "",
+			emergencyContactRelationship: "",
+			startDate: "",
+			flatId: "",
+			dateOfBirth: "",
+			familyMemberNamesArray: [],
+		},
+	});
 
-		// Phone - Bangladeshi format: 11 digits starting with 01
-		if (!phone.trim()) {
-			newErrors.phone = t("renters.phoneRequired");
-		} else if (!/^01\d{9}$/.test(phone.trim())) {
-			newErrors.phone = t("renters.phoneInvalid");
-		}
+	const { fields, append, remove } = useFieldArray({
+		control,
+		name: "familyMemberNamesArray",
+	});
 
-		// NID - numeric, 10-17 digits
-		if (!nidNumber.trim()) {
-			newErrors.nidNumber = t("renters.nidRequired");
-		} else if (!/^\d{10,17}$/.test(nidNumber.trim())) {
-			newErrors.nidNumber = t("renters.nidInvalid");
-		}
-
-		// Occupation
-		if (!occupation.trim()) {
-			newErrors.occupation = t("renters.occupationRequired");
-		}
-
-		// Blood Group
-		if (!bloodGroup) {
-			newErrors.bloodGroup = t("renters.bloodGroupRequired");
-		} else if (!BLOOD_GROUPS.includes(bloodGroup)) {
-			newErrors.bloodGroup = t("renters.bloodGroupInvalid");
-		}
-
-		// Total Family Members - 1-50 inclusive
-		if (!totalFamilyMembers.trim()) {
-			newErrors.totalFamilyMembers = t("renters.familyMembersRequired");
-		} else {
-			const members = Number.parseInt(totalFamilyMembers, 10);
-			if (Number.isNaN(members) || members < 1 || members > 50) {
-				newErrors.totalFamilyMembers = t("renters.familyMembersRange");
-			}
-		}
-
-		// Emergency Contact Name
-		if (!emergencyContactName.trim()) {
-			newErrors.emergencyContactName = t("renters.emergencyNameRequired");
-		}
-
-		// Emergency Contact Number
-		if (!emergencyContactNumber.trim()) {
-			newErrors.emergencyContactNumber = t("renters.emergencyNumberRequired");
-		} else if (!/^01\d{9}$/.test(emergencyContactNumber.trim())) {
-			newErrors.emergencyContactNumber = t("renters.emergencyNumberInvalid");
-		}
-
-		// Emergency Contact Relationship
-		if (!emergencyContactRelationship.trim()) {
-			newErrors.emergencyContactRelationship = t(
-				"renters.emergencyRelationshipRequired",
-			);
-		}
-
-		// Rental Start Date
-		if (!rentalStartDate) {
-			newErrors.rentalStartDate = t("renters.startDateRequired");
-		}
-
-		// Advance Amount
-		if (!advanceAmountPaid.trim()) {
-			newErrors.advanceAmountPaid = t("renters.advanceRequired");
-		} else {
-			const amount = Number.parseFloat(advanceAmountPaid);
-			if (Number.isNaN(amount) || amount < 0.01) {
-				newErrors.advanceAmountPaid = t("renters.advanceMin");
-			}
-		}
-
-		// Flat ID
-		if (!flatId) {
-			newErrors.flatId = t("renters.flatRequired");
-		}
-
-		// Monthly Rent
-		if (!monthlyRentAmount.trim()) {
-			newErrors.monthlyRentAmount = t("renters.monthlyRentRequired");
-		} else {
-			const rent = Number.parseFloat(monthlyRentAmount);
-			if (Number.isNaN(rent) || rent < 0.01) {
-				newErrors.monthlyRentAmount = t("renters.monthlyRentMin");
-			}
-		}
-
-		// Optional: Family Member Names validation
-		if (familyMemberNames.length > 20) {
-			newErrors.familyMemberNames = t("renters.familyMemberMax");
-		} else {
-			for (const name of familyMemberNames) {
-				if (name.length > 100) {
-					newErrors.familyMemberNames = t("renters.familyMemberNameMax");
-					break;
-				}
-			}
-		}
-
-		setErrors(newErrors);
-		return Object.keys(newErrors).length === 0;
-	}
-
-	async function handleSubmit(e: FormEvent) {
-		e.preventDefault();
-		if (!validate()) return;
-
-		try {
-			await createMutation.mutateAsync({
-				fullName: fullName.trim(),
-				phone: phone.trim(),
-				nidNumber: nidNumber.trim(),
-				occupation: occupation.trim(),
-				bloodGroup,
-				totalFamilyMembers: Number.parseInt(totalFamilyMembers, 10),
-				emergencyContactName: emergencyContactName.trim(),
-				emergencyContactNumber: emergencyContactNumber.trim(),
-				emergencyContactRelationship: emergencyContactRelationship.trim(),
-				rentalStartDate,
-				advanceAmountPaid: Number.parseFloat(advanceAmountPaid),
-				flatId,
-				monthlyRentAmount: Number.parseFloat(monthlyRentAmount),
-				dateOfBirth: dateOfBirth || undefined,
-				familyMemberNames:
-					familyMemberNames.length > 0 ? familyMemberNames : undefined,
-				nidPhoto: nidPhoto || undefined,
-				digitalSignature: digitalSignature || undefined,
-			});
-			setSuccessMessage(t("renters.createSuccess"));
-			setTimeout(() => {
-				router.push("/renters");
-			}, 1000);
-		} catch (err) {
-			setErrors({
-				form: err instanceof Error ? err.message : t("renters.saveError"),
-			});
-		}
-	}
+	const [familyMemberInput, setFamilyMemberInput] = useState("");
 
 	const handleAddFamilyMember = useCallback(
 		(e: React.KeyboardEvent<HTMLInputElement>) => {
 			if (e.key === "Enter") {
 				e.preventDefault();
 				const name = familyMemberInput.trim();
-				if (name && familyMemberNames.length < 20 && name.length <= 100) {
-					setFamilyMemberNames([...familyMemberNames, name]);
+				if (name && fields.length < 20 && name.length <= 100) {
+					append({ name });
 					setFamilyMemberInput("");
 				}
 			}
 		},
-		[familyMemberInput, familyMemberNames],
+		[familyMemberInput, fields.length, append],
 	);
 
-	const handleRemoveFamilyMember = useCallback(
-		(index: number) => {
-			setFamilyMemberNames(familyMemberNames.filter((_, i) => i !== index));
-		},
-		[familyMemberNames],
-	);
+	const onSubmit = async (data: FormValues) => {
+		setGlobalError("");
+		try {
+			await createMutation.mutateAsync({
+				fullName: data.fullName,
+				phone: data.phone,
+				nidNumber: data.nidNumber,
+				occupation: data.occupation,
+				bloodGroup: data.bloodGroup,
+				totalFamilyMembers: data.totalFamilyMembers,
+				emergencyContactName: data.emergencyContactName,
+				emergencyContactNumber: data.emergencyContactNumber,
+				emergencyContactRelationship: data.emergencyContactRelationship,
+				rentalStartDate: data.startDate,
+				advanceAmountPaid: data.advanceAmount,
+				flatId: data.flatId,
+				monthlyRentAmount: data.monthlyRent,
+				dateOfBirth: data.dateOfBirth || undefined,
+				familyMemberNames: data.familyMemberNamesArray?.length
+					? data.familyMemberNamesArray.map((f) => f.name)
+					: undefined,
+				nidPhoto: data.nidPhoto,
+				digitalSignature: data.digitalSignature,
+			});
+			setSuccessMessage(t("renters.createSuccess"));
+			router.push("/renters");
+		} catch (err) {
+			setGlobalError(
+				err instanceof Error ? err.message : t("renters.saveError"),
+			);
+		}
+	};
 
-	const handleNidPhotoSelected = useCallback((files: File[]) => {
-		setNidPhoto(files[0] || null);
-	}, []);
-
-	const handleSignatureSelected = useCallback((files: File[]) => {
-		setDigitalSignature(files[0] || null);
-	}, []);
 	const vacantFlats = vacantFlatsData?.data ?? [];
 
 	return (
@@ -236,12 +127,12 @@ export default function NewRenterPage() {
 					onDismiss={() => setSuccessMessage("")}
 				/>
 			)}
-			{errors.form && (
+			{globalError && (
 				<ErrorFeedback
-					message={errors.form}
+					message={globalError}
 					type="error"
 					visible
-					onDismiss={() => setErrors((prev) => ({ ...prev, form: "" }))}
+					onDismiss={() => setGlobalError("")}
 				/>
 			)}
 
@@ -260,7 +151,7 @@ export default function NewRenterPage() {
 
 			<Card className="bg-canvas rounded-xl border border-hairline max-w-160">
 				<CardContent className="p-6">
-					<form onSubmit={handleSubmit}>
+					<form onSubmit={handleSubmit(onSubmit)}>
 						{/* Personal Information Section */}
 						<h2 className="text-lg font-semibold text-ink mb-4 pb-2 border-b border-hairline">
 							{t("renters.personalInfo")}
@@ -269,14 +160,13 @@ export default function NewRenterPage() {
 						<FormField
 							label={t("renters.fullName")}
 							required
-							error={errors.fullName}
+							error={errors.fullName?.message}
 							htmlFor="renter-fullname"
 						>
 							<FormInput
 								id="renter-fullname"
 								type="text"
-								value={fullName}
-								onChange={(e) => setFullName(e.target.value)}
+								{...register("fullName")}
 								hasError={!!errors.fullName}
 								autoFocus
 							/>
@@ -285,15 +175,14 @@ export default function NewRenterPage() {
 						<FormField
 							label={t("renters.phone")}
 							required
-							error={errors.phone}
+							error={errors.phone?.message}
 							htmlFor="renter-phone"
 							helpText="01XXXXXXXXX"
 						>
 							<FormInput
 								id="renter-phone"
 								type="tel"
-								value={phone}
-								onChange={(e) => setPhone(e.target.value)}
+								{...register("phone")}
 								hasError={!!errors.phone}
 								maxLength={11}
 							/>
@@ -302,15 +191,14 @@ export default function NewRenterPage() {
 						<FormField
 							label={t("renters.nidNumber")}
 							required
-							error={errors.nidNumber}
+							error={errors.nidNumber?.message}
 							htmlFor="renter-nid"
 							helpText="10-17 digits"
 						>
 							<FormInput
 								id="renter-nid"
 								type="text"
-								value={nidNumber}
-								onChange={(e) => setNidNumber(e.target.value)}
+								{...register("nidNumber")}
 								hasError={!!errors.nidNumber}
 								maxLength={17}
 							/>
@@ -318,14 +206,13 @@ export default function NewRenterPage() {
 
 						<FormField
 							label={t("renters.dateOfBirth")}
-							error={errors.dateOfBirth}
+							error={errors.dateOfBirth?.message}
 							htmlFor="renter-dob"
 						>
 							<FormInput
 								id="renter-dob"
 								type="date"
-								value={dateOfBirth}
-								onChange={(e) => setDateOfBirth(e.target.value)}
+								{...register("dateOfBirth")}
 								hasError={!!errors.dateOfBirth}
 							/>
 						</FormField>
@@ -333,14 +220,13 @@ export default function NewRenterPage() {
 						<FormField
 							label={t("renters.occupation")}
 							required
-							error={errors.occupation}
+							error={errors.occupation?.message}
 							htmlFor="renter-occupation"
 						>
 							<FormInput
 								id="renter-occupation"
 								type="text"
-								value={occupation}
-								onChange={(e) => setOccupation(e.target.value)}
+								{...register("occupation")}
 								hasError={!!errors.occupation}
 							/>
 						</FormField>
@@ -348,13 +234,12 @@ export default function NewRenterPage() {
 						<FormField
 							label={t("renters.bloodGroup")}
 							required
-							error={errors.bloodGroup}
+							error={errors.bloodGroup?.message}
 							htmlFor="renter-blood-group"
 						>
 							<select
 								id="renter-blood-group"
-								value={bloodGroup}
-								onChange={(e) => setBloodGroup(e.target.value)}
+								{...register("bloodGroup")}
 								aria-invalid={!!errors.bloodGroup || undefined}
 								className={[
 									"block w-full px-3 py-2.5 text-base leading-6 rounded-md border min-h-11",
@@ -376,15 +261,17 @@ export default function NewRenterPage() {
 						<FormField
 							label={t("renters.familyMembers")}
 							required
-							error={errors.totalFamilyMembers}
+							error={errors.totalFamilyMembers?.message}
 							htmlFor="renter-family-members"
 							helpText="1-50"
 						>
 							<FormInput
 								id="renter-family-members"
 								type="number"
-								value={totalFamilyMembers}
-								onChange={(e) => setTotalFamilyMembers(e.target.value)}
+								{...register("totalFamilyMembers", {
+									setValueAs: (v) =>
+										v === "" ? undefined : Number.parseInt(v, 10),
+								})}
 								hasError={!!errors.totalFamilyMembers}
 								min={1}
 								max={50}
@@ -394,32 +281,51 @@ export default function NewRenterPage() {
 						{/* Family Member Names (Optional) */}
 						<FormField
 							label={t("renters.familyMemberNames")}
-							error={errors.familyMemberNames}
+							error={errors.familyMemberNamesArray?.message}
 							htmlFor="renter-family-names"
 							helpText={t("renters.familyMemberPlaceholder")}
 						>
-							<FormInput
-								id="renter-family-names"
-								type="text"
-								value={familyMemberInput}
-								onChange={(e) => setFamilyMemberInput(e.target.value)}
-								onKeyDown={handleAddFamilyMember}
-								hasError={!!errors.familyMemberNames}
-								maxLength={100}
-							/>
+							<div className="flex gap-2">
+								<FormInput
+									id="renter-family-names"
+									type="text"
+									value={familyMemberInput}
+									onChange={(e) => setFamilyMemberInput(e.target.value)}
+									onKeyDown={handleAddFamilyMember}
+									hasError={!!errors.familyMemberNamesArray}
+									maxLength={100}
+									className="flex-1"
+								/>
+								<Button
+									type="button"
+									onClick={() => {
+										const name = familyMemberInput.trim();
+										if (name && fields.length < 20 && name.length <= 100) {
+											append({ name });
+											setFamilyMemberInput("");
+										}
+									}}
+									variant="outline"
+									className="min-h-11 px-3"
+									disabled={!familyMemberInput.trim() || fields.length >= 20}
+								>
+									<Plus className="w-5 h-5" />
+								</Button>
+							</div>
 						</FormField>
-						{familyMemberNames.length > 0 && (
+
+						{fields.length > 0 && (
 							<div className="flex flex-wrap gap-2 mb-4 -mt-2">
-								{familyMemberNames.map((name, idx) => (
+								{fields.map((field, idx) => (
 									<span
-										key={`member-${name}-${idx.toString()}`}
+										key={field.id}
 										className="inline-flex items-center gap-1 px-2 py-1 rounded bg-brand-blue-200 border border-hairline text-[0.8125rem] text-brand-blue-deep"
 									>
-										{name}
+										{field.name}
 										<button
 											type="button"
-											onClick={() => handleRemoveFamilyMember(idx)}
-											aria-label={`Remove ${name}`}
+											onClick={() => remove(idx)}
+											aria-label={`Remove ${field.name}`}
 											className="inline-flex items-center justify-center min-w-xl min-h-xl border-none bg-transparent text-error-text cursor-pointer text-base font-bold"
 										>
 											×
@@ -437,14 +343,13 @@ export default function NewRenterPage() {
 						<FormField
 							label={t("renters.emergencyContactName")}
 							required
-							error={errors.emergencyContactName}
+							error={errors.emergencyContactName?.message}
 							htmlFor="renter-emergency-name"
 						>
 							<FormInput
 								id="renter-emergency-name"
 								type="text"
-								value={emergencyContactName}
-								onChange={(e) => setEmergencyContactName(e.target.value)}
+								{...register("emergencyContactName")}
 								hasError={!!errors.emergencyContactName}
 							/>
 						</FormField>
@@ -452,15 +357,14 @@ export default function NewRenterPage() {
 						<FormField
 							label={t("renters.emergencyContactNumber")}
 							required
-							error={errors.emergencyContactNumber}
+							error={errors.emergencyContactNumber?.message}
 							htmlFor="renter-emergency-number"
 							helpText="01XXXXXXXXX"
 						>
 							<FormInput
 								id="renter-emergency-number"
 								type="tel"
-								value={emergencyContactNumber}
-								onChange={(e) => setEmergencyContactNumber(e.target.value)}
+								{...register("emergencyContactNumber")}
 								hasError={!!errors.emergencyContactNumber}
 								maxLength={11}
 							/>
@@ -469,16 +373,13 @@ export default function NewRenterPage() {
 						<FormField
 							label={t("renters.emergencyContactRelationship")}
 							required
-							error={errors.emergencyContactRelationship}
+							error={errors.emergencyContactRelationship?.message}
 							htmlFor="renter-emergency-relationship"
 						>
 							<FormInput
 								id="renter-emergency-relationship"
 								type="text"
-								value={emergencyContactRelationship}
-								onChange={(e) =>
-									setEmergencyContactRelationship(e.target.value)
-								}
+								{...register("emergencyContactRelationship")}
 								hasError={!!errors.emergencyContactRelationship}
 							/>
 						</FormField>
@@ -491,13 +392,12 @@ export default function NewRenterPage() {
 						<FormField
 							label={t("renters.selectFlat")}
 							required
-							error={errors.flatId}
+							error={errors.flatId?.message}
 							htmlFor="renter-flat"
 						>
 							<select
 								id="renter-flat"
-								value={flatId}
-								onChange={(e) => setFlatId(e.target.value)}
+								{...register("flatId")}
 								disabled={isLoadingFlats}
 								aria-invalid={!!errors.flatId || undefined}
 								className={[
@@ -521,31 +421,34 @@ export default function NewRenterPage() {
 						<FormField
 							label={t("renters.rentalStartDate")}
 							required
-							error={errors.rentalStartDate}
+							error={
+								errors.startDate?.message || (errors as any).startDate?.message
+							}
 							htmlFor="renter-start-date"
 						>
 							<FormInput
 								id="renter-start-date"
 								type="date"
-								value={rentalStartDate}
-								onChange={(e) => setRentalStartDate(e.target.value)}
-								hasError={!!errors.rentalStartDate}
+								{...register("startDate")}
+								hasError={!!(errors as any).startDate}
 							/>
 						</FormField>
 
 						<FormField
 							label={t("renters.monthlyRent")}
 							required
-							error={errors.monthlyRentAmount}
+							error={errors.monthlyRent?.message}
 							htmlFor="renter-monthly-rent"
 							helpText="৳"
 						>
 							<FormInput
 								id="renter-monthly-rent"
 								type="number"
-								value={monthlyRentAmount}
-								onChange={(e) => setMonthlyRentAmount(e.target.value)}
-								hasError={!!errors.monthlyRentAmount}
+								{...register("monthlyRent", {
+									setValueAs: (v) =>
+										v === "" ? undefined : Number.parseFloat(v),
+								})}
+								hasError={!!errors.monthlyRent}
 								min={0.01}
 								step={0.01}
 							/>
@@ -554,16 +457,18 @@ export default function NewRenterPage() {
 						<FormField
 							label={t("renters.advanceAmount")}
 							required
-							error={errors.advanceAmountPaid}
+							error={errors.advanceAmount?.message}
 							htmlFor="renter-advance"
 							helpText="৳"
 						>
 							<FormInput
 								id="renter-advance"
 								type="number"
-								value={advanceAmountPaid}
-								onChange={(e) => setAdvanceAmountPaid(e.target.value)}
-								hasError={!!errors.advanceAmountPaid}
+								{...register("advanceAmount", {
+									setValueAs: (v) =>
+										v === "" ? undefined : Number.parseFloat(v),
+								})}
+								hasError={!!errors.advanceAmount}
 								min={0.01}
 								step={0.01}
 							/>
@@ -580,9 +485,10 @@ export default function NewRenterPage() {
 							helpText="JPEG, PNG, WebP • Max 5MB"
 						>
 							<FileUpload
-								onFilesSelected={handleNidPhotoSelected}
+								onFilesSelected={(f) => setValue("nidPhoto", f[0] || null)}
 								maxFiles={1}
-								disabled={createMutation.isPending}
+								disabled={isSubmitting || createMutation.isPending}
+								capture="environment"
 							/>
 						</FormField>
 
@@ -592,9 +498,11 @@ export default function NewRenterPage() {
 							helpText="JPEG, PNG, WebP • Max 5MB"
 						>
 							<FileUpload
-								onFilesSelected={handleSignatureSelected}
+								onFilesSelected={(f) =>
+									setValue("digitalSignature", f[0] || null)
+								}
 								maxFiles={1}
-								disabled={createMutation.isPending}
+								disabled={isSubmitting || createMutation.isPending}
 							/>
 						</FormField>
 
@@ -602,10 +510,10 @@ export default function NewRenterPage() {
 						<div className="flex gap-3 mt-6">
 							<Button
 								type="submit"
-								disabled={createMutation.isPending}
+								disabled={isSubmitting || createMutation.isPending}
 								className="min-h-11 rounded-full bg-primary text-on-primary font-semibold disabled:opacity-50"
 							>
-								{createMutation.isPending
+								{isSubmitting || createMutation.isPending
 									? t("common.loading")
 									: t("common.submit")}
 							</Button>

@@ -1,10 +1,11 @@
-"use client";
+import { PHONE_REGEX } from "@/lib/shared/validation/constants";
+("use client");
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ErrorFeedback } from "@/components/ui/error-feedback";
 import { FormField, FormInput } from "@/components/ui/form-field";
-import { useBuildings } from "@/hooks/use-buildings";
+import { useBuildingOptions } from "@/hooks/use-options";
 import { useCreateStaff, useStaffRoles } from "@/hooks/use-staff";
 import { useTranslation } from "@/lib/i18n";
 import Link from "next/link";
@@ -27,7 +28,7 @@ export default function NewStaffPage() {
 		phone?: string | null;
 	} | null>(null);
 
-	const { data: buildingsData } = useBuildings(1, 100);
+	const { data: buildingsData } = useBuildingOptions();
 	const { data: staffRoles } = useStaffRoles();
 	const createMutation = useCreateStaff();
 
@@ -88,7 +89,7 @@ export default function NewStaffPage() {
 			newErrors.role = t("validation.required");
 		}
 
-		if (phone.trim() && !/^01\d{9}$/.test(phone.trim())) {
+		if (phone.trim() && !PHONE_REGEX.test(phone.trim())) {
 			newErrors.phone =
 				t("validation.invalidPhone") ||
 				"Phone number must be 11 digits starting with 01";

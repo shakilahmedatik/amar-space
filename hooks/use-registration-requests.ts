@@ -7,7 +7,6 @@ import {
 	rejectRegistration,
 } from "@/lib/api-client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { DEFAULT_STALE_TIME } from "./constants";
 
 /**
  * Hook for fetching pending registration requests.
@@ -16,7 +15,6 @@ export function useRegistrationRequests() {
 	return useQuery({
 		queryKey: ["registration-requests"],
 		queryFn: fetchRegistrationRequests,
-		staleTime: DEFAULT_STALE_TIME,
 	});
 }
 

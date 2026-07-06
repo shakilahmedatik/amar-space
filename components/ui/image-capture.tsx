@@ -1,6 +1,8 @@
 "use client";
 
 import { cn } from "@/lib/utils";
+import { ErrorFeedback } from "@/components/ui/error-feedback";
+import { fileToBase64 } from "@/lib/utils/file";
 import { AlertCircle, Camera, RefreshCw, Upload, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
@@ -84,23 +86,25 @@ export function ImageCapture({
 		}
 	};
 
-	const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+	const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
 		onFocus?.();
 		const file = e.target.files?.[0];
 		if (!file) return;
-		if (!["image/jpeg", "image/png"].includes(file.type)) {
-			alert("শুধুমাত্র JPEG বা PNG ছবি গ্রহণযোগ্য");
+		if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+			setCameraError("শুধুমাত্র JPEG, PNG বা WEBP ছবি গ্রহণযোগ্য");
 			return;
 		}
 		if (file.size > 5 * 1024 * 1024) {
-			alert("ফাইলের আকার সর্বোচ্চ ৫ MB হতে হবে");
+			setCameraError("ফাইলের আকার সর্বোচ্চ ৫ MB হতে হবে");
 			return;
 		}
-		const reader = new FileReader();
-		reader.onload = () => {
-			onChange(reader.result as string);
-		};
-		reader.readAsDataURL(file);
+		setCameraError(null);
+		try {
+			const base64 = await fileToBase64(file, true);
+			onChange(base64);
+		} catch (err) {
+			setCameraError("ফাইল প্রসেস করতে সমস্যা হয়েছে");
+		}
 	};
 
 	useEffect(() => {
@@ -166,6 +170,9 @@ export function ImageCapture({
 				</div>
 			) : (
 				<div className="flex flex-col gap-2">
+					{cameraError && (
+						<ErrorFeedback message={cameraError} type="error" visible />
+					)}
 					<div className="grid grid-cols-2 gap-3">
 						<button
 							type="button"

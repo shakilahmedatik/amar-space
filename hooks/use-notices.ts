@@ -12,7 +12,6 @@ import {
 	updateNotice,
 } from "@/lib/api-client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { DEFAULT_STALE_TIME } from "./constants";
 
 /**
  * TanStack Query hook for notice list with filters and pagination.
@@ -21,7 +20,6 @@ export function useNotices(params: NoticeListParams = {}) {
 	return useQuery({
 		queryKey: ["notices", params],
 		queryFn: () => fetchNotices(params),
-		staleTime: DEFAULT_STALE_TIME,
 	});
 }
 
@@ -33,7 +31,6 @@ export function useNotice(id: string) {
 		queryKey: ["notices", id],
 		queryFn: () => fetchNotice(id),
 		enabled: !!id,
-		staleTime: DEFAULT_STALE_TIME,
 	});
 }
 

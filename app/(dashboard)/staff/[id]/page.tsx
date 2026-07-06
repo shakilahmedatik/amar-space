@@ -9,7 +9,7 @@ import { FormField, FormInput } from "@/components/ui/form-field";
 import { LoadingSkeleton } from "@/components/ui/loading-skeleton";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { useSession } from "@/contexts/session-context";
-import { useBuildings } from "@/hooks/use-buildings";
+import { useBuildingOptions } from "@/hooks/use-options";
 import {
 	useDeactivateStaff,
 	useDeleteStaff,
@@ -75,7 +75,7 @@ export default function StaffDetailPage() {
 	const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
 	const { data: staff, isLoading, isError, error } = useStaffMember(id);
-	const { data: buildingsData } = useBuildings(1, 100);
+	const { data: buildingsData } = useBuildingOptions();
 	const updateMutation = useUpdateStaff(id);
 	const deactivateMutation = useDeactivateStaff();
 	const reactivateMutation = useReactivateStaff();

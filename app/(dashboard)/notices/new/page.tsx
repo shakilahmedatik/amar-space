@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ErrorFeedback } from "@/components/ui/error-feedback";
 import { FormField, FormInput } from "@/components/ui/form-field";
-import { useBuildings } from "@/hooks/use-buildings";
+import { useBuildingOptions, useFlatOptions } from "@/hooks/use-options";
 import { useNoticeTemplates } from "@/hooks/use-notice-templates";
 import { useCreateNotice } from "@/hooks/use-notices";
 import type { NoticeTargetAudience } from "@/lib/api-client";
@@ -37,13 +37,20 @@ export default function NewNoticePage() {
 	const [successMessage, setSuccessMessage] = useState("");
 
 	// Flat options for specific_flat audience
-	const [flatOptions, setFlatOptions] = useState<
-		Array<{ id: string; flatNumber: string; buildingName?: string }>
-	>([]);
-	const [loadingFlats, setLoadingFlats] = useState(false);
+	const { data: flatOptionsData, isLoading: loadingFlats } = useFlatOptions(
+		targetAudience === "specific_flat" && targetBuildingId
+			? targetBuildingId
+			: undefined,
+	);
+	const flatOptions =
+		flatOptionsData?.data?.map((f) => ({
+			id: f.id,
+			flatNumber: f.flatNumber,
+			buildingName: f.buildingName,
+		})) ?? [];
 
 	const createMutation = useCreateNotice();
-	const { data: buildingsData } = useBuildings(1, 100);
+	const { data: buildingsData } = useBuildingOptions();
 	const { data: templatesData } = useNoticeTemplates();
 	const searchParams = useSearchParams();
 
@@ -61,33 +68,6 @@ export default function NewNoticePage() {
 		setTargetAudience(template.targetAudience as NoticeTargetAudience | "");
 	}, [searchParams, templatesData]);
 
-	// Load flats when building is selected for specific_flat audience
-	useEffect(() => {
-		async function loadFlats() {
-			if (targetAudience === "specific_flat" && targetBuildingId) {
-				setLoadingFlats(true);
-				try {
-					const response = await fetchFlats({
-						buildingId: targetBuildingId,
-						pageSize: 100,
-					});
-					setFlatOptions(
-						(response.data ?? []).map((f) => ({
-							id: f.id,
-							flatNumber: f.flatNumber,
-							buildingName: f.buildingName,
-						})),
-					);
-				} catch {
-					setFlatOptions([]);
-				} finally {
-					setLoadingFlats(false);
-				}
-			}
-		}
-		loadFlats();
-	}, [targetAudience, targetBuildingId]);
-
 	function handleTemplateChange(templateId: string) {
 		setSelectedTemplateId(templateId);
 		if (!templateId || !templatesData?.data) return;
@@ -100,7 +80,6 @@ export default function NewNoticePage() {
 		setTargetAudience(template.targetAudience as NoticeTargetAudience | "");
 		setTargetBuildingId("");
 		setTargetFlatId("");
-		setFlatOptions([]);
 	}
 
 	function validate(): boolean {
@@ -158,9 +137,7 @@ export default function NewNoticePage() {
 				expiresAt: expiresAt || undefined,
 			});
 			setSuccessMessage(t("notices.createSuccess"));
-			setTimeout(() => {
-				router.push("/notices");
-			}, 1500);
+			router.push("/notices");
 		} catch (err) {
 			setErrors({
 				form: err instanceof Error ? err.message : t("notices.createError"),
@@ -288,7 +265,6 @@ export default function NewNoticePage() {
 										);
 										setTargetBuildingId("");
 										setTargetFlatId("");
-										setFlatOptions([]);
 									}}
 									className={[
 										"w-full px-3 py-2 text-sm rounded-md border min-h-11 bg-canvas",
@@ -328,7 +304,6 @@ export default function NewNoticePage() {
 										onChange={(e) => {
 											setTargetBuildingId(e.target.value);
 											setTargetFlatId("");
-											setFlatOptions([]);
 										}}
 										className={[
 											"w-full px-3 py-2 text-sm rounded-md border min-h-11 bg-canvas",

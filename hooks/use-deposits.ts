@@ -8,7 +8,6 @@ import {
 	fetchUnpaidBillsForContract,
 } from "@/lib/api-client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { DEFAULT_STALE_TIME } from "./constants";
 
 /**
  * TanStack Query hook for deposit balance info.
@@ -18,7 +17,6 @@ export function useDeposit(contractId: string) {
 		queryKey: ["deposits", contractId],
 		queryFn: () => fetchDeposit(contractId),
 		enabled: !!contractId,
-		staleTime: DEFAULT_STALE_TIME,
 	});
 }
 
@@ -34,7 +32,6 @@ export function useAdjustmentHistory(
 		queryKey: ["deposits", contractId, { type: "history", page, pageSize }],
 		queryFn: () => fetchAdjustmentHistory(contractId, page, pageSize),
 		enabled: !!contractId,
-		staleTime: DEFAULT_STALE_TIME,
 	});
 }
 
@@ -46,7 +43,6 @@ export function useUnpaidBillsForContract(contractId: string) {
 		queryKey: ["bills", { status: "unpaid", contractId }],
 		queryFn: () => fetchUnpaidBillsForContract(contractId),
 		enabled: !!contractId,
-		staleTime: DEFAULT_STALE_TIME,
 	});
 }
 

@@ -5,7 +5,7 @@ import { DataTable, type DataTableColumn } from "@/components/ui/data-table";
 import { ErrorFeedback } from "@/components/ui/error-feedback";
 import { LoadingSkeleton } from "@/components/ui/loading-skeleton";
 import { StatusBadge } from "@/components/ui/status-badge";
-import { useBuildings } from "@/hooks/use-buildings";
+import { useBuildingOptions } from "@/hooks/use-options";
 import { useMaintenanceRequests } from "@/hooks/use-maintenance";
 import type {
 	MaintenancePriority,
@@ -15,7 +15,7 @@ import type {
 import { useTranslation } from "@/lib/i18n";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 /**
  * Maintenance request list page — /maintenance
@@ -24,7 +24,6 @@ import { useCallback, useState } from "react";
  */
 export default function MaintenancePage() {
 	const { t } = useTranslation();
-	const _router = useRouter();
 	const [page, setPage] = useState(1);
 
 	// Filter state
@@ -43,7 +42,7 @@ export default function MaintenancePage() {
 		priority: priorityFilter || undefined,
 	});
 
-	const { data: buildingsData } = useBuildings(1, 100);
+	const { data: buildingsData } = useBuildingOptions();
 
 	const handleFilterChange = useCallback((key: string, value: string) => {
 		setPage(1);
@@ -108,53 +107,56 @@ export default function MaintenancePage() {
 		priority: priorityFilter,
 	};
 
-	const columns: DataTableColumn<MaintenanceRequestListItem>[] = [
-		{
-			key: "title",
-			header: t("maintenance.requestTitle"),
-			render: (row) => (
-				<Link
-					href={`/maintenance/${row.id}`}
-					className="text-brand-blue-deep font-medium no-underline hover:underline"
-				>
-					{row.title}
-				</Link>
-			),
-		},
-		{
-			key: "buildingName",
-			header: t("maintenance.building"),
-			render: (row) => <span>{row.buildingName}</span>,
-		},
-		{
-			key: "flatNumber",
-			header: t("maintenance.flat"),
-			render: (row) => <span>{row.flatNumber}</span>,
-			width: "100px",
-		},
-		{
-			key: "priority",
-			header: t("maintenance.priority"),
-			render: (row) => <StatusBadge status={row.priority} />,
-			width: "110px",
-		},
-		{
-			key: "status",
-			header: t("maintenance.status"),
-			render: (row) => <StatusBadge status={row.status} />,
-			width: "140px",
-		},
-		{
-			key: "createdAt",
-			header: t("maintenance.createdAt"),
-			render: (row) => (
-				<span className="text-[0.8125rem] text-steel">
-					{new Date(row.createdAt).toLocaleDateString()}
-				</span>
-			),
-			width: "110px",
-		},
-	];
+	const columns = useMemo<DataTableColumn<MaintenanceRequestListItem>[]>(
+		() => [
+			{
+				key: "title",
+				header: t("maintenance.requestTitle"),
+				render: (row) => (
+					<Link
+						href={`/maintenance/${row.id}`}
+						className="text-brand-blue-deep font-medium no-underline hover:underline"
+					>
+						{row.title}
+					</Link>
+				),
+			},
+			{
+				key: "buildingName",
+				header: t("maintenance.building"),
+				render: (row) => <span>{row.buildingName}</span>,
+			},
+			{
+				key: "flatNumber",
+				header: t("maintenance.flat"),
+				render: (row) => <span>{row.flatNumber}</span>,
+				width: "100px",
+			},
+			{
+				key: "priority",
+				header: t("maintenance.priority"),
+				render: (row) => <StatusBadge status={row.priority} />,
+				width: "110px",
+			},
+			{
+				key: "status",
+				header: t("maintenance.status"),
+				render: (row) => <StatusBadge status={row.status} />,
+				width: "140px",
+			},
+			{
+				key: "createdAt",
+				header: t("maintenance.createdAt"),
+				render: (row) => (
+					<span className="text-[0.8125rem] text-steel">
+						{new Date(row.createdAt).toLocaleDateString()}
+					</span>
+				),
+				width: "110px",
+			},
+		],
+		[t],
+	);
 
 	return (
 		<>

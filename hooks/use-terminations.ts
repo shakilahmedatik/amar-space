@@ -9,7 +9,6 @@ import {
 	scheduleTermination,
 } from "@/lib/api-client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { DEFAULT_STALE_TIME } from "./constants";
 
 export function useScheduleTermination() {
 	const queryClient = useQueryClient();
@@ -65,7 +64,6 @@ export function useDepositRefund(renterId: string, enabled = true) {
 		queryKey: ["deposit-refund", renterId],
 		queryFn: () => fetchDepositRefund(renterId),
 		enabled: enabled && !!renterId,
-		staleTime: DEFAULT_STALE_TIME,
 	});
 }
 

@@ -1,5 +1,6 @@
 "use client";
 
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import {
 	Dialog,
 	DialogContent,
@@ -11,6 +12,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { DataTable, type DataTableColumn } from "@/components/ui/data-table";
 import { ErrorFeedback } from "@/components/ui/error-feedback";
+import { FormField, FormInput } from "@/components/ui/form-field";
 import { LoadingSkeleton } from "@/components/ui/loading-skeleton";
 import { useSession } from "@/contexts/session-context";
 import {
@@ -38,12 +40,11 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useMemo, useEffect } from "react";
 
 export default function RentersPage() {
 	const { role } = useSession();
 	const { t } = useTranslation();
-	const _router = useRouter();
 	const [activeTab, setActiveTab] = useState<"active" | "pending">("active");
 	const [page, setPage] = useState(1);
 
@@ -53,7 +54,7 @@ export default function RentersPage() {
 		isLoading: isActiveLoading,
 		isError: isActiveError,
 		error: activeError,
-	} = useRenters(page, 50);
+	} = useRenters(page, 50, { enabled: activeTab === "active" });
 
 	const {
 		data: pendingData,
@@ -68,36 +69,39 @@ export default function RentersPage() {
 	const pendingRequests = pendingData?.data ?? [];
 	const pendingCount = pendingRequests.length;
 
-	const activeColumns: DataTableColumn<RenterListItem>[] = [
-		{
-			key: "fullName",
-			header: t("renters.fullName"),
-			render: (row) => (
-				<Link
-					href={`/renters/${row.id}`}
-					className="text-brand-blue-deep font-medium no-underline hover:underline"
-				>
-					{row.fullName}
-				</Link>
-			),
-		},
-		{
-			key: "phone",
-			header: t("renters.phone"),
-			render: (row) => <span>{row.phone}</span>,
-		},
-		{
-			key: "flatNumber",
-			header: t("renters.flat"),
-			render: (row) => <span>{row.flatNumber}</span>,
-			width: "120px",
-		},
-		{
-			key: "buildingName",
-			header: t("renters.building"),
-			render: (row) => <span>{row.buildingName}</span>,
-		},
-	];
+	const activeColumns = useMemo<DataTableColumn<RenterListItem>[]>(
+		() => [
+			{
+				key: "fullName",
+				header: t("renters.fullName"),
+				render: (row) => (
+					<Link
+						href={`/renters/${row.id}`}
+						className="text-brand-blue-deep font-medium no-underline hover:underline"
+					>
+						{row.fullName}
+					</Link>
+				),
+			},
+			{
+				key: "phone",
+				header: t("renters.phone"),
+				render: (row) => <span>{row.phone}</span>,
+			},
+			{
+				key: "flatNumber",
+				header: t("renters.flat"),
+				render: (row) => <span>{row.flatNumber}</span>,
+				width: "120px",
+			},
+			{
+				key: "buildingName",
+				header: t("renters.building"),
+				render: (row) => <span>{row.buildingName}</span>,
+			},
+		],
+		[t],
+	);
 
 	// Approval review states
 	const [selectedRequest, setSelectedRequest] =
@@ -315,15 +319,31 @@ function ApproveRegistrationDialog({
 
 	const [errorMsg, setErrorMsg] = useState("");
 
+	const [showRejectConfirm, setShowRejectConfirm] = useState(false);
+
+	useEffect(() => {
+		if (open) {
+			setMonthlyRent("");
+			setAdvanceAmount(request.advanceAmount);
+			setStartDate(request.rentalStartDate);
+			setGasBill("0");
+			setWaterBill("0");
+			setServiceCharge("0");
+			setOtherCharges("0");
+			setErrorMsg("");
+			setShowRejectConfirm(false);
+		}
+	}, [open, request]);
+
 	const handleReject = async () => {
-		if (confirm("আপনি কি আবেদনটি বাতিল করতে চান?")) {
-			try {
-				await rejectMutation.mutateAsync(request.id);
-				onClose();
-			} catch (err) {
-				const msg = err instanceof Error ? err.message : "বাতিলকরণে ত্রুটি হয়েছে।";
-				setErrorMsg(msg);
-			}
+		try {
+			await rejectMutation.mutateAsync(request.id);
+			onClose();
+		} catch (err) {
+			const msg = err instanceof Error ? err.message : "বাতিলকরণে ত্রুটি হয়েছে।";
+			setErrorMsg(msg);
+		} finally {
+			setShowRejectConfirm(false);
 		}
 	};
 
@@ -404,7 +424,6 @@ function ApproveRegistrationDialog({
 						<div className="flex items-center gap-3">
 							{request.selfiePhotoUrl ? (
 								<div className="relative group">
-									{}
 									<img
 										src={request.selfiePhotoUrl}
 										alt="সেলফি"
@@ -445,90 +464,61 @@ function ApproveRegistrationDialog({
 								{request.bloodGroup}
 							</p>
 							<p>
-								<span className="text-steel font-medium">পেশা: </span>
-								{request.occupation}
-							</p>
-							<p>
-								<span className="text-steel font-medium">
-									পরিবারের সদস্য সংখ্যা:{" "}
-								</span>
+								<span className="text-steel font-medium">পরিবারের সদস্য: </span>
 								{request.familyMembers} জন
 							</p>
+							<p>
+								<span className="text-steel font-medium">ফ্ল্যাট: </span>
+								{request.buildingName} - {request.flatNumber}
+							</p>
 						</div>
-
-						{request.familyMemberNames &&
-							request.familyMemberNames.length > 0 && (
-								<div className="mt-2 bg-surface p-3 rounded-lg border border-hairline">
-									<span className="text-base font-semibold text-ink flex items-center gap-1 mb-1">
-										<Users className="h-4 w-4 text-brand-blue-deep" />
-										পরিবারের সদস্যদের নাম:
-									</span>
-									<ul className="list-disc pl-5 text-base text-ink flex flex-col gap-0.5">
-										{request.familyMemberNames.map((name, i) => (
-											<li key={`member-${i}`}>{name}</li>
-										))}
-									</ul>
-								</div>
-							)}
 					</div>
 
+					{/* Emergency Contact */}
 					<div className="flex flex-col gap-3">
-						<h4 className="text-base font-bold text-ink">
-							জরুরি যোগাযোগ ও ফাইলসমূহ:
-						</h4>
-						<div className="bg-surface p-3 rounded-lg border border-hairline flex flex-col gap-1 text-base text-ink">
+						<h4 className="text-base font-bold text-ink">জরুরী যোগাযোগ:</h4>
+						<div className="flex flex-col gap-1.5 text-base text-ink bg-surface p-4 rounded-lg border border-hairline">
 							<p>
-								<span className="text-steel font-medium">যোগাযোগের ব্যক্তি: </span>
+								<span className="text-steel font-medium">নাম: </span>
 								{request.emergencyContactName}
-							</p>
-							<p>
-								<span className="text-steel font-medium">নম্বর: </span>
-								{request.emergencyContact}
 							</p>
 							<p>
 								<span className="text-steel font-medium">সম্পর্ক: </span>
 								{request.emergencyContactRelationship}
 							</p>
+							<p className="flex items-center gap-1 mt-1">
+								<Phone className="h-3.5 w-3.5 text-steel" />
+								{request.emergencyContact}
+							</p>
 						</div>
 
-						<div className="flex flex-col gap-2 mt-2">
-							{request.nidPhotoUrl && (
-								<div className="border border-hairline rounded-lg p-3 bg-white flex flex-col items-center gap-1.5">
-									<span className="text-base text-steel font-medium">
-										NID ছবি:
-									</span>
-									<div className="relative group w-full max-w-[240px] aspect-3/2 overflow-hidden rounded border border-hairline bg-surface">
-										{}
-										<img
-											src={request.nidPhotoUrl}
-											alt="NID কার্ড"
-											className="w-full h-full object-cover"
-										/>
-										<a
-											href={request.nidPhotoUrl}
-											target="_blank"
-											rel="noreferrer"
-											className="absolute inset-0 bg-black/50 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-xs"
-										>
-											বড় করে দেখুন
-										</a>
-									</div>
-								</div>
-							)}
-							{request.digitalSignatureUrl && (
-								<div className="border border-hairline rounded-lg p-3 bg-white flex flex-col items-center gap-1">
-									<span className="text-base text-steel font-medium">
-										ডিজিটাল স্বাক্ষর:
-									</span>
-									{}
-									<img
-										src={request.digitalSignatureUrl}
-										alt="স্বাক্ষর"
-										className="h-16 object-contain bg-white border border-hairline p-1 rounded"
-									/>
-								</div>
-							)}
-						</div>
+						{/* Document Links */}
+						{(request.nidPhotoUrl || request.digitalSignatureUrl) && (
+							<div className="mt-2 flex gap-3">
+								{request.nidPhotoUrl && (
+									<a
+										href={request.nidPhotoUrl}
+										target="_blank"
+										rel="noreferrer"
+										className="text-sm font-medium text-brand-blue hover:underline flex items-center gap-1"
+									>
+										<FileText className="h-4 w-4" />
+										NID দেখুন
+									</a>
+								)}
+								{request.digitalSignatureUrl && (
+									<a
+										href={request.digitalSignatureUrl}
+										target="_blank"
+										rel="noreferrer"
+										className="text-sm font-medium text-brand-blue hover:underline flex items-center gap-1"
+									>
+										<FileText className="h-4 w-4" />
+										স্বাক্ষর দেখুন
+									</a>
+								)}
+							</div>
+						)}
 					</div>
 				</div>
 
@@ -539,16 +529,13 @@ function ApproveRegistrationDialog({
 					</h3>
 
 					<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-						{/* Rent */}
-						<div className="flex flex-col gap-1.5">
-							<label
-								htmlFor="modal-monthlyRent"
-								className="text-base font-medium text-ink flex items-center gap-1"
-							>
-								<CreditCard className="h-4 w-4" />
-								মাসিক ভাড়া (টাকা) *
-							</label>
-							<input
+						<FormField
+							label="মাসিক ভাড়া (টাকা)"
+							required
+							htmlFor="modal-monthlyRent"
+							icon={<CreditCard className="h-4 w-4 text-steel" />}
+						>
+							<FormInput
 								id="modal-monthlyRent"
 								type="number"
 								value={monthlyRent}
@@ -556,20 +543,16 @@ function ApproveRegistrationDialog({
 								placeholder="ভাড়ার পরিমাণ লিখুন"
 								required
 								min={1}
-								className="w-full rounded-lg border border-hairline bg-white px-3 py-2.5 text-base text-ink focus:border-brand-blue-deep focus:outline-none focus:ring-1 focus:ring-brand-blue-deep"
 							/>
-						</div>
+						</FormField>
 
-						{/* Advance */}
-						<div className="flex flex-col gap-1.5">
-							<label
-								htmlFor="modal-advanceAmount"
-								className="text-base font-medium text-ink flex items-center gap-1"
-							>
-								<CreditCard className="h-4 w-4" />
-								অগ্রিম পরিমাণ (টাকা) *
-							</label>
-							<input
+						<FormField
+							label="অগ্রিম পরিমাণ (টাকা)"
+							required
+							htmlFor="modal-advanceAmount"
+							icon={<CreditCard className="h-4 w-4 text-steel" />}
+						>
+							<FormInput
 								id="modal-advanceAmount"
 								type="number"
 								value={advanceAmount}
@@ -577,110 +560,76 @@ function ApproveRegistrationDialog({
 								placeholder="অগ্রিম পরিমাণ"
 								required
 								min={0}
-								className="w-full rounded-lg border border-hairline bg-white px-3 py-2.5 text-base text-ink focus:border-brand-blue-deep focus:outline-none focus:ring-1 focus:ring-brand-blue-deep"
 							/>
-						</div>
+						</FormField>
 
-						{/* Start Date */}
-						<div className="flex flex-col gap-1.5">
-							<label
-								htmlFor="modal-startDate"
-								className="text-base font-medium text-ink flex items-center gap-1"
-							>
-								<Calendar className="h-4 w-4" />
-								ভাড়া শুরুর তারিখ *
-							</label>
-							<input
+						<FormField
+							label="ভাড়া শুরুর তারিখ"
+							required
+							htmlFor="modal-startDate"
+							icon={<Calendar className="h-4 w-4 text-steel" />}
+						>
+							<FormInput
 								id="modal-startDate"
 								type="date"
 								value={startDate}
 								onChange={(e) => setStartDate(e.target.value)}
 								required
-								className="w-full rounded-lg border border-hairline bg-white px-3 py-2.5 text-base text-ink focus:border-brand-blue-deep focus:outline-none focus:ring-1 focus:ring-brand-blue-deep"
 							/>
-						</div>
+						</FormField>
 
-						{/* Service Charge */}
-						<div className="flex flex-col gap-1.5">
-							<label
-								htmlFor="modal-serviceCharge"
-								className="text-base font-medium text-ink flex items-center gap-1"
-							>
-								<Briefcase className="h-4 w-4" />
-								সার্ভিস চার্জ (টাকা)
-							</label>
-							<input
+						<FormField
+							label="সার্ভিস চার্জ (টাকা)"
+							htmlFor="modal-serviceCharge"
+							icon={<Briefcase className="h-4 w-4 text-steel" />}
+						>
+							<FormInput
 								id="modal-serviceCharge"
 								type="number"
 								value={serviceCharge}
 								onChange={(e) => setServiceCharge(e.target.value)}
 								placeholder="সার্ভিস চার্জ"
 								min={0}
-								className="w-full rounded-lg border border-hairline bg-white px-3 py-2.5 text-base text-ink focus:border-brand-blue-deep focus:outline-none focus:ring-1 focus:ring-brand-blue-deep"
 							/>
-						</div>
+						</FormField>
 					</div>
 
 					<div className="grid grid-cols-1 sm:grid-cols-3 gap-4 border-t border-dashed border-hairline pt-4 mt-2">
-						{/* Gas Bill */}
-						<div className="flex flex-col gap-1.5">
-							<label
-								htmlFor="modal-gasBill"
-								className="text-base font-medium text-ink"
-							>
-								গ্যাস বিল (ফিক্সড)
-							</label>
-							<input
+						<FormField label="গ্যাস বিল (ফিক্সড)" htmlFor="modal-gasBill">
+							<FormInput
 								id="modal-gasBill"
 								type="number"
 								value={gasBill}
 								onChange={(e) => setGasBill(e.target.value)}
 								min={0}
-								className="w-full rounded-lg border border-hairline bg-white px-3 py-2 text-base text-ink focus:border-brand-blue-deep focus:outline-none focus:ring-1 focus:ring-brand-blue-deep"
 							/>
-						</div>
+						</FormField>
 
-						{/* Water Bill */}
-						<div className="flex flex-col gap-1.5">
-							<label
-								htmlFor="modal-waterBill"
-								className="text-base font-medium text-ink"
-							>
-								পানি বিল (ফিক্সড)
-							</label>
-							<input
+						<FormField label="পানি বিল (ফিক্সড)" htmlFor="modal-waterBill">
+							<FormInput
 								id="modal-waterBill"
 								type="number"
 								value={waterBill}
 								onChange={(e) => setWaterBill(e.target.value)}
 								min={0}
-								className="w-full rounded-lg border border-hairline bg-white px-3 py-2 text-base text-ink focus:border-brand-blue-deep focus:outline-none focus:ring-1 focus:ring-brand-blue-deep"
 							/>
-						</div>
+						</FormField>
 
-						{/* Other Charges */}
-						<div className="flex flex-col gap-1.5">
-							<label
-								htmlFor="modal-otherCharges"
-								className="text-base font-medium text-ink"
-							>
-								অন্যান্য চার্জ
-							</label>
-							<input
+						<FormField label="অন্যান্য চার্জ" htmlFor="modal-otherCharges">
+							<FormInput
 								id="modal-otherCharges"
 								type="number"
 								value={otherCharges}
 								onChange={(e) => setOtherCharges(e.target.value)}
 								min={0}
-								className="w-full rounded-lg border border-hairline bg-white px-3 py-2 text-base text-ink focus:border-brand-blue-deep focus:outline-none focus:ring-1 focus:ring-brand-blue-deep"
 							/>
-						</div>
+						</FormField>
 					</div>
 
 					<DialogFooter className="mt-6 border-t border-hairline pt-4 flex gap-3 justify-end flex-row">
 						<button
 							type="button"
-							onClick={handleReject}
+							onClick={() => setShowRejectConfirm(true)}
 							disabled={isLoading}
 							className="flex min-h-11 items-center justify-center gap-1.5 px-4 py-2.5 rounded-lg border border-error-text/30 bg-error-bg text-base text-error-text font-semibold hover:bg-error-text/10 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
 						>
@@ -708,6 +657,16 @@ function ApproveRegistrationDialog({
 					</DialogFooter>
 				</form>
 			</DialogContent>
+
+			<ConfirmDialog
+				open={showRejectConfirm}
+				onClose={() => setShowRejectConfirm(false)}
+				onConfirm={handleReject}
+				title="আবেদন বাতিল"
+				description="আপনি কি নিশ্চিত যে আপনি এই আবেদনটি বাতিল করতে চান?"
+				destructive
+				loading={rejectMutation.isPending}
+			/>
 		</Dialog>
 	);
 }

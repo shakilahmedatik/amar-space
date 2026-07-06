@@ -10,7 +10,6 @@ import {
 	updateBuilding,
 } from "@/lib/api-client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { DEFAULT_STALE_TIME } from "./constants";
 
 /**
  * TanStack Query hook for building list with pagination.
@@ -19,7 +18,6 @@ export function useBuildings(page = 1, pageSize = 50) {
 	return useQuery({
 		queryKey: ["buildings", { page, pageSize }],
 		queryFn: () => fetchBuildings(page, pageSize),
-		staleTime: DEFAULT_STALE_TIME,
 	});
 }
 
@@ -30,7 +28,6 @@ export function useBuilding(id: string) {
 	return useQuery({
 		queryKey: ["buildings", id],
 		queryFn: () => fetchBuilding(id),
-		staleTime: DEFAULT_STALE_TIME,
 		enabled: !!id,
 	});
 }
@@ -42,7 +39,6 @@ export function useBuildingFlats(buildingId: string, page = 1, pageSize = 50) {
 	return useQuery({
 		queryKey: ["flats", buildingId, page, pageSize],
 		queryFn: () => fetchFlatsForBuilding(buildingId, page, pageSize),
-		staleTime: DEFAULT_STALE_TIME,
 		enabled: !!buildingId,
 	});
 }

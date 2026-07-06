@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { ErrorFeedback } from "@/components/ui/error-feedback";
 import { FileUpload } from "@/components/ui/file-upload";
 import { FormField, FormInput } from "@/components/ui/form-field";
-import { useBuildings } from "@/hooks/use-buildings";
+import { useBuildingOptions } from "@/hooks/use-options";
 import { useCreateIssue } from "@/hooks/use-issues";
 import type { IssueCategory, IssuePriority } from "@/lib/api-client";
 import { useTranslation } from "@/lib/i18n";
@@ -29,10 +29,8 @@ export default function NewIssuePage() {
 	const [errors, setErrors] = useState<Record<string, string>>({});
 	const [successMessage, setSuccessMessage] = useState("");
 
-	const { data: buildingsData, isLoading: buildingsLoading } = useBuildings(
-		1,
-		100,
-	);
+	const { data: buildingsData, isLoading: buildingsLoading } =
+		useBuildingOptions();
 	const createMutation = useCreateIssue();
 	function validate(): boolean {
 		const newErrors: Record<string, string> = {};
@@ -79,10 +77,7 @@ export default function NewIssuePage() {
 				attachments: attachments.length > 0 ? attachments : undefined,
 			});
 			setSuccessMessage(t("issues.createSuccess"));
-			// Redirect after short delay
-			setTimeout(() => {
-				router.push("/issues");
-			}, 1000);
+			router.push("/issues");
 		} catch (err) {
 			setErrors({
 				form: err instanceof Error ? err.message : t("issues.createError"),

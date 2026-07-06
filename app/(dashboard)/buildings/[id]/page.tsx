@@ -18,7 +18,7 @@ import { useTranslation } from "@/lib/i18n";
 import Image from "next/image";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { BuildingEditForm } from "../__components/building-edit-form";
 
 export default function BuildingDetailPage() {
@@ -59,32 +59,35 @@ export default function BuildingDetailPage() {
 		setFormError("");
 	}
 
-	const flatColumns: DataTableColumn<FlatSummary>[] = [
-		{
-			key: "flatNumber",
-			header: t("flats.flatNumber"),
-			render: (row) => (
-				<Link
-					href={`/flats/${row.id}`}
-					className="text-brand-blue-deep font-medium no-underline hover:underline"
-				>
-					{row.flatNumber}
-				</Link>
-			),
-		},
-		{
-			key: "floor",
-			header: t("flats.floor"),
-			render: (row) => <span>{row.floor}</span>,
-			width: "100px",
-		},
-		{
-			key: "status",
-			header: t("flats.status"),
-			render: (row) => <StatusBadge status={row.status} />,
-			width: "160px",
-		},
-	];
+	const flatColumns = useMemo<DataTableColumn<FlatSummary>[]>(
+		() => [
+			{
+				key: "flatNumber",
+				header: t("flats.flatNumber"),
+				render: (row) => (
+					<Link
+						href={`/flats/${row.id}`}
+						className="text-brand-blue-deep font-medium no-underline hover:underline"
+					>
+						{row.flatNumber}
+					</Link>
+				),
+			},
+			{
+				key: "floor",
+				header: t("flats.floor"),
+				render: (row) => <span>{row.floor}</span>,
+				width: "100px",
+			},
+			{
+				key: "status",
+				header: t("flats.status"),
+				render: (row) => <StatusBadge status={row.status} />,
+				width: "160px",
+			},
+		],
+		[t],
+	);
 
 	return (
 		<>

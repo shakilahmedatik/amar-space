@@ -35,7 +35,6 @@ export default function IssueDetailPage() {
 	const { user, role } = useSession();
 	const { t } = useTranslation();
 	const params = useParams();
-	const _router = useRouter();
 	const issueId = params.id as string;
 	// Status update state
 	const [showStatusForm, setShowStatusForm] = useState(false);

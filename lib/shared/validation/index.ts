@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { NID_REGEX, PHONE_REGEX } from "./constants";
 
 // ─── Common Schemas ─────────────────────────────────────────────────────────
 
@@ -120,9 +121,9 @@ export const bloodGroupEnum = z.enum([
 	"O-",
 ]);
 
-export const bdPhoneSchema = z.preprocess(
-	(val) => {
-		if (typeof val !== "string") return val;
+export const bdPhoneSchema = z
+	.string()
+	.transform((val) => {
 		let cleaned = val.replace(/[\s\-\(\)]/g, "");
 		if (cleaned.startsWith("+880")) {
 			cleaned = `0${cleaned.substring(4)}`;
@@ -130,21 +131,23 @@ export const bdPhoneSchema = z.preprocess(
 			cleaned = `0${cleaned.substring(3)}`;
 		}
 		return cleaned;
-	},
-	z.string().regex(/^01\d{9}$/, {
-		message: "Phone number must be 11 digits starting with 01",
-	}),
-);
+	})
+	.pipe(
+		z.string().regex(PHONE_REGEX, {
+			message: "Phone number must be 11 digits starting with 01",
+		}),
+	);
 
-export const nidSchema = z.preprocess(
-	(val) => {
-		if (typeof val !== "string") return val;
+export const nidSchema = z
+	.string()
+	.transform((val) => {
 		return val.replace(/[\s\-]/g, "");
-	},
-	z.string().regex(/^\d{10,17}$/, {
-		message: "NID must be 10-17 numeric digits",
-	}),
-);
+	})
+	.pipe(
+		z.string().regex(NID_REGEX, {
+			message: "NID must be 10-17 numeric digits",
+		}),
+	);
 
 export const registerRenterSchema = z.object({
 	fullName: z.string().min(1).max(255),
