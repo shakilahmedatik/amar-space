@@ -1,36 +1,76 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/create-next-app).
+# Omni Heaven (omniheaven.com)
 
-## Getting Started
+Omni Heaven is a multi-tenant commercial SaaS platform built for **Hotels, Resorts, and Property/Building Owners**.
 
-First, run the development server:
+## Monorepo Architecture
 
+Managed via **Turborepo** and powered by **Bun** workspaces:
+
+```text
+├── apps/
+│   ├── web/               # Marketing Landing Page (omniheaven.com)
+│   ├── admin/             # Property & Hotel Manager Dashboard (app.omniheaven.com)
+│   ├── hotel-resort-web/  # Multi-tenant Dynamic Guest Engine ([slug].omniheaven.com)
+│   ├── renter-portal/     # Tenant & Flat Resident Portal (renter.omniheaven.com)
+│   ├── superadmin/        # Platform HQ & Subscription Control (hq.omniheaven.com)
+│   ├── mobile/            # React Native / Expo Manager Companion App
+│   └── api/               # Bun + Hono REST & tRPC Microservice (:3001)
+├── packages/
+│   ├── db/                # Drizzle ORM PostgreSQL Schema & Migrations
+│   ├── auth/              # Better Auth Integration & Session Utilities
+│   ├── trpc/              # End-to-end Type-safe Router & Client
+│   ├── ui/                # Shared Tailwind v4 Design System & Components
+│   ├── validators/        # Zod Schemas for Hotels, Buildings, Renters & Bookings
+│   └── typescript-config/ # Strict Shared tsconfig Presets
+└── docker/                # Multi-stage Dockerfiles for API and Next.js Apps
+```
+
+## Quick Start
+
+### 1. Prerequisites
+- **Bun**: `^1.2.0` (Recommended: `1.4.3+`)
+- **Node.js**: `^20.0.0` or `^22.0.0`
+- **Docker & Docker Compose** (for self-hosting or local database)
+
+### 2. Installation
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
+bun install
+```
+
+### 3. Environment Setup
+Copy the sample environment variables:
+```bash
+cp .env.example .env
+```
+
+### 4. Local Development
+Run all applications concurrently with Turborepo:
+```bash
 bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Or run individual apps:
+```bash
+bun --filter admin dev
+bun --filter hotel-resort-web dev
+bun --filter api dev
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 5. Quality & Type Checking
+```bash
+# Typecheck all 13 packages and apps in parallel
+bun run check-types
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load Inter, a custom Google Font.
+# Biome format & lint check
+bun run check
+bun run format
+```
 
-## Learn More
+## Production & Self-Hosting
 
-To learn more about Next.js, take a look at the following resources:
+Spin up the entire production stack (PostgreSQL, SeaweedFS, Cloudflare Tunnel, API, and Web Apps):
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+docker compose up -d --build
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
