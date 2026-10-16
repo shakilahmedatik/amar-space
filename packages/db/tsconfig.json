@@ -1,0 +1,10 @@
+{
+  "extends": "@omniheaven/typescript-config/base.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
+  "include": ["src", "drizzle.config.ts"]
+}

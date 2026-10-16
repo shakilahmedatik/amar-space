@@ -1,65 +1,45 @@
 {
-	"$schema": "https://biomejs.dev/schemas/1.9.4/schema.json",
-	"organizeImports": {
-		"enabled": true
-	},
-	"linter": {
-		"enabled": true,
-		"rules": {
-			"recommended": true,
-			"correctness": {
-				"useExhaustiveDependencies": "warn",
-				"useJsxKeyInIterable": "error"
-			},
-			"a11y": {
-				"useAltText": "error",
-				"useButtonType": "warn",
-				"useSemanticElements": "off"
-			},
-			"suspicious": {
-				"noArrayIndexKey": "off",
-				"noExplicitAny": "off"
-			}
-		}
-	},
-	"formatter": {
-		"enabled": true,
-		"indentStyle": "tab",
-		"lineWidth": 80
-	},
-	"javascript": {
-		"formatter": {
-			"quoteStyle": "double"
-		}
-	},
-	"css": {
-		"linter": {
-			"enabled": false
-		},
-		"parser": {
-			"cssModules": true
-		}
-	},
-	"files": {
-		"ignore": [
-			"node_modules",
-			"dist",
-			".next",
-			"build",
-			".agents",
-			"old_api_src"
-		]
-	},
-	"overrides": [
-		{
-			"include": ["tests/**/*.ts", "tests/**/*.tsx"],
-			"linter": {
-				"rules": {
-					"style": {
-						"noNonNullAssertion": "off"
-					}
-				}
-			}
-		}
-	]
+  "$schema": "https://biomejs.dev/schemas/2.5.15/schema.json",
+  "assist": { "actions": { "source": { "organizeImports": "on" } } },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "preset": "recommended",
+      "correctness": {
+        "useExhaustiveDependencies": "warn",
+        "useJsxKeyInIterable": "error"
+      },
+      "a11y": {
+        "useAltText": "error",
+        "useButtonType": "warn",
+        "useSemanticElements": "off"
+      },
+      "suspicious": {
+        "noArrayIndexKey": "off",
+        "noExplicitAny": "off"
+      }
+    }
+  },
+  "formatter": {
+    "enabled": true,
+    "indentStyle": "space",
+    "indentWidth": 2,
+    "lineWidth": 100
+  },
+  "javascript": {
+    "formatter": {
+      "quoteStyle": "double"
+    }
+  },
+  "files": {
+    "includes": [
+      "**",
+      "!**/node_modules",
+      "!**/dist",
+      "!**/.next",
+      "!**/build",
+      "!**/.turbo",
+      "!**/.agents"
+    ]
+  }
 }
