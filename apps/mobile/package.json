@@ -1,0 +1,17 @@
+{
+  "name": "mobile",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "start": "echo 'Run expo start in mobile app directory'",
+    "check-types": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@omniheaven/validators": "workspace:*"
+  },
+  "devDependencies": {
+    "@omniheaven/typescript-config": "workspace:*",
+    "@types/react": "19.2.2",
+    "typescript": "^5.9.2"
+  }
+}
