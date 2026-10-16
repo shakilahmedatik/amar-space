@@ -1,0 +1,52 @@
+{
+  "common": {
+    "appName": "Omni Heaven",
+    "dashboard": "Dashboard",
+    "settings": "Settings",
+    "logout": "Sign Out",
+    "profile": "Profile",
+    "save": "Save Changes",
+    "saving": "Saving...",
+    "cancel": "Cancel",
+    "create": "Create",
+    "actions": "Actions",
+    "status": "Status",
+    "search": "Search...",
+    "freeTrialBadge": "6-Month Free Trial"
+  },
+  "nav": {
+    "hotel": {
+      "overview": "Overview",
+      "bookings": "Reservations",
+      "rooms": "Rooms & Types",
+      "websiteBuilder": "Website Builder",
+      "domains": "Custom Domains",
+      "staff": "Staff",
+      "finance": "Finance & Billing"
+    },
+    "building": {
+      "overview": "Overview",
+      "buildings": "Buildings & Units",
+      "renters": "Renters & Leases",
+      "bills": "Bills & Utility",
+      "payments": "Rent Payments",
+      "maintenance": "Maintenance",
+      "notices": "Notices",
+      "staff": "Caretakers & Staff"
+    }
+  },
+  "builder": {
+    "title": "Website Builder",
+    "description": "Customize your hotel or resort website, choose themes, and preview in real-time.",
+    "theme": "Theme Selection",
+    "branding": "Brand Identity",
+    "heroSection": "Hero Section",
+    "sections": "Page Sections",
+    "livePreview": "Live Preview",
+    "primaryColor": "Primary Color",
+    "accentColor": "Accent Color",
+    "headline": "Hero Headline",
+    "tagline": "Hero Tagline",
+    "ctaText": "Call to Action Text"
+  }
+}

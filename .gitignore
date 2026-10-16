@@ -11,11 +11,16 @@ node_modules/
 /coverage
 
 # next.js
-/.next/
+.next/
+**/.next/
 /out/
+**/out/
 
 # production
 /build
+**/build/
+dist/
+**/dist/
 
 # misc
 .DS_Store
@@ -39,3 +44,4 @@ next-env.d.ts
 
 # turborepo
 .turbo/
+**/.turbo/
