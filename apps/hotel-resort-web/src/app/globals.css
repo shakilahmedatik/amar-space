@@ -1,0 +1,50 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --primary-color: #0f172a;
+    --primary-foreground: #ffffff;
+    --accent-color: #c5a880;
+    --accent-foreground: #ffffff;
+    --theme-font: "Inter", sans-serif;
+    --theme-heading-font: "Playfair Display", serif;
+    --theme-radius: 0.75rem;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    font-family: var(--theme-font);
+  }
+
+  h1,
+  h2,
+  h3,
+  .font-heading {
+    font-family: var(--theme-heading-font);
+  }
+}
+
+/* Custom Theme Overrides */
+[data-theme="classic-luxury"] {
+  --theme-heading-font: "Playfair Display", Georgia, serif;
+  --theme-font: "Inter", sans-serif;
+  --theme-radius: 0.5rem;
+}
+
+[data-theme="modern-minimal"] {
+  --theme-heading-font: "Plus Jakarta Sans", system-ui, sans-serif;
+  --theme-font: "Plus Jakarta Sans", system-ui, sans-serif;
+  --theme-radius: 0.25rem;
+}
+
+[data-theme="coastal-resort"] {
+  --theme-heading-font: "Outfit", sans-serif;
+  --theme-font: "Outfit", sans-serif;
+  --theme-radius: 1.25rem;
+}
+
+[data-theme="boutique-haven"] {
+  --theme-heading-font: "Playfair Display", serif;
+  --theme-font: "Inter", sans-serif;
+  --theme-radius: 0.875rem;
+}

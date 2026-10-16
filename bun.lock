@@ -59,6 +59,31 @@
         "typescript": "^5.9.2",
       },
     },
+    "apps/hotel-resort-web": {
+      "name": "hotel-resort-web",
+      "version": "0.1.0",
+      "dependencies": {
+        "@omniheaven/db": "workspace:*",
+        "@omniheaven/ui": "workspace:*",
+        "@omniheaven/validators": "workspace:*",
+        "clsx": "^2.1.1",
+        "lucide-react": "^1.16.0",
+        "next": "^16.4.2",
+        "react": "^19.2.0",
+        "react-dom": "^19.2.0",
+        "tailwind-merge": "^3.5.0",
+      },
+      "devDependencies": {
+        "@omniheaven/typescript-config": "workspace:*",
+        "@tailwindcss/postcss": "^4.3.3",
+        "@types/node": "^22.15.30",
+        "@types/react": "19.2.2",
+        "@types/react-dom": "19.2.2",
+        "postcss": "^8.5.3",
+        "tailwindcss": "^4.3.3",
+        "typescript": "^5.9.2",
+      },
+    },
     "apps/renter-portal": {
       "name": "renter-portal",
       "version": "0.0.1",
@@ -649,6 +674,8 @@
     "help-me": ["help-me@5.0.0", "", {}, "sha512-7xgomUX6ADmcYzFik0HzAxh/73YlKR9bmFzf51CZwR+b6YtzU2m0u49hQCqV6SvlqIqsaxovfwdvbnsw3b/zpg=="],
 
     "hono": ["hono@4.13.13", "", {}, "sha512-CQ46U0ZkAGmbT/4UxdzzGJpacP2IeKgY4a5/tOI9AABbpOMfK739wfDXmv1usCk+3RkKj1hQy4/fjhiwa2xlrA=="],
+
+    "hotel-resort-web": ["hotel-resort-web@workspace:apps/hotel-resort-web"],
 
     "icu-minify": ["icu-minify@4.14.9", "", { "dependencies": { "@formatjs/icu-messageformat-parser": "^3.4.0" } }, "sha512-PmO+fNnC3K3mfPKTnm3RrPERrhQZnjm1AlpyZQ0ShbXi8Y/kYZ3YOde8TEjCLz9k3P2DmzkBn8lykGrCAi1Ajw=="],
 
