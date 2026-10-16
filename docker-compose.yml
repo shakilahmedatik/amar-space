@@ -1,0 +1,198 @@
+services:
+  # =========================================================================
+  # 1. DATABASE: PostgreSQL 16
+  # =========================================================================
+  postgres:
+    image: postgres:16-alpine
+    container_name: omniheaven-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-omniheaven}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-omniheaven_secret_pass}
+      POSTGRES_DB: ${POSTGRES_DB:-omniheaven_prod}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-omniheaven} -d ${POSTGRES_DB:-omniheaven_prod}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - omniheaven-net
+
+  # =========================================================================
+  # 2. OBJECT STORAGE: SeaweedFS (S3-compatible, Apache 2.0)
+  # =========================================================================
+  seaweedfs:
+    image: chrislusf/seaweedfs:latest
+    container_name: omniheaven-seaweedfs
+    restart: unless-stopped
+    command: "server -s3 -dir=/data -s3.port=8333 -s3.allowEmptyFolder=false"
+    ports:
+      - "8333:8333" # S3 Endpoint API
+      - "9333:9333" # Master Status / Filer
+    volumes:
+      - seaweedfs_data:/data
+    networks:
+      - omniheaven-net
+
+  # =========================================================================
+  # 3. BACKEND API: Bun + Hono + tRPC + Better Auth
+  # =========================================================================
+  api:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.api
+    container_name: omniheaven-api
+    restart: unless-stopped
+    environment:
+      PORT: 4000
+      NODE_ENV: production
+      DATABASE_URL: postgresql://${POSTGRES_USER:-omniheaven}:${POSTGRES_PASSWORD:-omniheaven_secret_pass}@postgres:5432/${POSTGRES_DB:-omniheaven_prod}
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:-omniheaven_auth_secret_key_32chars_min}
+      BETTER_AUTH_URL: ${BETTER_AUTH_URL:-http://localhost:4000}
+      S3_ENDPOINT: http://seaweedfs:8333
+      S3_BUCKET: omniheaven-assets
+      PAYSTATION_MERCHANT_ID: ${PAYSTATION_MERCHANT_ID:-}
+      PAYSTATION_API_KEY: ${PAYSTATION_API_KEY:-}
+    ports:
+      - "4000:4000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      seaweedfs:
+        condition: service_started
+    networks:
+      - omniheaven-net
+
+  # =========================================================================
+  # 4. ADMIN DASHBOARD & WEBSITE BUILDER STUDIO: Next.js 16 (Port 3000)
+  # =========================================================================
+  admin:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.nextjs
+      args:
+        APP_NAME: admin
+    container_name: omniheaven-admin
+    restart: unless-stopped
+    environment:
+      PORT: 3000
+      NODE_ENV: production
+      NEXT_PUBLIC_API_URL: http://api:4000
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
+    networks:
+      - omniheaven-net
+
+  # =========================================================================
+  # 5. HOTEL & RESORT CUSTOMER WEB ENGINE: Next.js 16 (Port 3003)
+  # =========================================================================
+  hotel-resort-web:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.nextjs
+      args:
+        APP_NAME: hotel-resort-web
+    container_name: omniheaven-hotel-resort-web
+    restart: unless-stopped
+    environment:
+      PORT: 3003
+      NODE_ENV: production
+      NEXT_PUBLIC_API_URL: http://api:4000
+    ports:
+      - "3003:3003"
+    depends_on:
+      - api
+    networks:
+      - omniheaven-net
+
+  # =========================================================================
+  # 6. RENTER RESIDENTIAL PORTAL: Next.js 16 (Port 3002)
+  # =========================================================================
+  renter-portal:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.nextjs
+      args:
+        APP_NAME: renter-portal
+    container_name: omniheaven-renter-portal
+    restart: unless-stopped
+    environment:
+      PORT: 3002
+      NODE_ENV: production
+      NEXT_PUBLIC_API_URL: http://api:4000
+    ports:
+      - "3002:3002"
+    depends_on:
+      - api
+    networks:
+      - omniheaven-net
+
+  # =========================================================================
+  # 7. SUPERADMIN HQ DASHBOARD: Next.js 16 (Port 3001)
+  # =========================================================================
+  superadmin:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.nextjs
+      args:
+        APP_NAME: superadmin
+    container_name: omniheaven-superadmin
+    restart: unless-stopped
+    environment:
+      PORT: 3001
+      NODE_ENV: production
+      NEXT_PUBLIC_API_URL: http://api:4000
+    ports:
+      - "3001:3001"
+    depends_on:
+      - api
+    networks:
+      - omniheaven-net
+
+  # =========================================================================
+  # 8. COMMERCIAL LANDING PAGE: Next.js 16 (Port 3004)
+  # =========================================================================
+  web:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.nextjs
+      args:
+        APP_NAME: web
+    container_name: omniheaven-web
+    restart: unless-stopped
+    environment:
+      PORT: 3004
+      NODE_ENV: production
+    ports:
+      - "3004:3004"
+    networks:
+      - omniheaven-net
+
+  # =========================================================================
+  # 9. CLOUDFLARE TUNNEL (Zero Trust ingress for *.omniheaven.com)
+  # =========================================================================
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: omniheaven-cloudflared
+    restart: unless-stopped
+    command: tunnel run
+    environment:
+      TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN:-}
+    networks:
+      - omniheaven-net
+    profiles:
+      - tunnel
+
+networks:
+  omniheaven-net:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  seaweedfs_data:
