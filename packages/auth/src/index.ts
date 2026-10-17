@@ -20,8 +20,8 @@ export const auth = betterAuth({
       invitations: schema.invitations,
     },
   }),
-  secret: process.env.AUTH_SECRET,
-  baseURL: process.env.AUTH_BASE_URL || "http://localhost:3001",
+  secret: process.env.BETTER_AUTH_SECRET || process.env.AUTH_SECRET,
+  baseURL: process.env.BETTER_AUTH_URL || process.env.AUTH_BASE_URL || "http://localhost:4000",
   trustedOrigins: process.env.AUTH_TRUSTED_ORIGINS
     ? process.env.AUTH_TRUSTED_ORIGINS.split(",")
     : [

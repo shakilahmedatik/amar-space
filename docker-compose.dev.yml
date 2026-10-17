@@ -1,0 +1,127 @@
+# =============================================================================
+# Omni Heaven - Local Development Services (Docker Compose)
+# =============================================================================
+# This compose file runs ONLY backing infrastructure services in Docker.
+# Next.js applications and the Hono API server run directly on the host machine
+# using `bun dev` (Turborepo) for instant hot reloading and low overhead.
+#
+# Usage:
+#   Start services:       docker compose -f docker-compose.dev.yml up -d
+#   Stop services:        docker compose -f docker-compose.dev.yml down
+#   View service logs:    docker compose -f docker-compose.dev.yml logs -f
+#   With Cloudflare:      docker compose -f docker-compose.dev.yml --profile tunnel up -d
+# =============================================================================
+
+services:
+  # =========================================================================
+  # 1. DATABASE: PostgreSQL 16
+  # =========================================================================
+  postgres:
+    image: postgres:16-alpine
+    container_name: omniheaven-postgres-dev
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-omniheaven}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-omniheaven_secret_pass}
+      POSTGRES_DB: ${POSTGRES_DB:-omniheaven_prod}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-omniheaven} -d $${POSTGRES_DB:-omniheaven_prod}"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 3s
+    networks:
+      - omniheaven-dev-net
+
+  # =========================================================================
+  # 2. OBJECT STORAGE: SeaweedFS (S3-compatible, Apache 2.0)
+  # =========================================================================
+  seaweedfs:
+    image: chrislusf/seaweedfs:latest
+    container_name: omniheaven-seaweedfs-dev
+    restart: unless-stopped
+    command: "server -s3 -dir=/data -s3.port=8333 -s3.allowEmptyFolder=false"
+    ports:
+      - "${S3_PORT:-8333}:8333" # S3 Endpoint API (http://localhost:8333)
+      - "9333:9333"             # Master Status / Filer UI (http://localhost:9333)
+    volumes:
+      - seaweedfs_dev_data:/data
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "-", "http://127.0.0.1:8333/"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 3s
+    networks:
+      - omniheaven-dev-net
+
+  # =========================================================================
+  # 3. LOCAL EMAIL TESTING: Mailpit (SMTP server & Web UI)
+  # =========================================================================
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: omniheaven-mailpit-dev
+    restart: unless-stopped
+    environment:
+      MP_MAX_MESSAGES: 500
+      MP_DATABASE: /data/mailpit.db
+      MP_SMTP_AUTH_ACCEPT_ANY: 1
+      MP_SMTP_AUTH_ALLOW_INSECURE: 1
+    ports:
+      - "1025:1025" # SMTP Port (for local app email delivery)
+      - "8025:8025" # Mailpit Web UI (http://localhost:8025)
+    volumes:
+      - mailpit_dev_data:/data
+    healthcheck:
+      test: ["CMD", "/mailpit", "readyz"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 2s
+    networks:
+      - omniheaven-dev-net
+
+  # =========================================================================
+  # 4. DATABASE VIEWER: Pgweb (PostgreSQL Web UI)
+  # =========================================================================
+  pgweb:
+    image: sosedoff/pgweb:latest
+    container_name: omniheaven-pgweb-dev
+    restart: unless-stopped
+    environment:
+      PGWEB_DATABASE_URL: postgresql://${POSTGRES_USER:-omniheaven}:${POSTGRES_PASSWORD:-omniheaven_secret_pass}@postgres:5432/${POSTGRES_DB:-omniheaven_prod}?sslmode=disable
+    ports:
+      - "8081:8081" # Pgweb UI (http://localhost:8081)
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - omniheaven-dev-net
+
+  # =========================================================================
+  # 5. OPTIONAL: Cloudflare Tunnel (for testing live webhooks locally)
+  # =========================================================================
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: omniheaven-cloudflared-dev
+    restart: unless-stopped
+    command: tunnel run
+    environment:
+      TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN:-}
+    networks:
+      - omniheaven-dev-net
+    profiles:
+      - tunnel
+
+networks:
+  omniheaven-dev-net:
+    driver: bridge
+
+volumes:
+  postgres_dev_data:
+  seaweedfs_dev_data:
+  mailpit_dev_data:

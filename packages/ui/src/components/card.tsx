@@ -1,15 +1,24 @@
 import * as React from "react";
-
 import { cn } from "../lib/utils";
 
-const Card = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
-  ({ className, ...props }, ref) => (
-    <div
-      ref={ref}
-      className={cn("rounded-lg border bg-card text-card-foreground shadow-sm", className)}
-      {...props}
-    />
-  ),
+export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
+  variant?: "default" | "glass" | "goldAccent" | "interactive";
+}
+
+const Card = React.forwardRef<HTMLDivElement, CardProps>(
+  ({ className, variant = "default", ...props }, ref) => {
+    const variantClasses = {
+      default:
+        "rounded-xl border border-border/70 bg-card text-card-foreground shadow-[0_4px_20px_-4px_rgba(42,32,28,0.04)] dark:shadow-[0_4px_20px_-4px_rgba(0,0,0,0.3)] transition-all duration-200",
+      glass: "luxury-glass rounded-xl text-card-foreground",
+      goldAccent:
+        "rounded-xl border border-border/70 border-t-2 border-t-[#C5A880] dark:border-t-[#E5C378] bg-card text-card-foreground shadow-[0_4px_20px_-4px_rgba(42,32,28,0.04)] dark:shadow-[0_4px_20px_-4px_rgba(0,0,0,0.3)] transition-all duration-200",
+      interactive:
+        "card-luxury rounded-xl border border-border/70 bg-card text-card-foreground cursor-pointer",
+    };
+
+    return <div ref={ref} className={cn(variantClasses[variant], className)} {...props} />;
+  },
 );
 Card.displayName = "Card";
 
@@ -24,7 +33,10 @@ const CardTitle = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivE
   ({ className, ...props }, ref) => (
     <div
       ref={ref}
-      className={cn("text-2xl font-semibold leading-none tracking-tight", className)}
+      className={cn(
+        "font-display text-2xl font-semibold leading-none tracking-tight text-foreground",
+        className,
+      )}
       {...props}
     />
   ),
@@ -33,7 +45,7 @@ CardTitle.displayName = "CardTitle";
 
 const CardDescription = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
   ({ className, ...props }, ref) => (
-    <div ref={ref} className={cn("text-sm text-muted-foreground", className)} {...props} />
+    <div ref={ref} className={cn("text-sm text-foreground-muted", className)} {...props} />
   ),
 );
 CardDescription.displayName = "CardDescription";

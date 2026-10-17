@@ -112,7 +112,7 @@ app.onError((err, c) => {
   );
 });
 
-const port = Number(process.env.PORT || 3001);
+const port = Number(process.env.PORT || 4000);
 
 logger.info(`Omni Heaven API server running on port ${port}`);
 

@@ -12,5 +12,8 @@ export * from "./components/label";
 export * from "./components/skeleton";
 export * from "./components/status-badge";
 export * from "./components/table";
+export * from "./components/tabs";
 export * from "./lib/formatters";
 export * from "./lib/utils";
+export * from "./motion";
+export * from "./tokens";

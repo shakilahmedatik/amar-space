@@ -1,0 +1,169 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    /* Royal Heritage & Champagne - Light Theme (Day Pavilion) */
+    --canvas: 40 50% 98%; /* #FDFBF7 */
+    --surface: 38 40% 96%; /* #FAF6F0 */
+    --surface-elevated: 0 0% 100%; /* #FFFFFF */
+    --surface-glass: 250 246 240 / 0.82;
+    --border: 32 35% 89%; /* #EADBCE */
+    --border-gold: 37 45% 73%; /* #D8C29D */
+    --border-gold-subtle: 216 194 157 / 0.45;
+
+    --foreground: 18 20% 14%; /* #2A201C - Roasted Espresso */
+    --foreground-muted: 19 15% 39%; /* #735E54 - Warm Earth */
+    --foreground-secondary: 19 16% 31%; /* #5C4B43 */
+
+    /* Radix / shadcn variable bridges */
+    --background: 40 50% 98%;
+    --card: 38 40% 96%;
+    --card-foreground: 18 20% 14%;
+    --popover: 38 40% 96%;
+    --popover-foreground: 18 20% 14%;
+
+    --primary: 35 41% 64%; /* #C5A880 - Champagne Gold */
+    --primary-foreground: 18 20% 12%; /* #1F1714 */
+
+    --secondary: 26 30% 22%; /* #4A3728 - Cognac */
+    --secondary-foreground: 40 50% 98%; /* Ivory */
+
+    --muted: 32 30% 92%;
+    --muted-foreground: 19 15% 39%;
+
+    --accent: 37 45% 90%;
+    --accent-foreground: 18 20% 14%;
+
+    --destructive: 6 63% 46%;
+    --destructive-foreground: 0 0% 100%;
+
+    --ring: 35 41% 64%; /* Champagne Gold Focus Ring */
+    --radius: 0.625rem;
+
+    --font-display: "Playfair Display", Georgia, serif;
+    --font-sans: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
+    --font-bangla: "Hind Siliguri", sans-serif;
+  }
+
+  .dark {
+    /* Royal Heritage & Champagne - Dark Theme (Night Sanctuary) */
+    --canvas: 24 14% 7%; /* #14110F - Obsidian Espresso */
+    --surface: 22 17% 10%; /* #1E1815 - Warm Dark Bronze */
+    --surface-elevated: 23 16% 13%; /* #27201C */
+    --surface-glass: 30 24 21 / 0.85;
+    --border: 23 19% 18%; /* #382D26 - Deep Soil */
+    --border-gold: 34 30% 33%; /* #6E583B - Luminous Bronze */
+    --border-gold-subtle: 110 88 59 / 0.35;
+
+    --foreground: 40 45% 97%; /* #FBF8F3 - Warm Soft Ivory */
+    --foreground-muted: 22 12% 61%; /* #A8988F - Warm Sand */
+    --foreground-secondary: 22 14% 78%; /* #D6CCC2 */
+
+    /* Radix / shadcn variable bridges */
+    --background: 24 14% 7%;
+    --card: 22 17% 10%;
+    --card-foreground: 40 45% 97%;
+    --popover: 22 17% 10%;
+    --popover-foreground: 40 45% 97%;
+
+    --primary: 41 71% 68%; /* #E5C378 / #D4AF37 - Luminous Gold */
+    --primary-foreground: 24 14% 7%; /* Deep Obsidian */
+
+    --secondary: 23 16% 18%; /* Dark Cognac */
+    --secondary-foreground: 40 45% 97%;
+
+    --muted: 23 16% 14%;
+    --muted-foreground: 22 12% 61%;
+
+    --accent: 34 30% 18%;
+    --accent-foreground: 40 45% 97%;
+
+    --destructive: 6 63% 55%;
+    --destructive-foreground: 0 0% 100%;
+
+    --ring: 41 71% 68%; /* Radiant Gold Focus Ring */
+  }
+
+  body {
+    background-color: hsl(var(--canvas));
+    color: hsl(var(--foreground));
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1,
+  h2,
+  h3,
+  .font-display {
+    font-family: var(--font-display);
+    letter-spacing: -0.015em;
+  }
+}
+
+/* =========================================================================
+   Luxury Custom Utility Classes
+   ========================================================================= */
+
+.luxury-glass {
+  background: rgba(250, 246, 240, 0.82);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(216, 194, 157, 0.45);
+  box-shadow:
+    0 10px 30px -10px rgba(42, 32, 28, 0.05),
+    0 1px 3px rgba(42, 32, 28, 0.03);
+}
+
+.dark .luxury-glass {
+  background: rgba(30, 24, 21, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(110, 88, 59, 0.35);
+  box-shadow:
+    0 12px 36px -10px rgba(0, 0, 0, 0.55),
+    0 1px 3px rgba(0, 0, 0, 0.25);
+}
+
+.gold-gradient {
+  background: linear-gradient(135deg, #dfba73 0%, #c5a880 50%, #9e7d47 100%);
+}
+
+.dark .gold-gradient {
+  background: linear-gradient(135deg, #e5c378 0%, #d4af37 50%, #a38350 100%);
+}
+
+.gold-glow {
+  box-shadow: 0 0 20px rgba(197, 168, 128, 0.35);
+}
+
+.dark .gold-glow {
+  box-shadow: 0 0 24px rgba(212, 175, 55, 0.35);
+}
+
+.gold-hairline {
+  border: 1px solid rgba(216, 194, 157, 0.45);
+}
+
+.dark .gold-hairline {
+  border: 1px solid rgba(110, 88, 59, 0.4);
+}
+
+.card-luxury {
+  border-radius: 0.75rem;
+  transition:
+    transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 0.25s ease;
+}
+
+.card-luxury:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 34px -8px rgba(42, 32, 28, 0.09);
+  border-color: rgba(197, 168, 128, 0.65);
+}
+
+.dark .card-luxury:hover {
+  box-shadow: 0 16px 40px -8px rgba(0, 0, 0, 0.7);
+  border-color: rgba(212, 175, 55, 0.55);
+}

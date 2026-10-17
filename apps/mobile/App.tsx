@@ -5,6 +5,7 @@ import { DashboardScreen } from "./src/screens/DashboardScreen";
 import { HotelBookingAlertsScreen } from "./src/screens/HotelBookingAlertsScreen";
 import { MaintenanceDeskScreen } from "./src/screens/MaintenanceDeskScreen";
 import { TenantManagementScreen } from "./src/screens/TenantManagementScreen";
+import { getMobileTheme } from "./src/theme";
 import type {
   MobileBookingAlert,
   MobileMaintenanceTicket,
@@ -18,6 +19,8 @@ export default function App() {
   const [currentTab, setCurrentTab] = useState<
     "dashboard" | "bookings" | "tenants" | "maintenance"
   >("dashboard");
+  const [themeMode, setThemeMode] = useState<"dark" | "light">("dark");
+  const theme = getMobileTheme(themeMode);
 
   // Mock State
   const [stats] = useState<MobileOverviewStats>({
@@ -101,61 +104,102 @@ export default function App() {
     },
     {
       id: "m-2",
-      unit: "Flat 4B",
+      unit: "Suite 404",
       category: "plumbing",
-      title: "Kitchen sink drain pipe slight leakage",
+      title: "Jacuzzi water pressure low",
       urgency: "medium",
       status: "assigned",
-      reportedDate: "2026-10-15",
+      reportedDate: "2026-10-17",
+    },
+    {
+      id: "m-3",
+      unit: "Flat 4B",
+      category: "electrical",
+      title: "Corridor light fixture flickering",
+      urgency: "low",
+      status: "open",
+      reportedDate: "2026-10-17",
     },
   ]);
 
-  const handleCheckInGuest = (id: string) => {
-    setBookings((prev) => prev.map((b) => (b.id === id ? { ...b, status: "checked_in" } : b)));
+  const handleCheckInGuest = (bookingId: string) => {
+    setBookings((prev) =>
+      prev.map((b) => (b.id === bookingId ? { ...b, status: "checked_in" as const } : b)),
+    );
+  };
+
+  const handleResolveTicket = (ticketId: string) => {
+    setTickets((prev) =>
+      prev.map((t) => (t.id === ticketId ? { ...t, status: "resolved" as const } : t)),
+    );
   };
 
   const handleSendReminder = (tenant: MobileTenantSummary) => {
-    alert(`bKash payment reminder sent via SMS to ${tenant.tenantName} (${tenant.phone})`);
-  };
-
-  const handleResolveTicket = (id: string) => {
-    setTickets((prev) => prev.map((t) => (t.id === id ? { ...t, status: "resolved" } : t)));
+    console.log(`Sending reminder to tenant: ${tenant.tenantName}`);
   };
 
   return (
     <div
       style={{
-        maxWidth: 480,
+        maxWidth: 440,
         margin: "0 auto",
+        backgroundColor: theme.colors.canvas,
+        color: theme.colors.textPrimary,
         minHeight: "100vh",
-        backgroundColor: "#0f172a",
         display: "flex",
         flexDirection: "column",
+        boxShadow: "0 0 40px rgba(0,0,0,0.5)",
+        fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif",
       }}
     >
       {/* Top Mobile Bar */}
       <div
         style={{
           padding: "12px 16px",
-          backgroundColor: "#1e293b",
-          borderBottom: "1px solid #334155",
+          backgroundColor: theme.colors.surface,
+          borderBottom: `1px solid ${theme.colors.border}`,
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
         }}
       >
-        <span style={{ fontSize: 13, fontWeight: "bold", color: "#ffffff" }}>
-          Omni Heaven Mobile
-        </span>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <span
+            style={{
+              fontFamily: "'Playfair Display', Georgia, serif",
+              fontSize: 16,
+              fontWeight: "bold",
+              color: theme.colors.textPrimary,
+            }}
+          >
+            omni<span style={{ color: theme.colors.goldPrimary }}>Heaven</span>
+          </span>
+          <button
+            type="button"
+            onClick={() => setThemeMode(themeMode === "dark" ? "light" : "dark")}
+            style={{
+              padding: "2px 8px",
+              fontSize: 10,
+              backgroundColor: "transparent",
+              color: theme.colors.textMuted,
+              border: `1px solid ${theme.colors.border}`,
+              borderRadius: 6,
+              cursor: "pointer",
+            }}
+          >
+            {themeMode === "dark" ? "☀️ Day" : "🌙 Night"}
+          </button>
+        </div>
 
         {/* Property Switcher Toggle */}
         <div
           style={{
             display: "flex",
-            gap: 4,
-            backgroundColor: "#0f172a",
+            gap: 2,
+            backgroundColor: theme.colors.canvas,
             padding: 2,
             borderRadius: 8,
+            border: `1px solid ${theme.colors.border}`,
           }}
         >
           <button
@@ -166,8 +210,13 @@ export default function App() {
             }}
             style={{
               padding: "4px 8px",
-              backgroundColor: propertyType === "hotel" ? "#6366f1" : "transparent",
-              color: "#ffffff",
+              backgroundColor: propertyType === "hotel" ? theme.colors.goldPrimary : "transparent",
+              color:
+                propertyType === "hotel"
+                  ? theme.isDark
+                    ? "#14110F"
+                    : "#1F1714"
+                  : theme.colors.textMuted,
               border: "none",
               borderRadius: 6,
               fontSize: 10,
@@ -185,8 +234,14 @@ export default function App() {
             }}
             style={{
               padding: "4px 8px",
-              backgroundColor: propertyType === "building" ? "#10b981" : "transparent",
-              color: "#ffffff",
+              backgroundColor:
+                propertyType === "building" ? theme.colors.goldPrimary : "transparent",
+              color:
+                propertyType === "building"
+                  ? theme.isDark
+                    ? "#14110F"
+                    : "#1F1714"
+                  : theme.colors.textMuted,
               border: "none",
               borderRadius: 6,
               fontSize: 10,
@@ -205,6 +260,7 @@ export default function App() {
           <DashboardScreen
             propertyType={propertyType}
             stats={stats}
+            theme={theme}
             onNavigateTab={(tab) => setCurrentTab(tab)}
           />
         )}
@@ -227,8 +283,8 @@ export default function App() {
         style={{
           position: "sticky",
           bottom: 0,
-          backgroundColor: "#1e293b",
-          borderTop: "1px solid #334155",
+          backgroundColor: theme.colors.surface,
+          borderTop: `1px solid ${theme.colors.border}`,
           display: "flex",
           justifyContent: "space-around",
           padding: "10px 0",
@@ -240,9 +296,9 @@ export default function App() {
           style={{
             backgroundColor: "transparent",
             border: "none",
-            color: currentTab === "dashboard" ? "#38bdf8" : "#94a3b8",
+            color: currentTab === "dashboard" ? theme.colors.goldPrimary : theme.colors.textMuted,
             fontSize: 11,
-            fontWeight: "bold",
+            fontWeight: currentTab === "dashboard" ? "bold" : "500",
             cursor: "pointer",
           }}
         >
@@ -256,9 +312,9 @@ export default function App() {
             style={{
               backgroundColor: "transparent",
               border: "none",
-              color: currentTab === "bookings" ? "#38bdf8" : "#94a3b8",
+              color: currentTab === "bookings" ? theme.colors.goldPrimary : theme.colors.textMuted,
               fontSize: 11,
-              fontWeight: "bold",
+              fontWeight: currentTab === "bookings" ? "bold" : "500",
               cursor: "pointer",
             }}
           >
@@ -271,9 +327,9 @@ export default function App() {
             style={{
               backgroundColor: "transparent",
               border: "none",
-              color: currentTab === "tenants" ? "#38bdf8" : "#94a3b8",
+              color: currentTab === "tenants" ? theme.colors.goldPrimary : theme.colors.textMuted,
               fontSize: 11,
-              fontWeight: "bold",
+              fontWeight: currentTab === "tenants" ? "bold" : "500",
               cursor: "pointer",
             }}
           >
@@ -287,9 +343,9 @@ export default function App() {
           style={{
             backgroundColor: "transparent",
             border: "none",
-            color: currentTab === "maintenance" ? "#38bdf8" : "#94a3b8",
+            color: currentTab === "maintenance" ? theme.colors.goldPrimary : theme.colors.textMuted,
             fontSize: 11,
-            fontWeight: "bold",
+            fontWeight: currentTab === "maintenance" ? "bold" : "500",
             cursor: "pointer",
           }}
         >
