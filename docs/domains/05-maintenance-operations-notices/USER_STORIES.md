@@ -16,7 +16,7 @@
   - Category: `"plumbing"`
   - Priority: `"urgent"`
   - Description: `"Water is dripping rapidly and pooling on the bathroom floor."`
-  - Photos: `["https://s3.amarspace.com/tickets/photo1.jpg"]`
+  - Photos: `["https://s3.omniheaven.com/tickets/photo1.jpg"]`
 - **Then** a new record is saved in `maintenance_requests` with:
   - `status = "open"`
   - `buildingId = "bld_gulshan"`
@@ -42,7 +42,7 @@
 - **Given** ticket `#TCK-1092` has status `"in_progress"`
 - **When** the manager or assigned technician marks the ticket resolved with:
   - Resolution Notes: `"Replaced cracked PVC elbow pipe and reinforced joint with Teflon tape."`
-  - Resolution Photos: `["https://s3.amarspace.com/tickets/repaired_pipe.jpg"]`
+  - Resolution Photos: `["https://s3.omniheaven.com/tickets/repaired_pipe.jpg"]`
   - Repair Cost: `৳ 1,200.00`
   - Cost Billed To: `"landlord"`
 - **Then** the ticket updates to `status = "resolved"`, `resolvedAt = NOW()`

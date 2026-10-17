@@ -1,7 +1,7 @@
 ---
 version: alpha
-name: AmarSpace-design-system
-description: AmarSpace is a Bangladeshi property management platform designed for property owners and managers. The design system prioritizes Bangla-first UX, mobile-first usability, elderly-friendly interfaces, and operational clarity. It adapts the MiniMax-inspired visual language — DM Sans typography, pill-shaped CTAs, flat card surfaces — into a property management context with warm, trustworthy tones and accessible touch targets. Coverage spans the tenant dashboard, property management views, payment tracking, audit logs, and authentication surfaces.
+name: omniHeaven-design-system
+description: omniHeaven is a Bangladeshi property management platform designed for property owners and managers. The design system prioritizes Bangla-first UX, mobile-first usability, elderly-friendly interfaces, and operational clarity. It adapts the MiniMax-inspired visual language — DM Sans typography, pill-shaped CTAs, flat card surfaces — into a property management context with warm, trustworthy tones and accessible touch targets. Coverage spans the tenant dashboard, property management views, payment tracking, audit logs, and authentication surfaces.
 
 colors:
   primary: "#0a0a0a"
@@ -349,7 +349,7 @@ components:
 
 ## Overview
 
-AmarSpace is a property management platform built for Bangladeshi property owners and managers. The design system serves a fundamentally operational product — tenants pay rent, owners track properties, managers handle maintenance — so every surface prioritizes clarity, speed, and accessibility over visual spectacle.
+omniHeaven is a property management platform built for Bangladeshi property owners and managers. The design system serves a fundamentally operational product — tenants pay rent, owners track properties, managers handle maintenance — so every surface prioritizes clarity, speed, and accessibility over visual spectacle.
 
 The visual language inherits a modern SaaS sensibility: DM Sans as the sole typeface, pill-shaped primary CTAs in near-black, flat white cards with hairline borders, and a restrained color palette where green signals success/money, blue signals information/links, and orange signals warnings/attention. The system is mobile-first by default — most users will interact via phone — and elderly-friendly, meaning generous touch targets (44px minimum), high contrast text, and clear visual hierarchy without relying on subtle color differences.
 
@@ -601,7 +601,7 @@ The system is predominantly flat. Elevation is used sparingly for overlays and f
 
 **`top-nav`** — Persistent top bar across all authenticated views.
 - Background `{colors.canvas}`, height 64px, bottom border `1px solid {colors.hairline-soft}`.
-- Left: AmarSpace logo/wordmark. Right: notification bell + user avatar/menu.
+- Left: omniHeaven logo/wordmark. Right: notification bell + user avatar/menu.
 - On mobile: hamburger left (for sidebar access), logo center, notifications right.
 
 **`sidebar-nav-item`** + **`sidebar-nav-item-active`** — Desktop/tablet left rail navigation.
@@ -735,7 +735,7 @@ The system is predominantly flat. Elevation is used sparingly for overlays and f
 
 ### Language Strategy
 - All UI labels, button text, form labels, error messages, and status indicators in Bangla by default.
-- English used only for: technical identifiers (email, NID format hints), brand name "AmarSpace", and code/API references.
+- English used only for: technical identifiers (email, NID format hints), brand name "omniHeaven", and code/API references.
 - Number formatting: Bengali numerals optional (user preference), but ৳ (Taka symbol) always used for currency.
 - Date formatting: Bangla month names with standard DD/MM/YYYY numeric format.
 

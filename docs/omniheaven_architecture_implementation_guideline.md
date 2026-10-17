@@ -1,4 +1,4 @@
-# AmarSpace — Architecture & Product Updates
+# omniHeaven — Architecture & Product Updates
 
 ## Updated Infrastructure Decisions
 

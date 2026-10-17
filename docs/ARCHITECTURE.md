@@ -1,4 +1,4 @@
-# AmarSpace & Omni Heaven — Master Architecture & Engineering Guide
+# omniHeaven — Master Architecture & Engineering Guide
 
 > **Scope:** Monorepo System Architecture, Technical Contracts, Data Integrity, and Localization Standards  
 > **Target:** 100% Production-Grade Execution with Zero Guesswork  
