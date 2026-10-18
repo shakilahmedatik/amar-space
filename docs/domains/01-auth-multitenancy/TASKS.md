@@ -51,4 +51,4 @@
 - [x] Integration test: Sole owner demotion returns `CANNOT_REMOVE_LAST_OWNER` and rolls back
 - [x] Integration test: Expired invitation returns `INVITATION_EXPIRED`
 - [x] Integration test: Org member cannot access data of an unassociated organization (Cross-tenant leak test)
-- [ ] Manual smoke test: Switch organizations on mobile viewport, verify dashboard state updates immediately
+- [x] Manual smoke test: Switch organizations on mobile viewport, verify dashboard state updates immediately
