@@ -1,5 +1,8 @@
 import { client, db } from "./client";
 import {
+  buildings,
+  emergencyContacts,
+  flats,
   invitations,
   members,
   organizations,
@@ -193,6 +196,97 @@ async function main() {
       sectionOrder: ["hero", "rooms", "amenities", "gallery", "about", "contact"],
     })
     .onConflictDoNothing();
+
+  // Domain 02 Fixture: Realistic 6-story Dhanmondi residential building
+  const dhanmondiBuildingId = "bld-dhanmondi-lakeview";
+  await db
+    .insert(buildings)
+    .values({
+      id: dhanmondiBuildingId,
+      organizationId: demoBuildingOrgId,
+      name: "Dhanmondi Lakeview Residency",
+      address: "House 42, Road 8/A, Dhanmondi",
+      city: "Dhaka",
+      thana: "Dhanmondi",
+      postalCode: "1205",
+      totalFloors: 6,
+      hasElevator: true,
+      hasGenerator: true,
+      gateClosingTime: "11:00 PM",
+      caretakerPhone: "01712345678",
+      managerPhone: "01812345678",
+      whatsappGroupLink: "https://chat.whatsapp.com/demo-dhanmondi",
+      rules: "No loud music after 10 PM. Advance service charge by the 7th of every month.",
+    })
+    .onConflictDoNothing();
+
+  // Emergency contacts for Dhanmondi Lakeview
+  await db
+    .insert(emergencyContacts)
+    .values([
+      {
+        id: "emg-caretaker-dhanmondi",
+        organizationId: demoBuildingOrgId,
+        buildingId: dhanmondiBuildingId,
+        name: "Abdur Rahim (Caretaker)",
+        role: "Head Caretaker & Gate Security",
+        phone: "01712345678",
+        type: "building",
+      },
+      {
+        id: "emg-police-dhanmondi",
+        organizationId: demoBuildingOrgId,
+        buildingId: dhanmondiBuildingId,
+        name: "Dhanmondi Police Station",
+        role: "Local Police Station (Thana)",
+        phone: "01713373126",
+        type: "nearby",
+      },
+      {
+        id: "emg-wasa-dhanmondi",
+        organizationId: demoBuildingOrgId,
+        buildingId: dhanmondiBuildingId,
+        name: "Dhaka WASA Helpline",
+        role: "Water & Sewerage Emergency",
+        phone: "16162",
+        type: "nearby",
+      },
+    ])
+    .onConflictDoNothing();
+
+  // 12 Flats across 6 floors (Flats 1A, 1B through 6A, 6B)
+  const flatFixtures = [];
+  for (let floor = 1; floor <= 6; floor++) {
+    for (const unit of ["A", "B"]) {
+      const flatNumber = `${floor}${unit}`;
+      const isOccupied = floor < 4; // Floors 1-3 occupied, 4-6 vacant or maintenance
+      const isMaintenance = floor === 6 && unit === "B";
+      const status = isOccupied ? "occupied" : isMaintenance ? "under_maintenance" : "vacant";
+
+      flatFixtures.push({
+        id: `flat-dhanmondi-${flatNumber.toLowerCase()}`,
+        organizationId: demoBuildingOrgId,
+        buildingId: dhanmondiBuildingId,
+        flatNumber,
+        floor,
+        unitType: "residential",
+        bedrooms: 3,
+        bathrooms: 2,
+        balconies: 2,
+        squareFeet: 1450,
+        defaultRentAmount: 28000 + (floor - 1) * 1000,
+        defaultServiceCharge: 5000,
+        electricityMeterNumber: `DPDC-${100000 + floor * 10 + (unit === "A" ? 1 : 2)}`,
+        electricityMeterType: "prepaid",
+        gasType: "cylinder",
+        waterSubmeterNumber: `WASA-SUB-${floor}${unit}`,
+        status,
+        notes: `Standard 3-BHK North-facing unit with cross ventilation.`,
+      });
+    }
+  }
+
+  await db.insert(flats).values(flatFixtures).onConflictDoNothing();
 
   console.log("Database seeded successfully.");
   await client.end();

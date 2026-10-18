@@ -15,6 +15,13 @@
       "when": 1792243941146,
       "tag": "0001_steady_mikhail_rasputin",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1792317356875,
+      "tag": "0002_icy_yellow_claw",
+      "breakpoints": true
     }
   ]
 }
