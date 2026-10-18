@@ -53,6 +53,23 @@ export const orgProtectedProcedure = protectedProcedure.use(async ({ ctx, next }
     });
   }
 
+  // Verify organization is not suspended
+  let organization: any = null;
+  if (ctx.db.query?.organizations?.findFirst) {
+    const org = await ctx.db.query.organizations.findFirst({
+      where: eq(schema.organizations.id, orgId),
+    });
+    organization = org;
+
+    if (org?.status === "suspended") {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message:
+          "ORG_SUSPENDED: Organization has been suspended by platform administration. Contact support@omniheaven.com",
+      });
+    }
+  }
+
   // Verify membership in database
   const membership = await ctx.db.query.members.findFirst({
     where: and(eq(schema.members.organizationId, orgId), eq(schema.members.userId, ctx.user.id)),
@@ -69,8 +86,35 @@ export const orgProtectedProcedure = protectedProcedure.use(async ({ ctx, next }
     ctx: {
       ...ctx,
       organizationId: orgId,
+      organization,
       role: membership.role as OrganizationRole,
       membership,
+    },
+  });
+});
+
+// Middleware ensuring user is a global platform superadministrator
+export const superadminProcedure = protectedProcedure.use(async ({ ctx, next }) => {
+  let userRole = (ctx.user as any)?.globalRole;
+  if (!userRole && ctx.user?.id) {
+    const dbUser = await ctx.db.query.users.findFirst({
+      where: eq(schema.users.id, ctx.user.id),
+    });
+    userRole = dbUser?.globalRole;
+  }
+
+  if (userRole !== "superadmin" && userRole !== "admin") {
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message: "SUPERADMIN_FORBIDDEN: User is not a global platform superadministrator",
+    });
+  }
+
+  return next({
+    ctx: {
+      ...ctx,
+      isSuperAdmin: true,
+      superadminUser: ctx.user,
     },
   });
 });

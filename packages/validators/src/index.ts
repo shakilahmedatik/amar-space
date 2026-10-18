@@ -7,4 +7,5 @@ export * from "./hotel";
 export * from "./operations";
 export * from "./organization";
 export * from "./renter";
+export * from "./superadmin";
 export * from "./website-builder";

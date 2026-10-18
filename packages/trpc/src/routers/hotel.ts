@@ -26,6 +26,7 @@ import {
   trpcRateLimit,
 } from "../trpc";
 import { recordAuditLog } from "../utils/audit";
+import { assertOrganizationQuota } from "../utils/quota";
 
 function generateBookingReference(): string {
   const dateStr = new Date().toISOString().slice(0, 7).replace("-", "");
@@ -211,6 +212,9 @@ export const hotelRouter = router({
           message: `Room number ${input.roomNumber} already exists in this organization.`,
         });
       }
+
+      // Check organization plan quota limits
+      await assertOrganizationQuota(ctx.db, ctx.organizationId, 1);
 
       const roomId = `room-${crypto.randomUUID()}`;
       const [room] = await ctx.db

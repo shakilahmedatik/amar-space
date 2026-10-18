@@ -15,6 +15,7 @@ import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { orgProtectedProcedure, requireRole, router, trpcRateLimit } from "../trpc";
 import { recordAuditLog } from "../utils/audit";
+import { assertOrganizationQuota } from "../utils/quota";
 
 export const propertyRouter = router({
   // 1. List all buildings for active organization with unit counts
@@ -319,6 +320,9 @@ export const propertyRouter = router({
         });
       }
 
+      // Check organization plan quota limits
+      await assertOrganizationQuota(ctx.db, ctx.organizationId, 1);
+
       const flatId = crypto.randomUUID();
       const now = new Date();
 
@@ -427,6 +431,10 @@ export const propertyRouter = router({
               updatedAt: now,
             });
           }
+        }
+
+        if (toInsert.length > 0) {
+          await assertOrganizationQuota(tx as any, ctx.organizationId, toInsert.length);
         }
 
         const inserted = await tx.insert(schema.flats).values(toInsert).returning();

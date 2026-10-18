@@ -57,6 +57,13 @@
       "when": 1792338701340,
       "tag": "0007_spotty_thaddeus_ross",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1792339918129,
+      "tag": "0008_strong_tyrannus",
+      "breakpoints": true
     }
   ]
 }

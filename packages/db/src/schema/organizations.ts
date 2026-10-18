@@ -22,6 +22,7 @@ export const organizations = pgTable(
     contactEmail: text("contact_email"),
     address: text("address"),
     customDomain: text("custom_domain").unique(),
+    status: text("status").$type<"active" | "suspended" | "trialing">().notNull().default("active"),
     metadata: text("metadata"), // JSON string
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
@@ -29,6 +30,7 @@ export const organizations = pgTable(
   (table) => [
     uniqueIndex("orgs_slug_idx").on(table.slug),
     uniqueIndex("orgs_custom_domain_idx").on(table.customDomain),
+    index("orgs_status_idx").on(table.status),
   ],
 );
 

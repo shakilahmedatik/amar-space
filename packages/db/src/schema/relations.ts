@@ -6,7 +6,7 @@ import { bookings, rooms, roomTypes } from "./hotel";
 import { auditLogs, maintenanceRequests, notices } from "./operations";
 import { invitations, members, organizations } from "./organizations";
 import { rentalContracts, renters } from "./renters";
-import { subscriptions } from "./subscriptions";
+import { subscriptionPlans, subscriptions } from "./subscriptions";
 import { websiteConfigs } from "./website-configs";
 
 export const usersRelations = relations(users, ({ many }) => ({
@@ -249,5 +249,20 @@ export const auditLogsRelations = relations(auditLogs, ({ one }) => ({
   actorUser: one(users, {
     fields: [auditLogs.actorUserId],
     references: [users.id],
+  }),
+}));
+
+export const subscriptionPlansRelations = relations(subscriptionPlans, ({ many }) => ({
+  subscriptions: many(subscriptions),
+}));
+
+export const subscriptionsRelations = relations(subscriptions, ({ one }) => ({
+  organization: one(organizations, {
+    fields: [subscriptions.organizationId],
+    references: [organizations.id],
+  }),
+  plan: one(subscriptionPlans, {
+    fields: [subscriptions.planId],
+    references: [subscriptionPlans.id],
   }),
 }));

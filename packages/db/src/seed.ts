@@ -17,6 +17,7 @@ import {
   renters,
   rooms,
   roomTypes,
+  subscriptionPlans,
   subscriptions,
   users,
   websiteConfigs,
@@ -25,18 +26,92 @@ import {
 async function main() {
   console.log("Seeding initial database data...");
 
+  // Seed SaaS Subscription Plans
+  console.log("Seeding subscription plans...");
+  await db
+    .insert(subscriptionPlans)
+    .values([
+      {
+        id: "starter",
+        name: "Starter Tier",
+        description:
+          "Essential property management for independent landlords & boutique hotels up to 20 units.",
+        priceMonthlyBdt: "1499.00",
+        priceYearlyBdt: "14990.00",
+        maxUnits: 20,
+        features: JSON.stringify([
+          "Up to 20 residential units / hotel rooms",
+          "Bangladeshi KYC & NID verification",
+          "Automated monthly billing & utility charges",
+          "Housekeeping & maintenance ticket tracking",
+          "Basic financial reports & CSV export",
+        ]),
+        isActive: 1,
+      },
+      {
+        id: "pro",
+        name: "Pro Growth",
+        description:
+          "Advanced multi-property operations with automated bKash integration for up to 100 units.",
+        priceMonthlyBdt: "3999.00",
+        priceYearlyBdt: "39990.00",
+        maxUnits: 100,
+        features: JSON.stringify([
+          "Up to 100 units / hotel rooms across multiple buildings",
+          "Automated bKash & Nagad recurring payment notifications",
+          "Dynamic hotel tape chart & walk-in reservations",
+          "Staff role-based access control (RBAC)",
+          "Immutable security audit logs & compliance trail",
+          "Priority phone & email support in Dhaka",
+        ]),
+        isActive: 1,
+      },
+      {
+        id: "enterprise",
+        name: "Enterprise Unlimited",
+        description:
+          "Unlimited scale for resort chains, real estate developers, and commercial asset managers.",
+        priceMonthlyBdt: "9999.00",
+        priceYearlyBdt: "99990.00",
+        maxUnits: 999999,
+        features: JSON.stringify([
+          "Unlimited units, rooms, and properties",
+          "Dedicated custom domain with SSL & white-labeling",
+          "Direct database export & webhook telemetry",
+          "Custom payment gateway routing (SSLCOMMERZ / Shurjopay)",
+          "24/7 VIP SLA with dedicated account director",
+        ]),
+        isActive: 1,
+      },
+    ])
+    .onConflictDoUpdate({
+      target: subscriptionPlans.id,
+      set: {
+        name: subscriptionPlans.name,
+        priceMonthlyBdt: subscriptionPlans.priceMonthlyBdt,
+        priceYearlyBdt: subscriptionPlans.priceYearlyBdt,
+        maxUnits: subscriptionPlans.maxUnits,
+        features: subscriptionPlans.features,
+      },
+    });
+
   // Platform superadmin user
   const adminId = "superadmin-root";
   await db
     .insert(users)
     .values({
       id: adminId,
-      name: "Super Admin",
+      name: "Platform Super Admin",
       email: "admin@omniheaven.com",
       emailVerified: true,
-      globalRole: "admin",
+      globalRole: "superadmin",
     })
-    .onConflictDoNothing();
+    .onConflictDoUpdate({
+      target: users.id,
+      set: {
+        globalRole: "superadmin",
+      },
+    });
 
   // Test Organization 1: Commercial / Residential Building
   const demoBuildingOrgId = "org-bashundhara-tower";
@@ -50,6 +125,7 @@ async function main() {
       contactPhone: "01711223344",
       contactEmail: "info@bashundhararoyal.com",
       address: "Plot 14, Block C, Bashundhara R/A, Dhaka-1229",
+      status: "active",
     })
     .onConflictDoNothing();
 
@@ -65,10 +141,11 @@ async function main() {
       contactPhone: "01700000000",
       contactEmail: "info@grandhaven.com",
       address: "Marine Drive, Cox's Bazar",
+      status: "active",
     })
     .onConflictDoNothing();
 
-  // 6-month free trial subscription for both orgs
+  // Subscriptions for both demo orgs
   const now = new Date();
   const trialEnd = new Date(now.getTime() + 180 * 24 * 60 * 60 * 1000); // 180 days
 
@@ -78,23 +155,34 @@ async function main() {
       {
         id: "sub-demo-building",
         organizationId: demoBuildingOrgId,
-        plan: "trial_6_month",
+        planId: "starter",
+        plan: "starter",
         status: "trialing",
+        billingCycle: "monthly",
         trialStartsAt: now,
         trialEndsAt: trialEnd,
-        paymentProvider: "paystation",
+        paymentProvider: "bkash",
       },
       {
         id: "sub-demo-hotel",
         organizationId: demoHotelOrgId,
-        plan: "trial_6_month",
-        status: "trialing",
+        planId: "pro",
+        plan: "pro",
+        status: "active",
+        billingCycle: "monthly",
         trialStartsAt: now,
         trialEndsAt: trialEnd,
-        paymentProvider: "paystation",
+        paymentProvider: "bkash",
       },
     ])
-    .onConflictDoNothing();
+    .onConflictDoUpdate({
+      target: subscriptions.id,
+      set: {
+        planId: subscriptions.planId,
+        status: subscriptions.status,
+        billingCycle: subscriptions.billingCycle,
+      },
+    });
 
   // Multi-Role Fixture Users for Building
   const landlordUser = {

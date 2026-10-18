@@ -60,7 +60,7 @@ docs/
 | Domain | Status | Specification | User Stories | Task Checklist |
 |---|:---:|:---:|:---:|:---:|
 | **07. Hotel & Resort PMS** | 🟢 Verified | [`SPEC.md`](file:///Users/atik/Projects/amar-space/docs/domains/07-hotel-resort-pms/SPEC.md) | [`USER_STORIES.md`](file:///Users/atik/Projects/amar-space/docs/domains/07-hotel-resort-pms/USER_STORIES.md) | [`TASKS.md`](file:///Users/atik/Projects/amar-space/docs/domains/07-hotel-resort-pms/TASKS.md) |
-| **08. Superadmin SaaS & Platform HQ**| 🟡 Ready for Dev | [`SPEC.md`](file:///Users/atik/Projects/amar-space/docs/domains/08-superadmin-platform-saas/SPEC.md) | [`USER_STORIES.md`](file:///Users/atik/Projects/amar-space/docs/domains/08-superadmin-platform-saas/USER_STORIES.md) | [`TASKS.md`](file:///Users/atik/Projects/amar-space/docs/domains/08-superadmin-platform-saas/TASKS.md) |
+| **08. Superadmin SaaS & Platform HQ**| 🟢 Verified | [`SPEC.md`](file:///Users/atik/Projects/amar-space/docs/domains/08-superadmin-platform-saas/SPEC.md) | [`USER_STORIES.md`](file:///Users/atik/Projects/amar-space/docs/domains/08-superadmin-platform-saas/USER_STORIES.md) | [`TASKS.md`](file:///Users/atik/Projects/amar-space/docs/domains/08-superadmin-platform-saas/TASKS.md) |
 
 ---
 
