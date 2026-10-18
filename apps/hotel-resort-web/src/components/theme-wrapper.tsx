@@ -24,7 +24,7 @@ export function ThemeWrapper({ config, children }: ThemeWrapperProps) {
     <div
       data-theme={themeSlug}
       style={customVariables}
-      className="min-h-screen bg-slate-50 text-slate-900 transition-colors duration-300"
+      className="min-h-screen bg-background text-foreground transition-colors duration-300 font-sans selection:bg-primary/20 selection:text-primary"
     >
       {/* Dynamic font stylesheet link */}
       <link rel="preconnect" href="https://fonts.googleapis.com" />

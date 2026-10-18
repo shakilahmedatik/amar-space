@@ -30,16 +30,13 @@ export function RoomsSection({ roomTypes, accentColor, onBookRoom }: RoomsSectio
     <section id="rooms" className="py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       {/* Section Header */}
       <div className="text-center max-w-3xl mx-auto space-y-4 mb-12">
-        <span
-          className="text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full bg-slate-100 inline-block"
-          style={{ color: accentColor }}
-        >
+        <span className="text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full bg-primary/10 text-primary border border-border-gold/30 inline-block">
           Accommodations & Sanctuaries
         </span>
-        <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-slate-900 tracking-tight font-heading">
+        <h2 className="text-3xl sm:text-4xl md:text-5xl font-serif font-bold text-foreground tracking-tight">
           Handcrafted Suites & Ocean Villas
         </h2>
-        <p className="text-sm sm:text-base text-slate-600 leading-relaxed font-normal">
+        <p className="text-sm sm:text-base text-foreground-muted leading-relaxed font-normal">
           Designed in harmony with indigenous coastal architecture, each sanctuary offers expansive
           living spaces, private terraces, and bespoke luxury amenities.
         </p>
@@ -58,10 +55,10 @@ export function RoomsSection({ roomTypes, accentColor, onBookRoom }: RoomsSectio
                 type="button"
                 key={tab.id}
                 onClick={() => setSelectedFilter(tab.id)}
-                className={`px-4 py-2 rounded-full text-xs font-semibold transition-all ${
+                className={`px-4 py-2 rounded-full text-xs font-semibold transition-all cursor-pointer ${
                   isActive
-                    ? "bg-slate-900 text-white shadow-xs"
-                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                    ? "bg-primary text-primary-foreground shadow-xs"
+                    : "bg-card text-foreground-muted hover:text-foreground border border-border-gold/30 hover:bg-surface"
                 }`}
               >
                 {tab.label}
@@ -81,15 +78,15 @@ export function RoomsSection({ roomTypes, accentColor, onBookRoom }: RoomsSectio
           return (
             <div
               key={room.id}
-              className="group bg-white rounded-2xl overflow-hidden border border-slate-200/80 shadow-xs hover:shadow-xl transition-all duration-300 flex flex-col"
+              className="group bg-card rounded-2xl overflow-hidden border border-border-gold/30 shadow-xs hover:border-border-gold/60 hover:shadow-xl transition-all duration-300 flex flex-col"
             >
               {/* Photo Area */}
-              <div className="relative h-64 w-full overflow-hidden bg-slate-100">
+              <div className="relative h-64 w-full overflow-hidden bg-surface">
                 <div
                   className="w-full h-full bg-cover bg-center transition-transform duration-500 group-hover:scale-105"
                   style={{ backgroundImage: `url(${photo})` }}
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
 
                 {room.tag && (
                   <span
@@ -103,7 +100,7 @@ export function RoomsSection({ roomTypes, accentColor, onBookRoom }: RoomsSectio
                 <button
                   type="button"
                   onClick={() => setActiveModalRoom(room)}
-                  className="absolute bottom-3 right-3 px-2.5 py-1.5 rounded-lg bg-black/60 hover:bg-black/80 backdrop-blur-xs text-white text-xs font-medium flex items-center gap-1.5 transition-colors"
+                  className="absolute bottom-3 right-3 px-2.5 py-1.5 rounded-lg bg-black/60 hover:bg-black/80 backdrop-blur-xs text-white text-xs font-medium flex items-center gap-1.5 transition-colors cursor-pointer"
                 >
                   <Eye className="size-3.5" />
                   <span>View Photos</span>
@@ -113,33 +110,33 @@ export function RoomsSection({ roomTypes, accentColor, onBookRoom }: RoomsSectio
               {/* Room Card Body */}
               <div className="p-6 flex-1 flex flex-col justify-between space-y-4">
                 <div>
-                  <h3 className="text-xl font-bold text-slate-900 tracking-tight font-heading group-hover:text-indigo-900 transition-colors">
+                  <h3 className="text-xl font-serif font-bold text-foreground tracking-tight group-hover:text-primary transition-colors">
                     {room.name}
                   </h3>
 
                   {/* Room Specs */}
-                  <div className="mt-2.5 flex items-center gap-3 text-xs text-slate-500 font-medium">
+                  <div className="mt-2.5 flex items-center gap-3 text-xs text-foreground-muted font-medium">
                     <span className="flex items-center gap-1">
-                      <Users className="size-3.5 text-slate-400" />
+                      <Users className="size-3.5 text-primary" />
                       {room.capacityAdults} Guests
                     </span>
                     <span>•</span>
                     <span className="flex items-center gap-1">
-                      <Bed className="size-3.5 text-slate-400" />
+                      <Bed className="size-3.5 text-primary" />
                       {room.bedType.toUpperCase()}
                     </span>
                     {room.sizeSqFt && (
                       <>
                         <span>•</span>
                         <span className="flex items-center gap-1">
-                          <Maximize2 className="size-3.5 text-slate-400" />
+                          <Maximize2 className="size-3.5 text-primary" />
                           {room.sizeSqFt} sq ft
                         </span>
                       </>
                     )}
                   </div>
 
-                  <p className="mt-3 text-xs text-slate-600 line-clamp-2 leading-relaxed">
+                  <p className="mt-3 text-xs text-foreground-muted line-clamp-2 leading-relaxed">
                     {room.description}
                   </p>
 
@@ -148,14 +145,14 @@ export function RoomsSection({ roomTypes, accentColor, onBookRoom }: RoomsSectio
                     {room.amenities.slice(0, 3).map((amenity, i) => (
                       <span
                         key={`am-chip-${i}`}
-                        className="text-[10px] font-medium bg-slate-50 text-slate-600 px-2.5 py-1 rounded-md border border-slate-100 flex items-center gap-1"
+                        className="text-[10px] font-medium bg-surface text-foreground px-2.5 py-1 rounded-md border border-border-gold/20 flex items-center gap-1"
                       >
-                        <Check className="size-2.5 text-emerald-600" />
+                        <Check className="size-2.5 text-primary" />
                         {amenity}
                       </span>
                     ))}
                     {room.amenities.length > 3 && (
-                      <span className="text-[10px] font-medium text-slate-400 self-center">
+                      <span className="text-[10px] font-medium text-foreground-muted self-center">
                         +{room.amenities.length - 3} more
                       </span>
                     )}
@@ -164,13 +161,13 @@ export function RoomsSection({ roomTypes, accentColor, onBookRoom }: RoomsSectio
                   {room.availableRoomCount !== undefined && (
                     <div className="mt-3 flex items-center">
                       {room.availableRoomCount > 0 ? (
-                        <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-md">
+                        <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-emerald-700 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-md">
                           <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
                           {room.availableRoomCount}{" "}
                           {room.availableRoomCount === 1 ? "room" : "rooms"} available
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-rose-700 bg-rose-50 border border-rose-100 px-2 py-0.5 rounded-md">
+                        <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-rose-600 bg-rose-500/10 border border-rose-500/20 px-2 py-0.5 rounded-md">
                           <span className="size-1.5 rounded-full bg-rose-500" />
                           Sold Out for Selected Dates
                         </span>
@@ -180,16 +177,16 @@ export function RoomsSection({ roomTypes, accentColor, onBookRoom }: RoomsSectio
                 </div>
 
                 {/* Pricing & CTA */}
-                <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
+                <div className="pt-4 border-t border-border-gold/20 flex items-center justify-between">
                   <div>
-                    <span className="text-[10px] text-slate-400 uppercase tracking-wider block">
+                    <span className="text-[10px] text-foreground-muted uppercase tracking-wider block">
                       From
                     </span>
                     <div className="flex items-baseline gap-0.5">
-                      <span className="text-2xl font-extrabold text-slate-900">
+                      <span className="text-2xl font-serif font-bold text-foreground">
                         ৳{room.basePrice.toLocaleString()}
                       </span>
-                      <span className="text-xs text-slate-500 font-medium">/ night</span>
+                      <span className="text-xs text-foreground-muted font-medium">/ night</span>
                     </div>
                   </div>
 

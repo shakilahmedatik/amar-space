@@ -245,36 +245,38 @@ export default function SuperAdminHQPage() {
   }, [changePlanOrg, selectedPlanId, plans]);
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 p-4 sm:p-8 space-y-8 font-sans selection:bg-purple-500/20 selection:text-white">
+    <div className="min-h-screen bg-[hsl(var(--canvas))] text-foreground p-4 sm:p-8 space-y-8 font-sans selection:bg-primary/20 selection:text-foreground">
       {/* Top Header */}
-      <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-6 border-b border-slate-800">
+      <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-6 border-b border-border-gold/20">
         <div className="flex items-center gap-3.5">
-          <div className="size-11 rounded-2xl bg-gradient-to-br from-purple-600 via-indigo-600 to-amber-500 flex items-center justify-center text-white font-extrabold text-xl shadow-lg shadow-purple-900/40 border border-purple-400/30">
+          <div className="size-11 rounded-2xl bg-gradient-to-br from-primary via-amber-600 to-[#2A201C] flex items-center justify-center text-white font-serif font-black text-xl shadow-lg border border-border-gold/50">
             Ω
           </div>
           <div>
             <div className="flex items-center gap-2.5 flex-wrap">
-              <h1 className="text-2xl font-black tracking-tight text-white">{t.title}</h1>
-              <Badge className="bg-purple-500/15 text-purple-300 border-purple-500/30 text-[11px] font-bold px-2.5 py-0.5">
+              <h1 className="text-2xl sm:text-3xl font-serif font-bold tracking-tight text-foreground">
+                {t.title}
+              </h1>
+              <Badge className="bg-primary/10 text-primary border-border-gold/40 text-[11px] font-semibold px-2.5 py-0.5">
                 {t.badgeSuperadmin}
               </Badge>
             </div>
-            <p className="text-xs text-slate-400 mt-0.5">{t.subtitle}</p>
+            <p className="text-xs text-foreground-muted mt-0.5">{t.subtitle}</p>
           </div>
         </div>
 
         <div className="flex items-center gap-3 flex-wrap">
-          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-xs text-slate-300">
-            <Server className="size-3.5 text-emerald-400" />
+          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-card border border-border-gold/30 text-xs text-foreground-muted shadow-xs">
+            <Server className="size-3.5 text-emerald-500" />
             <span className="font-medium">{t.systemHealthy}</span>
           </div>
 
           <button
             type="button"
             onClick={() => setLocale(locale === "en" ? "bn" : "en")}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 text-xs text-amber-300 font-semibold transition cursor-pointer min-h-[44px]"
+            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-card hover:bg-surface-elevated border border-border-gold/30 text-xs text-foreground font-semibold transition cursor-pointer min-h-[44px] shadow-xs"
           >
-            <Globe className="size-3.5" />
+            <Globe className="size-3.5 text-primary" />
             <span>{locale === "en" ? "বাংলা" : "English"}</span>
           </button>
 
@@ -286,10 +288,10 @@ export default function SuperAdminHQPage() {
               orgsQuery.refetch();
               plansQuery.refetch();
             }}
-            className="border-slate-800 bg-slate-900 hover:bg-slate-800 text-slate-200 text-xs gap-1.5 min-h-[44px]"
+            className="border-border-gold/30 bg-card hover:bg-surface-elevated text-foreground text-xs gap-1.5 min-h-[44px] rounded-xl shadow-xs"
           >
             <RefreshCw
-              className={`size-3.5 ${statsQuery.isFetching ? "animate-spin text-purple-400" : ""}`}
+              className={`size-3.5 ${statsQuery.isFetching ? "animate-spin text-primary" : ""}`}
             />
             <span>{t.refresh}</span>
           </Button>
@@ -299,15 +301,15 @@ export default function SuperAdminHQPage() {
       {/* Navigation Tabs */}
       <nav
         aria-label="HQ Navigation"
-        className="flex items-center gap-2 border-b border-slate-800/80 pb-2"
+        className="flex items-center gap-2 border-b border-border-gold/20 pb-2"
       >
         <button
           type="button"
           onClick={() => setActiveTab("overview")}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition cursor-pointer min-h-[48px] ${
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm transition cursor-pointer min-h-[48px] ${
             activeTab === "overview"
-              ? "bg-purple-600/20 text-purple-300 border border-purple-500/30 shadow-sm"
-              : "text-slate-400 hover:text-slate-200 hover:bg-slate-900"
+              ? "bg-primary/10 text-primary border border-border-gold/40 shadow-xs font-serif font-bold"
+              : "text-foreground-muted hover:text-foreground hover:bg-surface-elevated font-medium"
           }`}
         >
           <Activity className="size-4" />
@@ -317,16 +319,16 @@ export default function SuperAdminHQPage() {
         <button
           type="button"
           onClick={() => setActiveTab("organizations")}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition cursor-pointer min-h-[48px] ${
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm transition cursor-pointer min-h-[48px] ${
             activeTab === "organizations"
-              ? "bg-purple-600/20 text-purple-300 border border-purple-500/30 shadow-sm"
-              : "text-slate-400 hover:text-slate-200 hover:bg-slate-900"
+              ? "bg-primary/10 text-primary border border-border-gold/40 shadow-xs font-serif font-bold"
+              : "text-foreground-muted hover:text-foreground hover:bg-surface-elevated font-medium"
           }`}
         >
           <Building2 className="size-4" />
           <span>{t.orgsTab}</span>
           {stats && (
-            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-slate-800 text-purple-300 ml-1">
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary/15 text-primary border border-border-gold/30 ml-1">
               {stats.organizations.total}
             </span>
           )}
@@ -335,10 +337,10 @@ export default function SuperAdminHQPage() {
         <button
           type="button"
           onClick={() => setActiveTab("plans")}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition cursor-pointer min-h-[48px] ${
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm transition cursor-pointer min-h-[48px] ${
             activeTab === "plans"
-              ? "bg-purple-600/20 text-purple-300 border border-purple-500/30 shadow-sm"
-              : "text-slate-400 hover:text-slate-200 hover:bg-slate-900"
+              ? "bg-primary/10 text-primary border border-border-gold/40 shadow-xs font-serif font-bold"
+              : "text-foreground-muted hover:text-foreground hover:bg-surface-elevated font-medium"
           }`}
         >
           <CreditCard className="size-4" />
@@ -349,66 +351,66 @@ export default function SuperAdminHQPage() {
       {/* KPI Metric Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* MRR Card */}
-        <Card className="p-5 bg-gradient-to-br from-slate-900 via-slate-900 to-purple-950/30 border-slate-800 shadow-lg">
-          <div className="flex items-center justify-between text-slate-400 mb-2">
-            <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+        <Card className="p-5 bg-card border border-border-gold/30 shadow-xs hover:border-border-gold/60 transition-all rounded-2xl">
+          <div className="flex items-center justify-between text-foreground-muted mb-2">
+            <span className="text-xs font-semibold uppercase tracking-wider text-foreground-muted">
               {t.mrrTitle}
             </span>
-            <div className="size-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+            <div className="size-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400 font-bold">
               ৳
             </div>
           </div>
-          <p className="text-3xl font-black text-white tracking-tight">
+          <p className="text-3xl font-serif font-bold text-foreground tracking-tight">
             ৳{stats ? stats.revenue.estimatedMrrBdt.toLocaleString("en-US") : "—"}
           </p>
-          <div className="flex items-center gap-1.5 mt-2 text-xs text-emerald-400 font-medium">
+          <div className="flex items-center gap-1.5 mt-2 text-xs text-emerald-600 dark:text-emerald-400 font-medium">
             <TrendingUp className="size-3.5" />
             <span>{t.mrrSubtitle}</span>
           </div>
         </Card>
 
         {/* Organizations Breakdown Card */}
-        <Card className="p-5 bg-slate-900 border-slate-800 shadow-lg">
-          <div className="flex items-center justify-between text-slate-400 mb-2">
-            <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+        <Card className="p-5 bg-card border border-border-gold/30 shadow-xs hover:border-border-gold/60 transition-all rounded-2xl">
+          <div className="flex items-center justify-between text-foreground-muted mb-2">
+            <span className="text-xs font-semibold uppercase tracking-wider text-foreground-muted">
               {t.totalOrgsTitle}
             </span>
-            <div className="size-8 rounded-lg bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400">
+            <div className="size-8 rounded-lg bg-primary/10 border border-border-gold/30 flex items-center justify-center text-primary">
               <Building2 className="size-4" />
             </div>
           </div>
-          <p className="text-3xl font-black text-white tracking-tight">
+          <p className="text-3xl font-serif font-bold text-foreground tracking-tight">
             {stats ? stats.organizations.total : "—"}
           </p>
-          <div className="flex items-center gap-2 mt-2 text-[11px] text-slate-400">
-            <span className="text-emerald-400 font-semibold">
+          <div className="flex items-center gap-2 mt-2 text-[11px] text-foreground-muted">
+            <span className="text-emerald-600 dark:text-emerald-400 font-semibold">
               {stats?.organizations.active ?? 0} {t.activeOrgs}
             </span>
             <span>·</span>
-            <span className="text-blue-400 font-semibold">
+            <span className="text-amber-600 dark:text-amber-400 font-semibold">
               {stats?.organizations.trialing ?? 0} {t.trialingOrgs}
             </span>
             <span>·</span>
-            <span className="text-rose-400 font-semibold">
+            <span className="text-rose-600 dark:text-rose-400 font-semibold">
               {stats?.organizations.suspended ?? 0} {t.suspendedOrgs}
             </span>
           </div>
         </Card>
 
         {/* Physical Units Managed Card */}
-        <Card className="p-5 bg-slate-900 border-slate-800 shadow-lg">
-          <div className="flex items-center justify-between text-slate-400 mb-2">
-            <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+        <Card className="p-5 bg-card border border-border-gold/30 shadow-xs hover:border-border-gold/60 transition-all rounded-2xl">
+          <div className="flex items-center justify-between text-foreground-muted mb-2">
+            <span className="text-xs font-semibold uppercase tracking-wider text-foreground-muted">
               {t.managedUnitsTitle}
             </span>
-            <div className="size-8 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
+            <div className="size-8 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-600 dark:text-amber-400">
               <Layers className="size-4" />
             </div>
           </div>
-          <p className="text-3xl font-black text-white tracking-tight">
+          <p className="text-3xl font-serif font-bold text-foreground tracking-tight">
             {stats ? stats.assets.totalUnits : "—"}
           </p>
-          <div className="flex items-center gap-2 mt-2 text-[11px] text-slate-400">
+          <div className="flex items-center gap-2 mt-2 text-[11px] text-foreground-muted">
             <span>
               {stats?.assets.totalFlats ?? 0} {t.totalFlats}
             </span>
@@ -424,19 +426,19 @@ export default function SuperAdminHQPage() {
         </Card>
 
         {/* Active Subscriptions Card */}
-        <Card className="p-5 bg-slate-900 border-slate-800 shadow-lg">
-          <div className="flex items-center justify-between text-slate-400 mb-2">
-            <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+        <Card className="p-5 bg-card border border-border-gold/30 shadow-xs hover:border-border-gold/60 transition-all rounded-2xl">
+          <div className="flex items-center justify-between text-foreground-muted mb-2">
+            <span className="text-xs font-semibold uppercase tracking-wider text-foreground-muted">
               {t.subsHealthTitle}
             </span>
-            <div className="size-8 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
+            <div className="size-8 rounded-lg bg-primary/10 border border-border-gold/30 flex items-center justify-center text-primary">
               <CreditCard className="size-4" />
             </div>
           </div>
-          <p className="text-3xl font-black text-white tracking-tight">
+          <p className="text-3xl font-serif font-bold text-foreground tracking-tight">
             {stats ? stats.revenue.activeSubscriptionsCount : "—"}
           </p>
-          <div className="flex items-center gap-1.5 mt-2 text-xs text-indigo-400 font-medium">
+          <div className="flex items-center gap-1.5 mt-2 text-xs text-primary font-medium">
             <CheckCircle2 className="size-3.5" />
             <span>{t.subsHealthSubtitle}</span>
           </div>
@@ -447,22 +449,22 @@ export default function SuperAdminHQPage() {
       {activeTab === "overview" && (
         <div className="space-y-6">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-bold text-white flex items-center gap-2">
-              <Sparkles className="size-4 text-purple-400" />
+            <h2 className="text-lg font-serif font-bold text-foreground flex items-center gap-2">
+              <Sparkles className="size-4 text-primary" />
               <span>Platform Tenant Operations</span>
             </h2>
             <button
               type="button"
               onClick={() => setActiveTab("organizations")}
-              className="text-xs text-purple-400 hover:text-purple-300 font-semibold cursor-pointer"
+              className="text-xs text-primary hover:underline font-semibold cursor-pointer"
             >
               View Full Directory &rarr;
             </button>
           </div>
 
-          <div className="overflow-x-auto rounded-2xl border border-slate-800 bg-slate-900/60 shadow-xl">
-            <table className="w-full text-left text-sm text-slate-300">
-              <thead className="bg-slate-950/80 text-xs uppercase text-slate-400 border-b border-slate-800">
+          <div className="overflow-x-auto rounded-2xl border border-border-gold/30 bg-card shadow-xs">
+            <table className="w-full text-left text-sm text-foreground">
+              <thead className="bg-surface/80 text-xs uppercase tracking-wider text-foreground-muted border-b border-border-gold/20">
                 <tr>
                   <th className="px-5 py-3.5 font-bold">{t.colOrg}</th>
                   <th className="px-5 py-3.5 font-bold">{t.colType}</th>
@@ -472,20 +474,20 @@ export default function SuperAdminHQPage() {
                   <th className="px-5 py-3.5 font-bold text-right">{t.colActions}</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800/60">
+              <tbody className="divide-y divide-border-gold/15">
                 {orgs.slice(0, 5).map((org) => {
                   const quota = org.units;
                   const isNearCap = quota.quotaPercentage >= 80;
                   const isOverCap = quota.quotaPercentage >= 100;
 
                   return (
-                    <tr key={org.id} className="hover:bg-slate-800/40 transition">
+                    <tr key={org.id} className="hover:bg-primary/5 transition-colors">
                       <td className="px-5 py-4">
-                        <div className="font-bold text-white">{org.name}</div>
-                        <div className="text-xs text-slate-400 font-mono">/{org.slug}</div>
+                        <div className="font-serif font-bold text-foreground">{org.name}</div>
+                        <div className="text-xs text-foreground-muted font-mono">/{org.slug}</div>
                       </td>
                       <td className="px-5 py-4">
-                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-slate-800 text-slate-300 border border-slate-700 capitalize">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-surface text-foreground border border-border-gold/20 capitalize">
                           {org.productType}
                         </span>
                       </td>
@@ -494,25 +496,25 @@ export default function SuperAdminHQPage() {
                           <span
                             className={
                               isOverCap
-                                ? "text-rose-400"
+                                ? "text-rose-600 dark:text-rose-400"
                                 : isNearCap
-                                  ? "text-amber-400"
-                                  : "text-emerald-400"
+                                  ? "text-amber-600 dark:text-amber-400"
+                                  : "text-emerald-600 dark:text-emerald-400"
                             }
                           >
                             {quota.currentUnits} / {quota.maxUnits} units
                           </span>
-                          <span className="text-slate-400 text-[11px]">
+                          <span className="text-foreground-muted text-[11px]">
                             {quota.quotaPercentage}%
                           </span>
                         </div>
-                        <div className="w-36 h-2 rounded-full bg-slate-800 overflow-hidden">
+                        <div className="w-36 h-2 rounded-full bg-surface-elevated border border-border-gold/20 overflow-hidden">
                           <div
                             className={`h-full transition-all rounded-full ${
                               isOverCap
                                 ? "bg-rose-500"
                                 : isNearCap
-                                  ? "bg-amber-400"
+                                  ? "bg-amber-500"
                                   : "bg-emerald-500"
                             }`}
                             style={{ width: `${Math.min(100, quota.quotaPercentage)}%` }}
@@ -520,10 +522,10 @@ export default function SuperAdminHQPage() {
                         </div>
                       </td>
                       <td className="px-5 py-4">
-                        <div className="font-medium text-slate-200">
+                        <div className="font-medium text-foreground">
                           {org.subscription?.plan?.name || "Trial 6-Month"}
                         </div>
-                        <div className="text-[11px] text-slate-400 capitalize">
+                        <div className="text-[11px] text-foreground-muted capitalize">
                           {org.subscription?.billingCycle || "monthly"}
                         </div>
                       </td>
@@ -531,10 +533,10 @@ export default function SuperAdminHQPage() {
                         <span
                           className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold ${
                             org.status === "active"
-                              ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                              ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
                               : org.status === "suspended"
-                                ? "bg-rose-500/10 text-rose-400 border border-rose-500/20"
-                                : "bg-blue-500/10 text-blue-400 border border-blue-500/20"
+                                ? "bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20"
+                                : "bg-primary/10 text-primary border border-border-gold/30"
                           }`}
                         >
                           {org.status}
@@ -546,7 +548,7 @@ export default function SuperAdminHQPage() {
                             <button
                               type="button"
                               onClick={() => setReinstateModalOrg({ id: org.id, name: org.name })}
-                              className="px-2.5 py-1.5 rounded-lg bg-emerald-600/20 text-emerald-300 border border-emerald-500/30 hover:bg-emerald-600/30 text-xs font-semibold transition cursor-pointer min-h-[44px]"
+                              className="px-2.5 py-1.5 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/20 text-xs font-semibold transition cursor-pointer min-h-[40px]"
                             >
                               {t.btnReinstate}
                             </button>
@@ -554,7 +556,7 @@ export default function SuperAdminHQPage() {
                             <button
                               type="button"
                               onClick={() => setSuspendModalOrg({ id: org.id, name: org.name })}
-                              className="px-2.5 py-1.5 rounded-lg bg-rose-600/20 text-rose-300 border border-rose-500/30 hover:bg-rose-600/30 text-xs font-semibold transition cursor-pointer min-h-[44px]"
+                              className="px-2.5 py-1.5 rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/30 hover:bg-rose-500/20 text-xs font-semibold transition cursor-pointer min-h-[40px]"
                             >
                               {t.btnSuspend}
                             </button>
@@ -569,14 +571,14 @@ export default function SuperAdminHQPage() {
                                 currentUnits: quota.currentUnits,
                               })
                             }
-                            className="px-2.5 py-1.5 rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700 text-xs font-semibold transition cursor-pointer min-h-[44px]"
+                            className="px-2.5 py-1.5 rounded-xl bg-surface border border-border-gold/30 text-foreground hover:bg-surface-elevated text-xs font-semibold transition cursor-pointer min-h-[40px]"
                           >
                             {t.btnChangePlan}
                           </button>
                           <button
                             type="button"
                             onClick={() => setSelectedOrgDetailsId(org.id)}
-                            className="px-2.5 py-1.5 rounded-lg bg-purple-600/20 text-purple-300 border border-purple-500/30 hover:bg-purple-600/30 text-xs font-semibold transition cursor-pointer min-h-[44px]"
+                            className="px-2.5 py-1.5 rounded-xl bg-primary/10 text-primary border border-border-gold/30 hover:bg-primary/20 text-xs font-semibold transition cursor-pointer min-h-[40px]"
                           >
                             {t.btnDetails}
                           </button>
@@ -595,27 +597,27 @@ export default function SuperAdminHQPage() {
       {activeTab === "organizations" && (
         <div className="space-y-6">
           {/* Search & Filter Bar */}
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-slate-900 p-4 rounded-2xl border border-slate-800">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-card p-4 rounded-2xl border border-border-gold/30 shadow-xs">
             <div className="relative flex-1">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-foreground-muted" />
               <input
                 id="search-orgs-input"
                 type="text"
                 placeholder={t.searchPlaceholder}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-purple-500 min-h-[48px]"
+                className="w-full pl-10 pr-4 py-2.5 bg-background border border-border-gold/30 rounded-xl text-sm text-foreground placeholder:text-foreground-muted focus:outline-hidden focus:ring-1 focus:ring-primary min-h-[44px]"
               />
             </div>
 
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-2">
-                <Filter className="size-4 text-slate-400" />
+                <Filter className="size-4 text-foreground-muted" />
                 <select
                   id="status-filter-select"
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
-                  className="bg-slate-950 border border-slate-800 text-slate-200 text-xs rounded-xl px-3 py-2.5 focus:outline-none focus:border-purple-500 min-h-[48px] cursor-pointer"
+                  className="bg-background border border-border-gold/30 text-foreground text-xs rounded-xl px-3 py-2.5 focus:outline-hidden focus:ring-1 focus:ring-primary min-h-[44px] cursor-pointer"
                 >
                   <option value="all">{t.allStatuses}</option>
                   <option value="active">Active</option>
@@ -628,7 +630,7 @@ export default function SuperAdminHQPage() {
                 id="product-filter-select"
                 value={productFilter}
                 onChange={(e) => setProductFilter(e.target.value)}
-                className="bg-slate-950 border border-slate-800 text-slate-200 text-xs rounded-xl px-3 py-2.5 focus:outline-none focus:border-purple-500 min-h-[48px] cursor-pointer"
+                className="bg-background border border-border-gold/30 text-foreground text-xs rounded-xl px-3 py-2.5 focus:outline-hidden focus:ring-1 focus:ring-primary min-h-[44px] cursor-pointer"
               >
                 <option value="all">{t.allProducts}</option>
                 <option value="building">Residential Building</option>
@@ -640,9 +642,9 @@ export default function SuperAdminHQPage() {
           </div>
 
           {/* Full Table */}
-          <div className="overflow-x-auto rounded-2xl border border-slate-800 bg-slate-900/60 shadow-xl">
-            <table className="w-full text-left text-sm text-slate-300">
-              <thead className="bg-slate-950/80 text-xs uppercase text-slate-400 border-b border-slate-800">
+          <div className="overflow-x-auto rounded-2xl border border-border-gold/30 bg-card shadow-xs">
+            <table className="w-full text-left text-sm text-foreground">
+              <thead className="bg-surface/80 text-xs uppercase tracking-wider text-foreground-muted border-b border-border-gold/20">
                 <tr>
                   <th className="px-5 py-3.5 font-bold">{t.colOrg}</th>
                   <th className="px-5 py-3.5 font-bold">{t.colType}</th>
@@ -652,10 +654,13 @@ export default function SuperAdminHQPage() {
                   <th className="px-5 py-3.5 font-bold text-right">{t.colActions}</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800/60">
+              <tbody className="divide-y divide-border-gold/15">
                 {orgs.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="px-5 py-10 text-center text-slate-500 text-sm">
+                    <td
+                      colSpan={6}
+                      className="px-5 py-10 text-center text-foreground-muted text-sm"
+                    >
                       {t.noOrgsFound}
                     </td>
                   </tr>
@@ -666,18 +671,20 @@ export default function SuperAdminHQPage() {
                     const isOverCap = quota.quotaPercentage >= 100;
 
                     return (
-                      <tr key={org.id} className="hover:bg-slate-800/40 transition">
+                      <tr key={org.id} className="hover:bg-primary/5 transition-colors">
                         <td className="px-5 py-4">
-                          <div className="font-bold text-white text-base">{org.name}</div>
-                          <div className="text-xs text-slate-400 font-mono">/{org.slug}</div>
+                          <div className="font-serif font-bold text-foreground text-base">
+                            {org.name}
+                          </div>
+                          <div className="text-xs text-foreground-muted font-mono">/{org.slug}</div>
                           {org.owner && (
-                            <div className="text-[11px] text-slate-500 mt-0.5">
+                            <div className="text-[11px] text-foreground-muted mt-0.5">
                               Owner: {org.owner.name} ({org.owner.email})
                             </div>
                           )}
                         </td>
                         <td className="px-5 py-4">
-                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-slate-800 text-slate-300 border border-slate-700 capitalize">
+                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-surface text-foreground border border-border-gold/20 capitalize">
                             {org.productType}
                           </span>
                         </td>
@@ -686,40 +693,40 @@ export default function SuperAdminHQPage() {
                             <span
                               className={
                                 isOverCap
-                                  ? "text-rose-400"
+                                  ? "text-rose-600 dark:text-rose-400"
                                   : isNearCap
-                                    ? "text-amber-400"
-                                    : "text-emerald-400"
+                                    ? "text-amber-600 dark:text-amber-400"
+                                    : "text-emerald-600 dark:text-emerald-400"
                               }
                             >
                               {quota.currentUnits} / {quota.maxUnits} units
                             </span>
-                            <span className="text-slate-400 text-[11px]">
+                            <span className="text-foreground-muted text-[11px]">
                               {quota.quotaPercentage}%
                             </span>
                           </div>
-                          <div className="w-40 h-2 rounded-full bg-slate-800 overflow-hidden">
+                          <div className="w-40 h-2 rounded-full bg-surface-elevated border border-border-gold/20 overflow-hidden">
                             <div
                               className={`h-full transition-all rounded-full ${
                                 isOverCap
                                   ? "bg-rose-500"
                                   : isNearCap
-                                    ? "bg-amber-400"
+                                    ? "bg-amber-500"
                                     : "bg-emerald-500"
                               }`}
                               style={{ width: `${Math.min(100, quota.quotaPercentage)}%` }}
                             />
                           </div>
-                          <div className="text-[10px] text-slate-500 mt-1">
+                          <div className="text-[10px] text-foreground-muted mt-1">
                             {quota.flatsCount} flats · {quota.roomsCount} rooms ·{" "}
                             {quota.remainingUnits} free
                           </div>
                         </td>
                         <td className="px-5 py-4">
-                          <div className="font-medium text-slate-200">
+                          <div className="font-medium text-foreground">
                             {org.subscription?.plan?.name || "Trial 6-Month"}
                           </div>
-                          <div className="text-[11px] text-slate-400 capitalize">
+                          <div className="text-[11px] text-foreground-muted capitalize">
                             {org.subscription?.billingCycle || "monthly"} · ৳
                             {org.subscription?.plan?.priceMonthlyBdt || 0}/mo
                           </div>
@@ -728,10 +735,10 @@ export default function SuperAdminHQPage() {
                           <span
                             className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold ${
                               org.status === "active"
-                                ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                                ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
                                 : org.status === "suspended"
-                                  ? "bg-rose-500/10 text-rose-400 border border-rose-500/20"
-                                  : "bg-blue-500/10 text-blue-400 border border-blue-500/20"
+                                  ? "bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20"
+                                  : "bg-primary/10 text-primary border border-border-gold/30"
                             }`}
                           >
                             {org.status}
@@ -743,7 +750,7 @@ export default function SuperAdminHQPage() {
                               <button
                                 type="button"
                                 onClick={() => setReinstateModalOrg({ id: org.id, name: org.name })}
-                                className="px-3 py-1.5 rounded-lg bg-emerald-600/20 text-emerald-300 border border-emerald-500/30 hover:bg-emerald-600/30 text-xs font-semibold transition cursor-pointer min-h-[44px]"
+                                className="px-3 py-1.5 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/20 text-xs font-semibold transition cursor-pointer min-h-[40px]"
                               >
                                 {t.btnReinstate}
                               </button>
@@ -751,7 +758,7 @@ export default function SuperAdminHQPage() {
                               <button
                                 type="button"
                                 onClick={() => setSuspendModalOrg({ id: org.id, name: org.name })}
-                                className="px-3 py-1.5 rounded-lg bg-rose-600/20 text-rose-300 border border-rose-500/30 hover:bg-rose-600/30 text-xs font-semibold transition cursor-pointer min-h-[44px]"
+                                className="px-3 py-1.5 rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/30 hover:bg-rose-500/20 text-xs font-semibold transition cursor-pointer min-h-[40px]"
                               >
                                 {t.btnSuspend}
                               </button>
@@ -766,14 +773,14 @@ export default function SuperAdminHQPage() {
                                   currentUnits: quota.currentUnits,
                                 })
                               }
-                              className="px-3 py-1.5 rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700 text-xs font-semibold transition cursor-pointer min-h-[44px]"
+                              className="px-3 py-1.5 rounded-xl bg-surface border border-border-gold/30 text-foreground hover:bg-surface-elevated text-xs font-semibold transition cursor-pointer min-h-[40px]"
                             >
                               {t.btnChangePlan}
                             </button>
                             <button
                               type="button"
                               onClick={() => setSelectedOrgDetailsId(org.id)}
-                              className="px-3 py-1.5 rounded-lg bg-purple-600/20 text-purple-300 border border-purple-500/30 hover:bg-purple-600/30 text-xs font-semibold transition cursor-pointer min-h-[44px]"
+                              className="px-3 py-1.5 rounded-xl bg-primary/10 text-primary border border-border-gold/30 hover:bg-primary/20 text-xs font-semibold transition cursor-pointer min-h-[40px]"
                             >
                               {t.btnDetails}
                             </button>
@@ -793,8 +800,8 @@ export default function SuperAdminHQPage() {
       {activeTab === "plans" && (
         <div className="space-y-6">
           <div>
-            <h2 className="text-xl font-bold text-white">{t.plansTab}</h2>
-            <p className="text-xs text-slate-400 mt-1">{t.plansSubtitle}</p>
+            <h2 className="text-xl font-serif font-bold text-foreground">{t.plansTab}</h2>
+            <p className="text-xs text-foreground-muted mt-1">{t.plansSubtitle}</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -805,43 +812,46 @@ export default function SuperAdminHQPage() {
               return (
                 <Card
                   key={plan.id}
-                  className="p-6 bg-slate-900 border-slate-800 flex flex-col justify-between shadow-xl relative overflow-hidden"
+                  className="p-6 bg-card border border-border-gold/30 shadow-xs hover:border-border-gold/60 flex flex-col justify-between rounded-2xl relative overflow-hidden transition-all"
                 >
                   {plan.id === "pro" && (
-                    <div className="absolute top-0 right-0 bg-gradient-to-l from-purple-600 to-indigo-600 text-white text-[10px] font-extrabold px-3 py-1 rounded-bl-xl uppercase tracking-wider">
+                    <div className="absolute top-0 right-0 bg-primary text-primary-foreground text-[10px] font-serif font-bold px-3 py-1 rounded-bl-xl uppercase tracking-wider">
                       Most Popular
                     </div>
                   )}
 
                   <div className="space-y-4">
                     <div>
-                      <h3 className="text-xl font-extrabold text-white">{plan.name}</h3>
-                      <p className="text-xs text-slate-400 mt-1">{plan.description}</p>
+                      <h3 className="text-xl font-serif font-bold text-foreground">{plan.name}</h3>
+                      <p className="text-xs text-foreground-muted mt-1">{plan.description}</p>
                     </div>
 
-                    <div className="py-2 border-y border-slate-800 space-y-1">
+                    <div className="py-2 border-y border-border-gold/20 space-y-1">
                       <div className="flex items-baseline gap-1">
-                        <span className="text-3xl font-black text-white">
+                        <span className="text-3xl font-serif font-bold text-foreground">
                           ৳{Number(plan.priceMonthlyBdt).toLocaleString()}
                         </span>
-                        <span className="text-xs text-slate-400">/ month</span>
+                        <span className="text-xs text-foreground-muted">/ month</span>
                       </div>
-                      <div className="text-xs text-slate-400">
+                      <div className="text-xs text-foreground-muted">
                         ৳{Number(plan.priceYearlyBdt).toLocaleString()} billed yearly
                       </div>
                     </div>
 
                     <div className="space-y-2">
-                      <div className="text-xs font-semibold uppercase tracking-wider text-purple-400">
+                      <div className="text-xs font-semibold uppercase tracking-wider text-primary">
                         {t.unitsCap}:{" "}
                         {plan.maxUnits >= 999999 ? "Unlimited" : `${plan.maxUnits} units`}
                       </div>
 
                       <div className="space-y-2 pt-2">
-                        <div className="text-xs font-bold text-slate-300">{t.features}:</div>
+                        <div className="text-xs font-bold text-foreground">{t.features}:</div>
                         {features.map((feat, i) => (
-                          <div key={i} className="flex items-start gap-2 text-xs text-slate-400">
-                            <CheckCircle2 className="size-4 text-emerald-400 shrink-0 mt-0.5" />
+                          <div
+                            key={i}
+                            className="flex items-start gap-2 text-xs text-foreground-muted"
+                          >
+                            <CheckCircle2 className="size-4 text-primary shrink-0 mt-0.5" />
                             <span>{feat}</span>
                           </div>
                         ))}
@@ -849,10 +859,10 @@ export default function SuperAdminHQPage() {
                     </div>
                   </div>
 
-                  <div className="pt-6 mt-6 border-t border-slate-800">
+                  <div className="pt-6 mt-6 border-t border-border-gold/20">
                     <Badge
                       variant="outline"
-                      className="text-xs w-full justify-center bg-slate-950 border-slate-800 text-slate-300 py-1.5"
+                      className="text-xs w-full justify-center bg-surface border-border-gold/30 text-foreground py-1.5 font-mono"
                     >
                       System Tier ID: {plan.id}
                     </Badge>
@@ -866,26 +876,28 @@ export default function SuperAdminHQPage() {
 
       {/* MODAL 1: Suspend Customer Organization */}
       {suspendModalOrg && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-lg rounded-2xl bg-slate-900 border border-slate-800 p-6 space-y-5 shadow-2xl">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
-              <div className="flex items-center gap-2.5 text-rose-400">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-lg rounded-2xl bg-card border border-border-gold/40 p-6 space-y-5 shadow-2xl">
+            <div className="flex items-center justify-between pb-3 border-b border-border-gold/20">
+              <div className="flex items-center gap-2.5 text-rose-600 dark:text-rose-400">
                 <AlertOctagon className="size-5" />
-                <h3 className="text-lg font-bold text-white">{t.suspendModalTitle}</h3>
+                <h3 className="text-lg font-serif font-bold text-foreground">
+                  {t.suspendModalTitle}
+                </h3>
               </div>
               <button
                 type="button"
                 onClick={() => setSuspendModalOrg(null)}
-                className="text-slate-400 hover:text-white p-1 rounded-lg cursor-pointer min-h-[44px]"
+                className="text-foreground-muted hover:text-foreground p-1 rounded-lg cursor-pointer min-h-[44px]"
               >
                 <X className="size-5" />
               </button>
             </div>
 
-            <div className="rounded-xl bg-rose-500/10 border border-rose-500/20 p-4 text-xs text-rose-300 flex items-start gap-3">
-              <ShieldAlert className="size-5 shrink-0 mt-0.5 text-rose-400" />
+            <div className="rounded-xl bg-rose-500/10 border border-rose-500/20 p-4 text-xs text-rose-600 dark:text-rose-300 flex items-start gap-3">
+              <ShieldAlert className="size-5 shrink-0 mt-0.5 text-rose-500" />
               <div>
-                <p className="font-bold text-sm text-white mb-1">{suspendModalOrg.name}</p>
+                <p className="font-bold text-sm text-foreground mb-1">{suspendModalOrg.name}</p>
                 <p>{t.suspendWarning}</p>
               </div>
             </div>
@@ -893,7 +905,7 @@ export default function SuperAdminHQPage() {
             <div className="space-y-2">
               <label
                 htmlFor="suspend-reason-textarea"
-                className="text-xs font-semibold text-slate-300"
+                className="text-xs font-semibold text-foreground"
               >
                 {t.suspendReasonLabel}
               </label>
@@ -903,15 +915,15 @@ export default function SuperAdminHQPage() {
                 value={suspendReason}
                 onChange={(e) => setSuspendReason(e.target.value)}
                 placeholder={t.suspendReasonPlaceholder}
-                className="w-full rounded-xl bg-slate-950 border border-slate-800 p-3 text-sm text-slate-100 placeholder:text-slate-600 focus:outline-none focus:border-rose-500"
+                className="w-full rounded-xl bg-background border border-border-gold/30 p-3 text-sm text-foreground placeholder:text-foreground-muted focus:outline-hidden focus:ring-1 focus:ring-rose-500"
               />
             </div>
 
-            <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-800">
+            <div className="flex items-center justify-end gap-3 pt-3 border-t border-border-gold/20">
               <Button
                 variant="outline"
                 onClick={() => setSuspendModalOrg(null)}
-                className="border-slate-800 text-slate-300 min-h-[48px]"
+                className="border-border-gold/30 text-foreground min-h-[44px]"
               >
                 {t.cancel}
               </Button>
@@ -923,7 +935,7 @@ export default function SuperAdminHQPage() {
                     reason: suspendReason.trim(),
                   })
                 }
-                className="bg-rose-600 hover:bg-rose-500 text-white font-bold min-h-[48px]"
+                className="bg-rose-600 hover:bg-rose-500 text-white font-bold min-h-[44px]"
               >
                 {suspendMutation.isPending ? "Suspending..." : t.btnConfirmSuspend}
               </Button>
@@ -934,31 +946,33 @@ export default function SuperAdminHQPage() {
 
       {/* MODAL 2: Reinstate Customer Organization */}
       {reinstateModalOrg && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-lg rounded-2xl bg-slate-900 border border-slate-800 p-6 space-y-5 shadow-2xl">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
-              <div className="flex items-center gap-2.5 text-emerald-400">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-lg rounded-2xl bg-card border border-border-gold/40 p-6 space-y-5 shadow-2xl">
+            <div className="flex items-center justify-between pb-3 border-b border-border-gold/20">
+              <div className="flex items-center gap-2.5 text-emerald-600 dark:text-emerald-400">
                 <Unlock className="size-5" />
-                <h3 className="text-lg font-bold text-white">{t.reinstateModalTitle}</h3>
+                <h3 className="text-lg font-serif font-bold text-foreground">
+                  {t.reinstateModalTitle}
+                </h3>
               </div>
               <button
                 type="button"
                 onClick={() => setReinstateModalOrg(null)}
-                className="text-slate-400 hover:text-white p-1 rounded-lg cursor-pointer min-h-[44px]"
+                className="text-foreground-muted hover:text-foreground p-1 rounded-lg cursor-pointer min-h-[44px]"
               >
                 <X className="size-5" />
               </button>
             </div>
 
-            <div className="rounded-xl bg-emerald-500/10 border border-emerald-500/20 p-4 text-xs text-emerald-300">
-              <p className="font-bold text-sm text-white mb-1">{reinstateModalOrg.name}</p>
+            <div className="rounded-xl bg-emerald-500/10 border border-emerald-500/20 p-4 text-xs text-emerald-600 dark:text-emerald-300">
+              <p className="font-bold text-sm text-foreground mb-1">{reinstateModalOrg.name}</p>
               <p>Reinstating this organization restores full access for all tenant members.</p>
             </div>
 
             <div className="space-y-2">
               <label
                 htmlFor="reinstate-notes-textarea"
-                className="text-xs font-semibold text-slate-300"
+                className="text-xs font-semibold text-foreground"
               >
                 {t.reinstateNotesLabel}
               </label>
@@ -968,15 +982,15 @@ export default function SuperAdminHQPage() {
                 value={reinstateNotes}
                 onChange={(e) => setReinstateNotes(e.target.value)}
                 placeholder={t.reinstateNotesPlaceholder}
-                className="w-full rounded-xl bg-slate-950 border border-slate-800 p-3 text-sm text-slate-100 placeholder:text-slate-600 focus:outline-none focus:border-emerald-500"
+                className="w-full rounded-xl bg-background border border-border-gold/30 p-3 text-sm text-foreground placeholder:text-foreground-muted focus:outline-hidden focus:ring-1 focus:ring-emerald-500"
               />
             </div>
 
-            <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-800">
+            <div className="flex items-center justify-end gap-3 pt-3 border-t border-border-gold/20">
               <Button
                 variant="outline"
                 onClick={() => setReinstateModalOrg(null)}
-                className="border-slate-800 text-slate-300 min-h-[48px]"
+                className="border-border-gold/30 text-foreground min-h-[44px]"
               >
                 {t.cancel}
               </Button>
@@ -988,7 +1002,7 @@ export default function SuperAdminHQPage() {
                     notes: reinstateNotes.trim() || undefined,
                   })
                 }
-                className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold min-h-[48px]"
+                className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold min-h-[44px]"
               >
                 {reinstateMutation.isPending ? "Reinstating..." : t.btnConfirmReinstate}
               </Button>
@@ -999,27 +1013,31 @@ export default function SuperAdminHQPage() {
 
       {/* MODAL 3: Update SaaS Plan & Quotas */}
       {changePlanOrg && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-lg rounded-2xl bg-slate-900 border border-slate-800 p-6 space-y-5 shadow-2xl">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
-              <div className="flex items-center gap-2.5 text-purple-400">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-lg rounded-2xl bg-card border border-border-gold/40 p-6 space-y-5 shadow-2xl">
+            <div className="flex items-center justify-between pb-3 border-b border-border-gold/20">
+              <div className="flex items-center gap-2.5 text-primary">
                 <CreditCard className="size-5" />
-                <h3 className="text-lg font-bold text-white">{t.changePlanModalTitle}</h3>
+                <h3 className="text-lg font-serif font-bold text-foreground">
+                  {t.changePlanModalTitle}
+                </h3>
               </div>
               <button
                 type="button"
                 onClick={() => setChangePlanOrg(null)}
-                className="text-slate-400 hover:text-white p-1 rounded-lg cursor-pointer min-h-[44px]"
+                className="text-foreground-muted hover:text-foreground p-1 rounded-lg cursor-pointer min-h-[44px]"
               >
                 <X className="size-5" />
               </button>
             </div>
 
-            <div className="rounded-xl bg-slate-950 p-4 border border-slate-800 space-y-1">
-              <div className="text-sm font-bold text-white">{changePlanOrg.name}</div>
-              <div className="text-xs text-slate-400">
+            <div className="rounded-xl bg-surface p-4 border border-border-gold/20 space-y-1">
+              <div className="text-sm font-serif font-bold text-foreground">
+                {changePlanOrg.name}
+              </div>
+              <div className="text-xs text-foreground-muted">
                 Currently using{" "}
-                <span className="text-purple-300 font-semibold">
+                <span className="text-primary font-semibold">
                   {changePlanOrg.currentUnits} active units
                 </span>
                 .
@@ -1027,7 +1045,7 @@ export default function SuperAdminHQPage() {
             </div>
 
             {isDowngradeBlocked && (
-              <div className="rounded-xl bg-amber-500/10 border border-amber-500/20 p-3.5 text-xs text-amber-300 flex items-start gap-2.5">
+              <div className="rounded-xl bg-amber-500/10 border border-amber-500/20 p-3.5 text-xs text-amber-600 dark:text-amber-300 flex items-start gap-2.5">
                 <ShieldAlert className="size-4 shrink-0 mt-0.5" />
                 <span>{t.quotaExceededWarning}</span>
               </div>
@@ -1037,7 +1055,7 @@ export default function SuperAdminHQPage() {
               <div className="space-y-2">
                 <label
                   htmlFor="plan-select-dropdown"
-                  className="text-xs font-semibold text-slate-300"
+                  className="text-xs font-semibold text-foreground"
                 >
                   {t.selectPlanLabel}
                 </label>
@@ -1045,7 +1063,7 @@ export default function SuperAdminHQPage() {
                   id="plan-select-dropdown"
                   value={selectedPlanId}
                   onChange={(e) => setSelectedPlanId(e.target.value)}
-                  className="w-full rounded-xl bg-slate-950 border border-slate-800 p-3 text-sm text-slate-100 focus:outline-none focus:border-purple-500 min-h-[48px] cursor-pointer"
+                  className="w-full rounded-xl bg-background border border-border-gold/30 p-3 text-sm text-foreground focus:outline-hidden focus:ring-1 focus:ring-primary min-h-[44px] cursor-pointer"
                 >
                   {plans.map((p) => (
                     <option key={p.id} value={p.id}>
@@ -1060,7 +1078,7 @@ export default function SuperAdminHQPage() {
                 <div className="space-y-2">
                   <label
                     htmlFor="billing-cycle-select"
-                    className="text-xs font-semibold text-slate-300"
+                    className="text-xs font-semibold text-foreground"
                   >
                     {t.billingCycleLabel}
                   </label>
@@ -1068,7 +1086,7 @@ export default function SuperAdminHQPage() {
                     id="billing-cycle-select"
                     value={selectedBillingCycle}
                     onChange={(e) => setSelectedBillingCycle(e.target.value as any)}
-                    className="w-full rounded-xl bg-slate-950 border border-slate-800 p-3 text-sm text-slate-100 focus:outline-none focus:border-purple-500 min-h-[48px] cursor-pointer"
+                    className="w-full rounded-xl bg-background border border-border-gold/30 p-3 text-sm text-foreground focus:outline-hidden focus:ring-1 focus:ring-primary min-h-[44px] cursor-pointer"
                   >
                     <option value="monthly">{t.monthly}</option>
                     <option value="yearly">{t.yearly}</option>
@@ -1078,7 +1096,7 @@ export default function SuperAdminHQPage() {
                 <div className="space-y-2">
                   <label
                     htmlFor="extend-days-input"
-                    className="text-xs font-semibold text-slate-300"
+                    className="text-xs font-semibold text-foreground"
                   >
                     {t.extendDaysLabel}
                   </label>
@@ -1089,21 +1107,22 @@ export default function SuperAdminHQPage() {
                     max={3650}
                     value={extendDays}
                     onChange={(e) => setExtendDays(Number(e.target.value))}
-                    className="w-full rounded-xl bg-slate-950 border border-slate-800 p-3 text-sm text-slate-100 focus:outline-none focus:border-purple-500 min-h-[48px]"
+                    className="w-full rounded-xl bg-background border border-border-gold/30 p-3 text-sm text-foreground focus:outline-hidden focus:ring-1 focus:ring-primary min-h-[44px]"
                   />
                 </div>
               </div>
             </div>
 
-            <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-800">
+            <div className="flex items-center justify-end gap-3 pt-3 border-t border-border-gold/20">
               <Button
                 variant="outline"
                 onClick={() => setChangePlanOrg(null)}
-                className="border-slate-800 text-slate-300 min-h-[48px]"
+                className="border-border-gold/30 text-foreground min-h-[44px]"
               >
                 {t.cancel}
               </Button>
               <Button
+                variant="luxury"
                 disabled={isDowngradeBlocked || updatePlanMutation.isPending}
                 onClick={() =>
                   updatePlanMutation.mutate({
@@ -1113,7 +1132,7 @@ export default function SuperAdminHQPage() {
                     extendDays,
                   })
                 }
-                className="bg-purple-600 hover:bg-purple-500 text-white font-bold min-h-[48px]"
+                className="font-bold min-h-[44px]"
               >
                 {updatePlanMutation.isPending ? "Updating Plan..." : t.btnConfirmPlanUpdate}
               </Button>
@@ -1124,52 +1143,54 @@ export default function SuperAdminHQPage() {
 
       {/* MODAL 4: Organization Deep Dive Details */}
       {selectedOrgDetailsId && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-2xl max-h-[85vh] overflow-y-auto rounded-2xl bg-slate-900 border border-slate-800 p-6 space-y-6 shadow-2xl">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-2xl max-h-[85vh] overflow-y-auto rounded-2xl bg-card border border-border-gold/40 p-6 space-y-6 shadow-2xl">
+            <div className="flex items-center justify-between pb-3 border-b border-border-gold/20">
               <div>
-                <h3 className="text-lg font-bold text-white">
+                <h3 className="text-lg font-serif font-bold text-foreground">
                   {orgDetailsQuery.data?.name || "Organization Overview"}
                 </h3>
-                <p className="text-xs text-slate-400 font-mono">/{orgDetailsQuery.data?.slug}</p>
+                <p className="text-xs text-foreground-muted font-mono">
+                  /{orgDetailsQuery.data?.slug}
+                </p>
               </div>
               <button
                 type="button"
                 onClick={() => setSelectedOrgDetailsId(null)}
-                className="text-slate-400 hover:text-white p-1 rounded-lg cursor-pointer min-h-[44px]"
+                className="text-foreground-muted hover:text-foreground p-1 rounded-lg cursor-pointer min-h-[44px]"
               >
                 <X className="size-5" />
               </button>
             </div>
 
             {orgDetailsQuery.isLoading ? (
-              <div className="py-12 text-center text-slate-400 text-sm">{t.loading}</div>
+              <div className="py-12 text-center text-foreground-muted text-sm">{t.loading}</div>
             ) : orgDetailsQuery.data ? (
               <div className="space-y-6 text-sm">
                 {/* Stats Breakdown */}
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                  <div className="p-3 rounded-xl bg-slate-950 border border-slate-800">
-                    <span className="text-[11px] text-slate-400">Total Units</span>
-                    <p className="text-xl font-bold text-white mt-1">
+                  <div className="p-3 rounded-xl bg-surface border border-border-gold/20">
+                    <span className="text-[11px] text-foreground-muted">Total Units</span>
+                    <p className="text-xl font-serif font-bold text-foreground mt-1">
                       {orgDetailsQuery.data.stats.currentUnits} /{" "}
                       {orgDetailsQuery.data.stats.maxUnits}
                     </p>
                   </div>
-                  <div className="p-3 rounded-xl bg-slate-950 border border-slate-800">
-                    <span className="text-[11px] text-slate-400">Buildings</span>
-                    <p className="text-xl font-bold text-white mt-1">
+                  <div className="p-3 rounded-xl bg-surface border border-border-gold/20">
+                    <span className="text-[11px] text-foreground-muted">Buildings</span>
+                    <p className="text-xl font-serif font-bold text-foreground mt-1">
                       {orgDetailsQuery.data.stats.totalBuildings}
                     </p>
                   </div>
-                  <div className="p-3 rounded-xl bg-slate-950 border border-slate-800">
-                    <span className="text-[11px] text-slate-400">Room Types</span>
-                    <p className="text-xl font-bold text-white mt-1">
+                  <div className="p-3 rounded-xl bg-surface border border-border-gold/20">
+                    <span className="text-[11px] text-foreground-muted">Room Types</span>
+                    <p className="text-xl font-serif font-bold text-foreground mt-1">
                       {orgDetailsQuery.data.stats.totalRoomTypes}
                     </p>
                   </div>
-                  <div className="p-3 rounded-xl bg-slate-950 border border-slate-800">
-                    <span className="text-[11px] text-slate-400">Quota Usage</span>
-                    <p className="text-xl font-bold text-purple-400 mt-1">
+                  <div className="p-3 rounded-xl bg-surface border border-border-gold/20">
+                    <span className="text-[11px] text-foreground-muted">Quota Usage</span>
+                    <p className="text-xl font-serif font-bold text-primary mt-1">
                       {orgDetailsQuery.data.stats.quotaPercentage}%
                     </p>
                   </div>
@@ -1178,22 +1199,22 @@ export default function SuperAdminHQPage() {
                 {/* Buildings & Flats Summary */}
                 {orgDetailsQuery.data.buildings.length > 0 && (
                   <div className="space-y-2">
-                    <h4 className="text-xs font-bold uppercase text-slate-400">
+                    <h4 className="text-xs font-bold uppercase text-foreground-muted">
                       Buildings & Flats
                     </h4>
                     <div className="space-y-2">
                       {orgDetailsQuery.data.buildings.map((b) => (
                         <div
                           key={b.id}
-                          className="p-3 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-between"
+                          className="p-3 rounded-xl bg-surface border border-border-gold/20 flex items-center justify-between"
                         >
                           <div>
-                            <span className="font-semibold text-white">{b.name}</span>
-                            <span className="text-xs text-slate-400 block">{b.address}</span>
+                            <span className="font-semibold text-foreground">{b.name}</span>
+                            <span className="text-xs text-foreground-muted block">{b.address}</span>
                           </div>
                           <Badge
                             variant="outline"
-                            className="border-slate-800 bg-slate-900 text-slate-300"
+                            className="border-border-gold/30 bg-card text-foreground"
                           >
                             {b.flats.length} Flats
                           </Badge>
@@ -1206,24 +1227,24 @@ export default function SuperAdminHQPage() {
                 {/* Hotel Room Types */}
                 {orgDetailsQuery.data.roomTypes.length > 0 && (
                   <div className="space-y-2">
-                    <h4 className="text-xs font-bold uppercase text-slate-400">
+                    <h4 className="text-xs font-bold uppercase text-foreground-muted">
                       Hotel Room Inventory
                     </h4>
                     <div className="space-y-2">
                       {orgDetailsQuery.data.roomTypes.map((rt) => (
                         <div
                           key={rt.id}
-                          className="p-3 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-between"
+                          className="p-3 rounded-xl bg-surface border border-border-gold/20 flex items-center justify-between"
                         >
                           <div>
-                            <span className="font-semibold text-white">{rt.name}</span>
-                            <span className="text-xs text-slate-400 block">
+                            <span className="font-semibold text-foreground">{rt.name}</span>
+                            <span className="text-xs text-foreground-muted block">
                               Base Price: ৳{Number(rt.basePrice).toLocaleString()}/night
                             </span>
                           </div>
                           <Badge
                             variant="outline"
-                            className="border-slate-800 bg-slate-900 text-slate-300"
+                            className="border-border-gold/30 bg-card text-foreground"
                           >
                             {rt.rooms.length} Rooms
                           </Badge>
@@ -1235,20 +1256,22 @@ export default function SuperAdminHQPage() {
 
                 {/* Team Members */}
                 <div className="space-y-2">
-                  <h4 className="text-xs font-bold uppercase text-slate-400">
+                  <h4 className="text-xs font-bold uppercase text-foreground-muted">
                     Authorized Team Members
                   </h4>
                   <div className="space-y-1.5">
                     {orgDetailsQuery.data.members.map((m) => (
                       <div
                         key={m.id}
-                        className="p-2.5 rounded-lg bg-slate-950 flex items-center justify-between text-xs"
+                        className="p-2.5 rounded-xl bg-surface border border-border-gold/15 flex items-center justify-between text-xs"
                       >
                         <div>
-                          <span className="font-semibold text-white">{m.user?.name}</span>
-                          <span className="text-slate-400 ml-2 font-mono">{m.user?.email}</span>
+                          <span className="font-semibold text-foreground">{m.user?.name}</span>
+                          <span className="text-foreground-muted ml-2 font-mono">
+                            {m.user?.email}
+                          </span>
                         </div>
-                        <span className="px-2 py-0.5 rounded font-bold uppercase bg-slate-800 text-slate-300 text-[10px]">
+                        <span className="px-2 py-0.5 rounded font-bold uppercase bg-primary/10 text-primary border border-border-gold/30 text-[10px]">
                           {m.role}
                         </span>
                       </div>
@@ -1258,18 +1281,20 @@ export default function SuperAdminHQPage() {
 
                 {/* Recent Audit Trail */}
                 <div className="space-y-2">
-                  <h4 className="text-xs font-bold uppercase text-slate-400">Recent Audit Trail</h4>
+                  <h4 className="text-xs font-bold uppercase text-foreground-muted">
+                    Recent Audit Trail
+                  </h4>
                   <div className="space-y-1.5 max-h-40 overflow-y-auto">
                     {orgDetailsQuery.data.auditLogs.map((log) => (
                       <div
                         key={log.id}
-                        className="p-2 rounded bg-slate-950/80 text-[11px] flex items-center justify-between"
+                        className="p-2.5 rounded-xl bg-surface border border-border-gold/15 text-[11px] flex items-center justify-between"
                       >
                         <div>
-                          <span className="font-bold text-purple-400">{log.action}</span>
-                          <span className="text-slate-400 ml-2">by {log.actorEmail}</span>
+                          <span className="font-bold text-primary">{log.action}</span>
+                          <span className="text-foreground-muted ml-2">by {log.actorEmail}</span>
                         </div>
-                        <span className="text-slate-500 font-mono text-[10px]">
+                        <span className="text-foreground-muted font-mono text-[10px]">
                           {new Date(log.createdAt).toLocaleDateString()}
                         </span>
                       </div>

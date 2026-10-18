@@ -39,7 +39,7 @@ export function QuickBookingBar({ roomTypes, accentColor, onSearch }: QuickBooki
 
   return (
     <div className="w-full max-w-5xl mx-auto -mt-14 relative z-30 px-4">
-      <div className="bg-white rounded-2xl shadow-2xl border border-slate-100 p-4 sm:p-6 transition-all hover:shadow-indigo-500/5">
+      <div className="bg-card rounded-2xl shadow-2xl border-2 border-border-gold/40 p-4 sm:p-6 transition-all hover:shadow-primary/10">
         <form
           onSubmit={handleSubmit}
           className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end"
@@ -48,9 +48,9 @@ export function QuickBookingBar({ roomTypes, accentColor, onSearch }: QuickBooki
           <div className="space-y-1.5">
             <label
               htmlFor="quick-checkin"
-              className="flex items-center gap-1.5 text-xs font-bold text-slate-700 uppercase tracking-wider"
+              className="flex items-center gap-1.5 text-xs font-bold text-foreground uppercase tracking-wider"
             >
-              <Calendar className="size-3.5 text-slate-400" />
+              <Calendar className="size-3.5 text-primary" />
               Check-In
             </label>
             <input
@@ -59,7 +59,7 @@ export function QuickBookingBar({ roomTypes, accentColor, onSearch }: QuickBooki
               value={checkIn}
               min={today}
               onChange={(e) => setCheckIn(e.target.value)}
-              className="w-full text-xs sm:text-sm font-medium border border-slate-200 rounded-lg p-2.5 bg-slate-50 focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-slate-900"
+              className="w-full text-xs sm:text-sm font-medium border border-border-gold/30 rounded-xl p-2.5 bg-background text-foreground focus:outline-hidden focus:ring-1 focus:ring-primary"
               required
             />
           </div>
@@ -68,9 +68,9 @@ export function QuickBookingBar({ roomTypes, accentColor, onSearch }: QuickBooki
           <div className="space-y-1.5">
             <label
               htmlFor="quick-checkout"
-              className="flex items-center gap-1.5 text-xs font-bold text-slate-700 uppercase tracking-wider"
+              className="flex items-center gap-1.5 text-xs font-bold text-foreground uppercase tracking-wider"
             >
-              <Calendar className="size-3.5 text-slate-400" />
+              <Calendar className="size-3.5 text-primary" />
               Check-Out
             </label>
             <input
@@ -79,7 +79,7 @@ export function QuickBookingBar({ roomTypes, accentColor, onSearch }: QuickBooki
               value={checkOut}
               min={checkIn || today}
               onChange={(e) => setCheckOut(e.target.value)}
-              className="w-full text-xs sm:text-sm font-medium border border-slate-200 rounded-lg p-2.5 bg-slate-50 focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-slate-900"
+              className="w-full text-xs sm:text-sm font-medium border border-border-gold/30 rounded-xl p-2.5 bg-background text-foreground focus:outline-hidden focus:ring-1 focus:ring-primary"
               required
             />
           </div>
@@ -88,9 +88,9 @@ export function QuickBookingBar({ roomTypes, accentColor, onSearch }: QuickBooki
           <div className="space-y-1.5">
             <label
               htmlFor="quick-roomtype"
-              className="flex items-center gap-1.5 text-xs font-bold text-slate-700 uppercase tracking-wider"
+              className="flex items-center gap-1.5 text-xs font-bold text-foreground uppercase tracking-wider"
             >
-              <Users className="size-3.5 text-slate-400" />
+              <Users className="size-3.5 text-primary" />
               Room & Guests
             </label>
             <div className="grid grid-cols-3 gap-1.5">
@@ -98,7 +98,7 @@ export function QuickBookingBar({ roomTypes, accentColor, onSearch }: QuickBooki
                 id="quick-roomtype"
                 value={selectedRoomType}
                 onChange={(e) => setSelectedRoomType(e.target.value)}
-                className="w-full text-xs font-medium border border-slate-200 rounded-lg p-2.5 bg-slate-50 focus:bg-white focus:outline-hidden truncate"
+                className="w-full text-xs font-medium border border-border-gold/30 rounded-xl p-2.5 bg-background text-foreground focus:outline-hidden focus:ring-1 focus:ring-primary truncate"
               >
                 <option value="">Any Villa</option>
                 {roomTypes.map((rt) => (
@@ -111,7 +111,7 @@ export function QuickBookingBar({ roomTypes, accentColor, onSearch }: QuickBooki
                 aria-label="Number of Adults"
                 value={adults}
                 onChange={(e) => setAdults(Number(e.target.value))}
-                className="w-full text-xs font-medium border border-slate-200 rounded-lg p-2.5 bg-slate-50 focus:bg-white focus:outline-hidden"
+                className="w-full text-xs font-medium border border-border-gold/30 rounded-xl p-2.5 bg-background text-foreground focus:outline-hidden focus:ring-1 focus:ring-primary"
               >
                 <option value={1}>1 Adult</option>
                 <option value={2}>2 Adults</option>
@@ -122,7 +122,7 @@ export function QuickBookingBar({ roomTypes, accentColor, onSearch }: QuickBooki
                 aria-label="Number of Children"
                 value={children}
                 onChange={(e) => setChildren(Number(e.target.value))}
-                className="w-full text-xs font-medium border border-slate-200 rounded-lg p-2.5 bg-slate-50 focus:bg-white focus:outline-hidden"
+                className="w-full text-xs font-medium border border-border-gold/30 rounded-xl p-2.5 bg-background text-foreground focus:outline-hidden focus:ring-1 focus:ring-primary"
               >
                 <option value={0}>0 Kids</option>
                 <option value={1}>1 Kid</option>
@@ -146,12 +146,14 @@ export function QuickBookingBar({ roomTypes, accentColor, onSearch }: QuickBooki
         </form>
 
         {/* Guarantee Banner */}
-        <div className="mt-4 pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between text-[11px] text-slate-500 gap-2">
-          <div className="flex items-center gap-1.5 text-emerald-700 font-medium">
-            <ShieldCheck className="size-3.5 text-emerald-600" />
+        <div className="mt-4 pt-3 border-t border-border-gold/20 flex flex-wrap items-center justify-between text-[11px] text-foreground-muted gap-2">
+          <div className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 font-medium">
+            <ShieldCheck className="size-3.5 text-emerald-600 dark:text-emerald-400" />
             <span>Direct Booking Perk: Guaranteed Best Rate + Welcome Fruit Basket</span>
           </div>
-          <div className="text-slate-400">Free cancellation up to 48 hours prior to arrival</div>
+          <div className="text-foreground-muted">
+            Free cancellation up to 48 hours prior to arrival
+          </div>
         </div>
       </div>
     </div>

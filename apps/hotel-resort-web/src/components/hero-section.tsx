@@ -31,7 +31,7 @@ export function HeroSection({ hotel, onSearch, onExploreSuites }: HeroSectionPro
           style={{ backgroundImage: `url(${bgImage})` }}
         />
         {/* Cinematic Multi-stop Gradient */}
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-900/60 to-slate-900/40" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#1a1412] via-[#2A201C]/70 to-[#2A201C]/40" />
 
         {/* Content Box */}
         <div className="relative z-20 max-w-4xl mx-auto px-4 text-center space-y-6 pt-12">

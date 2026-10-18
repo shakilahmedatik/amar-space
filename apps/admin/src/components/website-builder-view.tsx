@@ -22,7 +22,7 @@ const availableThemes = [
     slug: "classic-luxury",
     name: "Classic Luxury",
     tagline: "Opulent & Timeless for 5-Star Hotels",
-    accent: "#d97706",
+    accent: "#c5a880",
     primary: "#0f172a",
     font: "Playfair Display",
   },
@@ -71,7 +71,7 @@ export function WebsiteBuilderView({
       logoUrl: null,
       faviconUrl: null,
       primaryColor: "#0f172a",
-      accentColor: "#d97706",
+      accentColor: "#c5a880",
       fontFamily: "Playfair Display",
     },
     hero: {
@@ -115,7 +115,7 @@ export function WebsiteBuilderView({
   return (
     <div className="space-y-6">
       {/* Header with live subdomain link and save button */}
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 pb-4 border-b border-slate-200 dark:border-slate-800">
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 pb-4 border-b border-border-gold/30">
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-2xl font-serif font-bold tracking-tight text-foreground">
@@ -184,14 +184,14 @@ export function WebsiteBuilderView({
         {/* Left Sidebar Controls */}
         <div className="lg:col-span-5 space-y-4">
           {/* Tab Navigation */}
-          <div className="flex border border-slate-200 dark:border-slate-800 rounded-lg p-1 bg-slate-50 dark:bg-slate-900">
+          <div className="flex border border-border-gold/30 rounded-xl p-1 bg-surface shadow-xs">
             <button
               type="button"
               onClick={() => setActiveTab("theme")}
-              className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 text-xs font-medium rounded-md transition-colors ${
+              className={`flex-1 flex items-center justify-center gap-1.5 py-2 text-xs rounded-lg transition-all min-h-[40px] ${
                 activeTab === "theme"
-                  ? "bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-xs"
-                  : "text-slate-500 hover:text-slate-900"
+                  ? "bg-primary/10 text-primary border border-border-gold/40 shadow-xs font-bold"
+                  : "text-foreground-muted hover:text-foreground hover:bg-surface-elevated font-medium"
               }`}
             >
               <Paintbrush className="size-3.5" /> Themes
@@ -199,10 +199,10 @@ export function WebsiteBuilderView({
             <button
               type="button"
               onClick={() => setActiveTab("branding")}
-              className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 text-xs font-medium rounded-md transition-colors ${
+              className={`flex-1 flex items-center justify-center gap-1.5 py-2 text-xs rounded-lg transition-all min-h-[40px] ${
                 activeTab === "branding"
-                  ? "bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-xs"
-                  : "text-slate-500 hover:text-slate-900"
+                  ? "bg-primary/10 text-primary border border-border-gold/40 shadow-xs font-bold"
+                  : "text-foreground-muted hover:text-foreground hover:bg-surface-elevated font-medium"
               }`}
             >
               <Palette className="size-3.5" /> Branding
@@ -210,10 +210,10 @@ export function WebsiteBuilderView({
             <button
               type="button"
               onClick={() => setActiveTab("hero")}
-              className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 text-xs font-medium rounded-md transition-colors ${
+              className={`flex-1 flex items-center justify-center gap-1.5 py-2 text-xs rounded-lg transition-all min-h-[40px] ${
                 activeTab === "hero"
-                  ? "bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-xs"
-                  : "text-slate-500 hover:text-slate-900"
+                  ? "bg-primary/10 text-primary border border-border-gold/40 shadow-xs font-bold"
+                  : "text-foreground-muted hover:text-foreground hover:bg-surface-elevated font-medium"
               }`}
             >
               <Type className="size-3.5" /> Hero Content
@@ -221,10 +221,10 @@ export function WebsiteBuilderView({
             <button
               type="button"
               onClick={() => setActiveTab("sections")}
-              className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 text-xs font-medium rounded-md transition-colors ${
+              className={`flex-1 flex items-center justify-center gap-1.5 py-2 text-xs rounded-lg transition-all min-h-[40px] ${
                 activeTab === "sections"
-                  ? "bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-xs"
-                  : "text-slate-500 hover:text-slate-900"
+                  ? "bg-primary/10 text-primary border border-border-gold/40 shadow-xs font-bold"
+                  : "text-foreground-muted hover:text-foreground hover:bg-surface-elevated font-medium"
               }`}
             >
               <Layers className="size-3.5" /> Sections
@@ -287,11 +287,11 @@ export function WebsiteBuilderView({
 
           {/* Tab 2: Branding */}
           {activeTab === "branding" && (
-            <Card className="p-4 space-y-4">
+            <Card className="p-5 space-y-4 border border-border-gold/30 shadow-xs bg-card rounded-2xl">
               <div>
                 <label
                   htmlFor="primary-color-input"
-                  className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1"
+                  className="text-xs font-semibold text-foreground block mb-1"
                 >
                   Primary Brand Color
                 </label>
@@ -306,7 +306,7 @@ export function WebsiteBuilderView({
                         brand: { ...prev.brand, primaryColor: e.target.value },
                       }))
                     }
-                    className="size-9 rounded-md border cursor-pointer border-slate-200 dark:border-slate-800 p-0.5"
+                    className="size-9 rounded-lg border cursor-pointer border-border-gold/40 p-0.5 bg-background"
                   />
                   <Input
                     id="primary-color-input"
@@ -317,7 +317,7 @@ export function WebsiteBuilderView({
                         brand: { ...prev.brand, primaryColor: e.target.value },
                       }))
                     }
-                    className="text-xs uppercase font-mono"
+                    className="text-xs uppercase font-mono border-border-gold/30 bg-background"
                   />
                 </div>
               </div>
@@ -325,7 +325,7 @@ export function WebsiteBuilderView({
               <div>
                 <label
                   htmlFor="accent-color-input"
-                  className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1"
+                  className="text-xs font-semibold text-foreground block mb-1"
                 >
                   Accent Color
                 </label>
@@ -340,7 +340,7 @@ export function WebsiteBuilderView({
                         brand: { ...prev.brand, accentColor: e.target.value },
                       }))
                     }
-                    className="size-9 rounded-md border cursor-pointer border-slate-200 dark:border-slate-800 p-0.5"
+                    className="size-9 rounded-lg border cursor-pointer border-border-gold/40 p-0.5 bg-background"
                   />
                   <Input
                     id="accent-color-input"
@@ -351,7 +351,7 @@ export function WebsiteBuilderView({
                         brand: { ...prev.brand, accentColor: e.target.value },
                       }))
                     }
-                    className="text-xs uppercase font-mono"
+                    className="text-xs uppercase font-mono border-border-gold/30 bg-background"
                   />
                 </div>
               </div>
@@ -359,7 +359,7 @@ export function WebsiteBuilderView({
               <div>
                 <label
                   htmlFor="font-family-select"
-                  className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1"
+                  className="text-xs font-semibold text-foreground block mb-1"
                 >
                   Font Pairing
                 </label>
@@ -372,7 +372,7 @@ export function WebsiteBuilderView({
                       brand: { ...prev.brand, fontFamily: e.target.value as any },
                     }))
                   }
-                  className="w-full text-xs h-9 rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-3 py-1 font-medium"
+                  className="w-full text-xs h-9 rounded-xl border border-border-gold/30 bg-surface px-3 py-1 font-medium text-foreground focus:outline-hidden focus:ring-1 focus:ring-primary"
                 >
                   <option value="Playfair Display">Playfair Display (Serif / Luxury)</option>
                   <option value="Inter">Inter (Clean / Modern)</option>
@@ -385,11 +385,11 @@ export function WebsiteBuilderView({
 
           {/* Tab 3: Hero Content */}
           {activeTab === "hero" && (
-            <Card className="p-4 space-y-4">
+            <Card className="p-5 space-y-4 border border-border-gold/30 shadow-xs bg-card rounded-2xl">
               <div>
                 <label
                   htmlFor="hero-headline-input"
-                  className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1"
+                  className="text-xs font-semibold text-foreground block mb-1"
                 >
                   Main Headline
                 </label>
@@ -402,14 +402,14 @@ export function WebsiteBuilderView({
                       hero: { ...prev.hero, headline: e.target.value },
                     }))
                   }
-                  className="text-xs"
+                  className="text-xs border-border-gold/30 bg-background"
                 />
               </div>
 
               <div>
                 <label
                   htmlFor="hero-tagline-input"
-                  className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1"
+                  className="text-xs font-semibold text-foreground block mb-1"
                 >
                   Sub-headline / Tagline
                 </label>
@@ -422,14 +422,14 @@ export function WebsiteBuilderView({
                       hero: { ...prev.hero, tagline: e.target.value },
                     }))
                   }
-                  className="text-xs"
+                  className="text-xs border-border-gold/30 bg-background"
                 />
               </div>
 
               <div>
                 <label
                   htmlFor="hero-bg-input"
-                  className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1"
+                  className="text-xs font-semibold text-foreground block mb-1"
                 >
                   Hero Background Image URL
                 </label>
@@ -442,14 +442,14 @@ export function WebsiteBuilderView({
                       hero: { ...prev.hero, backgroundImageUrl: e.target.value },
                     }))
                   }
-                  className="text-xs font-mono"
+                  className="text-xs font-mono border-border-gold/30 bg-background"
                 />
               </div>
 
               <div>
                 <label
                   htmlFor="hero-cta-input"
-                  className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1"
+                  className="text-xs font-semibold text-foreground block mb-1"
                 >
                   Call to Action (CTA) Button
                 </label>
@@ -462,7 +462,7 @@ export function WebsiteBuilderView({
                       hero: { ...prev.hero, ctaText: e.target.value },
                     }))
                   }
-                  className="text-xs"
+                  className="text-xs border-border-gold/30 bg-background"
                 />
               </div>
             </Card>
@@ -470,8 +470,8 @@ export function WebsiteBuilderView({
 
           {/* Tab 4: Sections */}
           {activeTab === "sections" && (
-            <Card className="p-4 space-y-3">
-              <p className="text-xs text-slate-500 mb-2">
+            <Card className="p-5 space-y-3 border border-border-gold/30 shadow-xs bg-card rounded-2xl">
+              <p className="text-xs text-foreground-muted mb-2">
                 Toggle and arrange sections that appear on your property website.
               </p>
               {config.sectionOrder.map((sectionId) => {
@@ -479,11 +479,11 @@ export function WebsiteBuilderView({
                 return (
                   <div
                     key={sectionId}
-                    className="flex items-center justify-between p-2.5 rounded-md border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 text-xs font-medium"
+                    className="flex items-center justify-between p-3 rounded-xl border border-border-gold/20 bg-surface/80 text-xs font-medium text-foreground"
                   >
                     <span className="capitalize">{sectionId} Section</span>
                     <Button
-                      variant={isEnabled ? "default" : "outline"}
+                      variant={isEnabled ? "luxury" : "outline"}
                       size="sm"
                       onClick={() => {
                         setConfig((prev) => ({
@@ -493,7 +493,7 @@ export function WebsiteBuilderView({
                             : [...prev.enabledSections, sectionId],
                         }));
                       }}
-                      className="h-6 px-2 text-[11px]"
+                      className="h-7 px-3 text-[11px]"
                     >
                       {isEnabled ? "Visible" : "Hidden"}
                     </Button>
@@ -506,15 +506,17 @@ export function WebsiteBuilderView({
 
         {/* Right Live Preview Canvas */}
         <div className="lg:col-span-7 sticky top-4">
-          <div className="flex items-center justify-between text-xs text-slate-500 mb-2 px-1">
-            <span className="flex items-center gap-1 font-medium text-slate-700 dark:text-slate-300">
-              <Eye className="size-3.5" /> Interactive Live Preview
+          <div className="flex items-center justify-between text-xs text-foreground-muted mb-2 px-1">
+            <span className="flex items-center gap-1.5 font-serif font-semibold text-foreground">
+              <Eye className="size-3.5 text-primary" /> Interactive Live Preview
             </span>
-            <span className="font-mono text-[11px] text-slate-400">Theme: {config.themeSlug}</span>
+            <span className="font-mono text-[11px] text-foreground-muted">
+              Theme: {config.themeSlug}
+            </span>
           </div>
 
           <div
-            className={`mx-auto border border-slate-300 dark:border-slate-700 rounded-xl overflow-hidden shadow-xl transition-all duration-300 ${
+            className={`mx-auto border-2 border-border-gold/40 rounded-2xl overflow-hidden shadow-2xl transition-all duration-300 ${
               previewMode === "mobile" ? "max-w-[375px]" : "w-full"
             }`}
             style={{
@@ -523,14 +525,14 @@ export function WebsiteBuilderView({
             }}
           >
             {/* Preview Browser Mockup Bar */}
-            <div className="bg-slate-900 px-3 py-2 flex items-center gap-2 border-b border-white/10">
+            <div className="bg-[#1a1412] px-3.5 py-2.5 flex items-center gap-2 border-b border-white/10">
               <div className="flex gap-1.5">
-                <span className="size-2.5 rounded-full bg-rose-500" />
-                <span className="size-2.5 rounded-full bg-amber-500" />
-                <span className="size-2.5 rounded-full bg-emerald-500" />
+                <span className="size-2.5 rounded-full bg-rose-500/80" />
+                <span className="size-2.5 rounded-full bg-amber-500/80" />
+                <span className="size-2.5 rounded-full bg-emerald-500/80" />
               </div>
               <div className="flex-1 text-center">
-                <span className="text-[11px] font-mono text-slate-400 bg-slate-800 px-3 py-0.5 rounded-full">
+                <span className="text-[11px] font-mono text-white/70 bg-white/10 border border-white/10 px-3 py-0.5 rounded-full">
                   https://{organizationSlug}.omniheaven.com
                 </span>
               </div>

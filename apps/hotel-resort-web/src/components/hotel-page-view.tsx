@@ -87,7 +87,7 @@ export function HotelPageView({ initialHotelData }: HotelPageViewProps) {
     updated.builderConfig.themeSlug = themeSlug;
 
     if (themeSlug === "classic-luxury") {
-      updated.builderConfig.brand.primaryColor = "#0f172a";
+      updated.builderConfig.brand.primaryColor = "#2A201C";
       updated.builderConfig.brand.accentColor = "#c5a880";
       updated.builderConfig.brand.fontFamily = "Playfair Display";
     } else if (themeSlug === "modern-minimal") {

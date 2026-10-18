@@ -43,7 +43,7 @@ export function RoomModal({ room, accentColor, onClose, onBookRoom }: RoomModalP
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-      <div className="relative w-full max-w-4xl bg-white rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
+      <div className="relative w-full max-w-4xl bg-card rounded-2xl shadow-2xl border border-border-gold/40 overflow-hidden max-h-[90vh] flex flex-col">
         {/* Close Button */}
         <button
           type="button"
@@ -57,7 +57,7 @@ export function RoomModal({ room, accentColor, onClose, onBookRoom }: RoomModalP
         {/* Scrollable Content */}
         <div className="overflow-y-auto flex-1">
           {/* Photo Gallery Header */}
-          <div className="relative h-72 sm:h-96 w-full bg-slate-900 overflow-hidden">
+          <div className="relative h-72 sm:h-96 w-full bg-[#1a1412] overflow-hidden">
             <div
               className="w-full h-full bg-cover bg-center transition-all duration-300"
               style={{ backgroundImage: `url(${photos[activePhotoIdx]})` }}
@@ -98,7 +98,7 @@ export function RoomModal({ room, accentColor, onClose, onBookRoom }: RoomModalP
 
             {room.tag && (
               <span
-                className="absolute top-4 left-4 px-3 py-1 rounded-full text-xs font-semibold text-white shadow-md"
+                className="absolute top-4 left-4 px-3 py-1 rounded-full text-xs font-semibold text-white shadow-md uppercase tracking-wider"
                 style={{ backgroundColor: accentColor }}
               >
                 {room.tag}
@@ -108,23 +108,23 @@ export function RoomModal({ room, accentColor, onClose, onBookRoom }: RoomModalP
 
           {/* Details Section */}
           <div className="p-6 sm:p-8 space-y-6">
-            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 border-b border-slate-100 pb-6">
+            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 border-b border-border-gold/20 pb-6">
               <div>
-                <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 font-heading">
+                <h2 className="text-2xl sm:text-3xl font-serif font-bold text-foreground">
                   {room.name}
                 </h2>
-                <div className="mt-2 flex flex-wrap items-center gap-4 text-xs font-medium text-slate-500">
+                <div className="mt-2 flex flex-wrap items-center gap-4 text-xs font-medium text-foreground-muted">
                   <span className="flex items-center gap-1.5">
-                    <Users className="size-4 text-slate-400" />
+                    <Users className="size-4 text-primary" />
                     Up to {room.capacityAdults} Adults, {room.capacityChildren} Children
                   </span>
                   <span className="flex items-center gap-1.5">
-                    <Bed className="size-4 text-slate-400" />
+                    <Bed className="size-4 text-primary" />
                     {room.bedCount} {room.bedType.toUpperCase()} Bed(s)
                   </span>
                   {room.sizeSqFt && (
                     <span className="flex items-center gap-1.5">
-                      <Maximize2 className="size-4 text-slate-400" />
+                      <Maximize2 className="size-4 text-primary" />
                       {room.sizeSqFt} sq ft / {Math.round(room.sizeSqFt * 0.0929)} m²
                     </span>
                   )}
@@ -133,16 +133,16 @@ export function RoomModal({ room, accentColor, onClose, onBookRoom }: RoomModalP
 
               {/* Price display */}
               <div className="sm:text-right">
-                <span className="text-xs text-slate-400 uppercase tracking-wider block">
+                <span className="text-xs text-foreground-muted uppercase tracking-wider block">
                   Starting from
                 </span>
                 <div className="flex items-baseline sm:justify-end gap-1">
-                  <span className="text-3xl font-extrabold text-slate-900">
+                  <span className="text-3xl font-serif font-bold text-foreground">
                     ৳{room.basePrice.toLocaleString()}
                   </span>
-                  <span className="text-xs text-slate-500 font-medium">/ night</span>
+                  <span className="text-xs text-foreground-muted font-medium">/ night</span>
                 </div>
-                <span className="text-[11px] text-emerald-600 font-medium block">
+                <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium block">
                   Includes complimentary breakfast buffet
                 </span>
               </div>
@@ -150,26 +150,26 @@ export function RoomModal({ room, accentColor, onClose, onBookRoom }: RoomModalP
 
             {/* Description */}
             <div className="space-y-2">
-              <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider">
+              <h3 className="text-sm font-serif font-bold text-foreground uppercase tracking-wider">
                 About this Residence
               </h3>
-              <p className="text-sm text-slate-600 leading-relaxed font-normal">
+              <p className="text-sm text-foreground-muted leading-relaxed font-normal">
                 {room.description}
               </p>
             </div>
 
             {/* Amenities Grid */}
             <div className="space-y-3">
-              <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider">
+              <h3 className="text-sm font-serif font-bold text-foreground uppercase tracking-wider">
                 Suite Amenities & Inclusions
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5">
                 {room.amenities.map((amenity, i) => (
                   <div
                     key={`amenity-${i}`}
-                    className="flex items-center gap-2 text-xs font-medium text-slate-700 bg-slate-50 p-2.5 rounded-lg border border-slate-100"
+                    className="flex items-center gap-2 text-xs font-medium text-foreground bg-surface p-2.5 rounded-xl border border-border-gold/20"
                   >
-                    <Check className="size-4 text-emerald-600 shrink-0" />
+                    <Check className="size-4 text-primary shrink-0" />
                     <span>{amenity}</span>
                   </div>
                 ))}
@@ -177,11 +177,11 @@ export function RoomModal({ room, accentColor, onClose, onBookRoom }: RoomModalP
             </div>
 
             {/* Guarantee Policy */}
-            <div className="bg-amber-50/60 border border-amber-200/60 rounded-xl p-4 flex items-start gap-3">
-              <ShieldCheck className="size-5 text-amber-600 shrink-0 mt-0.5" />
-              <div className="text-xs text-amber-900 space-y-1">
+            <div className="bg-primary/10 border border-border-gold/30 rounded-xl p-4 flex items-start gap-3">
+              <ShieldCheck className="size-5 text-primary shrink-0 mt-0.5" />
+              <div className="text-xs text-foreground space-y-1">
                 <p className="font-semibold">Flexible Booking & Guarantee</p>
-                <p className="text-amber-800/80">
+                <p className="text-foreground-muted">
                   Free cancellation up to 48 hours before check-in. Instant confirmation voucher
                   issued upon booking.
                 </p>
@@ -191,19 +191,19 @@ export function RoomModal({ room, accentColor, onClose, onBookRoom }: RoomModalP
         </div>
 
         {/* Modal Sticky Footer */}
-        <div className="p-4 sm:p-6 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
+        <div className="p-4 sm:p-6 bg-surface/80 border-t border-border-gold/20 flex items-center justify-between">
           <div>
-            <span className="text-xs text-slate-400 block">Total per night</span>
+            <span className="text-xs text-foreground-muted block">Total per night</span>
             <div className="flex items-baseline gap-2">
-              <span className="text-xl font-bold text-slate-900">
+              <span className="text-xl font-serif font-bold text-foreground">
                 ৳{room.basePrice.toLocaleString()}
               </span>
               {room.availableRoomCount !== undefined && (
                 <span
                   className={`text-[11px] font-semibold px-2 py-0.5 rounded-md ${
                     room.availableRoomCount > 0
-                      ? "text-emerald-700 bg-emerald-50"
-                      : "text-rose-700 bg-rose-50"
+                      ? "text-emerald-700 bg-emerald-500/10 border border-emerald-500/20"
+                      : "text-rose-700 bg-rose-500/10 border border-rose-500/20"
                   }`}
                 >
                   {room.availableRoomCount > 0 ? `${room.availableRoomCount} left` : "Sold out"}
@@ -216,7 +216,7 @@ export function RoomModal({ room, accentColor, onClose, onBookRoom }: RoomModalP
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2.5 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-200 transition-colors"
+              className="px-4 py-2.5 rounded-xl text-xs font-semibold text-foreground border border-border-gold/30 hover:bg-surface-elevated transition-colors cursor-pointer"
             >
               Close
             </button>

@@ -16,25 +16,22 @@ export function ReviewsSection({ reviews, rating, reviewCount, accentColor }: Re
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
         <div className="space-y-3 max-w-2xl">
-          <span
-            className="text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full bg-slate-100 inline-block"
-            style={{ color: accentColor }}
-          >
+          <span className="text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full bg-primary/10 text-primary border border-border-gold/30 inline-block">
             Guest Impressions
           </span>
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-slate-900 tracking-tight font-heading">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-serif font-bold text-foreground tracking-tight">
             Cherished by Discerning Travelers
           </h2>
-          <p className="text-sm sm:text-base text-slate-600 leading-relaxed font-normal">
+          <p className="text-sm sm:text-base text-foreground-muted leading-relaxed font-normal">
             Read verified direct guest reviews from couples, families, and solo voyagers who made
             Grand Haven their private sanctuary.
           </p>
         </div>
 
         {/* Global Rating Scorecard */}
-        <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-5 flex items-center gap-4 shrink-0 shadow-2xs">
+        <div className="bg-card border border-border-gold/30 rounded-2xl p-5 flex items-center gap-4 shrink-0 shadow-xs">
           <div
-            className="size-14 rounded-xl flex items-center justify-center font-extrabold text-2xl text-white shadow-xs"
+            className="size-14 rounded-xl flex items-center justify-center font-serif font-extrabold text-2xl text-white shadow-xs"
             style={{ backgroundColor: accentColor }}
           >
             {rating.toFixed(1)}
@@ -45,8 +42,10 @@ export function ReviewsSection({ reviews, rating, reviewCount, accentColor }: Re
                 <Star key={`rating-star-${i}`} className="size-4 fill-current" />
               ))}
             </div>
-            <p className="text-xs font-bold text-slate-900">Exceptional Overall Score</p>
-            <p className="text-[11px] text-slate-400">
+            <p className="text-xs font-serif font-bold text-foreground">
+              Exceptional Overall Score
+            </p>
+            <p className="text-[11px] text-foreground-muted">
               Based on {reviewCount} verified guest reviews
             </p>
           </div>
@@ -58,37 +57,37 @@ export function ReviewsSection({ reviews, rating, reviewCount, accentColor }: Re
         {reviews.map((rev) => (
           <div
             key={rev.id}
-            className="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-xs hover:shadow-lg transition-all duration-300 flex flex-col justify-between"
+            className="bg-card rounded-2xl p-6 border border-border-gold/30 shadow-xs hover:border-border-gold/60 hover:shadow-lg transition-all duration-300 flex flex-col justify-between"
           >
             <div className="space-y-4">
               {/* Star Rating & Quote */}
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-1 text-amber-400">
+                <div className="flex items-center gap-1 text-amber-500">
                   {[...Array(rev.rating)].map((_, i) => (
                     <Star key={`rev-star-${i}`} className="size-3.5 fill-current" />
                   ))}
                 </div>
-                <Quote className="size-6 text-slate-200" />
+                <Quote className="size-6 text-border-gold/40" />
               </div>
 
               {/* Review Text */}
-              <p className="text-xs sm:text-sm text-slate-700 leading-relaxed italic">
+              <p className="text-xs sm:text-sm text-foreground leading-relaxed italic font-serif">
                 &ldquo;{rev.comment}&rdquo;
               </p>
             </div>
 
             {/* Guest Meta */}
-            <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between text-xs">
+            <div className="mt-6 pt-4 border-t border-border-gold/20 flex items-center justify-between text-xs">
               <div>
-                <p className="font-bold text-slate-900 flex items-center gap-1">
+                <p className="font-semibold text-foreground flex items-center gap-1">
                   {rev.guestName}
-                  <CheckCircle2 className="size-3 text-emerald-600 inline" />
+                  <CheckCircle2 className="size-3 text-emerald-600 dark:text-emerald-400 inline" />
                 </p>
-                <p className="text-[11px] text-slate-400">
+                <p className="text-[11px] text-foreground-muted">
                   {rev.location} • Stayed in {rev.roomName}
                 </p>
               </div>
-              <span className="text-[10px] text-slate-400">{rev.date}</span>
+              <span className="text-[10px] text-foreground-muted font-mono">{rev.date}</span>
             </div>
           </div>
         ))}

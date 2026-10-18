@@ -8,7 +8,7 @@ interface GallerySectionProps {
   accentColor: string;
 }
 
-export function GallerySection({ gallery, accentColor }: GallerySectionProps) {
+export function GallerySection({ gallery, accentColor: _accentColor }: GallerySectionProps) {
   const [activeCategory, setActiveCategory] = useState<string>("all");
 
   const filteredGallery = gallery.filter((item) => {
@@ -19,16 +19,13 @@ export function GallerySection({ gallery, accentColor }: GallerySectionProps) {
   return (
     <section id="gallery" className="py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div className="text-center max-w-3xl mx-auto space-y-4 mb-12">
-        <span
-          className="text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full bg-slate-100 inline-block"
-          style={{ color: accentColor }}
-        >
+        <span className="text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full bg-primary/10 text-primary border border-border-gold/30 inline-block">
           Visual Odyssey
         </span>
-        <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-slate-900 tracking-tight font-heading">
+        <h2 className="text-3xl sm:text-4xl md:text-5xl font-serif font-bold text-foreground tracking-tight">
           Moments of Serenity & Grandeur
         </h2>
-        <p className="text-sm sm:text-base text-slate-600 leading-relaxed font-normal">
+        <p className="text-sm sm:text-base text-foreground-muted leading-relaxed font-normal">
           Explore the architecture, coastal views, private villas, and dining settings of our resort
           sanctuary.
         </p>
@@ -48,10 +45,10 @@ export function GallerySection({ gallery, accentColor }: GallerySectionProps) {
                 type="button"
                 key={tab.id}
                 onClick={() => setActiveCategory(tab.id)}
-                className={`px-4 py-2 rounded-full text-xs font-semibold transition-all ${
+                className={`px-4 py-2 rounded-full text-xs font-semibold transition-all cursor-pointer ${
                   isActive
-                    ? "bg-slate-900 text-white shadow-xs"
-                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                    ? "bg-primary text-primary-foreground shadow-xs"
+                    : "bg-card text-foreground-muted hover:text-foreground border border-border-gold/30 hover:bg-surface"
                 }`}
               >
                 {tab.label}
@@ -66,14 +63,14 @@ export function GallerySection({ gallery, accentColor }: GallerySectionProps) {
         {filteredGallery.map((item) => (
           <div
             key={item.id}
-            className="group relative h-72 sm:h-80 rounded-2xl overflow-hidden bg-slate-100 shadow-xs hover:shadow-xl transition-all duration-300"
+            className="group relative h-72 sm:h-80 rounded-2xl overflow-hidden bg-surface border border-border-gold/30 shadow-xs hover:shadow-xl hover:border-border-gold/60 transition-all duration-300"
           >
             <div
               className="w-full h-full bg-cover bg-center transition-transform duration-700 ease-out group-hover:scale-108"
               style={{ backgroundImage: `url(${item.url})` }}
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-6">
-              <p className="text-white text-sm font-semibold leading-snug drop-shadow-sm">
+              <p className="text-white text-sm font-semibold leading-snug drop-shadow-sm font-serif">
                 {item.caption}
               </p>
             </div>
