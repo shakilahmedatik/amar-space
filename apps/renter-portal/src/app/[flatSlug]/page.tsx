@@ -1,13 +1,22 @@
 "use client";
 
 import { Badge, Button, Card, CurrencyDisplay, StatusBadge } from "@omniheaven/ui";
-import { AlertTriangle, CreditCard, Download, FileText, Phone, Wrench } from "lucide-react";
+import {
+  AlertTriangle,
+  CreditCard,
+  Download,
+  FileText,
+  HeartPulse,
+  Phone,
+  ShieldCheck,
+  Wrench,
+} from "lucide-react";
 import { useState } from "react";
 
 export default function FlatPortalDashboardPage() {
-  const [activeTab, setActiveTab] = useState<"bills" | "maintenance" | "notices" | "contacts">(
-    "bills",
-  );
+  const [activeTab, setActiveTab] = useState<
+    "lease" | "bills" | "maintenance" | "notices" | "contacts"
+  >("lease");
   const [paidDemo, setPaidDemo] = useState(false);
 
   return (
@@ -20,9 +29,9 @@ export default function FlatPortalDashboardPage() {
           </span>
           <div>
             <h1 className="text-sm font-bold text-slate-900 dark:text-white leading-tight">
-              Flat 4A · Lakeview Residence
+              Flat 1A · Dhanmondi Lakeview Residency
             </h1>
-            <p className="text-[11px] text-slate-400">Renter: Shafiqul Islam</p>
+            <p className="text-[11px] text-slate-400">Renter: Farhana Yasmin</p>
           </div>
         </div>
 
@@ -46,7 +55,7 @@ export default function FlatPortalDashboardPage() {
                 Current Billing Month: October 2026
               </p>
               <div className="flex items-baseline gap-3 mt-1">
-                <CurrencyDisplay amount={28500} large className="text-3xl font-extrabold" />
+                <CurrencyDisplay amount={33000} large className="text-3xl font-extrabold" />
                 <StatusBadge status={paidDemo ? "paid" : "unpaid"} />
               </div>
             </div>
@@ -70,30 +79,43 @@ export default function FlatPortalDashboardPage() {
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-3 border-t border-slate-100 dark:border-slate-800 text-xs">
             <div>
-              <p className="text-slate-400">Rent Amount</p>
-              <p className="font-semibold text-slate-800 dark:text-slate-200">৳24,000</p>
+              <p className="text-slate-400">Monthly Rent</p>
+              <p className="font-semibold text-slate-800 dark:text-slate-200">৳28,000</p>
             </div>
             <div>
               <p className="text-slate-400">Utility / Service</p>
-              <p className="font-semibold text-slate-800 dark:text-slate-200">৳4,500</p>
+              <p className="font-semibold text-slate-800 dark:text-slate-200">৳5,000</p>
             </div>
             <div>
               <p className="text-slate-400">Due Date</p>
-              <p className="font-semibold text-slate-800 dark:text-slate-200">Oct 10, 2026</p>
+              <p className="font-semibold text-slate-800 dark:text-slate-200">Oct 07, 2026</p>
             </div>
             <div>
               <p className="text-slate-400">Advance Deposited</p>
-              <p className="font-semibold text-slate-800 dark:text-slate-200">৳48,000</p>
+              <p className="font-semibold text-emerald-600 dark:text-emerald-400 font-bold">
+                ৳56,000
+              </p>
             </div>
           </div>
         </Card>
 
         {/* Tab Navigation */}
-        <div className="flex border-b border-slate-200 dark:border-slate-800 gap-2 sm:gap-6 text-xs font-semibold">
+        <div className="flex border-b border-slate-200 dark:border-slate-800 gap-2 sm:gap-6 text-xs font-semibold overflow-x-auto">
+          <button
+            type="button"
+            onClick={() => setActiveTab("lease")}
+            className={`pb-3 px-1 border-b-2 transition-colors flex items-center gap-1.5 whitespace-nowrap ${
+              activeTab === "lease"
+                ? "border-indigo-600 text-indigo-600 dark:text-indigo-400 font-bold"
+                : "border-transparent text-slate-500 hover:text-slate-900"
+            }`}
+          >
+            <ShieldCheck className="size-4" /> Tenancy Agreement
+          </button>
           <button
             type="button"
             onClick={() => setActiveTab("bills")}
-            className={`pb-3 px-1 border-b-2 transition-colors flex items-center gap-1.5 ${
+            className={`pb-3 px-1 border-b-2 transition-colors flex items-center gap-1.5 whitespace-nowrap ${
               activeTab === "bills"
                 ? "border-indigo-600 text-indigo-600 dark:text-indigo-400"
                 : "border-transparent text-slate-500 hover:text-slate-900"
@@ -104,7 +126,7 @@ export default function FlatPortalDashboardPage() {
           <button
             type="button"
             onClick={() => setActiveTab("maintenance")}
-            className={`pb-3 px-1 border-b-2 transition-colors flex items-center gap-1.5 ${
+            className={`pb-3 px-1 border-b-2 transition-colors flex items-center gap-1.5 whitespace-nowrap ${
               activeTab === "maintenance"
                 ? "border-indigo-600 text-indigo-600 dark:text-indigo-400"
                 : "border-transparent text-slate-500 hover:text-slate-900"
@@ -115,7 +137,7 @@ export default function FlatPortalDashboardPage() {
           <button
             type="button"
             onClick={() => setActiveTab("notices")}
-            className={`pb-3 px-1 border-b-2 transition-colors flex items-center gap-1.5 ${
+            className={`pb-3 px-1 border-b-2 transition-colors flex items-center gap-1.5 whitespace-nowrap ${
               activeTab === "notices"
                 ? "border-indigo-600 text-indigo-600 dark:text-indigo-400"
                 : "border-transparent text-slate-500 hover:text-slate-900"
@@ -126,7 +148,7 @@ export default function FlatPortalDashboardPage() {
           <button
             type="button"
             onClick={() => setActiveTab("contacts")}
-            className={`pb-3 px-1 border-b-2 transition-colors flex items-center gap-1.5 ${
+            className={`pb-3 px-1 border-b-2 transition-colors flex items-center gap-1.5 whitespace-nowrap ${
               activeTab === "contacts"
                 ? "border-indigo-600 text-indigo-600 dark:text-indigo-400"
                 : "border-transparent text-slate-500 hover:text-slate-900"
@@ -136,36 +158,214 @@ export default function FlatPortalDashboardPage() {
           </button>
         </div>
 
-        {/* Tab Content */}
+        {/* Tab Content: Lease Agreement */}
+        {activeTab === "lease" && (
+          <Card className="p-5 space-y-4 border border-slate-200 dark:border-slate-800">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                  Tenancy Contract & Verified KYC Profile
+                </h3>
+                <p className="text-xs text-slate-500">
+                  Registered lease agreement for Flat 1A, Dhanmondi Lakeview Residency
+                </p>
+              </div>
+              <Badge
+                variant="outline"
+                className="text-xs font-bold text-emerald-600 bg-emerald-50/50"
+              >
+                Active & Verified
+              </Badge>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900 text-xs">
+              <div>
+                <span className="text-[10px] text-slate-400 block uppercase font-bold">
+                  Tenant National ID
+                </span>
+                <span className="font-mono font-bold text-slate-800 dark:text-slate-200">
+                  19922612345678901
+                </span>
+                <span className="text-[10px] text-emerald-600 block">Smart NID Verified</span>
+              </div>
+              <div>
+                <span className="text-[10px] text-slate-400 block uppercase font-bold">
+                  Medical Blood Group
+                </span>
+                <span className="font-bold text-rose-500 flex items-center gap-1">
+                  <HeartPulse className="size-3" /> B+ (Positive)
+                </span>
+                <span className="text-[10px] text-slate-400 block">Emergency Registered</span>
+              </div>
+              <div>
+                <span className="text-[10px] text-slate-400 block uppercase font-bold">
+                  Advance Security Holding
+                </span>
+                <span className="font-bold text-emerald-600 dark:text-emerald-400 tabular-nums">
+                  ৳56,000 (2 Months)
+                </span>
+                <span className="text-[10px] text-slate-400 block">Escrow Ledger Protected</span>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs pt-2 border-t border-slate-100 dark:border-slate-800">
+              <div>
+                <span className="text-slate-400 block text-[11px]">Lease Start Date</span>
+                <span className="font-semibold text-slate-800 dark:text-slate-200">
+                  Jan 01, 2025
+                </span>
+              </div>
+              <div>
+                <span className="text-slate-400 block text-[11px]">Lease Expiry</span>
+                <span className="font-semibold text-slate-800 dark:text-slate-200">
+                  Dec 31, 2025
+                </span>
+              </div>
+              <div>
+                <span className="text-slate-400 block text-[11px]">Notice Period</span>
+                <span className="font-semibold text-slate-800 dark:text-slate-200">60 Days</span>
+              </div>
+              <div>
+                <span className="text-slate-400 block text-[11px]">Resident Members</span>
+                <span className="font-semibold text-slate-800 dark:text-slate-200">3 Members</span>
+              </div>
+            </div>
+
+            <div className="pt-2 flex justify-end">
+              <Button variant="outline" size="sm" className="text-xs gap-1.5">
+                <Download className="size-3.5" /> Download Signed Lease Agreement (PDF)
+              </Button>
+            </div>
+          </Card>
+        )}
         {activeTab === "bills" && (
-          <Card className="p-4 space-y-3">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">
-              Payment Record (Last 6 Months)
-            </h3>
-            <div className="divide-y divide-slate-100 dark:divide-slate-800 text-xs">
-              <div className="py-2.5 flex items-center justify-between">
+          <div className="space-y-4">
+            {/* Current Billing Month Breakdown */}
+            <Card className="p-5 border-slate-200 dark:border-slate-800 space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-100 dark:border-slate-800">
                 <div>
-                  <p className="font-semibold text-slate-900 dark:text-white">September 2026</p>
-                  <p className="text-[11px] text-slate-400">Paid via bKash (Txn: 8A91KL0P)</p>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                      Invoice #INV-202610-1A
+                    </h3>
+                    <StatusBadge status={paidDemo ? "paid" : "unpaid"} />
+                  </div>
+                  <p className="text-xs text-slate-400 mt-0.5">
+                    Billing Month: October 2026 · Due: Oct 10, 2026
+                  </p>
                 </div>
                 <div className="text-right">
-                  <CurrencyDisplay amount={28500} className="font-bold block" />
-                  <StatusBadge status="paid" />
+                  <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+                    Balance Due
+                  </p>
+                  <CurrencyDisplay
+                    amount={paidDemo ? 0 : 38230}
+                    className={`text-2xl font-black ${paidDemo ? "text-slate-400" : "text-rose-600 dark:text-rose-400"}`}
+                  />
                 </div>
               </div>
 
-              <div className="py-2.5 flex items-center justify-between">
-                <div>
-                  <p className="font-semibold text-slate-900 dark:text-white">August 2026</p>
-                  <p className="text-[11px] text-slate-400">Paid via Bank Transfer</p>
+              {/* Line items grid */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+                <div className="p-2.5 rounded-lg bg-slate-50 dark:bg-slate-900/60 border border-slate-100 dark:border-slate-800/80">
+                  <span className="text-[11px] text-slate-400">Monthly Rent</span>
+                  <p className="font-bold text-slate-800 dark:text-slate-200 mt-0.5">৳28,000</p>
                 </div>
-                <div className="text-right">
-                  <CurrencyDisplay amount={28500} className="font-bold block" />
-                  <StatusBadge status="paid" />
+                <div className="p-2.5 rounded-lg bg-slate-50 dark:bg-slate-900/60 border border-slate-100 dark:border-slate-800/80">
+                  <span className="text-[11px] text-slate-400">Service Charge</span>
+                  <p className="font-bold text-slate-800 dark:text-slate-200 mt-0.5">৳5,000</p>
+                </div>
+                <div className="p-2.5 rounded-lg bg-slate-50 dark:bg-slate-900/60 border border-slate-100 dark:border-slate-800/80">
+                  <span className="text-[11px] text-slate-400">Electricity (Submeter)</span>
+                  <p className="font-bold text-amber-600 dark:text-amber-400 mt-0.5">৳3,200</p>
+                </div>
+                <div className="p-2.5 rounded-lg bg-slate-50 dark:bg-slate-900/60 border border-slate-100 dark:border-slate-800/80">
+                  <span className="text-[11px] text-slate-400">Gas, Water & Waste</span>
+                  <p className="font-bold text-sky-600 dark:text-sky-400 mt-0.5">৳2,030</p>
                 </div>
               </div>
-            </div>
-          </Card>
+
+              {/* Action row */}
+              <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-3">
+                <p className="text-[11px] text-slate-400">
+                  Total Billed:{" "}
+                  <span className="font-bold text-slate-700 dark:text-slate-300">৳38,230.00</span>
+                </p>
+
+                {paidDemo ? (
+                  <Button
+                    variant="outline"
+                    className="w-full sm:w-auto min-h-[48px] text-xs flex items-center justify-center gap-1.5"
+                  >
+                    <Download className="size-4" /> Download Money Receipt (REC-202610-0014)
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={() => setPaidDemo(true)}
+                    className="w-full sm:w-auto min-h-[48px] text-xs bg-indigo-600 hover:bg-indigo-700 text-white font-semibold flex items-center justify-center gap-2 shadow-md"
+                  >
+                    <CreditCard className="size-4" /> Pay ৳38,230 with bKash / Paystation
+                  </Button>
+                )}
+              </div>
+            </Card>
+
+            {/* Historical Invoices Card */}
+            <Card className="p-5 border-slate-200 dark:border-slate-800 space-y-3">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                Settled Payment Records (Audit Trail)
+              </h3>
+              <div className="divide-y divide-slate-100 dark:divide-slate-800 text-xs">
+                <div className="py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <p className="font-bold text-slate-900 dark:text-white">
+                        INV-202609-1A · September 2026
+                      </p>
+                      <StatusBadge status="paid" />
+                    </div>
+                    <p className="text-[11px] text-slate-400 mt-0.5">
+                      Paid via bKash · TrxID: BK7819KL0P · Receipt: REC-202609-0011
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <CurrencyDisplay amount={37850} className="font-extrabold text-sm block" />
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-8 text-[11px] flex items-center gap-1"
+                    >
+                      <Download className="size-3" /> Receipt
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <p className="font-bold text-slate-900 dark:text-white">
+                        INV-202608-1A · August 2026
+                      </p>
+                      <StatusBadge status="paid" />
+                    </div>
+                    <p className="text-[11px] text-slate-400 mt-0.5">
+                      Paid via City Bank Transfer · TrxID: CBL-881920 · Receipt: REC-202608-0009
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <CurrencyDisplay amount={37900} className="font-extrabold text-sm block" />
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-8 text-[11px] flex items-center gap-1"
+                    >
+                      <Download className="size-3" /> Receipt
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </Card>
+          </div>
         )}
 
         {activeTab === "maintenance" && (

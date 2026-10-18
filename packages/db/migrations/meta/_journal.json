@@ -22,6 +22,20 @@
       "when": 1792317356875,
       "tag": "0002_icy_yellow_claw",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1792319612724,
+      "tag": "0003_curved_sphinx",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1792320805530,
+      "tag": "0004_smiling_ezekiel",
+      "breakpoints": true
     }
   ]
 }

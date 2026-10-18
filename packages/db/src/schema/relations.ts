@@ -1,6 +1,6 @@
 import { relations } from "drizzle-orm";
 import { users } from "./auth";
-import { bills, payments } from "./billing";
+import { advanceAdjustments, bills, payments } from "./billing";
 import { buildings, emergencyContacts, flats } from "./building";
 import { bookings, rooms, roomTypes } from "./hotel";
 import { auditLogs, maintenanceRequests, notices } from "./operations";
@@ -55,6 +55,9 @@ export const organizationsRelations = relations(organizations, ({ one, many }) =
   maintenanceRequests: many(maintenanceRequests),
   notices: many(notices),
   auditLogs: many(auditLogs),
+  bills: many(bills),
+  payments: many(payments),
+  advanceAdjustments: many(advanceAdjustments),
 }));
 
 export const buildingsRelations = relations(buildings, ({ one, many }) => ({
@@ -109,6 +112,14 @@ export const bookingsRelations = relations(bookings, ({ one, many }) => ({
 }));
 
 export const rentersRelations = relations(renters, ({ one, many }) => ({
+  organization: one(organizations, {
+    fields: [renters.organizationId],
+    references: [organizations.id],
+  }),
+  user: one(users, {
+    fields: [renters.userId],
+    references: [users.id],
+  }),
   flat: one(flats, {
     fields: [renters.flatId],
     references: [flats.id],
@@ -117,6 +128,10 @@ export const rentersRelations = relations(renters, ({ one, many }) => ({
 }));
 
 export const rentalContractsRelations = relations(rentalContracts, ({ one, many }) => ({
+  organization: one(organizations, {
+    fields: [rentalContracts.organizationId],
+    references: [organizations.id],
+  }),
   renter: one(renters, {
     fields: [rentalContracts.renterId],
     references: [renters.id],
@@ -126,17 +141,46 @@ export const rentalContractsRelations = relations(rentalContracts, ({ one, many 
     references: [flats.id],
   }),
   bills: many(bills),
+  advanceAdjustments: many(advanceAdjustments),
 }));
 
 export const billsRelations = relations(bills, ({ one, many }) => ({
+  organization: one(organizations, {
+    fields: [bills.organizationId],
+    references: [organizations.id],
+  }),
   contract: one(rentalContracts, {
     fields: [bills.contractId],
     references: [rentalContracts.id],
   }),
   payments: many(payments),
+  advanceAdjustments: many(advanceAdjustments),
+}));
+
+export const advanceAdjustmentsRelations = relations(advanceAdjustments, ({ one }) => ({
+  organization: one(organizations, {
+    fields: [advanceAdjustments.organizationId],
+    references: [organizations.id],
+  }),
+  contract: one(rentalContracts, {
+    fields: [advanceAdjustments.contractId],
+    references: [rentalContracts.id],
+  }),
+  bill: one(bills, {
+    fields: [advanceAdjustments.adjustedAgainstBillId],
+    references: [bills.id],
+  }),
+  adjustedByUser: one(users, {
+    fields: [advanceAdjustments.adjustedBy],
+    references: [users.id],
+  }),
 }));
 
 export const paymentsRelations = relations(payments, ({ one }) => ({
+  organization: one(organizations, {
+    fields: [payments.organizationId],
+    references: [organizations.id],
+  }),
   bill: one(bills, {
     fields: [payments.billId],
     references: [bills.id],
@@ -144,5 +188,9 @@ export const paymentsRelations = relations(payments, ({ one }) => ({
   booking: one(bookings, {
     fields: [payments.bookingId],
     references: [bookings.id],
+  }),
+  receivedByUser: one(users, {
+    fields: [payments.receivedBy],
+    references: [users.id],
   }),
 }));

@@ -1,11 +1,16 @@
 import { client, db } from "./client";
 import {
+  advanceAdjustments,
+  bills,
   buildings,
   emergencyContacts,
   flats,
   invitations,
   members,
   organizations,
+  payments,
+  rentalContracts,
+  renters,
   subscriptions,
   users,
   websiteConfigs,
@@ -287,6 +292,301 @@ async function main() {
   }
 
   await db.insert(flats).values(flatFixtures).onConflictDoNothing();
+
+  // Domain 03 Fixtures: Realistic Bangladeshi Tenants and Active Contracts
+  const tenantUsers = [
+    {
+      id: "user-renter-1",
+      name: "Farhana Yasmin",
+      email: "farhana.yasmin@gmail.com",
+      emailVerified: true,
+      globalRole: "user",
+    },
+    {
+      id: "user-renter-2",
+      name: "Kazi Naimul Haque",
+      email: "naimul.haque@dhakabank.com.bd",
+      emailVerified: true,
+      globalRole: "user",
+    },
+    {
+      id: "user-renter-3",
+      name: "Dr. Sharmin Akter",
+      email: "dr.sharmin@squarehospital.com",
+      emailVerified: true,
+      globalRole: "user",
+    },
+  ];
+
+  await db.insert(users).values(tenantUsers).onConflictDoNothing();
+
+  const renterFixtures = [
+    {
+      id: "renter-farhana-1a",
+      organizationId: demoBuildingOrgId,
+      userId: "user-renter-1",
+      flatId: "flat-dhanmondi-1a",
+      fullName: "Farhana Yasmin",
+      phone: "01719876543",
+      nidNumber: "19922612345678901", // 17-digit legacy NID
+      dateOfBirth: "1992-05-14",
+      occupation: "Senior Software Engineer, Grameenphone",
+      bloodGroup: "B+",
+      totalFamilyMembers: 3,
+      familyMemberNames: ["Farhana Yasmin", "Saiful Islam (Spouse)", "Aayan Islam (Child)"],
+      emergencyContactName: "Dr. M. A. Rashid (Father)",
+      emergencyContactNumber: "01819876543",
+      emergencyContactRelationship: "Father",
+      nidFrontPhoto: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400",
+      nidBackPhoto: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400",
+      digitalSignatureUrl: "https://omniheaven-storage.s3.amazonaws.com/signatures/farhana-sig.png",
+      accessCode: "9871",
+    },
+    {
+      id: "renter-naimul-1b",
+      organizationId: demoBuildingOrgId,
+      userId: "user-renter-2",
+      flatId: "flat-dhanmondi-1b",
+      fullName: "Kazi Naimul Haque",
+      phone: "01811223344",
+      nidNumber: "5508123456", // 10-digit Smart NID
+      dateOfBirth: "1986-11-20",
+      occupation: "Branch Manager, Dhaka Bank Ltd.",
+      bloodGroup: "O+",
+      totalFamilyMembers: 4,
+      familyMemberNames: [
+        "Kazi Naimul Haque",
+        "Nasreen Sultana (Spouse)",
+        "Kazi Zayan (Son)",
+        "Kazi Raisa (Daughter)",
+      ],
+      emergencyContactName: "Kazi Rafiqul Haque (Brother)",
+      emergencyContactNumber: "01911223344",
+      emergencyContactRelationship: "Brother",
+      nidFrontPhoto: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400",
+      nidBackPhoto: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400",
+      digitalSignatureUrl: "https://omniheaven-storage.s3.amazonaws.com/signatures/naimul-sig.png",
+      accessCode: "4432",
+    },
+    {
+      id: "renter-sharmin-2a",
+      organizationId: demoBuildingOrgId,
+      userId: "user-renter-3",
+      flatId: "flat-dhanmondi-2a",
+      fullName: "Dr. Sharmin Akter",
+      phone: "01919887766",
+      nidNumber: "7890123456", // 10-digit Smart NID
+      dateOfBirth: "1989-08-05",
+      occupation: "Cardiology Fellow, Square Hospital",
+      bloodGroup: "A+",
+      totalFamilyMembers: 2,
+      familyMemberNames: ["Dr. Sharmin Akter", "Tanvir Ahmed (Spouse)"],
+      emergencyContactName: "Prof. Abu Taher (Father-in-law)",
+      emergencyContactNumber: "01711998877",
+      emergencyContactRelationship: "Father-in-law",
+      nidFrontPhoto: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400",
+      nidBackPhoto: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400",
+      digitalSignatureUrl: "https://omniheaven-storage.s3.amazonaws.com/signatures/sharmin-sig.png",
+      accessCode: "6655",
+    },
+  ];
+
+  await db.insert(renters).values(renterFixtures).onConflictDoNothing();
+
+  const contractFixtures = [
+    {
+      id: "contract-farhana-1a",
+      organizationId: demoBuildingOrgId,
+      renterId: "renter-farhana-1a",
+      flatId: "flat-dhanmondi-1a",
+      monthlyRent: "28000.00",
+      serviceCharge: "5000.00",
+      securityDepositAmount: "56000.00",
+      remainingDepositBalance: "56000.00",
+      startDate: "2025-01-01",
+      endDate: "2025-12-31",
+      noticePeriodDays: 60,
+      status: "active",
+      contractDocumentUrl:
+        "https://omniheaven-storage.s3.amazonaws.com/contracts/contract-1a-farhana.pdf",
+    },
+    {
+      id: "contract-naimul-1b",
+      organizationId: demoBuildingOrgId,
+      renterId: "renter-naimul-1b",
+      flatId: "flat-dhanmondi-1b",
+      monthlyRent: "28000.00",
+      serviceCharge: "5000.00",
+      securityDepositAmount: "56000.00",
+      remainingDepositBalance: "56000.00",
+      startDate: "2025-03-01",
+      endDate: "2026-02-28",
+      noticePeriodDays: 30,
+      status: "active",
+      contractDocumentUrl:
+        "https://omniheaven-storage.s3.amazonaws.com/contracts/contract-1b-naimul.pdf",
+    },
+    {
+      id: "contract-sharmin-2a",
+      organizationId: demoBuildingOrgId,
+      renterId: "renter-sharmin-2a",
+      flatId: "flat-dhanmondi-2a",
+      monthlyRent: "29000.00",
+      serviceCharge: "5000.00",
+      securityDepositAmount: "58000.00",
+      remainingDepositBalance: "24000.00", // ৳34,000 adjusted against Nov rent/service
+      startDate: "2024-06-01",
+      endDate: "2025-05-31",
+      noticePeriodDays: 30,
+      status: "notice_period",
+      terminationDate: "2026-11-30",
+      terminationReason: "Relocating to Chittagong for hospital posting",
+      contractDocumentUrl:
+        "https://omniheaven-storage.s3.amazonaws.com/contracts/contract-2a-sharmin.pdf",
+    },
+  ];
+
+  await db.insert(rentalContracts).values(contractFixtures).onConflictDoNothing();
+
+  // Tier 1 Seed: Monthly Bills
+  const billFixtures = [
+    {
+      id: "bill-farhana-202610",
+      organizationId: demoBuildingOrgId,
+      contractId: "contract-farhana-1a",
+      billNumber: "INV-202610-1A",
+      billingMonth: "2026-10",
+      rentAmount: "28000.00",
+      serviceChargeAmount: "5000.00",
+      gasAmount: "1080.00",
+      waterAmount: "650.00",
+      electricityAmount: "3200.00",
+      wasteAndOtherAmount: "300.00",
+      lateFeeAmount: "0.00",
+      totalAmount: "38230.00",
+      advanceAdjustedAmount: "0.00",
+      amountPaid: "38230.00",
+      balanceDue: "0.00",
+      status: "paid",
+      dueDate: "2026-10-10",
+      notes: "October full settlement via bKash",
+    },
+    {
+      id: "bill-farhana-202611",
+      organizationId: demoBuildingOrgId,
+      contractId: "contract-farhana-1a",
+      billNumber: "INV-202611-1A",
+      billingMonth: "2026-11",
+      rentAmount: "28000.00",
+      serviceChargeAmount: "5000.00",
+      gasAmount: "1080.00",
+      waterAmount: "650.00",
+      electricityAmount: "3450.00",
+      wasteAndOtherAmount: "300.00",
+      lateFeeAmount: "0.00",
+      totalAmount: "38480.00",
+      advanceAdjustedAmount: "0.00",
+      amountPaid: "0.00",
+      balanceDue: "38480.00",
+      status: "unpaid",
+      dueDate: "2026-11-10",
+      notes: "November bill generated automatically",
+    },
+    {
+      id: "bill-naimul-202610",
+      organizationId: demoBuildingOrgId,
+      contractId: "contract-naimul-1b",
+      billNumber: "INV-202610-1B",
+      billingMonth: "2026-10",
+      rentAmount: "28000.00",
+      serviceChargeAmount: "5000.00",
+      gasAmount: "1080.00",
+      waterAmount: "500.00",
+      electricityAmount: "2800.00",
+      wasteAndOtherAmount: "300.00",
+      lateFeeAmount: "0.00",
+      totalAmount: "37680.00",
+      advanceAdjustedAmount: "0.00",
+      amountPaid: "25000.00",
+      balanceDue: "12680.00",
+      status: "partially_paid",
+      dueDate: "2026-10-10",
+      notes: "Partial payment received via City Bank transfer",
+    },
+    {
+      id: "bill-sharmin-202611",
+      organizationId: demoBuildingOrgId,
+      contractId: "contract-sharmin-2a",
+      billNumber: "INV-202611-2A",
+      billingMonth: "2026-11",
+      rentAmount: "29000.00",
+      serviceChargeAmount: "5000.00",
+      gasAmount: "0.00",
+      waterAmount: "0.00",
+      electricityAmount: "0.00",
+      wasteAndOtherAmount: "0.00",
+      lateFeeAmount: "0.00",
+      totalAmount: "34000.00",
+      advanceAdjustedAmount: "34000.00",
+      amountPaid: "0.00",
+      balanceDue: "0.00",
+      status: "adjusted",
+      dueDate: "2026-11-10",
+      notes: "Adjusted against advance security deposit during departure notice period",
+    },
+  ];
+
+  await db.insert(bills).values(billFixtures).onConflictDoNothing();
+
+  // Tier 1 Seed: Advance Security Deposit Adjustments
+  const adjustmentFixtures = [
+    {
+      id: "adj-sharmin-202611",
+      organizationId: demoBuildingOrgId,
+      contractId: "contract-sharmin-2a",
+      adjustedAgainstBillId: "bill-sharmin-202611",
+      adjustmentType: "rent_adjustment",
+      amount: "34000.00",
+      balanceBefore: "58000.00",
+      balanceAfter: "24000.00",
+      note: "November rent & service charge settled from advance security deposit during notice period",
+      adjustedBy: adminId,
+    },
+  ];
+
+  await db.insert(advanceAdjustments).values(adjustmentFixtures).onConflictDoNothing();
+
+  // Tier 1 Seed: Payments & Receipts
+  const paymentFixtures = [
+    {
+      id: "pay-farhana-202610",
+      organizationId: demoBuildingOrgId,
+      billId: "bill-farhana-202610",
+      amount: "38230.00",
+      paymentMethod: "bkash",
+      transactionId: "BK9A7X32LM",
+      paymentDate: "2026-10-07",
+      receiptNumber: "REC-202610-0014",
+      receivedBy: adminId,
+      status: "completed",
+      note: "Paid in full via bKash personal merchant checkout",
+    },
+    {
+      id: "pay-naimul-202610",
+      organizationId: demoBuildingOrgId,
+      billId: "bill-naimul-202610",
+      amount: "25000.00",
+      paymentMethod: "bank_transfer",
+      transactionId: "CBL-TRX-998811",
+      paymentDate: "2026-10-09",
+      receiptNumber: "REC-202610-0019",
+      receivedBy: adminId,
+      status: "completed",
+      note: "City Bank EFT payment partial settlement",
+    },
+  ];
+
+  await db.insert(payments).values(paymentFixtures).onConflictDoNothing();
 
   console.log("Database seeded successfully.");
   await client.end();
