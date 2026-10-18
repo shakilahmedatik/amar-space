@@ -19,6 +19,7 @@ export const paymentMethodEnum = z.enum([
   "rocket",
   "sslcommerz",
   "stripe",
+  "card",
 ]);
 
 export const adjustmentTypeEnum = z.enum([
@@ -74,6 +75,14 @@ export const recordPaymentSchema = z.object({
   paymentDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Payment date must be YYYY-MM-DD"),
   paymentMethod: paymentMethodEnum,
   transactionId: z.string().max(100).optional().nullable(),
+  note: z.string().max(500).optional().nullable(),
+});
+
+export const payBillSchema = z.object({
+  billId: z.string().min(1, "Bill ID is required"),
+  amount: z.coerce.number().positive("Payment amount must be greater than zero"),
+  paymentMethod: paymentMethodEnum.default("bkash"),
+  transactionId: z.string().min(4, "Transaction reference or ID is required").max(100),
   note: z.string().max(500).optional().nullable(),
 });
 
@@ -152,3 +161,4 @@ export type GenerateMonthlyBillsInput = z.infer<typeof generateMonthlyBillsSchem
 export type UpdateBillUtilitiesInput = z.infer<typeof updateBillUtilitiesSchema>;
 export type ApplyAdvanceAdjustmentInput = z.infer<typeof applyAdvanceAdjustmentSchema>;
 export type RecordPaymentInput = z.infer<typeof recordPaymentSchema>;
+export type PayBillInput = z.infer<typeof payBillSchema>;

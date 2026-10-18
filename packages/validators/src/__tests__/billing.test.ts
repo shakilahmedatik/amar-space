@@ -5,6 +5,7 @@ import {
   billingMonthSchema,
   calculateBillTotals,
   generateMonthlyBillsSchema,
+  payBillSchema,
   paymentMethodEnum,
   recordPaymentSchema,
   updateBillUtilitiesSchema,
@@ -198,10 +199,55 @@ describe("Domain 04: Billing, Finance & Advance Adjustments Validator Rules", ()
     expect(validBkash.transactionId).toBe("BK9A7X32LM");
 
     // Valid payment methods
-    const methods = ["cash", "bank_transfer", "bkash", "nagad", "rocket", "sslcommerz"];
+    const methods = ["cash", "bank_transfer", "bkash", "nagad", "rocket", "sslcommerz", "card"];
     for (const m of methods) {
       expect(paymentMethodEnum.parse(m)).toBe(m as any);
     }
+  });
+
+  it("validates payBillSchema for online tenant self-service billing payments", () => {
+    const validPayment = payBillSchema.parse({
+      billId: "bill-202611-1a",
+      amount: 38230,
+      paymentMethod: "bkash",
+      transactionId: "BK9A7X32LM",
+      note: "Settled via bKash personal merchant checkout",
+    });
+
+    expect(validPayment.billId).toBe("bill-202611-1a");
+    expect(validPayment.amount).toBe(38230);
+    expect(validPayment.paymentMethod).toBe("bkash");
+    expect(validPayment.transactionId).toBe("BK9A7X32LM");
+
+    // Card payment
+    const validCard = payBillSchema.parse({
+      billId: "bill-202611-1a",
+      amount: "38230",
+      paymentMethod: "card",
+      transactionId: "CBL-TXN-991203",
+    });
+    expect(validCard.paymentMethod).toBe("card");
+    expect(validCard.amount).toBe(38230);
+
+    // Rejects non-positive amount
+    expect(() =>
+      payBillSchema.parse({
+        billId: "bill-202611-1a",
+        amount: 0,
+        paymentMethod: "bkash",
+        transactionId: "BK9A7X32LM",
+      }),
+    ).toThrow();
+
+    // Rejects too-short transaction ID
+    expect(() =>
+      payBillSchema.parse({
+        billId: "bill-202611-1a",
+        amount: 1000,
+        paymentMethod: "bkash",
+        transactionId: "abc",
+      }),
+    ).toThrow();
   });
 
   it("exports standard billing domain error codes", () => {

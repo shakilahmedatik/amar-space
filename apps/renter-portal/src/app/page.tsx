@@ -16,8 +16,12 @@ export default function RenterPortalHomePage() {
       setError("Please enter your flat access code or phone number");
       return;
     }
-    // Route to demo flat portal
-    router.push("/flat-4a");
+    // Route dynamically to entered flat slug
+    const cleanCode = accessCode
+      .trim()
+      .toLowerCase()
+      .replace(/^flat-/, "");
+    router.push(`/flat-${cleanCode}`);
   };
 
   return (

@@ -5,13 +5,20 @@ import {
   billStatusEnum,
   calculateBillTotals,
   generateMonthlyBillsSchema,
+  payBillSchema,
   recordPaymentSchema,
   updateBillUtilitiesSchema,
   validateDepositAdjustmentSafety,
 } from "@omniheaven/validators";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
-import { orgProtectedProcedure, protectedProcedure, requireRole, router } from "../trpc";
+import {
+  orgProtectedProcedure,
+  protectedProcedure,
+  publicProcedure,
+  requireRole,
+  router,
+} from "../trpc";
 import { recordAuditLog } from "../utils/audit";
 
 export const billingRouter = router({
@@ -768,5 +775,315 @@ export const billingRouter = router({
       }
 
       return bill;
+    }),
+
+  // 11. Renter Portal: Pay My Bill (Authenticated Tenant self-service)
+  payMyBill: protectedProcedure.input(payBillSchema).mutation(async ({ ctx, input }) => {
+    return await ctx.db.transaction(async (tx) => {
+      const bill = await tx.query.bills.findFirst({
+        where: eq(schema.bills.id, input.billId),
+        with: {
+          contract: {
+            with: {
+              renter: true,
+              flat: true,
+            },
+          },
+        },
+      });
+
+      if (!bill) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: BILLING_ERROR_CODES.BILL_NOT_FOUND,
+        });
+      }
+
+      if (bill.contract.renter.userId !== ctx.user.id) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: BILLING_ERROR_CODES.UNAUTHORIZED_BILL_ACCESS,
+        });
+      }
+
+      const balanceDue = parseFloat(bill.balanceDue);
+      if (balanceDue <= 0) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: BILLING_ERROR_CODES.BILL_ALREADY_PAID,
+        });
+      }
+
+      if (input.amount > balanceDue) {
+        throw new TRPCError({
+          code: "UNPROCESSABLE_CONTENT",
+          message: BILLING_ERROR_CODES.PAYMENT_EXCEEDS_BALANCE,
+        });
+      }
+
+      const currentPaid = parseFloat(bill.amountPaid || "0.00");
+      const newPaid = (currentPaid + input.amount).toFixed(2);
+      const totalAmount = parseFloat(bill.totalAmount);
+      const advanceAdjusted = parseFloat(bill.advanceAdjustedAmount || "0.00");
+      const newBalanceDue = Math.max(
+        0,
+        Math.round((totalAmount - advanceAdjusted - parseFloat(newPaid)) * 100) / 100,
+      ).toFixed(2);
+
+      const newStatus = parseFloat(newBalanceDue) <= 0 ? "paid" : "partially_paid";
+      const paidAt = parseFloat(newBalanceDue) <= 0 ? new Date() : bill.paidAt;
+
+      const dateCode = new Date().toISOString().slice(0, 10).replace(/-/g, "");
+      const randCode = Math.floor(1000 + Math.random() * 9000).toString();
+      const receiptNumber = `REC-${dateCode}-${randCode}`;
+
+      const paymentId = `pay-${crypto.randomUUID()}`;
+      const [payment] = await tx
+        .insert(schema.payments)
+        .values({
+          id: paymentId,
+          organizationId: bill.organizationId,
+          billId: bill.id,
+          amount: input.amount.toFixed(2),
+          paymentMethod: input.paymentMethod,
+          transactionId: input.transactionId,
+          paymentDate: new Date().toISOString().slice(0, 10),
+          receiptNumber,
+          receivedBy: ctx.user.id,
+          status: "completed",
+          note:
+            input.note || `Digital ${input.paymentMethod.toUpperCase()} payment via Renter Portal`,
+        })
+        .returning();
+
+      const [updatedBill] = await tx
+        .update(schema.bills)
+        .set({
+          amountPaid: newPaid,
+          balanceDue: newBalanceDue,
+          status: newStatus,
+          paidAt,
+          updatedAt: new Date(),
+        })
+        .where(eq(schema.bills.id, input.billId))
+        .returning();
+
+      await recordAuditLog({
+        db: tx,
+        organizationId: bill.organizationId,
+        actorId: ctx.user.id,
+        actorEmail: ctx.user.email,
+        action: "PAYMENT_RECORDED",
+        entityType: "payment",
+        entityId: paymentId,
+        details: {
+          billId: bill.id,
+          amount: input.amount,
+          paymentMethod: input.paymentMethod,
+          transactionId: input.transactionId,
+          receiptNumber,
+          newBalanceDue: parseFloat(newBalanceDue),
+          status: newStatus,
+        },
+      });
+
+      return {
+        payment,
+        updatedBill,
+      };
+    });
+  }),
+
+  // 12. Flat Portal: Pay Bill by Access Link / QR Code (Public / Flat-scoped)
+  payPortalBill: publicProcedure.input(payBillSchema).mutation(async ({ ctx, input }) => {
+    return await ctx.db.transaction(async (tx) => {
+      const bill = await tx.query.bills.findFirst({
+        where: eq(schema.bills.id, input.billId),
+        with: {
+          contract: {
+            with: {
+              renter: true,
+              flat: true,
+            },
+          },
+        },
+      });
+
+      if (!bill) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: BILLING_ERROR_CODES.BILL_NOT_FOUND,
+        });
+      }
+
+      const balanceDue = parseFloat(bill.balanceDue);
+      if (balanceDue <= 0) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: BILLING_ERROR_CODES.BILL_ALREADY_PAID,
+        });
+      }
+
+      if (input.amount > balanceDue) {
+        throw new TRPCError({
+          code: "UNPROCESSABLE_CONTENT",
+          message: BILLING_ERROR_CODES.PAYMENT_EXCEEDS_BALANCE,
+        });
+      }
+
+      const currentPaid = parseFloat(bill.amountPaid || "0.00");
+      const newPaid = (currentPaid + input.amount).toFixed(2);
+      const totalAmount = parseFloat(bill.totalAmount);
+      const advanceAdjusted = parseFloat(bill.advanceAdjustedAmount || "0.00");
+      const newBalanceDue = Math.max(
+        0,
+        Math.round((totalAmount - advanceAdjusted - parseFloat(newPaid)) * 100) / 100,
+      ).toFixed(2);
+
+      const newStatus = parseFloat(newBalanceDue) <= 0 ? "paid" : "partially_paid";
+      const paidAt = parseFloat(newBalanceDue) <= 0 ? new Date() : bill.paidAt;
+
+      const dateCode = new Date().toISOString().slice(0, 10).replace(/-/g, "");
+      const randCode = Math.floor(1000 + Math.random() * 9000).toString();
+      const receiptNumber = `REC-${dateCode}-${randCode}`;
+
+      const paymentId = `pay-${crypto.randomUUID()}`;
+      const [payment] = await tx
+        .insert(schema.payments)
+        .values({
+          id: paymentId,
+          organizationId: bill.organizationId,
+          billId: bill.id,
+          amount: input.amount.toFixed(2),
+          paymentMethod: input.paymentMethod,
+          transactionId: input.transactionId,
+          paymentDate: new Date().toISOString().slice(0, 10),
+          receiptNumber,
+          receivedBy: bill.contract.renter.userId || "portal-system",
+          status: "completed",
+          note:
+            input.note || `Digital ${input.paymentMethod.toUpperCase()} payment via Flat Portal`,
+        })
+        .returning();
+
+      const [updatedBill] = await tx
+        .update(schema.bills)
+        .set({
+          amountPaid: newPaid,
+          balanceDue: newBalanceDue,
+          status: newStatus,
+          paidAt,
+          updatedAt: new Date(),
+        })
+        .where(eq(schema.bills.id, input.billId))
+        .returning();
+
+      return {
+        payment,
+        updatedBill,
+      };
+    });
+  }),
+
+  // 13. Flat Portal: Get complete billing, lease, and building metadata by flat slug or identifier
+  getPortalFlatBilling: publicProcedure
+    .input(z.object({ flatSlug: z.string().min(1) }))
+    .query(async ({ ctx, input }) => {
+      const normalized = input.flatSlug
+        .toLowerCase()
+        .replace(/^flat-/, "")
+        .toUpperCase();
+
+      const allFlats = await ctx.db.query.flats.findMany({
+        with: {
+          building: {
+            with: {
+              emergencyContacts: true,
+            },
+          },
+          rentalContracts: {
+            where: inArray(schema.rentalContracts.status, ["active", "notice_period"]),
+            with: {
+              renter: true,
+              bills: {
+                with: {
+                  payments: {
+                    orderBy: [desc(schema.payments.createdAt)],
+                  },
+                  advanceAdjustments: {
+                    orderBy: [desc(schema.advanceAdjustments.createdAt)],
+                  },
+                },
+                orderBy: [desc(schema.bills.createdAt)],
+              },
+            },
+            orderBy: [desc(schema.rentalContracts.createdAt)],
+          },
+        },
+      });
+
+      let targetFlat = allFlats.find(
+        (f) =>
+          f.flatNumber.toUpperCase() === normalized ||
+          f.flatNumber.toUpperCase() === input.flatSlug.toUpperCase() ||
+          `flat-${f.flatNumber.toLowerCase()}` === input.flatSlug.toLowerCase(),
+      );
+
+      if (!targetFlat || targetFlat.rentalContracts.length === 0) {
+        targetFlat = allFlats.find((f) => f.rentalContracts.length > 0) ?? allFlats[0];
+      }
+
+      if (!targetFlat) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "No flat found",
+        });
+      }
+
+      const activeContract = targetFlat.rentalContracts[0] ?? null;
+      const bills = activeContract ? activeContract.bills : [];
+
+      const notices = await ctx.db.query.notices.findMany({
+        where: targetFlat.buildingId
+          ? eq(schema.notices.targetBuildingId, targetFlat.buildingId)
+          : eq(schema.notices.targetAudience, "all_renters"),
+        orderBy: [desc(schema.notices.isPinned), desc(schema.notices.createdAt)],
+      });
+
+      return {
+        flat: {
+          id: targetFlat.id,
+          flatNumber: targetFlat.flatNumber,
+          floor: targetFlat.floor,
+          unitType: targetFlat.unitType,
+          bedrooms: targetFlat.bedrooms,
+          bathrooms: targetFlat.bathrooms,
+          squareFeet: targetFlat.squareFeet,
+          status: targetFlat.status,
+          electricityMeterNumber: targetFlat.electricityMeterNumber,
+          waterSubmeterNumber: targetFlat.waterSubmeterNumber,
+          gasType: targetFlat.gasType,
+        },
+        building: targetFlat.building,
+        contract: activeContract
+          ? {
+              id: activeContract.id,
+              status: activeContract.status,
+              startDate: activeContract.startDate,
+              endDate: activeContract.endDate,
+              monthlyRent: activeContract.monthlyRent,
+              serviceCharge: activeContract.serviceCharge,
+              advanceDepositAmount:
+                activeContract.advanceAmount || activeContract.securityDepositAmount,
+              remainingDepositBalance: activeContract.remainingDepositBalance,
+              noticePeriodDays: activeContract.noticePeriodDays,
+              signedContractUrl: activeContract.contractDocumentUrl,
+              renter: activeContract.renter,
+            }
+          : null,
+        bills,
+        emergencyContacts: targetFlat.building?.emergencyContacts ?? [],
+        notices,
+      };
     }),
 });
