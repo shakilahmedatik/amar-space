@@ -1,6 +1,7 @@
 import { describe, expect, it } from "bun:test";
 import {
   addExtraChargeSchema,
+  cancelBookingSchema,
   checkDateOverlap,
   checkInSchema,
   checkOutSchema,
@@ -177,6 +178,81 @@ describe("Domain 07: Hotel & Resort PMS Validator Rules", () => {
 
     // Completely disjoint intervals do NOT overlap
     expect(checkDateOverlap("2026-11-01", "2026-11-05", "2026-11-10", "2026-11-15")).toBe(false);
+  });
+
+  it("validates cancelBookingSchema requiring a reason of at least 3 characters", () => {
+    const validCancel = cancelBookingSchema.parse({
+      bookingId: "bk-12345",
+      cancellationReason: "Guest had a medical emergency",
+    });
+    expect(validCancel.bookingId).toBe("bk-12345");
+    expect(validCancel.cancellationReason).toBe("Guest had a medical emergency");
+
+    // Rejection for reason too short (< 3 characters)
+    expect(() =>
+      cancelBookingSchema.parse({
+        bookingId: "bk-12345",
+        cancellationReason: "No",
+      }),
+    ).toThrow();
+
+    // Rejection for empty or missing reason
+    expect(() =>
+      cancelBookingSchema.parse({
+        bookingId: "bk-12345",
+        cancellationReason: "",
+      }),
+    ).toThrow();
+  });
+
+  it("validates full PMS operational lifecycle: reservation -> check-in -> charges -> check-out -> housekeeping ready", () => {
+    // 1. Initial reservation
+    const booking = createBookingSchema.parse({
+      roomTypeId: "rt-deluxe",
+      checkInDate: "2026-12-10",
+      checkOutDate: "2026-12-14",
+      guestName: "Mahmudul Hasan",
+      guestEmail: "mahmud@example.com",
+      guestPhone: "01700112233",
+      adultsCount: 2,
+    });
+    expect(booking.guestName).toBe("Mahmudul Hasan");
+
+    // 2. Check-in requiring mandatory NID
+    const checkIn = checkInSchema.parse({
+      bookingId: "bk-test-101",
+      roomId: "room-201",
+      guestNidOrPassport: "BD-NID-19882234001",
+      specialRequests: "Late check-in confirmed",
+    });
+    expect(checkIn.roomId).toBe("room-201");
+    expect(checkIn.guestNidOrPassport).toBe("BD-NID-19882234001");
+
+    // 3. Folio extra charges added
+    const extraFolio = addExtraChargeSchema.parse({
+      bookingId: "bk-test-101",
+      description: "Airport pickup service + Dinner banquet",
+      amount: 4500,
+    });
+    expect(extraFolio.amount).toBe(4500);
+
+    // 4. Check-out and bill settlement
+    const checkOut = checkOutSchema.parse({
+      bookingId: "bk-test-101",
+      settleExtraCharges: 4500,
+      paymentMethod: "card",
+      notes: "Checked out smoothly, keycards returned",
+    });
+    expect(checkOut.settleExtraCharges).toBe(4500);
+    expect(checkOut.paymentMethod).toBe("card");
+
+    // 5. Housekeeping turnover completion
+    const turnoverDone = updateRoomStatusSchema.parse({
+      roomId: "room-201",
+      status: "available",
+      housekeepingNotes: "Turnover complete, fresh linens placed, inspected by supervisor",
+    });
+    expect(turnoverDone.status).toBe("available");
   });
 
   it("exports standard domain error codes", () => {

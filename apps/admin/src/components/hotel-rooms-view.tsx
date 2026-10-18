@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  AlertCircle,
   CheckCircle2,
   DoorOpen,
   Layers,
@@ -25,29 +26,47 @@ export function HotelRoomsView() {
   const [isAddRoomTypeModalOpen, setIsAddRoomTypeModalOpen] = useState(false);
   const [selectedRoomForStatus, setSelectedRoomForStatus] = useState<any | null>(null);
 
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [successNotice, setSuccessNotice] = useState<string | null>(null);
+
   // Queries
   const { data: rooms = [], refetch: refetchRooms } = trpc.hotel.listRooms.useQuery();
   const { data: roomTypes = [], refetch: refetchRoomTypes } = trpc.hotel.listRoomTypes.useQuery();
 
   // Mutations
   const updateRoomStatusMutation = trpc.hotel.updateRoomStatus.useMutation({
-    onSuccess: () => {
+    onSuccess: (data) => {
       refetchRooms();
       setSelectedRoomForStatus(null);
+      setActionError(null);
+      setSuccessNotice(`Room ${data.roomNumber} updated to ${data.status.toUpperCase()}.`);
+    },
+    onError: (err) => {
+      setActionError(err.message);
     },
   });
 
   const createRoomMutation = trpc.hotel.createRoom.useMutation({
-    onSuccess: () => {
+    onSuccess: (data) => {
       refetchRooms();
       setIsAddRoomModalOpen(false);
+      setActionError(null);
+      setSuccessNotice(`Room ${data.roomNumber} created successfully.`);
+    },
+    onError: (err) => {
+      setActionError(err.message);
     },
   });
 
   const createRoomTypeMutation = trpc.hotel.createRoomType.useMutation({
-    onSuccess: () => {
+    onSuccess: (data) => {
       refetchRoomTypes();
       setIsAddRoomTypeModalOpen(false);
+      setActionError(null);
+      setSuccessNotice(`Room type "${data.name}" added to catalog.`);
+    },
+    onError: (err) => {
+      setActionError(err.message);
     },
   });
 
@@ -114,7 +133,10 @@ export function HotelRoomsView() {
           {activeTab === "housekeeping" ? (
             <button
               type="button"
-              onClick={() => setIsAddRoomModalOpen(true)}
+              onClick={() => {
+                setActionError(null);
+                setIsAddRoomModalOpen(true);
+              }}
               className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-primary-foreground text-xs font-semibold shadow-sm transition-all"
             >
               <Plus className="size-4" />
@@ -123,7 +145,10 @@ export function HotelRoomsView() {
           ) : (
             <button
               type="button"
-              onClick={() => setIsAddRoomTypeModalOpen(true)}
+              onClick={() => {
+                setActionError(null);
+                setIsAddRoomTypeModalOpen(true);
+              }}
               className="flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold shadow-sm transition-all"
             >
               <Plus className="size-4" />
@@ -132,6 +157,23 @@ export function HotelRoomsView() {
           )}
         </div>
       </div>
+
+      {/* Success Notification Banner */}
+      {successNotice && (
+        <div className="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-xs text-emerald-600 dark:text-emerald-400 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="size-4 shrink-0" />
+            <span>{successNotice}</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setSuccessNotice(null)}
+            className="text-emerald-600 hover:text-emerald-700"
+          >
+            <X className="size-3.5" />
+          </button>
+        </div>
+      )}
 
       {/* KPI Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -394,7 +436,11 @@ export function HotelRoomsView() {
         <RoomStatusModal
           room={selectedRoomForStatus}
           isLoading={updateRoomStatusMutation.isPending}
-          onClose={() => setSelectedRoomForStatus(null)}
+          errorMessage={actionError}
+          onClose={() => {
+            setSelectedRoomForStatus(null);
+            setActionError(null);
+          }}
           onConfirm={(data) => {
             updateRoomStatusMutation.mutate({
               roomId: selectedRoomForStatus.id,
@@ -410,7 +456,11 @@ export function HotelRoomsView() {
         <AddRoomModal
           roomTypes={roomTypes}
           isLoading={createRoomMutation.isPending}
-          onClose={() => setIsAddRoomModalOpen(false)}
+          errorMessage={actionError}
+          onClose={() => {
+            setIsAddRoomModalOpen(false);
+            setActionError(null);
+          }}
           onConfirm={(data) => createRoomMutation.mutate(data)}
         />
       )}
@@ -419,7 +469,11 @@ export function HotelRoomsView() {
       {isAddRoomTypeModalOpen && (
         <AddRoomTypeModal
           isLoading={createRoomTypeMutation.isPending}
-          onClose={() => setIsAddRoomTypeModalOpen(false)}
+          errorMessage={actionError}
+          onClose={() => {
+            setIsAddRoomTypeModalOpen(false);
+            setActionError(null);
+          }}
           onConfirm={(data) => createRoomTypeMutation.mutate(data)}
         />
       )}
@@ -431,11 +485,13 @@ export function HotelRoomsView() {
 function RoomStatusModal({
   room,
   isLoading,
+  errorMessage,
   onClose,
   onConfirm,
 }: {
   room: any;
   isLoading: boolean;
+  errorMessage?: string | null;
   onClose: () => void;
   onConfirm: (data: { status: any; housekeepingNotes?: string }) => void;
 }) {
@@ -456,6 +512,13 @@ function RoomStatusModal({
             <X className="size-4" />
           </button>
         </div>
+
+        {errorMessage && (
+          <div className="p-3 rounded-xl bg-destructive/10 border border-destructive/20 text-xs text-destructive flex items-center gap-2">
+            <AlertCircle className="size-4 shrink-0" />
+            <span>{errorMessage}</span>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -519,11 +582,13 @@ function RoomStatusModal({
 function AddRoomModal({
   roomTypes,
   isLoading,
+  errorMessage,
   onClose,
   onConfirm,
 }: {
   roomTypes: any[];
   isLoading: boolean;
+  errorMessage?: string | null;
   onClose: () => void;
   onConfirm: (data: any) => void;
 }) {
@@ -546,6 +611,13 @@ function AddRoomModal({
             <X className="size-4" />
           </button>
         </div>
+
+        {errorMessage && (
+          <div className="p-3 rounded-xl bg-destructive/10 border border-destructive/20 text-xs text-destructive flex items-center gap-2">
+            <AlertCircle className="size-4 shrink-0" />
+            <span>{errorMessage}</span>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -630,10 +702,12 @@ function AddRoomModal({
 
 function AddRoomTypeModal({
   isLoading,
+  errorMessage,
   onClose,
   onConfirm,
 }: {
   isLoading: boolean;
+  errorMessage?: string | null;
   onClose: () => void;
   onConfirm: (data: any) => void;
 }) {
@@ -673,6 +747,13 @@ function AddRoomTypeModal({
             <X className="size-4" />
           </button>
         </div>
+
+        {errorMessage && (
+          <div className="p-3 rounded-xl bg-destructive/10 border border-destructive/20 text-xs text-destructive flex items-center gap-2">
+            <AlertCircle className="size-4 shrink-0" />
+            <span>{errorMessage}</span>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>

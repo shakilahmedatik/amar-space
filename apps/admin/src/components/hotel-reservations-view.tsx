@@ -1,7 +1,10 @@
 "use client";
 
 import {
+  AlertCircle,
+  Ban,
   Calendar as CalendarIcon,
+  CheckCircle2,
   DoorOpen,
   Filter,
   Grid,
@@ -25,6 +28,10 @@ export function HotelReservationsView() {
   const [selectedBookingForCheckIn, setSelectedBookingForCheckIn] = useState<any | null>(null);
   const [selectedBookingForCheckOut, setSelectedBookingForCheckOut] = useState<any | null>(null);
   const [selectedBookingForCharge, setSelectedBookingForCharge] = useState<any | null>(null);
+  const [selectedBookingForCancel, setSelectedBookingForCancel] = useState<any | null>(null);
+
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [successNotice, setSuccessNotice] = useState<string | null>(null);
 
   // Queries
   const { data: bookings = [], refetch: refetchBookings } = trpc.hotel.listBookings.useQuery({});
@@ -33,32 +40,69 @@ export function HotelReservationsView() {
 
   // Mutations
   const createReservationMutation = trpc.hotel.createReservation.useMutation({
-    onSuccess: () => {
+    onSuccess: (data) => {
       refetchBookings();
       setIsNewBookingModalOpen(false);
+      setActionError(null);
+      setSuccessNotice(`Reservation ${data.bookingReference} created successfully.`);
+    },
+    onError: (err) => {
+      setActionError(err.message);
     },
   });
 
   const checkInMutation = trpc.hotel.checkInGuest.useMutation({
-    onSuccess: () => {
+    onSuccess: (data) => {
       refetchBookings();
       refetchRooms();
       setSelectedBookingForCheckIn(null);
+      setActionError(null);
+      setSuccessNotice(`Guest ${data.guestName} checked in successfully.`);
+    },
+    onError: (err) => {
+      setActionError(err.message);
     },
   });
 
   const checkOutMutation = trpc.hotel.checkOutGuest.useMutation({
-    onSuccess: () => {
+    onSuccess: (data) => {
       refetchBookings();
       refetchRooms();
       setSelectedBookingForCheckOut(null);
+      setActionError(null);
+      setSuccessNotice(
+        `Booking ${data.bookingReference} checked out. Room transitioned to cleaning.`,
+      );
+    },
+    onError: (err) => {
+      setActionError(err.message);
     },
   });
 
   const addChargeMutation = trpc.hotel.addExtraCharge.useMutation({
-    onSuccess: () => {
+    onSuccess: (data) => {
       refetchBookings();
       setSelectedBookingForCharge(null);
+      setActionError(null);
+      setSuccessNotice(
+        `Folio charge added to ${data.bookingReference}. Total folio extras: ৳${data.extraCharges}`,
+      );
+    },
+    onError: (err) => {
+      setActionError(err.message);
+    },
+  });
+
+  const cancelBookingMutation = trpc.hotel.cancelBooking.useMutation({
+    onSuccess: (data) => {
+      refetchBookings();
+      refetchRooms();
+      setSelectedBookingForCancel(null);
+      setActionError(null);
+      setSuccessNotice(`Booking ${data.bookingReference} cancelled successfully.`);
+    },
+    onError: (err) => {
+      setActionError(err.message);
     },
   });
 
@@ -103,6 +147,7 @@ export function HotelReservationsView() {
             Real-time room occupancy matrix, arrival check-in, folio settling, and room allocation.
           </p>
         </div>
+
         <div className="flex items-center gap-2">
           <div className="flex items-center p-1 bg-surface border border-border rounded-xl">
             <button
@@ -132,7 +177,10 @@ export function HotelReservationsView() {
           </div>
           <button
             type="button"
-            onClick={() => setIsNewBookingModalOpen(true)}
+            onClick={() => {
+              setActionError(null);
+              setIsNewBookingModalOpen(true);
+            }}
             className="flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold shadow-sm transition-all"
           >
             <Plus className="size-4" />
@@ -140,6 +188,23 @@ export function HotelReservationsView() {
           </button>
         </div>
       </div>
+
+      {/* Success Notification Banner */}
+      {successNotice && (
+        <div className="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-xs text-emerald-600 dark:text-emerald-400 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="size-4 shrink-0" />
+            <span>{successNotice}</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setSuccessNotice(null)}
+            className="text-emerald-600 hover:text-emerald-700"
+          >
+            <X className="size-3.5" />
+          </button>
+        </div>
+      )}
 
       {/* KPI Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -418,33 +483,55 @@ export function HotelReservationsView() {
                         {b.status.replace("_", " ")}
                       </span>
                     </td>
-                    <td className="p-3 text-right space-x-1">
+                    <td className="p-3 text-right">
                       {b.status === "confirmed" && (
-                        <button
-                          type="button"
-                          onClick={() => setSelectedBookingForCheckIn(b)}
-                          className="px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-semibold transition-colors"
-                        >
-                          Check In
-                        </button>
-                      )}
-                      {b.status === "checked_in" && (
-                        <>
+                        <div className="flex items-center justify-end gap-1.5">
                           <button
                             type="button"
-                            onClick={() => setSelectedBookingForCharge(b)}
+                            onClick={() => {
+                              setActionError(null);
+                              setSelectedBookingForCheckIn(b);
+                            }}
+                            className="px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-semibold transition-colors"
+                          >
+                            Check In
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setActionError(null);
+                              setSelectedBookingForCancel(b);
+                            }}
+                            className="p-1.5 rounded-lg border border-border hover:bg-surface text-destructive text-[11px] font-medium transition-colors"
+                            title="Cancel Reservation"
+                          >
+                            <Ban className="size-3.5" />
+                          </button>
+                        </div>
+                      )}
+                      {b.status === "checked_in" && (
+                        <div className="flex items-center justify-end gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setActionError(null);
+                              setSelectedBookingForCharge(b);
+                            }}
                             className="px-2 py-1.5 rounded-lg bg-surface border border-border hover:bg-surface/80 text-foreground text-[11px] font-medium"
                           >
                             + Charge
                           </button>
                           <button
                             type="button"
-                            onClick={() => setSelectedBookingForCheckOut(b)}
+                            onClick={() => {
+                              setActionError(null);
+                              setSelectedBookingForCheckOut(b);
+                            }}
                             className="px-2.5 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-[11px] font-semibold transition-colors"
                           >
                             Check Out
                           </button>
-                        </>
+                        </div>
                       )}
                     </td>
                   </tr>
@@ -462,10 +549,16 @@ export function HotelReservationsView() {
           availableRooms={rooms.filter(
             (r) =>
               r.roomTypeId === selectedBookingForCheckIn.roomTypeId &&
-              (r.status === "available" || r.id === selectedBookingForCheckIn.roomId),
+              (r.status === "available" ||
+                r.status === "reserved" ||
+                r.id === selectedBookingForCheckIn.roomId),
           )}
           isLoading={checkInMutation.isPending}
-          onClose={() => setSelectedBookingForCheckIn(null)}
+          errorMessage={actionError}
+          onClose={() => {
+            setSelectedBookingForCheckIn(null);
+            setActionError(null);
+          }}
           onConfirm={(data) => {
             checkInMutation.mutate({
               bookingId: selectedBookingForCheckIn.id,
@@ -482,7 +575,11 @@ export function HotelReservationsView() {
         <CheckOutModal
           booking={selectedBookingForCheckOut}
           isLoading={checkOutMutation.isPending}
-          onClose={() => setSelectedBookingForCheckOut(null)}
+          errorMessage={actionError}
+          onClose={() => {
+            setSelectedBookingForCheckOut(null);
+            setActionError(null);
+          }}
           onConfirm={(data) => {
             checkOutMutation.mutate({
               bookingId: selectedBookingForCheckOut.id,
@@ -499,7 +596,11 @@ export function HotelReservationsView() {
         <AddFolioChargeModal
           booking={selectedBookingForCharge}
           isLoading={addChargeMutation.isPending}
-          onClose={() => setSelectedBookingForCharge(null)}
+          errorMessage={actionError}
+          onClose={() => {
+            setSelectedBookingForCharge(null);
+            setActionError(null);
+          }}
           onConfirm={(data) => {
             addChargeMutation.mutate({
               bookingId: selectedBookingForCharge.id,
@@ -510,12 +611,35 @@ export function HotelReservationsView() {
         />
       )}
 
+      {/* CANCEL BOOKING MODAL */}
+      {selectedBookingForCancel && (
+        <CancelBookingModal
+          booking={selectedBookingForCancel}
+          isLoading={cancelBookingMutation.isPending}
+          errorMessage={actionError}
+          onClose={() => {
+            setSelectedBookingForCancel(null);
+            setActionError(null);
+          }}
+          onConfirm={(reason) => {
+            cancelBookingMutation.mutate({
+              bookingId: selectedBookingForCancel.id,
+              cancellationReason: reason,
+            });
+          }}
+        />
+      )}
+
       {/* NEW RESERVATION MODAL */}
       {isNewBookingModalOpen && (
         <NewReservationModal
           roomTypes={roomTypes}
           isLoading={createReservationMutation.isPending}
-          onClose={() => setIsNewBookingModalOpen(false)}
+          errorMessage={actionError}
+          onClose={() => {
+            setIsNewBookingModalOpen(false);
+            setActionError(null);
+          }}
           onConfirm={(data) => createReservationMutation.mutate(data)}
         />
       )}
@@ -528,12 +652,14 @@ function CheckInModal({
   booking,
   availableRooms,
   isLoading,
+  errorMessage,
   onClose,
   onConfirm,
 }: {
   booking: any;
   availableRooms: any[];
   isLoading: boolean;
+  errorMessage?: string | null;
   onClose: () => void;
   onConfirm: (data: {
     roomId: string;
@@ -574,6 +700,13 @@ function CheckInModal({
           </button>
         </div>
 
+        {errorMessage && (
+          <div className="p-3 rounded-xl bg-destructive/10 border border-destructive/20 text-xs text-destructive flex items-center gap-2">
+            <AlertCircle className="size-4 shrink-0" />
+            <span>{errorMessage}</span>
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="p-3 rounded-xl bg-surface border border-border text-xs space-y-1">
             <p className="font-semibold text-foreground">Guest: {booking.guestName}</p>
@@ -590,19 +723,27 @@ function CheckInModal({
             >
               Assign Physical Room *
             </label>
-            <select
-              id="checkin-room"
-              value={selectedRoomId}
-              onChange={(e) => setSelectedRoomId(e.target.value)}
-              required
-              className="w-full px-3 py-2 rounded-xl bg-surface border border-border text-xs text-foreground focus:outline-hidden"
-            >
-              {availableRooms.map((r) => (
-                <option key={r.id} value={r.id}>
-                  Room {r.roomNumber} (Floor {r.floor}) — Status: {r.status}
-                </option>
-              ))}
-            </select>
+            {availableRooms.length === 0 ? (
+              <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-700">
+                No rooms currently ready for this suite type. Please check the Housekeeping Board to
+                inspect or clean a room first.
+              </div>
+            ) : (
+              <select
+                id="checkin-room"
+                value={selectedRoomId}
+                onChange={(e) => setSelectedRoomId(e.target.value)}
+                required
+                className="w-full px-3 py-2 rounded-xl bg-surface border border-border text-xs text-foreground focus:outline-hidden"
+              >
+                <option value="">Select a ready room...</option>
+                {availableRooms.map((r) => (
+                  <option key={r.id} value={r.id}>
+                    Room {r.roomNumber} (Floor {r.floor}) — Status: {r.status.toUpperCase()}
+                  </option>
+                ))}
+              </select>
+            )}
           </div>
 
           <div>
@@ -668,11 +809,13 @@ function CheckInModal({
 function CheckOutModal({
   booking,
   isLoading,
+  errorMessage,
   onClose,
   onConfirm,
 }: {
   booking: any;
   isLoading: boolean;
+  errorMessage?: string | null;
   onClose: () => void;
   onConfirm: (data: { settleExtraCharges: number; paymentMethod: any; notes?: string }) => void;
 }) {
@@ -708,6 +851,13 @@ function CheckOutModal({
             <X className="size-4" />
           </button>
         </div>
+
+        {errorMessage && (
+          <div className="p-3 rounded-xl bg-destructive/10 border border-destructive/20 text-xs text-destructive flex items-center gap-2">
+            <AlertCircle className="size-4 shrink-0" />
+            <span>{errorMessage}</span>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="p-3 rounded-xl bg-surface border border-border text-xs space-y-1.5">
@@ -801,11 +951,13 @@ function CheckOutModal({
 function AddFolioChargeModal({
   booking,
   isLoading,
+  errorMessage,
   onClose,
   onConfirm,
 }: {
   booking: any;
   isLoading: boolean;
+  errorMessage?: string | null;
   onClose: () => void;
   onConfirm: (data: { description: string; amount: number }) => void;
 }) {
@@ -830,6 +982,13 @@ function AddFolioChargeModal({
             <X className="size-4" />
           </button>
         </div>
+
+        {errorMessage && (
+          <div className="p-3 rounded-xl bg-destructive/10 border border-destructive/20 text-xs text-destructive flex items-center gap-2">
+            <AlertCircle className="size-4 shrink-0" />
+            <span>{errorMessage}</span>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -891,14 +1050,108 @@ function AddFolioChargeModal({
   );
 }
 
+function CancelBookingModal({
+  booking,
+  isLoading,
+  errorMessage,
+  onClose,
+  onConfirm,
+}: {
+  booking: any;
+  isLoading: boolean;
+  errorMessage?: string | null;
+  onClose: () => void;
+  onConfirm: (reason: string) => void;
+}) {
+  const [reason, setReason] = useState("");
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (reason.trim().length < 3) return;
+    onConfirm(reason.trim());
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+      <div className="bg-card w-full max-w-sm rounded-2xl border border-border shadow-2xl p-6 space-y-4">
+        <div className="flex items-center justify-between pb-2 border-b border-border">
+          <div>
+            <h3 className="text-sm font-bold text-destructive flex items-center gap-1.5">
+              <Ban className="size-4" /> Cancel Reservation
+            </h3>
+            <p className="text-[11px] text-foreground-muted">{booking.bookingReference}</p>
+          </div>
+          <button type="button" onClick={onClose} className="p-1 text-foreground-muted">
+            <X className="size-4" />
+          </button>
+        </div>
+
+        {errorMessage && (
+          <div className="p-3 rounded-xl bg-destructive/10 border border-destructive/20 text-xs text-destructive flex items-center gap-2">
+            <AlertCircle className="size-4 shrink-0" />
+            <span>{errorMessage}</span>
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="p-3 rounded-xl bg-surface border border-border text-xs space-y-1">
+            <p className="font-semibold text-foreground">Guest: {booking.guestName}</p>
+            <p className="text-foreground-muted">
+              Dates: {booking.checkInDate} → {booking.checkOutDate}
+            </p>
+          </div>
+
+          <div>
+            <label
+              htmlFor="cancel-reason"
+              className="block text-xs font-semibold text-foreground mb-1"
+            >
+              Cancellation Reason *
+            </label>
+            <textarea
+              id="cancel-reason"
+              rows={3}
+              required
+              minLength={3}
+              placeholder="e.g. Guest requested cancellation via phone call / flight cancelled"
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              className="w-full px-3 py-2 rounded-xl bg-surface border border-border text-xs text-foreground focus:outline-hidden"
+            />
+          </div>
+
+          <div className="flex items-center justify-end gap-2 pt-2 border-t border-border">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-3 py-1.5 rounded-lg border border-border text-xs font-medium"
+            >
+              Keep Booking
+            </button>
+            <button
+              type="submit"
+              disabled={isLoading || reason.trim().length < 3}
+              className="px-4 py-1.5 rounded-lg bg-destructive hover:bg-destructive/90 text-destructive-foreground text-xs font-bold transition-all shadow-xs disabled:opacity-50"
+            >
+              {isLoading ? "Cancelling..." : "Confirm Cancellation"}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
 function NewReservationModal({
   roomTypes,
   isLoading,
+  errorMessage,
   onClose,
   onConfirm,
 }: {
   roomTypes: any[];
   isLoading: boolean;
+  errorMessage?: string | null;
   onClose: () => void;
   onConfirm: (data: any) => void;
 }) {
@@ -946,6 +1199,13 @@ function NewReservationModal({
             <X className="size-4" />
           </button>
         </div>
+
+        {errorMessage && (
+          <div className="p-3 rounded-xl bg-destructive/10 border border-destructive/20 text-xs text-destructive flex items-center gap-2">
+            <AlertCircle className="size-4 shrink-0" />
+            <span>{errorMessage}</span>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-3">
