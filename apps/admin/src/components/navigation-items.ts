@@ -10,6 +10,7 @@ import {
   LayoutDashboard,
   Paintbrush,
   Receipt,
+  ShieldCheck,
   Users,
   Wrench,
 } from "lucide-react";
@@ -71,6 +72,13 @@ export const hotelNavItems: NavItem[] = [
     defaultLabel: "Billing & Subscription",
     href: "/billing",
     icon: CreditCard,
+  },
+  {
+    id: "audit",
+    labelKey: "nav.hotel.audit",
+    defaultLabel: "Audit Logs & Security",
+    href: "/audit",
+    icon: ShieldCheck,
   },
 ];
 
@@ -137,6 +145,13 @@ export const buildingNavItems: NavItem[] = [
     defaultLabel: "Billing & Subscription",
     href: "/billing",
     icon: CreditCard,
+  },
+  {
+    id: "audit",
+    labelKey: "nav.building.audit",
+    defaultLabel: "Audit Logs & Security",
+    href: "/audit",
+    icon: ShieldCheck,
   },
 ];
 

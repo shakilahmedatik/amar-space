@@ -6,8 +6,10 @@
       "name": "omni-heaven",
       "devDependencies": {
         "@biomejs/biome": "^2.5.15",
+        "@tailwindcss/postcss": "^4.3.3",
         "@types/node": "^22.15.30",
         "bun-types": "^1.4.3",
+        "tailwindcss": "^4.3.3",
         "turbo": "^2.11.9",
         "typescript": "^5.9.2",
       },
@@ -258,10 +260,12 @@
       },
       "devDependencies": {
         "@omniheaven/typescript-config": "workspace:*",
+        "@tailwindcss/postcss": "^4.3.3",
         "@types/react": "19.2.2",
         "@types/react-dom": "19.2.2",
         "react": "^19.2.0",
         "react-dom": "^19.2.0",
+        "tailwindcss": "^4.3.3",
         "typescript": "^5.9.2",
       },
       "peerDependencies": {

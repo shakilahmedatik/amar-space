@@ -16,6 +16,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import {
   AlertCircle,
   CheckCircle2,
+  History,
   Home,
   Info,
   Loader2,
@@ -28,6 +29,7 @@ import {
 import type React from "react";
 import { useEffect, useState } from "react";
 import { trpc } from "../lib/trpc";
+import { EntityAuditTimeline } from "./entity-audit-timeline";
 
 export interface FlatRecord {
   id: string;
@@ -58,7 +60,7 @@ interface FlatDetailModalProps {
 
 export function FlatDetailModal({ open, onOpenChange, flat, buildingName }: FlatDetailModalProps) {
   const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState<"specs" | "meters" | "renters">("specs");
+  const [activeTab, setActiveTab] = useState<"specs" | "meters" | "renters" | "audit">("specs");
 
   // Form states
   const [flatNumber, setFlatNumber] = useState("");
@@ -244,6 +246,19 @@ export function FlatDetailModal({ open, onOpenChange, flat, buildingName }: Flat
           >
             <Users className="size-3.5" />
             Renter & Lease Status
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab("audit")}
+            className={`px-3.5 py-2 rounded-lg text-xs font-bold transition-all min-h-[44px] flex items-center gap-1.5 ${
+              activeTab === "audit"
+                ? "bg-primary/10 text-primary border border-primary/20 shadow-2xs"
+                : "text-foreground-muted hover:text-foreground hover:bg-surface"
+            }`}
+          >
+            <History className="size-3.5" />
+            Audit History
           </button>
         </div>
 
@@ -523,6 +538,13 @@ export function FlatDetailModal({ open, onOpenChange, flat, buildingName }: Flat
                   </div>
                 )}
               </div>
+            </div>
+          )}
+
+          {/* Tab 4: Audit History */}
+          {activeTab === "audit" && flat && (
+            <div className="pt-2">
+              <EntityAuditTimeline entityType="flat" entityId={flat.id} />
             </div>
           )}
 

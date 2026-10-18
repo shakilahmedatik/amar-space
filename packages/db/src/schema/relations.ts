@@ -12,6 +12,7 @@ import { websiteConfigs } from "./website-configs";
 export const usersRelations = relations(users, ({ many }) => ({
   memberships: many(members),
   sentInvitations: many(invitations),
+  auditLogs: many(auditLogs),
 }));
 
 export const membersRelations = relations(members, ({ one }) => ({
@@ -67,6 +68,8 @@ export const buildingsRelations = relations(buildings, ({ one, many }) => ({
   }),
   flats: many(flats),
   emergencyContacts: many(emergencyContacts),
+  maintenanceRequests: many(maintenanceRequests),
+  notices: many(notices),
 }));
 
 export const flatsRelations = relations(flats, ({ one, many }) => ({
@@ -76,6 +79,7 @@ export const flatsRelations = relations(flats, ({ one, many }) => ({
   }),
   renters: many(renters),
   rentalContracts: many(rentalContracts),
+  maintenanceRequests: many(maintenanceRequests),
 }));
 
 export const roomTypesRelations = relations(roomTypes, ({ one, many }) => ({
@@ -191,6 +195,59 @@ export const paymentsRelations = relations(payments, ({ one }) => ({
   }),
   receivedByUser: one(users, {
     fields: [payments.receivedBy],
+    references: [users.id],
+  }),
+}));
+
+export const maintenanceRequestsRelations = relations(maintenanceRequests, ({ one }) => ({
+  organization: one(organizations, {
+    fields: [maintenanceRequests.organizationId],
+    references: [organizations.id],
+  }),
+  building: one(buildings, {
+    fields: [maintenanceRequests.buildingId],
+    references: [buildings.id],
+  }),
+  flat: one(flats, {
+    fields: [maintenanceRequests.flatId],
+    references: [flats.id],
+  }),
+  requestedByUser: one(users, {
+    fields: [maintenanceRequests.requestedByUserId],
+    references: [users.id],
+  }),
+  assignedToStaff: one(users, {
+    fields: [maintenanceRequests.assignedToStaffId],
+    references: [users.id],
+  }),
+}));
+
+export const noticesRelations = relations(notices, ({ one }) => ({
+  organization: one(organizations, {
+    fields: [notices.organizationId],
+    references: [organizations.id],
+  }),
+  targetBuilding: one(buildings, {
+    fields: [notices.targetBuildingId],
+    references: [buildings.id],
+  }),
+  targetFlat: one(flats, {
+    fields: [notices.targetFlatId],
+    references: [flats.id],
+  }),
+  authorUser: one(users, {
+    fields: [notices.authorUserId],
+    references: [users.id],
+  }),
+}));
+
+export const auditLogsRelations = relations(auditLogs, ({ one }) => ({
+  organization: one(organizations, {
+    fields: [auditLogs.organizationId],
+    references: [organizations.id],
+  }),
+  actorUser: one(users, {
+    fields: [auditLogs.actorUserId],
     references: [users.id],
   }),
 }));

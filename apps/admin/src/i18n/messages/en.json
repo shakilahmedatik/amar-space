@@ -23,7 +23,8 @@
       "domains": "Custom Domains",
       "staff": "Staff & Team",
       "team": "Team & Roles",
-      "finance": "Finance & Billing"
+      "finance": "Finance & Billing",
+      "audit": "Audit Logs & Security"
     },
     "building": {
       "overview": "Overview",
@@ -35,7 +36,8 @@
       "notices": "Notices",
       "staff": "Caretakers & Staff",
       "team": "Team & Roles",
-      "billing": "Billing & Subscription"
+      "billing": "Billing & Subscription",
+      "audit": "Audit Logs & Security"
     }
   },
   "org": {
@@ -155,5 +157,67 @@
     "receipt": "Money Receipt",
     "downloadReceipt": "Download Receipt",
     "printReceipt": "Print Receipt"
+  },
+  "operations": {
+    "title": "Maintenance & Building Operations",
+    "subtitle": "Track facility repair work orders, caretaker assignments, proof of resolution, and resident notices.",
+    "reportIssue": "Report Issue",
+    "publishNotice": "Publish Notice",
+    "workOrders": "Work Orders",
+    "noticeBoard": "Notice Board",
+    "activeTickets": "Active Tickets",
+    "urgentAttention": "Urgent Attention",
+    "resolvedTickets": "Resolved Tickets",
+    "activeNotices": "Active Notices",
+    "ticket": "Ticket",
+    "location": "Location",
+    "category": "Category",
+    "priority": "Priority",
+    "status": "Status",
+    "assignedStaff": "Assigned Staff",
+    "reportedBy": "Reported By",
+    "open": "Open",
+    "assigned": "Assigned",
+    "inProgress": "In Progress",
+    "resolved": "Resolved",
+    "closed": "Closed",
+    "urgent": "Urgent",
+    "high": "High",
+    "medium": "Medium",
+    "low": "Low",
+    "plumbing": "Plumbing",
+    "electrical": "Electrical",
+    "generator": "Generator",
+    "elevator": "Elevator",
+    "carpentry": "Carpentry",
+    "sanitary": "Sanitary",
+    "appliance": "Appliance",
+    "general": "General",
+    "resolutionNotes": "Resolution Notes",
+    "repairCost": "Repair Cost",
+    "costBilledTo": "Cost Billed To",
+    "pinnedNotice": "Pinned Announcement",
+    "pin": "Pin",
+    "unpin": "Unpin",
+    "delete": "Delete"
+  },
+  "audit": {
+    "title": "Audit Logs & Security",
+    "subtitle": "Immutable forensic ledger capturing all business mutations, actor provenance, and IP trails.",
+    "immutableLedger": "Immutable Ledger",
+    "refresh": "Refresh",
+    "exportCsv": "Export CSV",
+    "totalMutations": "Total Mutations",
+    "financialEdits": "Financial Edits",
+    "operationsNotices": "Operations & Notices",
+    "distinctActors": "Distinct Actors",
+    "allEntities": "All Entity Types",
+    "allActions": "All Actions",
+    "startDate": "Start Date",
+    "endDate": "End Date",
+    "inspect": "Inspect",
+    "stateDeltaInspector": "State Delta Inspector",
+    "beforeState": "Before State",
+    "afterState": "After State"
   }
 }

@@ -1,3 +1,6 @@
+@import "tailwindcss";
 @import "@omniheaven/ui/styles.css";
+
+@source "../../../../packages/ui";
 
 /* App-specific custom styling for Admin Operations */

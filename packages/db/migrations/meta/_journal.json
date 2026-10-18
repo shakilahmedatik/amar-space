@@ -36,6 +36,20 @@
       "when": 1792320805530,
       "tag": "0004_smiling_ezekiel",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1792332388411,
+      "tag": "0005_closed_blue_blade",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1792333833582,
+      "tag": "0006_quiet_thor",
+      "breakpoints": true
     }
   ]
 }

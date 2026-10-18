@@ -32,6 +32,7 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { trpc } from "../lib/trpc";
+import { EntityAuditTimeline } from "./entity-audit-timeline";
 
 interface BillDetailsModalProps {
   billId: string | null;
@@ -410,6 +411,11 @@ export function BillDetailsModal({
                 />
               </div>
             </Card>
+
+            {/* Financial State Audit Timeline */}
+            <div className="pt-4 border-t border-border">
+              <EntityAuditTimeline entityType="bill" entityId={bill.id} />
+            </div>
 
             <DialogFooter className="pt-2 flex flex-col sm:flex-row gap-2 justify-between items-center">
               <div className="flex items-center gap-2 w-full sm:w-auto">

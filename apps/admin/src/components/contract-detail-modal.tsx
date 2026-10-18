@@ -28,6 +28,7 @@ import {
 import type React from "react";
 import { useState } from "react";
 import { trpc } from "../lib/trpc";
+import { EntityAuditTimeline } from "./entity-audit-timeline";
 
 export interface ContractRecord {
   id: string;
@@ -359,6 +360,11 @@ export function ContractDetailModal({
                 </p>
               </div>
             )}
+
+            {/* Tenancy State Audit History */}
+            <div className="pt-4 border-t border-border">
+              <EntityAuditTimeline entityType="contract" entityId={contract.id} />
+            </div>
 
             {/* Action Bar */}
             <DialogFooter className="pt-4 border-t border-border flex flex-col sm:flex-row justify-between gap-2">

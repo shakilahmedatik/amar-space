@@ -3,21 +3,33 @@
 import { Badge, Button, Card, CurrencyDisplay, StatusBadge } from "@omniheaven/ui";
 import {
   AlertTriangle,
+  Bell,
+  CheckCircle2,
   CreditCard,
   Download,
   FileText,
   HeartPulse,
   Phone,
+  Pin,
+  Plus,
   ShieldCheck,
   Wrench,
 } from "lucide-react";
 import { useState } from "react";
+import { TenantReportProblemModal } from "../../components/tenant-report-problem-modal";
+import { trpc } from "../../lib/trpc";
 
 export default function FlatPortalDashboardPage() {
   const [activeTab, setActiveTab] = useState<
     "lease" | "bills" | "maintenance" | "notices" | "contacts"
   >("lease");
   const [paidDemo, setPaidDemo] = useState(false);
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+
+  // Queries for real data
+  const { data: myTickets = [], refetch: refetchTickets } =
+    trpc.operations.getMyMaintenanceRequests.useQuery();
+  const { data: myNotices = [] } = trpc.operations.getMyNotices.useQuery();
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
@@ -369,48 +381,160 @@ export default function FlatPortalDashboardPage() {
         )}
 
         {activeTab === "maintenance" && (
-          <Card className="p-4 space-y-4">
+          <Card className="p-5 space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                Service & Repair Requests
-              </h3>
-              <Button size="sm" className="h-7 text-xs bg-indigo-600 text-white">
-                + Report New Issue
-              </Button>
-            </div>
-            <div className="p-3 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 flex items-start justify-between text-xs">
               <div>
-                <p className="font-semibold text-slate-900 dark:text-white">
-                  Master Bedroom AC Water Dripping
-                </p>
-                <p className="text-slate-500 text-[11px] mt-0.5">
-                  Reported on Oct 14, 2026 · Caretaker assigned
+                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                  Service & Repair Requests
+                </h3>
+                <p className="text-[11px] text-slate-400">
+                  Submit maintenance tickets and track caretaker resolution
                 </p>
               </div>
-              <StatusBadge status="in_progress" />
+              <Button
+                type="button"
+                size="sm"
+                onClick={() => setIsReportModalOpen(true)}
+                className="h-9 px-3 text-xs bg-indigo-600 hover:bg-indigo-700 text-white font-semibold flex items-center gap-1.5 min-h-[36px]"
+              >
+                <Plus className="size-3.5" /> Report Issue
+              </Button>
             </div>
+
+            {myTickets.length === 0 ? (
+              <div className="p-8 text-center border border-dashed border-slate-200 dark:border-slate-800 rounded-xl space-y-2">
+                <Wrench className="size-6 text-slate-400 mx-auto" />
+                <p className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                  No maintenance requests reported
+                </p>
+                <p className="text-[11px] text-slate-400 max-w-xs mx-auto">
+                  Experiencing plumbing leaks, electrical problems, or AC issues? Report them
+                  directly.
+                </p>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setIsReportModalOpen(true)}
+                  className="h-8 text-xs mt-2"
+                >
+                  Report a Problem
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {myTickets.map((t) => (
+                  <div
+                    key={t.id}
+                    className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 space-y-2.5 text-xs"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold text-slate-900 dark:text-white text-sm">
+                            {t.title}
+                          </span>
+                          <Badge variant="outline" className="text-[10px] capitalize font-medium">
+                            {t.category}
+                          </Badge>
+                          {t.priority === "urgent" && (
+                            <Badge
+                              variant="outline"
+                              className="text-[10px] font-bold text-rose-600 bg-rose-500/10 border-rose-500/20"
+                            >
+                              Urgent
+                            </Badge>
+                          )}
+                        </div>
+                        <p className="text-slate-500 text-[11px] mt-0.5">
+                          Reported on{" "}
+                          {t.createdAt ? new Date(t.createdAt).toLocaleDateString() : ""}
+                          {t.assignedToStaff &&
+                            ` · Technician: ${t.assignedToStaff.name || "Assigned"}`}
+                        </p>
+                      </div>
+                      <StatusBadge status={t.status as any} />
+                    </div>
+
+                    <p className="text-slate-600 dark:text-slate-300 leading-relaxed">
+                      {t.description}
+                    </p>
+
+                    {/* Resolution details if resolved */}
+                    {t.status === "resolved" && t.resolutionNotes && (
+                      <div className="p-3 rounded-lg bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-500/20 text-[11px] space-y-1">
+                        <span className="font-bold text-emerald-700 dark:text-emerald-400 block flex items-center gap-1">
+                          <CheckCircle2 className="size-3.5" /> Resolution Report
+                        </span>
+                        <p className="text-emerald-900 dark:text-emerald-200">
+                          {t.resolutionNotes}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
           </Card>
         )}
 
         {activeTab === "notices" && (
-          <Card className="p-4 space-y-3">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">
-              Active Building Announcements
-            </h3>
-            <div className="p-3.5 rounded-lg border border-amber-200 dark:border-amber-950 bg-amber-50/40 dark:bg-amber-950/20 space-y-1">
-              <Badge
-                variant="outline"
-                className="text-[10px] bg-amber-500/10 text-amber-600 border-amber-500/20 font-semibold"
-              >
-                Scheduled Water Tank Cleaning
-              </Badge>
-              <p className="text-xs font-bold text-slate-900 dark:text-white">
-                Water supply maintenance on Saturday, Oct 24 (10:00 AM – 2:00 PM)
-              </p>
-              <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-                Please reserve necessary water in advance. Normal supply will resume at 2:30 PM.
+          <Card className="p-5 space-y-4">
+            <div>
+              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                Active Building Announcements
+              </h3>
+              <p className="text-[11px] text-slate-400">
+                Official notices and maintenance advisories from property management
               </p>
             </div>
+
+            {myNotices.length === 0 ? (
+              <div className="p-8 text-center border border-dashed border-slate-200 dark:border-slate-800 rounded-xl space-y-2">
+                <Bell className="size-6 text-slate-400 mx-auto" />
+                <p className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                  No active announcements
+                </p>
+                <p className="text-[11px] text-slate-400">
+                  All systems operating normally. Notices will appear here when published.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {myNotices.map((n) => (
+                  <div
+                    key={n.id}
+                    className={`p-4 rounded-xl border space-y-2 text-xs transition-all ${
+                      n.isPinned
+                        ? "border-amber-300 dark:border-amber-900 bg-amber-50/40 dark:bg-amber-950/20"
+                        : "border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        {n.isPinned && (
+                          <Badge
+                            variant="outline"
+                            className="text-[10px] bg-amber-500/10 text-amber-600 border-amber-500/20 font-bold flex items-center gap-1"
+                          >
+                            <Pin className="size-3" /> Pinned
+                          </Badge>
+                        )}
+                        <h4 className="font-bold text-slate-900 dark:text-white text-sm">
+                          {n.title}
+                        </h4>
+                      </div>
+                      <span className="text-[10px] text-slate-400 shrink-0">
+                        {n.createdAt ? new Date(n.createdAt).toLocaleDateString() : ""}
+                      </span>
+                    </div>
+
+                    <p className="text-slate-600 dark:text-slate-300 leading-relaxed whitespace-pre-wrap">
+                      {n.body}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
           </Card>
         )}
 
@@ -425,7 +549,7 @@ export default function FlatPortalDashboardPage() {
               </div>
               <a
                 href="tel:01711000111"
-                className="px-2.5 py-1 text-xs font-semibold rounded-md bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 flex items-center gap-1"
+                className="px-2.5 py-1 text-xs font-semibold rounded-md bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 flex items-center gap-1 min-h-[44px]"
               >
                 <Phone className="size-3" /> Call
               </a>
@@ -440,7 +564,7 @@ export default function FlatPortalDashboardPage() {
               </div>
               <a
                 href="tel:01822000222"
-                className="px-2.5 py-1 text-xs font-semibold rounded-md bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 flex items-center gap-1"
+                className="px-2.5 py-1 text-xs font-semibold rounded-md bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 flex items-center gap-1 min-h-[44px]"
               >
                 <Phone className="size-3" /> Call
               </a>
@@ -448,6 +572,13 @@ export default function FlatPortalDashboardPage() {
           </div>
         )}
       </main>
+
+      {/* Tenant Report Problem Modal */}
+      <TenantReportProblemModal
+        isOpen={isReportModalOpen}
+        onClose={() => setIsReportModalOpen(false)}
+        onSuccess={() => refetchTickets()}
+      />
     </div>
   );
 }

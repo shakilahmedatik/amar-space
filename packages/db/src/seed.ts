@@ -1,12 +1,15 @@
 import { client, db } from "./client";
 import {
   advanceAdjustments,
+  auditLogs,
   bills,
   buildings,
   emergencyContacts,
   flats,
   invitations,
+  maintenanceRequests,
   members,
+  notices,
   organizations,
   payments,
   rentalContracts,
@@ -587,6 +590,249 @@ async function main() {
   ];
 
   await db.insert(payments).values(paymentFixtures).onConflictDoNothing();
+
+  // Tier 1 Seed: Domain 05 Maintenance Requests
+  const maintenanceFixtures = [
+    {
+      id: "ticket-plumbing-1a",
+      organizationId: demoBuildingOrgId,
+      buildingId: dhanmondiBuildingId,
+      flatId: "flat-dhanmondi-1a",
+      category: "plumbing",
+      title: "Master bathroom flush tank leakage",
+      description: "Continuous water leaking from flush tank inlet pipe causing bathroom dampness.",
+      priority: "high",
+      status: "resolved",
+      requestedBy: "Farhana Yasmin",
+      requestedByUserId: "user-renter-1",
+      assignedToStaffId: "user-staff-1",
+      repairCost: "850.00",
+      costBilledTo: "landlord",
+      resolutionNotes:
+        "Replaced faulty rubber washer and teflon tape on supply valve. Water pressure tested and sealed.",
+      photoUrls: ["https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=600"],
+      resolutionPhotoUrls: ["https://images.unsplash.com/photo-1585704032915-c3400ca199e7?w=600"],
+      resolvedAt: new Date(Date.now() - 3 * 24 * 3600 * 1000),
+      closedAt: new Date(Date.now() - 2 * 24 * 3600 * 1000),
+    },
+    {
+      id: "ticket-electrical-1b",
+      organizationId: demoBuildingOrgId,
+      buildingId: dhanmondiBuildingId,
+      flatId: "flat-dhanmondi-1b",
+      category: "electrical",
+      title: "Circuit breaker tripping on AC startup",
+      description:
+        "Living room AC circuit breaker trips automatically after running for 5 minutes.",
+      priority: "urgent",
+      status: "in_progress",
+      requestedBy: "Kazi Naimul Haque",
+      requestedByUserId: "user-renter-2",
+      assignedToStaffId: "user-staff-1",
+      repairCost: "0.00",
+      costBilledTo: "landlord",
+      photoUrls: ["https://images.unsplash.com/photo-1621905251918-48416bd8575a?w=600"],
+      resolutionPhotoUrls: [],
+    },
+    {
+      id: "ticket-elevator-common",
+      organizationId: demoBuildingOrgId,
+      buildingId: dhanmondiBuildingId,
+      flatId: null,
+      category: "elevator",
+      title: "Elevator B door sensor obstruction warning",
+      description: "Elevator door repeatedly beeps and delays closing on the 3rd floor landing.",
+      priority: "medium",
+      status: "assigned",
+      requestedBy: "Kamrul Hasan (Manager)",
+      requestedByUserId: "user-manager-1",
+      assignedToStaffId: "user-staff-1",
+      repairCost: "0.00",
+      costBilledTo: "landlord",
+      photoUrls: [],
+      resolutionPhotoUrls: [],
+    },
+    {
+      id: "ticket-generator-routine",
+      organizationId: demoBuildingOrgId,
+      buildingId: dhanmondiBuildingId,
+      flatId: null,
+      category: "generator",
+      title: "Monthly backup generator diesel refueling & filter check",
+      description: "Scheduled routine servicing of standby 150 kVA Perkins generator.",
+      priority: "low",
+      status: "open",
+      requestedBy: "Kamrul Hasan (Manager)",
+      requestedByUserId: "user-manager-1",
+      assignedToStaffId: null,
+      repairCost: "0.00",
+      costBilledTo: "landlord",
+      photoUrls: [],
+      resolutionPhotoUrls: [],
+    },
+  ];
+
+  await db.insert(maintenanceRequests).values(maintenanceFixtures).onConflictDoNothing();
+
+  // Tier 1 Seed: Domain 05 Building Broadcast Notices
+  const noticeFixtures = [
+    {
+      id: "notice-generator-servicing",
+      organizationId: demoBuildingOrgId,
+      title: "Scheduled Standby Generator Servicing & Brief Power Interruption",
+      body: "Please be informed that routine maintenance of the central backup generator will take place on **Saturday, October 24 between 10:00 AM and 12:00 PM**. During this window, DESCO line power will remain active, but standby backup power will not be available in case of utility outages. We appreciate your cooperation.",
+      targetAudience: "all_renters",
+      targetBuildingId: dhanmondiBuildingId,
+      isPinned: true,
+      authorUserId: "user-manager-1",
+      expiresAt: new Date(Date.now() + 7 * 24 * 3600 * 1000),
+    },
+    {
+      id: "notice-water-tank-cleaning",
+      organizationId: demoBuildingOrgId,
+      title: "Overhead & Underground Water Reservoir Deep Cleaning",
+      body: "The annual chemical cleaning and disinfection of overhead and underground water reservoirs will take place on **Friday, October 30 from 08:00 AM to 02:00 PM**. Water supply will be temporarily paused during cleaning hours. Residents are requested to store adequate water beforehand.",
+      targetAudience: "specific_building",
+      targetBuildingId: dhanmondiBuildingId,
+      isPinned: false,
+      authorUserId: "user-manager-1",
+      expiresAt: new Date(Date.now() + 14 * 24 * 3600 * 1000),
+    },
+    {
+      id: "notice-eid-security-advisory",
+      organizationId: demoBuildingOrgId,
+      title: "Eid Holiday Building Security Protocol & Visitor Logs",
+      body: "Caretakers will maintain strict 24/7 visitor sign-in logs during the Eid holiday week. Please inform management if your flat will be vacant.",
+      targetAudience: "all_renters",
+      targetBuildingId: dhanmondiBuildingId,
+      isPinned: false,
+      authorUserId: "user-manager-1",
+      expiresAt: new Date(Date.now() - 30 * 24 * 3600 * 1000), // Expired fixture
+    },
+  ];
+
+  await db.insert(notices).values(noticeFixtures).onConflictDoNothing();
+
+  // Domain 06: Audit Logs & Security Fixtures
+  const auditLogFixtures = [
+    {
+      id: "audit-rent-update-flat-4a",
+      organizationId: demoBuildingOrgId,
+      actorUserId: "user-landlord-1",
+      actorEmail: "landlord@bashundhara.com",
+      actorRole: "owner",
+      action: "UPDATE",
+      entityType: "flat",
+      entityId: "flat-dhanmondi-4a",
+      oldValue: { baseRent: "45000.00", serviceCharge: "5000.00" },
+      newValue: { baseRent: "48000.00", serviceCharge: "5500.00" },
+      metadata: { reason: "Annual contractual rent review and service charge adjustment" },
+      ipAddress: "103.114.98.22",
+      userAgent:
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 Chrome/130.0.0.0 Safari/537.36",
+      createdAt: new Date(Date.now() - 15 * 24 * 3600 * 1000),
+    },
+    {
+      id: "audit-advance-adj-9941",
+      organizationId: demoBuildingOrgId,
+      actorUserId: "user-manager-1",
+      actorEmail: "manager@bashundhara.com",
+      actorRole: "manager",
+      action: "ADJUST",
+      entityType: "advance_adjustment",
+      entityId: "adj-contract-4a-oct",
+      oldValue: { remainingDepositBalance: "60000.00" },
+      newValue: { remainingDepositBalance: "30000.00", adjustedAmount: "30000.00" },
+      metadata: {
+        note: "Adjusting November rent against security deposit",
+        billId: "bill-nov-flat-4a",
+      },
+      ipAddress: "103.114.98.22",
+      userAgent:
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 Chrome/130.0.0.0 Safari/537.36",
+      createdAt: new Date(Date.now() - 5 * 24 * 3600 * 1000),
+    },
+    {
+      id: "audit-contract-create-4a",
+      organizationId: demoBuildingOrgId,
+      actorUserId: "user-manager-1",
+      actorEmail: "manager@bashundhara.com",
+      actorRole: "manager",
+      action: "CREATE",
+      entityType: "contract",
+      entityId: "contract-rafiq-flat-4a",
+      oldValue: null,
+      newValue: {
+        flatId: "flat-dhanmondi-4a",
+        renterId: "renter-rafiq-ahmed",
+        monthlyRent: "45000.00",
+        advanceDeposit: "90000.00",
+        status: "active",
+      },
+      metadata: { agreementVersion: "standard_residential_v2" },
+      ipAddress: "103.114.98.22",
+      userAgent:
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 Chrome/130.0.0.0 Safari/537.36",
+      createdAt: new Date(Date.now() - 60 * 24 * 3600 * 1000),
+    },
+    {
+      id: "audit-maint-assign-1",
+      organizationId: demoBuildingOrgId,
+      actorUserId: "user-manager-1",
+      actorEmail: "manager@bashundhara.com",
+      actorRole: "manager",
+      action: "ASSIGN",
+      entityType: "maintenance",
+      entityId: "maint-plumbing-leak",
+      oldValue: { status: "open", assignedToStaffId: null },
+      newValue: { status: "assigned", assignedToStaffId: "user-staff-1" },
+      metadata: { technician: "Abdul Karim (Plumbing Specialist)" },
+      ipAddress: "103.114.98.25",
+      userAgent:
+        "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 Mobile/15E148 Safari/604.1",
+      createdAt: new Date(Date.now() - 2 * 24 * 3600 * 1000),
+    },
+    {
+      id: "audit-notice-pin-1",
+      organizationId: demoBuildingOrgId,
+      actorUserId: "user-manager-1",
+      actorEmail: "manager@bashundhara.com",
+      actorRole: "manager",
+      action: "UPDATE",
+      entityType: "notice",
+      entityId: "notice-generator-servicing",
+      oldValue: { isPinned: false },
+      newValue: { isPinned: true },
+      metadata: { actionDetail: "Pinned generator servicing advisory to the top of notice board" },
+      ipAddress: "103.114.98.25",
+      userAgent:
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 Chrome/130.0.0.0 Safari/537.36",
+      createdAt: new Date(Date.now() - 1 * 24 * 3600 * 1000),
+    },
+    {
+      id: "audit-bill-payment-1",
+      organizationId: demoBuildingOrgId,
+      actorUserId: "user-manager-1",
+      actorEmail: "manager@bashundhara.com",
+      actorRole: "manager",
+      action: "PAY",
+      entityType: "bill",
+      entityId: "bill-oct-flat-4a",
+      oldValue: { paymentStatus: "unpaid", paidAmount: "0.00" },
+      newValue: { paymentStatus: "paid", paidAmount: "53500.00" },
+      metadata: {
+        paymentMethod: "bank_transfer",
+        bankName: "City Bank",
+        transactionId: "TXN-8849201",
+      },
+      ipAddress: "103.114.98.22",
+      userAgent:
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 Chrome/130.0.0.0 Safari/537.36",
+      createdAt: new Date(Date.now() - 3 * 24 * 3600 * 1000),
+    },
+  ];
+
+  await db.insert(auditLogs).values(auditLogFixtures).onConflictDoNothing();
 
   console.log("Database seeded successfully.");
   await client.end();

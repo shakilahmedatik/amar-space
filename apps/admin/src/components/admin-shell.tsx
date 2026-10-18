@@ -4,11 +4,13 @@ import { Badge, Button } from "@omniheaven/ui";
 import { LogOut, Menu, Sparkles, X } from "lucide-react";
 import { useState } from "react";
 import { useOrganization } from "../lib/organization-context";
+import { AuditLogsView } from "./audit-logs-view";
 import { BillingInvoicesView } from "./billing-invoices-view";
 import { CreateOrganizationModal } from "./create-organization-modal";
 import { DashboardOverviewView } from "./dashboard-overview-view";
 import { InviteMemberModal } from "./invite-member-modal";
 import { LanguageToggle } from "./language-toggle";
+import { MaintenanceOperationsView } from "./maintenance-operations-view";
 import { getNavItemsForProductType } from "./navigation-items";
 import { OrganizationSwitcher } from "./organization-switcher";
 import { PropertyHierarchyView } from "./property-hierarchy-view";
@@ -173,6 +175,12 @@ export function AdminShell({ initialLocale }: AdminShellProps) {
             <RenterDirectoryView />
           ) : activeTab === "bills" || activeTab === "payments" ? (
             <BillingInvoicesView />
+          ) : activeTab === "maintenance" || activeTab === "notices" ? (
+            <MaintenanceOperationsView
+              initialTab={activeTab === "notices" ? "notices" : "maintenance"}
+            />
+          ) : activeTab === "audit" ? (
+            <AuditLogsView />
           ) : (
             <DashboardOverviewView productType={productType} organizationName={activeOrg.name} />
           )}
