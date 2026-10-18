@@ -72,10 +72,10 @@ export function AdminShell({ initialLocale }: AdminShellProps) {
         <div className="flex items-center gap-3">
           {/* 6-Month Free Trial Pill */}
           <Badge
-            variant="outline"
-            className="hidden md:flex items-center gap-1.5 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 text-xs font-semibold px-2.5 py-1"
+            variant="gold"
+            className="hidden md:flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1"
           >
-            <Sparkles className="size-3 text-emerald-500" />
+            <Sparkles className="size-3" />
             6-Month Free Trial Active
           </Badge>
 

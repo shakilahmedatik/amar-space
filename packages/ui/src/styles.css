@@ -1,3 +1,29 @@
+@theme {
+  --color-canvas: hsl(var(--canvas));
+  --color-surface: hsl(var(--surface));
+  --color-surface-elevated: hsl(var(--surface-elevated));
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-border: hsl(var(--border));
+  --color-border-gold: hsl(var(--border-gold));
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-foreground: hsl(var(--foreground));
+  --color-foreground-muted: hsl(var(--foreground-muted));
+  --color-foreground-secondary: hsl(var(--foreground-secondary));
+  --font-display: var(--font-display);
+  --font-sans: var(--font-sans);
+  --font-bangla: var(--font-bangla);
+}
+
 @layer base {
   :root {
     /* Royal Heritage & Champagne - Light Theme (Day Pavilion) */
