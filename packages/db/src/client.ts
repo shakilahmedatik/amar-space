@@ -3,7 +3,8 @@ import postgres from "postgres";
 import * as schema from "./schema";
 
 const connectionString =
-  process.env.DATABASE_URL || "postgresql://postgres:postgres@localhost:5432/omniheaven";
+  process.env.DATABASE_URL ||
+  "postgresql://omniheaven:omniheaven_secret_pass@localhost:5432/omniheaven_prod";
 
 // Use a connection pool for general queries
 const client = postgres(connectionString, {

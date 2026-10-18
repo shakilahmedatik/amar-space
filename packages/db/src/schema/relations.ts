@@ -11,6 +11,29 @@ import { websiteConfigs } from "./website-configs";
 
 export const usersRelations = relations(users, ({ many }) => ({
   memberships: many(members),
+  sentInvitations: many(invitations),
+}));
+
+export const membersRelations = relations(members, ({ one }) => ({
+  organization: one(organizations, {
+    fields: [members.organizationId],
+    references: [organizations.id],
+  }),
+  user: one(users, {
+    fields: [members.userId],
+    references: [users.id],
+  }),
+}));
+
+export const invitationsRelations = relations(invitations, ({ one }) => ({
+  organization: one(organizations, {
+    fields: [invitations.organizationId],
+    references: [organizations.id],
+  }),
+  inviter: one(users, {
+    fields: [invitations.inviterId],
+    references: [users.id],
+  }),
 }));
 
 export const organizationsRelations = relations(organizations, ({ one, many }) => ({
