@@ -7,12 +7,20 @@
     "check-types": "tsc --noEmit"
   },
   "dependencies": {
+    "@omniheaven/trpc": "workspace:*",
     "@omniheaven/ui": "workspace:*",
-    "@omniheaven/validators": "workspace:*"
+    "@omniheaven/validators": "workspace:*",
+    "@tanstack/react-query": "^5.67.0",
+    "@trpc/client": "^11.19.0",
+    "@trpc/react-query": "^11.19.0",
+    "lucide-react": "^1.16.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
   },
   "devDependencies": {
     "@omniheaven/typescript-config": "workspace:*",
     "@types/react": "19.2.2",
+    "@types/react-dom": "19.2.2",
     "typescript": "^5.9.2"
   }
 }

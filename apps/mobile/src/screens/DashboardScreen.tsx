@@ -1,21 +1,86 @@
+"use client";
+
 import type React from "react";
+import { trpc } from "../lib/trpc";
 import type { MobileTheme } from "../theme";
 import type { MobileOverviewStats, PropertyType } from "../types";
 
 interface DashboardScreenProps {
   propertyType: PropertyType;
-  stats: MobileOverviewStats;
+  stats?: MobileOverviewStats;
   theme: MobileTheme;
-  onNavigateTab: (tab: "bookings" | "tenants" | "maintenance") => void;
+  onNavigateTab: (tab: "bookings" | "tenants" | "maintenance" | "housekeeping") => void;
 }
 
 export const DashboardScreen: React.FC<DashboardScreenProps> = ({
   propertyType,
-  stats,
+  stats: initialStats,
   theme,
   onNavigateTab,
 }) => {
   const { colors, card } = theme;
+
+  // Live queries for real-time dashboard indicators
+  const { data: liveRooms = [] } = trpc.hotel.listRooms.useQuery(undefined, {
+    enabled: propertyType === "hotel",
+    retry: 1,
+  });
+
+  const { data: liveBookings = [] } = trpc.hotel.listBookings.useQuery(undefined, {
+    enabled: propertyType === "hotel",
+    retry: 1,
+  });
+
+  const { data: billsData } = trpc.billing.listBills.useQuery(undefined, {
+    enabled: propertyType === "building",
+    retry: 1,
+  });
+  const liveBills = billsData?.bills || [];
+
+  const { data: liveTickets = [] } = trpc.operations.listMaintenanceRequests.useQuery(undefined, {
+    retry: 1,
+  });
+
+  // Calculate live statistics
+  const liveAvailableRooms = liveRooms.filter((r: any) => r.status === "available").length;
+  const liveOccupiedRooms = liveRooms.filter((r: any) => r.status === "occupied").length;
+  const liveCleaningRooms = liveRooms.filter((r: any) => r.status === "cleaning").length;
+  const liveTodayArrivals = liveBookings.filter(
+    (b: any) => b.status === "confirmed" || b.status === "pending",
+  ).length;
+
+  const liveUnpaidBills = liveBills.filter((b: any) => b.status !== "paid").length;
+  const livePendingTickets = liveTickets.filter(
+    (t: any) => t.status === "open" || t.status === "assigned" || t.status === "in_progress",
+  ).length;
+
+  const liveHotelRevenue = liveBookings
+    .filter((b: any) => b.paymentStatus === "paid")
+    .reduce((sum: number, b: any) => sum + (Number(b.totalPrice) || 0), 0);
+
+  const liveBuildingRevenue =
+    billsData?.metrics?.totalCollected !== undefined
+      ? billsData.metrics.totalCollected
+      : liveBills
+          .filter((b: any) => b.status === "paid")
+          .reduce((sum: number, b: any) => sum + (Number(b.totalAmount) || 0), 0);
+
+  const stats: MobileOverviewStats = {
+    todayCheckIns: liveBookings.length > 0 ? liveTodayArrivals : (initialStats?.todayCheckIns ?? 4),
+    availableRooms: liveRooms.length > 0 ? liveAvailableRooms : (initialStats?.availableRooms ?? 8),
+    occupiedRooms: liveRooms.length > 0 ? liveOccupiedRooms : (initialStats?.occupiedRooms ?? 34),
+    pendingMaintenance:
+      liveTickets.length > 0 ? livePendingTickets : (initialStats?.pendingMaintenance ?? 3),
+    monthlyRevenueBdt:
+      propertyType === "hotel"
+        ? liveHotelRevenue > 0
+          ? liveHotelRevenue
+          : (initialStats?.monthlyRevenueBdt ?? 845000)
+        : liveBuildingRevenue > 0
+          ? liveBuildingRevenue
+          : (initialStats?.monthlyRevenueBdt ?? 650000),
+    unpaidRentCount: liveBills.length > 0 ? liveUnpaidBills : (initialStats?.unpaidRentCount ?? 2),
+  };
 
   return (
     <div
@@ -188,23 +253,59 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
       </h3>
       <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
         {propertyType === "hotel" ? (
-          <button
-            type="button"
-            onClick={() => onNavigateTab("bookings")}
-            style={{
-              padding: 14,
-              backgroundColor: colors.goldPrimary,
-              color: theme.isDark ? "#14110F" : "#1F1714",
-              border: "none",
-              borderRadius: 10,
-              fontWeight: "bold",
-              fontSize: 13,
-              cursor: "pointer",
-              boxShadow: `0 4px 12px ${colors.goldGlow}`,
-            }}
-          >
-            Review Arrivals & Check-Ins →
-          </button>
+          <>
+            <button
+              type="button"
+              onClick={() => onNavigateTab("bookings")}
+              style={{
+                padding: 14,
+                backgroundColor: colors.goldPrimary,
+                color: theme.isDark ? "#14110F" : "#1F1714",
+                border: "none",
+                borderRadius: 10,
+                fontWeight: "bold",
+                fontSize: 13,
+                cursor: "pointer",
+                boxShadow: `0 4px 12px ${colors.goldGlow}`,
+              }}
+            >
+              Review Arrivals & Check-Ins ({stats.todayCheckIns}) →
+            </button>
+
+            <button
+              type="button"
+              onClick={() => onNavigateTab("housekeeping")}
+              style={{
+                padding: 14,
+                backgroundColor: colors.surfaceElevated,
+                color: colors.textPrimary,
+                border: `1px solid ${colors.borderGold}`,
+                borderRadius: 10,
+                fontWeight: "600",
+                fontSize: 13,
+                cursor: "pointer",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
+            >
+              <span>Housekeeping & Room Turnover Desk</span>
+              {liveCleaningRooms > 0 && (
+                <span
+                  style={{
+                    backgroundColor: "#78350f",
+                    color: "#fef08a",
+                    fontSize: 11,
+                    padding: "2px 8px",
+                    borderRadius: 8,
+                    fontWeight: "bold",
+                  }}
+                >
+                  {liveCleaningRooms} Needs Clean
+                </span>
+              )}
+            </button>
+          </>
         ) : (
           <button
             type="button"
@@ -221,7 +322,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
               boxShadow: `0 4px 12px ${colors.goldGlow}`,
             }}
           >
-            Review Tenant Rent Collections →
+            Review Tenant Rent Collections ({stats.unpaidRentCount} Due) →
           </button>
         )}
 
