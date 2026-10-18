@@ -2,6 +2,7 @@ import { router } from "../trpc";
 import { auditRouter } from "./audit";
 import { billingRouter } from "./billing";
 import { healthRouter } from "./health";
+import { hotelRouter } from "./hotel";
 import { operationsRouter } from "./operations";
 import { organizationRouter } from "./organization";
 import { propertyRouter } from "./property";
@@ -15,6 +16,7 @@ export const appRouter = router({
   billing: billingRouter,
   operations: operationsRouter,
   audit: auditRouter,
+  hotel: hotelRouter,
 });
 
 export type AppRouter = typeof appRouter;

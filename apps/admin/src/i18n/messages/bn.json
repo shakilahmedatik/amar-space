@@ -219,5 +219,26 @@
     "stateDeltaInspector": "পরিবর্তন পরীক্ষক",
     "beforeState": "পূর্ববর্তী অবস্থা",
     "afterState": "পরবর্তী অবস্থা"
+  },
+  "hotel": {
+    "title": "ফ্রন্ট ডেস্ক ও রিজার্ভেশন চার্ট",
+    "subtitle": "রিয়েল-টাইম রুম দখলদারিত্ব, অতিথি চেক-ইন, পেমেন্ট নিষ্পত্তি ও রুম বরাদ্দকরণ।",
+    "occupancyRate": "দখলদারিত্বের হার",
+    "inHouseGuests": "উপস্থিত অতিথি",
+    "activeBookings": "সক্রিয় বুকিং",
+    "roomInventory": "মোট রুম সংখ্যা",
+    "newReservation": "নতুন রিজার্ভেশন",
+    "tapeChart": "টেপ চার্ট",
+    "tableList": "তালিকা ভিউ",
+    "checkIn": "চেক-ইন",
+    "checkOut": "চেক-আউট",
+    "addCharge": "+ অতিরিক্ত খরচ",
+    "roomsAndHousekeeping": "রুম ও হাউসকিপিং",
+    "housekeepingBoard": "হাউসকিপিং বোর্ড",
+    "roomTypesCatalog": "রুমের ধরন ক্যাটালগ",
+    "cleanAndReady": "পরিষ্কার ও প্রস্তুত",
+    "needsCleaning": "পরিষ্কার প্রয়োজন",
+    "outOfOrder": "মেরামত চলছে",
+    "markCleanAndReady": "পরিষ্কার সম্পন্ন মার্ক করুন"
   }
 }

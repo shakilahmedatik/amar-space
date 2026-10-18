@@ -50,6 +50,13 @@
       "when": 1792333833582,
       "tag": "0006_quiet_thor",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1792338701340,
+      "tag": "0007_spotty_thaddeus_ross",
+      "breakpoints": true
     }
   ]
 }

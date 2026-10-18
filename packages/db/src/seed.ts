@@ -3,6 +3,7 @@ import {
   advanceAdjustments,
   auditLogs,
   bills,
+  bookings,
   buildings,
   emergencyContacts,
   flats,
@@ -14,6 +15,8 @@ import {
   payments,
   rentalContracts,
   renters,
+  rooms,
+  roomTypes,
   subscriptions,
   users,
   websiteConfigs,
@@ -833,6 +836,285 @@ async function main() {
   ];
 
   await db.insert(auditLogs).values(auditLogFixtures).onConflictDoNothing();
+
+  // ==========================================
+  // DOMAIN 07: HOTEL & RESORT PMS FIXTURES
+  // ==========================================
+  const roomTypeOceanSuite = {
+    id: "rt-ocean-suite",
+    organizationId: demoHotelOrgId,
+    name: "Grand Ocean View Suite",
+    description:
+      "Panoramic Bay of Bengal vista, private balcony, jacuzzi, and complimentary morning breakfast.",
+    basePrice: "14500.00",
+    capacityAdults: 2,
+    capacityChildren: 1,
+    bedType: "king",
+    bedCount: 1,
+    sizeSqFt: "750.00",
+    amenities: [
+      "Ocean View",
+      "Private Balcony",
+      "Jacuzzi",
+      "King Bed",
+      "High-speed WiFi",
+      "Mini Bar",
+      "Complimentary Breakfast",
+    ],
+    photos: [
+      "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=1200&q=80",
+    ],
+  };
+
+  const roomTypeDeluxe = {
+    id: "rt-deluxe-sea",
+    organizationId: demoHotelOrgId,
+    name: "Executive Sea View Deluxe",
+    description:
+      "Elegant modern aesthetic with direct sea view, executive work desk, and luxury rain shower.",
+    basePrice: "9800.00",
+    capacityAdults: 2,
+    capacityChildren: 1,
+    bedType: "queen",
+    bedCount: 1,
+    sizeSqFt: "480.00",
+    amenities: [
+      "Sea View",
+      "Executive Desk",
+      "Rain Shower",
+      "High-speed WiFi",
+      "Smart TV",
+      "Air Conditioning",
+    ],
+    photos: [
+      "https://images.unsplash.com/photo-1591088398332-8a7791972843?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1566665797739-1674de7a421a?auto=format&fit=crop&w=1200&q=80",
+    ],
+  };
+
+  const roomTypeFamily = {
+    id: "rt-palm-family",
+    organizationId: demoHotelOrgId,
+    name: "Palm Garden Family Suite",
+    description:
+      "Spacious dual queen bed suite overlooking tropical resort gardens, perfect for families.",
+    basePrice: "12500.00",
+    capacityAdults: 4,
+    capacityChildren: 2,
+    bedType: "queen",
+    bedCount: 2,
+    sizeSqFt: "650.00",
+    amenities: [
+      "Garden View",
+      "Dual Queen Beds",
+      "Kid-friendly",
+      "Kitchenette",
+      "Private Patio",
+      "High-speed WiFi",
+    ],
+    photos: [
+      "https://images.unsplash.com/photo-1578683010236-d716f9a3f461?auto=format&fit=crop&w=1200&q=80",
+    ],
+  };
+
+  const roomTypeStandard = {
+    id: "rt-hill-breeze",
+    organizationId: demoHotelOrgId,
+    name: "Standard Hill Breeze Room",
+    description:
+      "Cozy retreat facing the lush green hills of Himchari with quiet ambiance and fresh mountain air.",
+    basePrice: "5500.00",
+    capacityAdults: 2,
+    capacityChildren: 0,
+    bedType: "double",
+    bedCount: 1,
+    sizeSqFt: "320.00",
+    amenities: [
+      "Hill View",
+      "Double Bed",
+      "Work Desk",
+      "High-speed WiFi",
+      "Electric Kettle",
+      "Air Conditioning",
+    ],
+    photos: [
+      "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=80",
+    ],
+  };
+
+  await db
+    .insert(roomTypes)
+    .values([roomTypeOceanSuite, roomTypeDeluxe, roomTypeFamily, roomTypeStandard])
+    .onConflictDoNothing();
+
+  // 12 Physical Rooms across the 4 types
+  const hotelRooms = [
+    // Ocean Suites (Floor 3)
+    {
+      id: "room-301",
+      organizationId: demoHotelOrgId,
+      roomTypeId: roomTypeOceanSuite.id,
+      roomNumber: "301",
+      floor: 3,
+      status: "available",
+      housekeepingNotes: "Inspected and ready for VIP guest",
+    },
+    {
+      id: "room-302",
+      organizationId: demoHotelOrgId,
+      roomTypeId: roomTypeOceanSuite.id,
+      roomNumber: "302",
+      floor: 3,
+      status: "occupied",
+      housekeepingNotes: "Guest checked in, requested extra towels",
+    },
+    {
+      id: "room-303",
+      organizationId: demoHotelOrgId,
+      roomTypeId: roomTypeOceanSuite.id,
+      roomNumber: "303",
+      floor: 3,
+      status: "cleaning",
+      housekeepingNotes: "Previous guest departed 11:30 AM, deep cleaning in progress",
+    },
+
+    // Deluxe Rooms (Floor 2)
+    {
+      id: "room-201",
+      organizationId: demoHotelOrgId,
+      roomTypeId: roomTypeDeluxe.id,
+      roomNumber: "201",
+      floor: 2,
+      status: "available",
+      housekeepingNotes: "Standard turnover complete",
+    },
+    {
+      id: "room-202",
+      organizationId: demoHotelOrgId,
+      roomTypeId: roomTypeDeluxe.id,
+      roomNumber: "202",
+      floor: 2,
+      status: "occupied",
+      housekeepingNotes: "Do Not Disturb sign active",
+    },
+    {
+      id: "room-203",
+      organizationId: demoHotelOrgId,
+      roomTypeId: roomTypeDeluxe.id,
+      roomNumber: "203",
+      floor: 2,
+      status: "available",
+      housekeepingNotes: "Inspected by floor supervisor",
+    },
+
+    // Family Suites (Floor 1)
+    {
+      id: "room-101",
+      organizationId: demoHotelOrgId,
+      roomTypeId: roomTypeFamily.id,
+      roomNumber: "101",
+      floor: 1,
+      status: "available",
+      housekeepingNotes: "Baby cot setup ready",
+    },
+    {
+      id: "room-102",
+      organizationId: demoHotelOrgId,
+      roomTypeId: roomTypeFamily.id,
+      roomNumber: "102",
+      floor: 1,
+      status: "reserved",
+      housekeepingNotes: "Arrival scheduled for 3:00 PM",
+    },
+    {
+      id: "room-103",
+      organizationId: demoHotelOrgId,
+      roomTypeId: roomTypeFamily.id,
+      roomNumber: "103",
+      floor: 1,
+      status: "maintenance",
+      housekeepingNotes: "AC coolant refill in progress by engineering",
+    },
+
+    // Standard Hill Breeze Rooms (Floors 1-3)
+    {
+      id: "room-104",
+      organizationId: demoHotelOrgId,
+      roomTypeId: roomTypeStandard.id,
+      roomNumber: "104",
+      floor: 1,
+      status: "available",
+      housekeepingNotes: null,
+    },
+    {
+      id: "room-204",
+      organizationId: demoHotelOrgId,
+      roomTypeId: roomTypeStandard.id,
+      roomNumber: "204",
+      floor: 2,
+      status: "available",
+      housekeepingNotes: null,
+    },
+    {
+      id: "room-304",
+      organizationId: demoHotelOrgId,
+      roomTypeId: roomTypeStandard.id,
+      roomNumber: "304",
+      floor: 3,
+      status: "cleaning",
+      housekeepingNotes: "Linen change underway",
+    },
+  ];
+
+  await db.insert(rooms).values(hotelRooms).onConflictDoNothing();
+
+  // Seed sample bookings
+  const hotelBookings = [
+    {
+      id: "booking-active-302",
+      organizationId: demoHotelOrgId,
+      bookingReference: "BK-202610-8801",
+      roomTypeId: roomTypeOceanSuite.id,
+      roomId: "room-302",
+      checkInDate: "2026-10-17",
+      checkOutDate: "2026-10-20",
+      guestName: "Tariqul Islam",
+      guestEmail: "tariqul.islam@example.com",
+      guestPhone: "01719876543",
+      guestNidOrPassport: "19912692019000456",
+      specialRequests: "Anniversary setup with flowers if possible",
+      adultsCount: 2,
+      childrenCount: 1,
+      totalPrice: "43500.00",
+      extraCharges: "2500.00",
+      status: "checked_in",
+      paymentStatus: "paid",
+      checkedInAt: new Date(Date.now() - 1 * 24 * 3600 * 1000),
+    },
+    {
+      id: "booking-reserved-102",
+      organizationId: demoHotelOrgId,
+      bookingReference: "BK-202610-9214",
+      roomTypeId: roomTypeFamily.id,
+      roomId: "room-102",
+      checkInDate: "2026-10-22",
+      checkOutDate: "2026-10-25",
+      guestName: "Nusrat Jahan",
+      guestEmail: "nusrat.jahan@example.com",
+      guestPhone: "01812349876",
+      guestNidOrPassport: "19882692019000789",
+      specialRequests: "Ground floor quiet location requested",
+      adultsCount: 3,
+      childrenCount: 2,
+      totalPrice: "37500.00",
+      extraCharges: "0.00",
+      status: "confirmed",
+      paymentStatus: "paid",
+    },
+  ];
+
+  await db.insert(bookings).values(hotelBookings).onConflictDoNothing();
 
   console.log("Database seeded successfully.");
   await client.end();

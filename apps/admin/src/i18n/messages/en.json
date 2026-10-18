@@ -219,5 +219,26 @@
     "stateDeltaInspector": "State Delta Inspector",
     "beforeState": "Before State",
     "afterState": "After State"
+  },
+  "hotel": {
+    "title": "Front Desk & Tape Chart",
+    "subtitle": "Real-time room occupancy matrix, arrival check-in, folio settling, and room allocation.",
+    "occupancyRate": "Occupancy Rate",
+    "inHouseGuests": "In-House Guests",
+    "activeBookings": "Active Bookings",
+    "roomInventory": "Room Inventory",
+    "newReservation": "New Reservation",
+    "tapeChart": "Tape Chart",
+    "tableList": "Table List",
+    "checkIn": "Check In",
+    "checkOut": "Check Out",
+    "addCharge": "+ Charge",
+    "roomsAndHousekeeping": "Rooms & Housekeeping",
+    "housekeepingBoard": "Housekeeping Board",
+    "roomTypesCatalog": "Room Types Catalog",
+    "cleanAndReady": "Clean & Ready",
+    "needsCleaning": "Needs Cleaning",
+    "outOfOrder": "Out of Order",
+    "markCleanAndReady": "Mark Clean & Ready"
   }
 }

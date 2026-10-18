@@ -8,6 +8,8 @@ import { AuditLogsView } from "./audit-logs-view";
 import { BillingInvoicesView } from "./billing-invoices-view";
 import { CreateOrganizationModal } from "./create-organization-modal";
 import { DashboardOverviewView } from "./dashboard-overview-view";
+import { HotelReservationsView } from "./hotel-reservations-view";
+import { HotelRoomsView } from "./hotel-rooms-view";
 import { InviteMemberModal } from "./invite-member-modal";
 import { LanguageToggle } from "./language-toggle";
 import { MaintenanceOperationsView } from "./maintenance-operations-view";
@@ -169,9 +171,13 @@ export function AdminShell({ initialLocale }: AdminShellProps) {
               organizationSlug={activeOrg.slug}
               organizationName={activeOrg.name}
             />
-          ) : activeTab === "buildings" || activeTab === "rooms" ? (
+          ) : activeTab === "bookings" ? (
+            <HotelReservationsView />
+          ) : activeTab === "rooms" ? (
+            <HotelRoomsView />
+          ) : activeTab === "buildings" ? (
             <PropertyHierarchyView />
-          ) : activeTab === "renters" || activeTab === "bookings" ? (
+          ) : activeTab === "renters" ? (
             <RenterDirectoryView />
           ) : activeTab === "bills" || activeTab === "payments" ? (
             <BillingInvoicesView />
