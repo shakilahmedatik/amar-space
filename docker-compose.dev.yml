@@ -38,7 +38,28 @@ services:
       - omniheaven-dev-net
 
   # =========================================================================
-  # 2. OBJECT STORAGE: SeaweedFS (S3-compatible, Apache 2.0)
+  # 2. IN-MEMORY CACHE & RATE LIMITER: Valkey 8 (Redis-compatible, BSD-3)
+  # =========================================================================
+  valkey:
+    image: valkey/valkey:8-alpine
+    container_name: omniheaven-valkey-dev
+    restart: unless-stopped
+    command: valkey-server --save 60 1 --loglevel warning
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - valkey_dev_data:/data
+    healthcheck:
+      test: ["CMD", "valkey-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 2s
+    networks:
+      - omniheaven-dev-net
+
+  # =========================================================================
+  # 3. OBJECT STORAGE: SeaweedFS (S3-compatible, Apache 2.0)
   # =========================================================================
   seaweedfs:
     image: chrislusf/seaweedfs:latest
@@ -123,5 +144,6 @@ networks:
 
 volumes:
   postgres_dev_data:
+  valkey_dev_data:
   seaweedfs_dev_data:
   mailpit_dev_data:

@@ -15,6 +15,7 @@
   "dependencies": {
     "@omniheaven/auth": "workspace:*",
     "@omniheaven/db": "workspace:*",
+    "@omniheaven/rate-limit": "workspace:*",
     "@omniheaven/validators": "workspace:*",
     "@trpc/client": "^11.19.0",
     "@trpc/server": "^11.19.0",

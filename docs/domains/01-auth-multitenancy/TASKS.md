@@ -42,7 +42,7 @@
 
 ### Tier 5: Security, Audit Logging & Telemetry
 - [x] Verify audit log write on: Org Created, Member Invited, Member Accepted, Role Changed, Member Removed
-- [ ] Implement rate limiting on invitation endpoints (max 10 invites per hour per user)
+- [x] Implement rate limiting on invitation endpoints (max 10 invites per hour per user)
 - [ ] Invalidate cached tRPC queries on active organization switch
 - [x] Ensure Better Auth session cookies use `HttpOnly`, `SameSite=Lax`, and `Secure` flags in production
 

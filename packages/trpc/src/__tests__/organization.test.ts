@@ -141,4 +141,60 @@ describe("Domain 01: Organization tRPC Procedures & Security", () => {
       expect(err.message).toContain("requires one of the following roles: owner, admin");
     }
   });
+
+  it("enforces INVITATIONS rate limit when user exceeds 10 invites in window", async () => {
+    const rateLimitUserId = `user-inviter-ratelimit-${Date.now()}`;
+    const mockDb = {
+      query: {
+        members: {
+          findFirst: async () => ({
+            id: "mem-owner",
+            organizationId: "org-1",
+            userId: rateLimitUserId,
+            role: "owner",
+          }),
+        },
+        users: {
+          findFirst: async () => null,
+        },
+      },
+      insert: () => ({
+        values: () => ({
+          returning: async () => [{ id: "inv-test", role: "staff" }],
+        }),
+      }),
+    } as any;
+
+    const caller = appRouter.createCaller({
+      db: mockDb,
+      session: {
+        user: { id: rateLimitUserId, email: "owner@example.com", name: "Owner" },
+        session: { id: "sess-1", activeOrganizationId: "org-1" },
+      } as any,
+      organizationId: "org-1",
+      requestId: "req-test-rl",
+    });
+
+    // Fire 10 allowed invites
+    for (let i = 0; i < 10; i++) {
+      await caller.organization.inviteMember({
+        email: `invitee${i}@example.com`,
+        role: "staff",
+        expiresInDays: 7,
+      });
+    }
+
+    // 11th invite must be blocked with TOO_MANY_REQUESTS
+    try {
+      await caller.organization.inviteMember({
+        email: "invitee11@example.com",
+        role: "staff",
+        expiresInDays: 7,
+      });
+      expect(true).toBe(false);
+    } catch (err: any) {
+      expect(err.code).toBe("TOO_MANY_REQUESTS");
+      expect(err.message).toContain("Rate limit exceeded");
+    }
+  });
 });

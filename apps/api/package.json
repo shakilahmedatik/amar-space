@@ -12,6 +12,7 @@
     "@hono/trpc-server": "^0.4.2",
     "@omniheaven/auth": "workspace:*",
     "@omniheaven/db": "workspace:*",
+    "@omniheaven/rate-limit": "workspace:*",
     "@omniheaven/trpc": "workspace:*",
     "@omniheaven/validators": "workspace:*",
     "@trpc/server": "^11.19.0",

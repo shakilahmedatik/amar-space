@@ -113,7 +113,56 @@ Multi-tenancy is enforced at the database row level keyed on `organization_id`.
 
 ---
 
-## 4. Bangladeshi Localization & Compliance Standards
+## 4. Rate Limiting Architecture & Defense-in-Depth
+
+Rate limiting is enforced platform-wide via [`@omniheaven/rate-limit`](file:///Users/atik/Projects/amar-space/packages/rate-limit) using **Valkey 8** (`valkey/valkey:8-alpine`, Redis wire-compatible, BSD-3 licensed) as the primary state store.
+
+### 4.1 Two-Tier Defense Model
+
+```
+                     Client Request
+                           │
+                           ▼
+             ┌───────────────────────────┐
+             │   Hono Gateway (Tier 1)   │
+             │   300 requests/min per IP │
+             └─────────────┬─────────────┘
+                           │ Passed
+                           ▼
+             ┌───────────────────────────┐
+             │  tRPC Procedures (Tier 2) │
+             │  Context-Aware Presets    │
+             │  (By User, Org, or Action)│
+             └─────────────┬─────────────┘
+                           │
+             ┌─────────────┴─────────────┐
+             ▼                           ▼
+    Valkey 8 (Port 6379)         In-Memory Fallback
+    (Atomic Lua Script)          (Fail-Open Resiliency)
+```
+
+1. **Tier 1 — HTTP Gateway Layer (`apps/api`):** Global Hono middleware inspects incoming IP addresses (`x-forwarded-for` / `x-real-ip`) and shields the API from brute-force DDoS, scrapers, and bot scanners.
+2. **Tier 2 — Procedure Layer (`packages/trpc`):** Declarative `trpcRateLimit` procedure middleware enforces contextual quotas based on User ID, Organization ID, or specific business actions.
+
+### 4.2 Standard Quota Presets
+
+| Preset | Limit & Window | Target Key | Primary Use Cases |
+|---|---|---|---|
+| `GLOBAL_HTTP` | 300 req / 60s | Client IP | Hono gateway DDoS & scraper protection |
+| `AUTH_SENSITIVE` | 5 req / 15m | IP + Email | Password reset, sign-in attempts, OTP/SMS requests |
+| `INVITATIONS` | 10 req / 1h | User ID | Member invitations (`inviteMember` in Domain 01) |
+| `PUBLIC_READ` | 120 req / 60s | Client IP | Slug lookups (`getBySlug`), public hotel room availability |
+| `MUTATIONS_STANDARD`| 60 req / 60s | User ID / Org ID | Standard dashboard writes (leases, renters, units) |
+| `MUTATIONS_BULK` | 10 req / 5m | Organization ID | Mass unit generation, bulk billing invoice issuance |
+
+### 4.3 High Availability & Algorithm
+- **Algorithm:** Atomic Sliding Window Counter implemented via a Redis Lua script with millisecond precision, eliminating boundary burst anomalies.
+- **Fail-Open In-Memory Fallback:** If Valkey/Redis drops connection, traffic automatically falls back to an in-memory token map with warning telemetry, ensuring transient caching hiccups never crash core operations for landlords or tenants.
+- **Response Headers (RFC 6585):** Rate-limited responses return `429 Too Many Requests` alongside `Retry-After`, `X-RateLimit-Limit`, `X-RateLimit-Remaining`, and `X-RateLimit-Reset` headers.
+
+---
+
+## 5. Bangladeshi Localization & Compliance Standards
 
 To serve the local Bangladeshi market with 100% operational fidelity, every domain follows these foundational rules:
 

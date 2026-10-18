@@ -1,5 +1,6 @@
 import type { Session } from "@omniheaven/auth";
 import { and, type Database, eq, type OrganizationRole, schema } from "@omniheaven/db";
+import { defaultLimiter, type RateLimitConfig } from "@omniheaven/rate-limit";
 import { initTRPC, TRPCError } from "@trpc/server";
 import { ZodError } from "zod";
 
@@ -87,4 +88,33 @@ export const requireRole = (allowedRoles: OrganizationRole[]) =>
       });
     }
     return next({ ctx });
+  });
+
+export interface TRPCRateLimitOptions<TContext> {
+  config: RateLimitConfig;
+  keyGenerator: (ctx: TContext) => string;
+}
+
+// Procedural rate limit middleware
+export const trpcRateLimit = <TContext = any>(options: TRPCRateLimitOptions<TContext>) =>
+  t.middleware(async ({ ctx, next }) => {
+    const rawKey = options.keyGenerator(ctx as TContext);
+    const result = await defaultLimiter.check(rawKey, options.config);
+
+    if (!result.allowed) {
+      throw new TRPCError({
+        code: "TOO_MANY_REQUESTS",
+        message: `Rate limit exceeded. Please try again in ${result.retryAfter} second${
+          result.retryAfter === 1 ? "" : "s"
+        }.`,
+        cause: {
+          retryAfter: result.retryAfter,
+          limit: result.limit,
+          remaining: 0,
+          reset: result.reset,
+        },
+      });
+    }
+
+    return next();
   });

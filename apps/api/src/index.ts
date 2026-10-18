@@ -1,6 +1,7 @@
 import { trpcServer } from "@hono/trpc-server";
 import { auth } from "@omniheaven/auth";
 import { db } from "@omniheaven/db";
+import { createHonoRateLimiter, RATE_LIMIT_PRESETS } from "@omniheaven/rate-limit";
 import { appRouter } from "@omniheaven/trpc";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
@@ -67,10 +68,18 @@ app.get("/health", (c) => {
   });
 });
 
-// 4. Mount Better Auth
+// 4. Global HTTP Rate Limiter (Tier 1: 300 req/min per IP)
+app.use(
+  "*",
+  createHonoRateLimiter({
+    config: RATE_LIMIT_PRESETS.GLOBAL_HTTP,
+  }),
+);
+
+// 5. Mount Better Auth
 app.all("/api/auth/*", (c) => auth.handler(c.req.raw));
 
-// 5. Mount tRPC server
+// 6. Mount tRPC server
 app.use(
   "/trpc/*",
   trpcServer({

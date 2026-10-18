@@ -6,6 +6,7 @@ import {
   eq,
   schema,
 } from "@omniheaven/db";
+import { RATE_LIMIT_PRESETS } from "@omniheaven/rate-limit";
 import {
   acceptInvitationSchema,
   createOrganizationSchema,
@@ -24,6 +25,7 @@ import {
   requireRole,
   router,
   tenantProcedure,
+  trpcRateLimit,
 } from "../trpc";
 import { recordAuditLog } from "../utils/audit";
 
@@ -318,8 +320,14 @@ export const organizationRouter = router({
     }));
   }),
 
-  // 9. Invite a new team member
+  // 9. Invite a new team member (Rate limit: max 10 invites per hour per user)
   inviteMember: requireRole(["owner", "admin"])
+    .use(
+      trpcRateLimit({
+        config: RATE_LIMIT_PRESETS.INVITATIONS,
+        keyGenerator: (ctx) => `invitations:${ctx.user.id}`,
+      }),
+    )
     .input(inviteMemberSchema)
     .mutation(async ({ ctx, input }) => {
       // Check if user is already a member
