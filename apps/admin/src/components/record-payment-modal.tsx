@@ -103,14 +103,16 @@ export function RecordPaymentModal({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-md bg-surface border-border text-foreground">
+      <DialogContent className="sm:max-w-md bg-card border border-border-gold/50 shadow-2xl text-foreground">
         <DialogHeader>
           <div className="flex items-center gap-2">
-            <div className="p-2 rounded-lg bg-primary/10 text-primary">
+            <div className="p-2 rounded-lg bg-primary/10 text-primary border border-border-gold/40">
               <CreditCard className="size-5" />
             </div>
             <div>
-              <DialogTitle className="text-base font-bold">Record Rent Payment</DialogTitle>
+              <DialogTitle className="text-base font-bold font-display text-foreground">
+                Record Rent Payment
+              </DialogTitle>
               <DialogDescription className="text-xs text-foreground-muted">
                 Collect and reconcile rent payments via bKash, Nagad, Bank, or Cash.
               </DialogDescription>
@@ -334,13 +336,14 @@ export function RecordPaymentModal({
               </Button>
               <Button
                 type="submit"
+                variant="luxury"
                 disabled={
                   recordPaymentMutation.isPending ||
                   isTrxMissing ||
                   isExcessiveAmount ||
                   amount <= 0
                 }
-                className="w-full sm:w-auto min-h-[44px] flex items-center gap-1.5"
+                className="w-full sm:w-auto min-h-[44px] flex items-center gap-1.5 font-bold shadow-xs"
               >
                 {recordPaymentMutation.isPending ? (
                   <>

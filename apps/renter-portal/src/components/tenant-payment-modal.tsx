@@ -102,22 +102,27 @@ export function TenantPaymentModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
-      <div className="bg-white dark:bg-slate-900 w-full max-w-lg rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl p-6 space-y-5 max-h-[90vh] overflow-y-auto">
+      <div className="bg-card w-full max-w-lg rounded-2xl border border-border-gold/40 shadow-2xl p-6 space-y-5 max-h-[90vh] overflow-y-auto text-foreground">
         {/* Modal Header */}
-        <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
-          <div>
-            <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-              <CreditCard className="size-5 text-indigo-600" />
-              Pay Rent & Utilities Online
-            </h3>
-            <p className="text-xs text-slate-400">
-              {bill.billNumber} · Flat {flatNumber}, {buildingName}
-            </p>
+        <div className="flex items-center justify-between pb-3 border-b border-border-gold/30">
+          <div className="flex items-center gap-3">
+            <div className="size-9 rounded-xl bg-primary/10 border border-border-gold/40 flex items-center justify-center text-primary shadow-xs">
+              <CreditCard className="size-4.5" />
+            </div>
+            <div>
+              <h3 className="text-base font-serif font-bold text-foreground tracking-tight">
+                Pay Rent & Utilities Online
+              </h3>
+              <p className="text-xs text-foreground-muted">
+                {bill.billNumber} · Flat {flatNumber}, {buildingName}
+              </p>
+            </div>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
+            className="p-1 rounded-lg text-foreground-muted hover:text-foreground transition-colors"
+            aria-label="Close"
           >
             <X className="size-5" />
           </button>
@@ -126,46 +131,46 @@ export function TenantPaymentModal({
         {/* Success Screen */}
         {successPayment ? (
           <div className="py-6 text-center space-y-4">
-            <div className="size-16 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 mx-auto flex items-center justify-center shadow-lg animate-in zoom-in duration-300">
+            <div className="size-16 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 mx-auto flex items-center justify-center shadow-lg animate-in zoom-in duration-300">
               <CheckCircle2 className="size-10" />
             </div>
             <div>
-              <h4 className="text-lg font-bold text-slate-900 dark:text-white">
+              <h4 className="text-lg font-serif font-bold text-foreground">
                 Payment Successfully Settled!
               </h4>
-              <p className="text-xs text-slate-500 mt-1">
+              <p className="text-xs text-foreground-muted mt-1">
                 Your payment of{" "}
-                <span className="font-bold text-emerald-600">
+                <span className="font-bold text-emerald-600 dark:text-emerald-400">
                   ৳{amountToPay.toLocaleString("en-BD")}
                 </span>{" "}
                 has been recorded and verified.
               </p>
             </div>
 
-            <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-xs space-y-1.5 text-left">
+            <div className="p-4 rounded-xl bg-surface border border-border-gold/30 text-xs space-y-1.5 text-left">
               <div className="flex justify-between">
-                <span className="text-slate-400">Receipt Voucher:</span>
-                <span className="font-mono font-bold text-indigo-600 dark:text-indigo-400">
+                <span className="text-foreground-muted">Receipt Voucher:</span>
+                <span className="font-mono font-bold text-primary">
                   {successPayment.receiptNumber}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-400">Transaction ID:</span>
-                <span className="font-mono font-bold text-slate-700 dark:text-slate-200">
+                <span className="text-foreground-muted">Transaction ID:</span>
+                <span className="font-mono font-bold text-foreground">
                   {successPayment.transactionId}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-400">Method:</span>
-                <span className="font-semibold uppercase text-slate-700 dark:text-slate-200">
+                <span className="text-foreground-muted">Method:</span>
+                <span className="font-semibold uppercase text-foreground">
                   {successPayment.paymentMethod}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-400">Status:</span>
+                <span className="text-foreground-muted">Status:</span>
                 <Badge
                   variant="outline"
-                  className="text-[10px] bg-emerald-50 text-emerald-600 border-emerald-500/30"
+                  className="text-[10px] bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 font-semibold"
                 >
                   Completed & Verified
                 </Badge>
@@ -174,8 +179,9 @@ export function TenantPaymentModal({
 
             <Button
               type="button"
+              variant="luxury"
               onClick={onClose}
-              className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs"
+              className="w-full text-xs font-semibold py-2.5"
             >
               Done & View Bill History
             </Button>
@@ -183,18 +189,18 @@ export function TenantPaymentModal({
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Amount Summary Card */}
-            <div className="p-4 rounded-xl bg-gradient-to-r from-indigo-50 to-slate-50 dark:from-slate-800/80 dark:to-slate-800/40 border border-indigo-100 dark:border-slate-700 flex items-center justify-between">
+            <div className="p-4 rounded-xl bg-surface border border-border-gold/40 flex items-center justify-between shadow-xs">
               <div>
-                <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider block">
+                <span className="text-[11px] font-semibold text-foreground-muted uppercase tracking-wider block">
                   Total Payable Amount
                 </span>
-                <span className="text-2xl font-black text-slate-900 dark:text-white">
+                <span className="text-2xl font-serif font-black text-foreground">
                   ৳{amountToPay.toLocaleString("en-BD")}.00
                 </span>
               </div>
               <Badge
                 variant="outline"
-                className="text-xs font-bold text-indigo-600 bg-white dark:bg-slate-900 border-indigo-200 dark:border-indigo-900 shadow-xs"
+                className="text-xs font-bold text-primary bg-primary/10 border-border-gold/50 shadow-xs"
               >
                 {bill.billingMonth} Due
               </Badge>
@@ -202,7 +208,7 @@ export function TenantPaymentModal({
 
             {/* Error Banner */}
             {actionError && (
-              <div className="p-3 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900 text-xs text-rose-600 dark:text-rose-400 flex items-center gap-2">
+              <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-xs text-rose-600 dark:text-rose-400 flex items-center gap-2">
                 <AlertCircle className="size-4 shrink-0" />
                 <span>{actionError}</span>
               </div>
@@ -210,7 +216,7 @@ export function TenantPaymentModal({
 
             {/* Channel Tabs */}
             <div>
-              <span className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">
+              <span className="block text-xs font-bold text-foreground uppercase tracking-wider mb-2">
                 Select Payment Channel
               </span>
               <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
@@ -219,11 +225,11 @@ export function TenantPaymentModal({
                   onClick={() => setPaymentMethod("bkash")}
                   className={`p-2 rounded-xl border flex flex-col items-center gap-1 transition-all ${
                     paymentMethod === "bkash"
-                      ? "border-pink-500 bg-pink-50 dark:bg-pink-950/40 text-pink-700 dark:text-pink-300 font-bold shadow-xs ring-1 ring-pink-500"
-                      : "border-slate-200 dark:border-slate-800 hover:border-slate-300 text-slate-600 dark:text-slate-400"
+                      ? "border-primary bg-primary/10 text-primary font-bold shadow-xs ring-1 ring-primary/40"
+                      : "border-border hover:border-border-gold/50 bg-surface/60 text-foreground-muted hover:text-foreground"
                   }`}
                 >
-                  <Smartphone className="size-4 text-pink-600" />
+                  <Smartphone className="size-4 text-[#e2136e]" />
                   <span className="text-[11px]">bKash</span>
                 </button>
 
@@ -232,11 +238,11 @@ export function TenantPaymentModal({
                   onClick={() => setPaymentMethod("nagad")}
                   className={`p-2 rounded-xl border flex flex-col items-center gap-1 transition-all ${
                     paymentMethod === "nagad"
-                      ? "border-orange-500 bg-orange-50 dark:bg-orange-950/40 text-orange-700 dark:text-orange-300 font-bold shadow-xs ring-1 ring-orange-500"
-                      : "border-slate-200 dark:border-slate-800 hover:border-slate-300 text-slate-600 dark:text-slate-400"
+                      ? "border-primary bg-primary/10 text-primary font-bold shadow-xs ring-1 ring-primary/40"
+                      : "border-border hover:border-border-gold/50 bg-surface/60 text-foreground-muted hover:text-foreground"
                   }`}
                 >
-                  <Smartphone className="size-4 text-orange-600" />
+                  <Smartphone className="size-4 text-[#f7941d]" />
                   <span className="text-[11px]">Nagad</span>
                 </button>
 
@@ -245,11 +251,11 @@ export function TenantPaymentModal({
                   onClick={() => setPaymentMethod("rocket")}
                   className={`p-2 rounded-xl border flex flex-col items-center gap-1 transition-all ${
                     paymentMethod === "rocket"
-                      ? "border-purple-500 bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 font-bold shadow-xs ring-1 ring-purple-500"
-                      : "border-slate-200 dark:border-slate-800 hover:border-slate-300 text-slate-600 dark:text-slate-400"
+                      ? "border-primary bg-primary/10 text-primary font-bold shadow-xs ring-1 ring-primary/40"
+                      : "border-border hover:border-border-gold/50 bg-surface/60 text-foreground-muted hover:text-foreground"
                   }`}
                 >
-                  <Smartphone className="size-4 text-purple-600" />
+                  <Smartphone className="size-4 text-[#8c3494]" />
                   <span className="text-[11px]">Rocket</span>
                 </button>
 
@@ -258,11 +264,11 @@ export function TenantPaymentModal({
                   onClick={() => setPaymentMethod("card")}
                   className={`p-2 rounded-xl border flex flex-col items-center gap-1 transition-all ${
                     paymentMethod === "card"
-                      ? "border-blue-500 bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 font-bold shadow-xs ring-1 ring-blue-500"
-                      : "border-slate-200 dark:border-slate-800 hover:border-slate-300 text-slate-600 dark:text-slate-400"
+                      ? "border-primary bg-primary/10 text-primary font-bold shadow-xs ring-1 ring-primary/40"
+                      : "border-border hover:border-border-gold/50 bg-surface/60 text-foreground-muted hover:text-foreground"
                   }`}
                 >
-                  <CreditCard className="size-4 text-blue-600" />
+                  <CreditCard className="size-4 text-primary" />
                   <span className="text-[11px]">Card</span>
                 </button>
 
@@ -271,30 +277,30 @@ export function TenantPaymentModal({
                   onClick={() => setPaymentMethod("bank_transfer")}
                   className={`p-2 rounded-xl border flex flex-col items-center gap-1 transition-all ${
                     paymentMethod === "bank_transfer"
-                      ? "border-emerald-500 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 font-bold shadow-xs ring-1 ring-emerald-500"
-                      : "border-slate-200 dark:border-slate-800 hover:border-slate-300 text-slate-600 dark:text-slate-400"
+                      ? "border-primary bg-primary/10 text-primary font-bold shadow-xs ring-1 ring-primary/40"
+                      : "border-border hover:border-border-gold/50 bg-surface/60 text-foreground-muted hover:text-foreground"
                   }`}
                 >
-                  <Building className="size-4 text-emerald-600" />
+                  <Building className="size-4 text-emerald-600 dark:text-emerald-400" />
                   <span className="text-[11px]">Bank</span>
                 </button>
               </div>
             </div>
 
             {/* Merchant Account Details Box */}
-            <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 text-xs space-y-2">
+            <div className="p-3.5 rounded-xl bg-surface border border-border-gold/30 text-xs space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-slate-500 font-medium capitalize">
+                <span className="text-foreground-muted font-medium capitalize">
                   {paymentMethod} Official Merchant / Account:
                 </span>
                 <button
                   type="button"
                   onClick={handleCopy}
-                  className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1 font-semibold"
+                  className="text-xs text-primary hover:text-primary-hover hover:underline flex items-center gap-1 font-semibold"
                 >
                   {copied ? (
                     <>
-                      <Check className="size-3 text-emerald-600" /> Copied
+                      <Check className="size-3 text-emerald-600 dark:text-emerald-400" /> Copied
                     </>
                   ) : (
                     <>
@@ -303,20 +309,25 @@ export function TenantPaymentModal({
                   )}
                 </button>
               </div>
-              <p className="font-mono font-bold text-slate-900 dark:text-white text-sm bg-white dark:bg-slate-900 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 flex items-center justify-between">
+              <p className="font-mono font-bold text-foreground text-sm bg-card px-3 py-1.5 rounded-lg border border-border-gold/30 flex items-center justify-between">
                 <span>{merchantNumbers[paymentMethod]}</span>
-                <span className="text-[10px] text-slate-400 font-normal">Escrow Protected</span>
+                <span className="text-[10px] text-foreground-muted font-normal">
+                  Escrow Protected
+                </span>
               </p>
 
               {/* Instructions bullet */}
-              <div className="text-[11px] text-slate-500 space-y-1 pt-1">
+              <div className="text-[11px] text-foreground-muted space-y-1 pt-1">
                 <p>1. Open your {paymentMethod.toUpperCase()} App or dial USSD (*247# / *167#).</p>
                 <p>
-                  2. Make Payment of <strong>৳{amountToPay.toLocaleString("en-BD")}</strong> to the
-                  merchant number above.
+                  2. Make Payment of{" "}
+                  <strong className="text-foreground">
+                    ৳{amountToPay.toLocaleString("en-BD")}
+                  </strong>{" "}
+                  to the merchant number above.
                 </p>
                 <p>
-                  3. Enter Reference: <strong>FLAT-{flatNumber}</strong>
+                  3. Enter Reference: <strong className="text-foreground">FLAT-{flatNumber}</strong>
                 </p>
                 <p>4. Enter the TrxID / Transaction Reference received in the SMS below.</p>
               </div>
@@ -326,7 +337,7 @@ export function TenantPaymentModal({
             <div>
               <label
                 htmlFor="txn-id-input"
-                className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1"
+                className="block text-xs font-bold text-foreground mb-1 uppercase tracking-wider"
               >
                 {paymentMethod.toUpperCase()} Transaction ID (TrxID) *
               </label>
@@ -337,15 +348,15 @@ export function TenantPaymentModal({
                 placeholder="e.g. BK9A7X32LM or 99120384"
                 value={transactionId}
                 onChange={(e) => setTransactionId(e.target.value)}
-                className="w-full px-3 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-mono font-semibold text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-3 py-2.5 rounded-xl bg-surface border border-border-gold/40 text-xs font-mono font-semibold text-foreground placeholder:text-foreground-muted focus:outline-hidden focus:ring-2 focus:ring-primary/40 focus:border-primary"
               />
-              <p className="text-[10px] text-slate-400 mt-1">
+              <p className="text-[10px] text-foreground-muted mt-1">
                 You will find this 8-10 character code in the confirmation SMS.
               </p>
             </div>
 
             {/* Action Buttons */}
-            <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
+            <div className="flex items-center justify-end gap-2 pt-3 border-t border-border-gold/30">
               <Button
                 type="button"
                 variant="outline"
@@ -357,8 +368,9 @@ export function TenantPaymentModal({
               </Button>
               <Button
                 type="submit"
+                variant="luxury"
                 disabled={payMutation.isPending || !transactionId}
-                className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs flex items-center gap-1.5"
+                className="text-xs font-semibold flex items-center gap-1.5"
               >
                 {payMutation.isPending
                   ? "Verifying Payment..."
@@ -367,8 +379,8 @@ export function TenantPaymentModal({
             </div>
 
             <div className="pt-1 text-center">
-              <span className="text-[10px] text-slate-400 flex items-center justify-center gap-1">
-                <ShieldCheck className="size-3 text-emerald-500" />
+              <span className="text-[10px] text-foreground-muted flex items-center justify-center gap-1">
+                <ShieldCheck className="size-3.5 text-emerald-600 dark:text-emerald-400" />
                 Protected by OmniHeaven 256-Bit Escrow Verification
               </span>
             </div>

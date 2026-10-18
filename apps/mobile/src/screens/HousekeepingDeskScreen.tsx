@@ -90,18 +90,50 @@ export const HousekeepingDeskScreen: React.FC<HousekeepingDeskScreenProps> = ({ 
             >
               Field Housekeeping Operations
             </span>
-            <h2 style={{ fontSize: 20, fontWeight: "bold", margin: "2px 0 0" }}>
+            <h2
+              style={{
+                fontSize: 22,
+                fontFamily: "'Playfair Display', Georgia, serif",
+                fontWeight: "600",
+                margin: "2px 0 0",
+                letterSpacing: "-0.25px",
+                color: theme.colors.textPrimary,
+              }}
+            >
               Room Turnover & Inspection
             </h2>
           </div>
           <span
             style={{
-              padding: "4px 8px",
-              borderRadius: 8,
+              padding: "4px 10px",
+              borderRadius: 20,
               fontSize: 11,
-              fontWeight: "bold",
-              backgroundColor: cleaningCount > 0 ? "#78350f" : "#065f46",
-              color: cleaningCount > 0 ? "#fef08a" : "#6ee7b7",
+              fontWeight: "700",
+              backgroundColor:
+                cleaningCount > 0
+                  ? theme.isDark
+                    ? "rgba(217, 119, 6, 0.2)"
+                    : "#FEF3C7"
+                  : theme.isDark
+                    ? "rgba(30, 130, 76, 0.2)"
+                    : "#EAF7F0",
+              color:
+                cleaningCount > 0
+                  ? theme.isDark
+                    ? "#fde68a"
+                    : "#D97706"
+                  : theme.isDark
+                    ? "#6ee7b7"
+                    : "#1E824C",
+              border: `1px solid ${
+                cleaningCount > 0
+                  ? theme.isDark
+                    ? "rgba(217, 119, 6, 0.4)"
+                    : "#FDE68A"
+                  : theme.isDark
+                    ? "rgba(30, 130, 76, 0.4)"
+                    : "#B7E4C7"
+              }`,
             }}
           >
             {cleaningCount} Needs Clean
@@ -113,13 +145,13 @@ export const HousekeepingDeskScreen: React.FC<HousekeepingDeskScreenProps> = ({ 
       {actionSuccessNotice && (
         <div
           style={{
-            padding: "10px 12px",
+            padding: "10px 14px",
             borderRadius: 10,
-            backgroundColor: "rgba(16, 185, 129, 0.15)",
-            border: "1px solid rgba(16, 185, 129, 0.3)",
+            backgroundColor: theme.isDark ? "rgba(30, 130, 76, 0.2)" : "#EAF7F0",
+            border: `1px solid ${theme.isDark ? "rgba(30, 130, 76, 0.4)" : "#B7E4C7"}`,
             fontSize: 12,
-            color: "#34d399",
-            marginBottom: 12,
+            color: theme.isDark ? "#6ee7b7" : "#1E824C",
+            marginBottom: 14,
             display: "flex",
             alignItems: "center",
             gap: 8,
@@ -133,13 +165,13 @@ export const HousekeepingDeskScreen: React.FC<HousekeepingDeskScreenProps> = ({ 
       {actionError && (
         <div
           style={{
-            padding: "10px 12px",
+            padding: "10px 14px",
             borderRadius: 10,
-            backgroundColor: "rgba(239, 68, 68, 0.15)",
-            border: "1px solid rgba(239, 68, 68, 0.3)",
+            backgroundColor: theme.isDark ? "rgba(192, 57, 43, 0.2)" : "#FDF0ED",
+            border: `1px solid ${theme.isDark ? "rgba(192, 57, 43, 0.4)" : "#F8D7DA"}`,
             fontSize: 12,
-            color: "#f87171",
-            marginBottom: 12,
+            color: theme.isDark ? "#fca5a5" : "#C0392B",
+            marginBottom: 14,
             display: "flex",
             alignItems: "center",
             gap: 8,
@@ -157,98 +189,41 @@ export const HousekeepingDeskScreen: React.FC<HousekeepingDeskScreenProps> = ({ 
           gap: 6,
           overflowX: "auto",
           paddingBottom: 8,
-          marginBottom: 12,
+          marginBottom: 14,
         }}
       >
-        <button
-          type="button"
-          onClick={() => setFilter("all")}
-          style={{
-            padding: "6px 12px",
-            borderRadius: 8,
-            fontSize: 11,
-            fontWeight: filter === "all" ? "bold" : "500",
-            backgroundColor: filter === "all" ? theme.colors.goldPrimary : theme.colors.surface,
-            color: filter === "all" ? "#14110F" : theme.colors.textMuted,
-            border: `1px solid ${theme.colors.border}`,
-            cursor: "pointer",
-            whiteSpace: "nowrap",
-          }}
-        >
-          All ({rooms.length})
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setFilter("cleaning")}
-          style={{
-            padding: "6px 12px",
-            borderRadius: 8,
-            fontSize: 11,
-            fontWeight: filter === "cleaning" ? "bold" : "500",
-            backgroundColor: filter === "cleaning" ? "#f59e0b" : theme.colors.surface,
-            color: filter === "cleaning" ? "#000000" : theme.colors.textMuted,
-            border: `1px solid ${theme.colors.border}`,
-            cursor: "pointer",
-            whiteSpace: "nowrap",
-          }}
-        >
-          Cleaning ({cleaningCount})
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setFilter("available")}
-          style={{
-            padding: "6px 12px",
-            borderRadius: 8,
-            fontSize: 11,
-            fontWeight: filter === "available" ? "bold" : "500",
-            backgroundColor: filter === "available" ? "#10b981" : theme.colors.surface,
-            color: filter === "available" ? "#ffffff" : theme.colors.textMuted,
-            border: `1px solid ${theme.colors.border}`,
-            cursor: "pointer",
-            whiteSpace: "nowrap",
-          }}
-        >
-          Ready ({availableCount})
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setFilter("occupied")}
-          style={{
-            padding: "6px 12px",
-            borderRadius: 8,
-            fontSize: 11,
-            fontWeight: filter === "occupied" ? "bold" : "500",
-            backgroundColor: filter === "occupied" ? "#3b82f6" : theme.colors.surface,
-            color: filter === "occupied" ? "#ffffff" : theme.colors.textMuted,
-            border: `1px solid ${theme.colors.border}`,
-            cursor: "pointer",
-            whiteSpace: "nowrap",
-          }}
-        >
-          Occupied ({occupiedCount})
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setFilter("maintenance")}
-          style={{
-            padding: "6px 12px",
-            borderRadius: 8,
-            fontSize: 11,
-            fontWeight: filter === "maintenance" ? "bold" : "500",
-            backgroundColor: filter === "maintenance" ? "#ef4444" : theme.colors.surface,
-            color: filter === "maintenance" ? "#ffffff" : theme.colors.textMuted,
-            border: `1px solid ${theme.colors.border}`,
-            cursor: "pointer",
-            whiteSpace: "nowrap",
-          }}
-        >
-          Repair ({maintenanceCount})
-        </button>
+        {[
+          { id: "all", label: `All (${rooms.length})` },
+          { id: "cleaning", label: `Cleaning (${cleaningCount})` },
+          { id: "available", label: `Ready (${availableCount})` },
+          { id: "occupied", label: `Occupied (${occupiedCount})` },
+          { id: "maintenance", label: `Repair (${maintenanceCount})` },
+        ].map((item) => (
+          <button
+            key={item.id}
+            type="button"
+            onClick={() => setFilter(item.id as any)}
+            style={{
+              padding: "7px 14px",
+              borderRadius: 8,
+              fontSize: 11,
+              fontWeight: filter === item.id ? "700" : "500",
+              backgroundColor: filter === item.id ? theme.colors.goldPrimary : theme.colors.surface,
+              color:
+                filter === item.id
+                  ? theme.isDark
+                    ? "#14110F"
+                    : "#1F1714"
+                  : theme.colors.textMuted,
+              border: `1px solid ${filter === item.id ? theme.colors.goldPrimary : theme.colors.border}`,
+              cursor: "pointer",
+              whiteSpace: "nowrap",
+              boxShadow: filter === item.id ? "0 2px 8px rgba(197, 168, 128, 0.3)" : "none",
+            }}
+          >
+            {item.label}
+          </button>
+        ))}
       </div>
 
       {/* Room Cards List */}
@@ -281,29 +256,62 @@ export const HousekeepingDeskScreen: React.FC<HousekeepingDeskScreenProps> = ({ 
             const isMaintenance = room.status === "maintenance";
 
             const statusBg = isCleaning
-              ? "rgba(245, 158, 11, 0.15)"
+              ? theme.isDark
+                ? "rgba(217, 119, 6, 0.2)"
+                : "#FEF3C7"
               : isAvailable
-                ? "rgba(16, 185, 129, 0.15)"
+                ? theme.isDark
+                  ? "rgba(30, 130, 76, 0.2)"
+                  : "#EAF7F0"
                 : isOccupied
-                  ? "rgba(59, 130, 246, 0.15)"
-                  : "rgba(239, 68, 68, 0.15)";
+                  ? theme.isDark
+                    ? "rgba(197, 168, 128, 0.15)"
+                    : "#F4EDE7"
+                  : theme.isDark
+                    ? "rgba(192, 57, 43, 0.2)"
+                    : "#FDF0ED";
 
             const statusColor = isCleaning
-              ? "#fbbf24"
+              ? theme.isDark
+                ? "#fde68a"
+                : "#D97706"
               : isAvailable
-                ? "#34d399"
+                ? theme.isDark
+                  ? "#6ee7b7"
+                  : "#1E824C"
                 : isOccupied
-                  ? "#60a5fa"
-                  : "#f87171";
+                  ? theme.colors.goldPrimary
+                  : theme.isDark
+                    ? "#fca5a5"
+                    : "#C0392B";
+
+            const statusBorder = isCleaning
+              ? theme.isDark
+                ? "rgba(217, 119, 6, 0.4)"
+                : "#FDE68A"
+              : isAvailable
+                ? theme.isDark
+                  ? "rgba(30, 130, 76, 0.4)"
+                  : "#B7E4C7"
+                : isOccupied
+                  ? theme.colors.borderGold
+                  : theme.isDark
+                    ? "rgba(192, 57, 43, 0.4)"
+                    : "#F8D7DA";
 
             return (
               <div
                 key={room.id}
                 style={{
                   backgroundColor: theme.colors.surface,
-                  borderRadius: 12,
+                  borderRadius: 14,
                   padding: 14,
-                  border: `1px solid ${isCleaning ? "#f59e0b" : theme.colors.border}`,
+                  border: `1px solid ${isCleaning ? theme.colors.borderGold : theme.colors.border}`,
+                  boxShadow: isCleaning
+                    ? theme.isDark
+                      ? "0 4px 14px rgba(0, 0, 0, 0.3)"
+                      : "0 4px 14px rgba(197, 168, 128, 0.15)"
+                    : "none",
                   display: "flex",
                   flexDirection: "column",
                   gap: 10,
@@ -321,7 +329,8 @@ export const HousekeepingDeskScreen: React.FC<HousekeepingDeskScreenProps> = ({ 
                       <span
                         style={{
                           fontSize: 16,
-                          fontWeight: "bold",
+                          fontFamily: "'Playfair Display', Georgia, serif",
+                          fontWeight: "600",
                           color: theme.colors.textPrimary,
                         }}
                       >
@@ -356,12 +365,14 @@ export const HousekeepingDeskScreen: React.FC<HousekeepingDeskScreenProps> = ({ 
                   <span
                     style={{
                       fontSize: 10,
-                      fontWeight: "bold",
+                      fontWeight: "700",
                       padding: "4px 8px",
-                      borderRadius: 6,
+                      borderRadius: 20,
                       backgroundColor: statusBg,
                       color: statusColor,
+                      border: `1px solid ${statusBorder}`,
                       textTransform: "uppercase",
+                      letterSpacing: 0.5,
                     }}
                   >
                     {room.status === "cleaning" ? "Turnover Required" : room.status}
@@ -402,17 +413,18 @@ export const HousekeepingDeskScreen: React.FC<HousekeepingDeskScreenProps> = ({ 
                       onClick={() => handleQuickTurnover(room.id, room.status)}
                       style={{
                         padding: "8px 14px",
-                        backgroundColor: "#10b981",
-                        color: "#ffffff",
+                        backgroundColor: theme.colors.goldPrimary,
+                        color: theme.isDark ? "#14110F" : "#1F1714",
                         border: "none",
                         borderRadius: 8,
                         fontSize: 11,
-                        fontWeight: "bold",
+                        fontWeight: "700",
                         cursor: "pointer",
                         display: "flex",
                         alignItems: "center",
                         gap: 6,
                         minHeight: 40,
+                        boxShadow: "0 2px 8px rgba(197, 168, 128, 0.35)",
                       }}
                     >
                       <Sparkles style={{ width: 14, height: 14 }} />
@@ -427,12 +439,12 @@ export const HousekeepingDeskScreen: React.FC<HousekeepingDeskScreenProps> = ({ 
                       onClick={() => handleQuickTurnover(room.id, room.status)}
                       style={{
                         padding: "8px 14px",
-                        backgroundColor: "#3b82f6",
-                        color: "#ffffff",
-                        border: "none",
+                        backgroundColor: theme.colors.surfaceElevated,
+                        color: theme.colors.textPrimary,
+                        border: `1px solid ${theme.colors.borderGold}`,
                         borderRadius: 8,
                         fontSize: 11,
-                        fontWeight: "bold",
+                        fontWeight: "700",
                         cursor: "pointer",
                         display: "flex",
                         alignItems: "center",

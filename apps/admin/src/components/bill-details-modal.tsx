@@ -133,16 +133,16 @@ export function BillDetailsModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto bg-surface border-border text-foreground p-0">
-        <DialogHeader className="p-6 border-b border-border sticky top-0 bg-surface/95 backdrop-blur-md z-10">
+      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto bg-card border border-border-gold/50 shadow-2xl text-foreground p-0">
+        <DialogHeader className="p-6 border-b border-border sticky top-0 bg-card/95 backdrop-blur-md z-10">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="flex items-center gap-3">
-              <div className="p-2.5 rounded-xl bg-primary/10 text-primary">
+              <div className="p-2.5 rounded-xl bg-champagne/15 border border-primary/25 text-primary shadow-xs">
                 <Receipt className="size-6" />
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <DialogTitle className="text-base font-bold">
+                  <DialogTitle className="text-xl font-serif font-display font-medium tracking-tight text-foreground">
                     {bill?.billNumber || "Invoice"}
                   </DialogTitle>
                   {bill && <StatusBadge status={bill.status as any} />}
@@ -170,10 +170,10 @@ export function BillDetailsModal({
             <button
               type="button"
               onClick={() => setActiveTab("breakdown")}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors min-h-[36px] ${
+              className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-colors min-h-[36px] ${
                 activeTab === "breakdown"
-                  ? "bg-primary text-primary-foreground shadow-xs"
-                  : "bg-surface-muted hover:bg-surface-muted/80 text-foreground-muted"
+                  ? "bg-primary text-primary-foreground shadow-xs font-medium"
+                  : "bg-secondary/60 hover:bg-secondary text-foreground-muted"
               }`}
             >
               Utility & Item Breakdown
@@ -181,16 +181,16 @@ export function BillDetailsModal({
             <button
               type="button"
               onClick={() => setActiveTab("history")}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors flex items-center gap-1.5 min-h-[36px] ${
+              className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-colors flex items-center gap-1.5 min-h-[36px] ${
                 activeTab === "history"
-                  ? "bg-primary text-primary-foreground shadow-xs"
-                  : "bg-surface-muted hover:bg-surface-muted/80 text-foreground-muted"
+                  ? "bg-primary text-primary-foreground shadow-xs font-medium"
+                  : "bg-secondary/60 hover:bg-secondary text-foreground-muted"
               }`}
             >
               <History className="size-3.5" />
               <span>Payments & Adjustments</span>
               {bill && (bill.payments.length > 0 || bill.advanceAdjustments.length > 0) && (
-                <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4">
+                <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 border-primary/30">
                   {bill.payments.length + bill.advanceAdjustments.length}
                 </Badge>
               )}
@@ -221,7 +221,7 @@ export function BillDetailsModal({
             )}
 
             {/* Tenant & Flat Meta Banner */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-3.5 rounded-xl bg-surface-muted/60 border border-border text-xs">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-3.5 rounded-xl bg-secondary/40 border border-border text-xs">
               <div>
                 <p className="text-foreground-muted text-[11px]">Tenant Name</p>
                 <p className="font-semibold text-foreground mt-0.5 flex items-center gap-1">
@@ -257,7 +257,10 @@ export function BillDetailsModal({
                 1. Fixed Tenancy Contract Charges
               </h4>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <Card className="p-3.5 bg-surface border-border flex items-center justify-between">
+                <Card
+                  variant="goldAccent"
+                  className="p-3.5 bg-card border-border-gold/30 flex items-center justify-between"
+                >
                   <div>
                     <p className="text-xs font-semibold text-foreground">Monthly Rent</p>
                     <p className="text-[11px] text-foreground-muted">As specified in lease</p>
@@ -268,7 +271,10 @@ export function BillDetailsModal({
                   />
                 </Card>
 
-                <Card className="p-3.5 bg-surface border-border flex items-center justify-between">
+                <Card
+                  variant="default"
+                  className="p-3.5 bg-card border-border flex items-center justify-between"
+                >
                   <div>
                     <p className="text-xs font-semibold text-foreground">Service Charge</p>
                     <p className="text-[11px] text-foreground-muted">Lift, security, generator</p>
@@ -287,12 +293,12 @@ export function BillDetailsModal({
                 <h4 className="text-xs font-bold uppercase tracking-wider text-foreground-muted">
                   2. Variable Utilities & Submeter Readings (BDT)
                 </h4>
-                <span className="text-[11px] text-primary">Editable</span>
+                <span className="text-[11px] text-primary font-semibold">Editable</span>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 {/* Electricity */}
-                <div className="space-y-1.5 p-3 rounded-xl bg-surface border border-border">
+                <div className="space-y-1.5 p-3 rounded-xl bg-card border border-border">
                   <div className="flex items-center gap-1.5 text-xs font-semibold text-foreground">
                     <Zap className="size-3.5 text-amber-500" />
                     <Label htmlFor="electric">Electricity (Submeter)</Label>
@@ -305,12 +311,12 @@ export function BillDetailsModal({
                     value={electricityAmount || ""}
                     onChange={(e) => setElectricityAmount(parseFloat(e.target.value) || 0)}
                     placeholder="0.00"
-                    className="h-9 text-xs font-semibold"
+                    className="h-9 text-xs font-semibold bg-background"
                   />
                 </div>
 
                 {/* Gas */}
-                <div className="space-y-1.5 p-3 rounded-xl bg-surface border border-border">
+                <div className="space-y-1.5 p-3 rounded-xl bg-card border border-border">
                   <div className="flex items-center gap-1.5 text-xs font-semibold text-foreground">
                     <Flame className="size-3.5 text-orange-500" />
                     <Label htmlFor="gas">Gas Bill</Label>
@@ -323,12 +329,12 @@ export function BillDetailsModal({
                     value={gasAmount || ""}
                     onChange={(e) => setGasAmount(parseFloat(e.target.value) || 0)}
                     placeholder="1080.00"
-                    className="h-9 text-xs font-semibold"
+                    className="h-9 text-xs font-semibold bg-background"
                   />
                 </div>
 
                 {/* Water */}
-                <div className="space-y-1.5 p-3 rounded-xl bg-surface border border-border">
+                <div className="space-y-1.5 p-3 rounded-xl bg-card border border-border">
                   <div className="flex items-center gap-1.5 text-xs font-semibold text-foreground">
                     <Droplets className="size-3.5 text-sky-500" />
                     <Label htmlFor="water">Water Bill</Label>
@@ -341,12 +347,12 @@ export function BillDetailsModal({
                     value={waterAmount || ""}
                     onChange={(e) => setWaterAmount(parseFloat(e.target.value) || 0)}
                     placeholder="650.00"
-                    className="h-9 text-xs font-semibold"
+                    className="h-9 text-xs font-semibold bg-background"
                   />
                 </div>
 
                 {/* Waste */}
-                <div className="space-y-1.5 p-3 rounded-xl bg-surface border border-border">
+                <div className="space-y-1.5 p-3 rounded-xl bg-card border border-border">
                   <div className="flex items-center gap-1.5 text-xs font-semibold text-foreground">
                     <Trash2 className="size-3.5 text-emerald-500" />
                     <Label htmlFor="waste">Waste & Sanitation</Label>
@@ -359,12 +365,12 @@ export function BillDetailsModal({
                     value={wasteAmount || ""}
                     onChange={(e) => setWasteAmount(parseFloat(e.target.value) || 0)}
                     placeholder="300.00"
-                    className="h-9 text-xs font-semibold"
+                    className="h-9 text-xs font-semibold bg-background"
                   />
                 </div>
 
                 {/* Late Fee */}
-                <div className="space-y-1.5 p-3 rounded-xl bg-surface border border-border">
+                <div className="space-y-1.5 p-3 rounded-xl bg-card border border-border">
                   <div className="flex items-center gap-1.5 text-xs font-semibold text-foreground">
                     <Clock className="size-3.5 text-rose-500" />
                     <Label htmlFor="lateFee">Late Fee</Label>
@@ -377,14 +383,17 @@ export function BillDetailsModal({
                     value={lateFeeAmount || ""}
                     onChange={(e) => setLateFeeAmount(parseFloat(e.target.value) || 0)}
                     placeholder="0.00"
-                    className="h-9 text-xs font-semibold"
+                    className="h-9 text-xs font-semibold bg-background"
                   />
                 </div>
               </div>
             </div>
 
             {/* Financial Reconciliation Summary Card */}
-            <Card className="p-4 bg-surface-muted/50 border-border text-xs space-y-2">
+            <Card
+              variant="goldAccent"
+              className="p-4 bg-champagne/5 border-primary/25 text-xs space-y-2"
+            >
               <div className="flex justify-between items-center text-foreground font-semibold">
                 <span>Total Calculated Billed Amount</span>
                 <CurrencyDisplay amount={liveTotalAmount} className="text-base font-bold" />
@@ -398,13 +407,12 @@ export function BillDetailsModal({
               </div>
               <div className="flex justify-between items-center text-foreground-muted">
                 <span>Paid via bKash / Bank / Cash</span>
-                <CurrencyDisplay
-                  amount={amountPaid}
-                  className="text-blue-600 dark:text-blue-400 font-semibold"
-                />
+                <CurrencyDisplay amount={amountPaid} className="text-primary font-semibold" />
               </div>
-              <div className="pt-2 border-t border-border flex justify-between items-center font-bold">
-                <span className="text-sm text-foreground">Net Balance Due</span>
+              <div className="pt-2 border-t border-border-gold/30 flex justify-between items-center font-bold">
+                <span className="text-sm font-serif font-display text-foreground">
+                  Net Balance Due
+                </span>
                 <CurrencyDisplay
                   amount={liveBalanceDue}
                   className="text-lg text-rose-600 dark:text-rose-400 font-extrabold"
@@ -453,6 +461,7 @@ export function BillDetailsModal({
 
               <Button
                 type="submit"
+                variant="luxury"
                 disabled={updateUtilitiesMutation.isPending}
                 className="w-full sm:w-auto min-h-[44px] flex items-center gap-1.5"
               >
@@ -489,7 +498,8 @@ export function BillDetailsModal({
                   {bill.payments.map((p) => (
                     <Card
                       key={p.id}
-                      className="p-3 bg-surface border-border text-xs flex items-center justify-between"
+                      variant="goldAccent"
+                      className="p-3 bg-card border-border-gold/30 text-xs flex items-center justify-between"
                     >
                       <div>
                         <div className="flex items-center gap-2">
@@ -529,7 +539,8 @@ export function BillDetailsModal({
                   {bill.advanceAdjustments.map((adj) => (
                     <Card
                       key={adj.id}
-                      className="p-3 bg-surface border-border text-xs flex items-center justify-between"
+                      variant="default"
+                      className="p-3 bg-card border-border text-xs flex items-center justify-between"
                     >
                       <div>
                         <div className="flex items-center gap-2">

@@ -25,31 +25,36 @@ export default function RenterPortalHomePage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-gradient-to-b from-slate-100 to-slate-200 dark:from-slate-950 dark:to-slate-900">
-      <div className="w-full max-w-md space-y-6">
+    <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-canvas relative overflow-hidden">
+      {/* Ambient background glows */}
+      <div className="absolute top-1/4 -left-20 w-96 h-96 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-1/4 -right-20 w-96 h-96 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
+
+      <div className="w-full max-w-md space-y-6 relative z-10">
         <div className="text-center space-y-2">
-          <div className="inline-flex size-12 rounded-xl bg-indigo-600 text-white items-center justify-center font-bold text-xl shadow-lg mb-2">
+          <div className="inline-flex size-14 rounded-2xl bg-gradient-to-br from-primary to-[#8C6D3F] text-primary-foreground items-center justify-center font-serif font-black text-2xl shadow-xl shadow-primary/20 border border-border-gold/40 mb-2">
             Ω
           </div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
-            Omni Heaven Renter Portal
+          <h1 className="text-2xl font-serif font-black tracking-tight text-foreground">
+            OmniHeaven Resident Folio
           </h1>
-          <p className="text-sm text-slate-500">
-            Enter your flat access code to manage your lease, bills, and maintenance.
+          <p className="text-sm text-foreground-muted max-w-sm mx-auto">
+            Enter your flat access key or registered phone number to access your self-service
+            concierge & billing hub.
           </p>
         </div>
 
-        <Card className="p-6 border border-slate-200 dark:border-slate-800 shadow-xl bg-white dark:bg-slate-900">
+        <Card className="p-7 border border-border-gold/40 shadow-2xl bg-card rounded-2xl text-foreground">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label
                 htmlFor="access-code"
-                className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1.5"
+                className="text-xs font-bold text-foreground block mb-1.5 uppercase tracking-wider"
               >
-                Flat Access Code or Phone Number
+                Residence Key or Contact Phone
               </label>
               <div className="relative">
-                <KeyRound className="size-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                <KeyRound className="size-4 absolute left-3 top-1/2 -translate-y-1/2 text-foreground-muted" />
                 <Input
                   id="access-code"
                   type="text"
@@ -59,28 +64,33 @@ export default function RenterPortalHomePage() {
                     setAccessCode(e.target.value);
                     setError("");
                   }}
-                  className="pl-9 text-sm"
+                  className="pl-9 text-sm bg-surface border-border-gold/40 text-foreground placeholder:text-foreground-muted focus:border-primary focus:ring-primary/20"
                 />
               </div>
-              {error && <p className="text-xs text-rose-500 mt-1">{error}</p>}
+              {error && <p className="text-xs text-rose-500 mt-1.5">{error}</p>}
             </div>
 
             <Button
               type="submit"
-              className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium flex items-center justify-center gap-2"
+              variant="luxury"
+              className="w-full font-semibold flex items-center justify-center gap-2 py-3 shadow-lg shadow-primary/10"
             >
-              Access My Flat Portal
+              Access Resident Folio
               <ArrowRight className="size-4" />
             </Button>
           </form>
 
-          <div className="mt-6 pt-5 border-t border-slate-100 dark:border-slate-800 text-center space-y-2">
-            <Badge variant="outline" className="text-[11px] text-slate-500 font-normal">
-              <ShieldCheck className="size-3 mr-1 text-emerald-500" /> Secure 256-Bit Encrypted
-              Portal
+          <div className="mt-6 pt-5 border-t border-border-gold/30 text-center space-y-2">
+            <Badge
+              variant="outline"
+              className="text-[11px] text-foreground-muted font-medium border-border-gold/30 bg-primary/5"
+            >
+              <ShieldCheck className="size-3.5 mr-1 text-emerald-600 dark:text-emerald-400" />{" "}
+              Secure 256-Bit Encrypted Folio
             </Badge>
-            <p className="text-xs text-slate-400">
-              Need access? Contact your building manager or caretaker for your flat code.
+            <p className="text-xs text-foreground-muted">
+              Need access? Contact your residence manager or concierge desk for your flat access
+              key.
             </p>
           </div>
         </Card>

@@ -155,7 +155,16 @@ export const MaintenanceDeskScreen: React.FC<MaintenanceDeskScreenProps> = ({
             >
               Field Operations Desk
             </span>
-            <h2 style={{ fontSize: 20, fontWeight: "bold", margin: "2px 0 0" }}>
+            <h2
+              style={{
+                fontSize: 22,
+                fontFamily: "'Playfair Display', Georgia, serif",
+                fontWeight: "600",
+                margin: "2px 0 0",
+                letterSpacing: "-0.25px",
+                color: theme.colors.textPrimary,
+              }}
+            >
               Maintenance & Repairs
             </h2>
           </div>
@@ -163,12 +172,13 @@ export const MaintenanceDeskScreen: React.FC<MaintenanceDeskScreenProps> = ({
             {urgentCount > 0 && (
               <span
                 style={{
-                  padding: "4px 8px",
-                  borderRadius: 8,
+                  padding: "4px 10px",
+                  borderRadius: 20,
                   fontSize: 11,
-                  fontWeight: "bold",
-                  backgroundColor: "#7f1d1d",
-                  color: "#fca5a5",
+                  fontWeight: "700",
+                  backgroundColor: theme.isDark ? "rgba(192, 57, 43, 0.2)" : "#FDF0ED",
+                  color: theme.isDark ? "#fca5a5" : "#C0392B",
+                  border: `1px solid ${theme.isDark ? "rgba(192, 57, 43, 0.4)" : "#F8D7DA"}`,
                   display: "flex",
                   alignItems: "center",
                   gap: 4,
@@ -349,17 +359,26 @@ export const MaintenanceDeskScreen: React.FC<MaintenanceDeskScreenProps> = ({
           {filteredTickets.map((ticket) => {
             const isUrgent = ticket.urgency === "urgent";
             const isResolved = ticket.status === "resolved";
-
             return (
               <div
                 key={ticket.id}
                 style={{
                   backgroundColor: theme.colors.surface,
-                  borderRadius: 12,
-                  padding: 14,
-                  border: `1px solid ${isUrgent && !isResolved ? "#7f1d1d" : theme.colors.border}`,
+                  borderRadius: 14,
+                  padding: 16,
+                  border: `1px solid ${
+                    isUrgent && !isResolved
+                      ? theme.isDark
+                        ? "rgba(192, 57, 43, 0.4)"
+                        : "#F8D7DA"
+                      : theme.colors.border
+                  }`,
                   boxShadow:
-                    isUrgent && !isResolved ? "0 0 12px rgba(239, 68, 68, 0.15)" : undefined,
+                    isUrgent && !isResolved
+                      ? theme.isDark
+                        ? "0 4px 14px rgba(0, 0, 0, 0.3)"
+                        : "0 4px 14px rgba(192, 57, 43, 0.12)"
+                      : "0 2px 8px rgba(42, 32, 28, 0.04)",
                 }}
               >
                 <div
@@ -374,10 +393,10 @@ export const MaintenanceDeskScreen: React.FC<MaintenanceDeskScreenProps> = ({
                       <span
                         style={{
                           fontSize: 10,
-                          fontWeight: "bold",
-                          padding: "2px 6px",
+                          fontWeight: "700",
+                          padding: "2px 8px",
                           borderRadius: 6,
-                          backgroundColor: theme.colors.surfaceElevated,
+                          backgroundColor: "rgba(197, 168, 128, 0.15)",
                           color: theme.colors.goldPrimary,
                           border: `1px solid ${theme.colors.borderGold}`,
                           textTransform: "uppercase",
@@ -390,6 +409,7 @@ export const MaintenanceDeskScreen: React.FC<MaintenanceDeskScreenProps> = ({
                           fontSize: 10,
                           color: theme.colors.textMuted,
                           textTransform: "uppercase",
+                          letterSpacing: 0.5,
                           fontWeight: "600",
                         }}
                       >
@@ -400,15 +420,16 @@ export const MaintenanceDeskScreen: React.FC<MaintenanceDeskScreenProps> = ({
                     <h4
                       style={{
                         fontSize: 15,
-                        fontWeight: "bold",
-                        margin: "2px 0 0",
+                        fontFamily: "'Playfair Display', Georgia, serif",
+                        fontWeight: "600",
+                        margin: "4px 0 0",
                         color: theme.colors.textPrimary,
                       }}
                     >
                       {ticket.title}
                     </h4>
 
-                    <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 4 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 6 }}>
                       <Clock style={{ width: 11, height: 11, color: theme.colors.textMuted }} />
                       <span style={{ fontSize: 11, color: theme.colors.textMuted }}>
                         Reported: {ticket.reportedDate}
@@ -419,19 +440,40 @@ export const MaintenanceDeskScreen: React.FC<MaintenanceDeskScreenProps> = ({
                   <span
                     style={{
                       fontSize: 10,
-                      fontWeight: "bold",
+                      fontWeight: "700",
                       padding: "3px 8px",
-                      borderRadius: 10,
+                      borderRadius: 20,
                       backgroundColor: isUrgent
-                        ? "#7f1d1d"
+                        ? theme.isDark
+                          ? "rgba(192, 57, 43, 0.2)"
+                          : "#FDF0ED"
                         : ticket.urgency === "medium"
-                          ? "#78350f"
-                          : "#1e293b",
+                          ? theme.isDark
+                            ? "rgba(217, 119, 6, 0.2)"
+                            : "#FEF3C7"
+                          : theme.isDark
+                            ? "rgba(197, 168, 128, 0.15)"
+                            : "#F4EDE7",
                       color: isUrgent
-                        ? "#fca5a5"
+                        ? theme.isDark
+                          ? "#fca5a5"
+                          : "#C0392B"
                         : ticket.urgency === "medium"
-                          ? "#fde68a"
-                          : "#cbd5e1",
+                          ? theme.isDark
+                            ? "#fde68a"
+                            : "#D97706"
+                          : theme.colors.textMuted,
+                      border: `1px solid ${
+                        isUrgent
+                          ? theme.isDark
+                            ? "rgba(192, 57, 43, 0.4)"
+                            : "#F8D7DA"
+                          : ticket.urgency === "medium"
+                            ? theme.isDark
+                              ? "rgba(217, 119, 6, 0.4)"
+                              : "#FDE68A"
+                            : theme.colors.border
+                      }`,
                       textTransform: "uppercase",
                       letterSpacing: 0.5,
                     }}

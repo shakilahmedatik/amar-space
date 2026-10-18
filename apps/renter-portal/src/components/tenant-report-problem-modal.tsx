@@ -105,16 +105,16 @@ export function TenantReportProblemModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-      <Card className="w-full max-w-lg max-h-[90vh] overflow-y-auto bg-card border border-border shadow-2xl rounded-2xl flex flex-col">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
+      <Card className="w-full max-w-lg max-h-[90vh] overflow-y-auto bg-card border border-border-gold/40 shadow-2xl rounded-2xl flex flex-col text-foreground">
         {/* Header */}
-        <div className="flex items-center justify-between p-5 border-b border-border sticky top-0 bg-card z-10">
+        <div className="flex items-center justify-between p-5 border-b border-border-gold/30 sticky top-0 bg-card z-10">
           <div className="flex items-center gap-3">
-            <div className="size-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-600">
+            <div className="size-10 rounded-xl bg-primary/10 border border-border-gold/40 flex items-center justify-center text-primary shadow-xs">
               <Wrench className="size-5" />
             </div>
             <div>
-              <h2 className="text-base font-bold text-foreground">Report a Problem</h2>
+              <h2 className="text-base font-serif font-bold text-foreground">Report a Problem</h2>
               <p className="text-xs text-foreground-muted">
                 Our caretaker team will be notified immediately
               </p>
@@ -133,14 +133,14 @@ export function TenantReportProblemModal({
         {/* Form Body */}
         <form onSubmit={handleSubmit} className="p-6 space-y-4 flex-1">
           {errorMsg && (
-            <div className="p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-600 text-xs flex items-center gap-2">
+            <div className="p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-600 dark:text-rose-400 text-xs flex items-center gap-2">
               <AlertTriangle className="size-4 shrink-0" />
               <span>{errorMsg}</span>
             </div>
           )}
 
           {/* Emergency / Urgent Banner */}
-          <label className="flex items-center gap-3 p-3.5 rounded-xl border border-rose-500/30 bg-rose-500/5 cursor-pointer select-none">
+          <label className="flex items-center gap-3 p-3.5 rounded-xl border border-rose-500/30 bg-rose-500/10 cursor-pointer select-none">
             <input
               type="checkbox"
               checked={isUrgent}
@@ -148,7 +148,7 @@ export function TenantReportProblemModal({
               className="size-4 rounded text-rose-600 focus:ring-rose-500/20"
             />
             <div className="text-xs">
-              <span className="font-bold text-rose-600 block flex items-center gap-1.5">
+              <span className="font-bold text-rose-600 dark:text-rose-400 block flex items-center gap-1.5">
                 <AlertTriangle className="size-3.5" /> Urgent Emergency Request
               </span>
               <span className="text-[11px] text-foreground-muted">
@@ -172,8 +172,8 @@ export function TenantReportProblemModal({
                     onClick={() => setCategory(cat.id)}
                     className={`flex items-center gap-2 p-2.5 rounded-xl border text-xs font-medium transition-all min-h-[44px] ${
                       isSelected
-                        ? "bg-primary text-primary-foreground border-primary shadow-xs"
-                        : "bg-surface border-border text-foreground hover:bg-surface-elevated"
+                        ? "bg-primary text-primary-foreground border-primary shadow-xs font-semibold"
+                        : "bg-surface border-border-gold/30 text-foreground hover:border-border-gold/60 hover:bg-surface/80"
                     }`}
                   >
                     <span>{cat.icon}</span>
@@ -197,7 +197,7 @@ export function TenantReportProblemModal({
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="e.g. Master bathroom tap leaking continuously"
-              className="h-11 text-xs"
+              className="h-11 text-xs bg-surface border-border-gold/40 text-foreground focus:border-primary focus:ring-primary/20"
               required
             />
           </div>
@@ -216,7 +216,7 @@ export function TenantReportProblemModal({
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Please describe where the issue is, when it started, and any convenient time for caretaker inspection..."
               rows={3}
-              className="w-full px-3 py-2 text-xs rounded-xl bg-surface border border-border text-foreground focus:outline-hidden focus:ring-2 focus:ring-primary/20 resize-none"
+              className="w-full px-3 py-2 text-xs rounded-xl bg-surface border border-border-gold/40 text-foreground focus:outline-hidden focus:ring-2 focus:ring-primary/20 focus:border-primary resize-none"
               required
             />
           </div>
@@ -231,15 +231,15 @@ export function TenantReportProblemModal({
                 value={photoUrlInput}
                 onChange={(e) => setPhotoUrlInput(e.target.value)}
                 placeholder="https://example.com/photo.jpg"
-                className="h-11 text-xs flex-1"
+                className="h-11 text-xs flex-1 bg-surface border-border-gold/40 text-foreground focus:border-primary focus:ring-primary/20"
               />
               <Button
                 type="button"
                 variant="outline"
                 onClick={handleAddPhoto}
-                className="h-11 px-3 text-xs shrink-0 min-h-[44px]"
+                className="h-11 px-3 text-xs shrink-0 min-h-[44px] border-border-gold/40 hover:bg-primary/10"
               >
-                <Plus className="size-3.5" /> Add
+                <Plus className="size-3.5 text-primary" /> Add
               </Button>
             </div>
 
@@ -248,10 +248,10 @@ export function TenantReportProblemModal({
                 {photoUrls.map((url, idx) => (
                   <span
                     key={url}
-                    className="flex items-center gap-1.5 p-1.5 pl-2 rounded bg-surface border border-border text-[11px] text-foreground-muted"
+                    className="flex items-center gap-1.5 p-1.5 pl-2 rounded bg-surface border border-border-gold/30 text-[11px] text-foreground-muted"
                   >
                     <ImageIcon className="size-3 text-primary" />
-                    <span className="max-w-[150px] truncate">{url}</span>
+                    <span className="max-w-[150px] truncate text-foreground">{url}</span>
                     <button
                       type="button"
                       onClick={() => setPhotoUrls(photoUrls.filter((_, i) => i !== idx))}
@@ -267,7 +267,7 @@ export function TenantReportProblemModal({
           </div>
 
           {/* Actions */}
-          <div className="pt-4 border-t border-border flex items-center justify-end gap-3 sticky bottom-0 bg-card">
+          <div className="pt-4 border-t border-border-gold/30 flex items-center justify-end gap-3 sticky bottom-0 bg-card">
             <Button
               type="button"
               variant="outline"
@@ -279,8 +279,9 @@ export function TenantReportProblemModal({
             </Button>
             <Button
               type="submit"
+              variant="luxury"
               disabled={createTicketMutation.isPending}
-              className="h-11 px-6 text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white min-h-[44px] flex items-center gap-2"
+              className="h-11 px-6 text-xs font-bold min-h-[44px] flex items-center gap-2"
             >
               {createTicketMutation.isPending ? (
                 <>

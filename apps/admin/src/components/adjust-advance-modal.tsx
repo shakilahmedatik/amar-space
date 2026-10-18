@@ -101,14 +101,14 @@ export function AdjustAdvanceModal({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-md bg-surface border-border text-foreground">
+      <DialogContent className="sm:max-w-md bg-card border border-border-gold/50 shadow-2xl text-foreground">
         <DialogHeader>
           <div className="flex items-center gap-2">
-            <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+            <div className="p-2 rounded-lg bg-primary/10 text-primary border border-border-gold/40">
               <Coins className="size-5" />
             </div>
             <div>
-              <DialogTitle className="text-base font-bold">
+              <DialogTitle className="text-base font-bold font-display text-foreground">
                 Adjust Against Security Deposit
               </DialogTitle>
               <DialogDescription className="text-xs text-foreground-muted">
@@ -260,13 +260,14 @@ export function AdjustAdvanceModal({
               </Button>
               <Button
                 type="submit"
+                variant="luxury"
                 disabled={
                   applyAdjustmentMutation.isPending ||
                   isExcessiveDeposit ||
                   isExcessiveBill ||
                   adjustmentAmount <= 0
                 }
-                className="w-full sm:w-auto min-h-[44px] flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white"
+                className="w-full sm:w-auto min-h-[44px] flex items-center gap-1.5 font-bold shadow-xs"
               >
                 {applyAdjustmentMutation.isPending ? (
                   <>

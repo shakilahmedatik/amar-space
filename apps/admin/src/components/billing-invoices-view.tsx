@@ -77,17 +77,14 @@ export function BillingInvoicesView() {
   return (
     <div className="space-y-6">
       {/* Header Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-3 border-b border-border">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-xl md:text-2xl font-bold tracking-tight text-foreground">
+            <h1 className="font-display text-2xl md:text-3xl font-bold tracking-tight text-foreground">
               Bills, Utilities & Financial Ledger
             </h1>
-            <Badge
-              variant="outline"
-              className="text-xs bg-primary/10 text-primary border-primary/20"
-            >
-              Domain 04
+            <Badge variant="gold" className="text-[11px] px-2.5 py-0.5">
+              Financial Engine
             </Badge>
           </div>
           <p className="text-xs md:text-sm text-foreground-muted mt-1 max-w-2xl">
@@ -97,6 +94,7 @@ export function BillingInvoicesView() {
         </div>
 
         <Button
+          variant="luxury"
           onClick={() => setIsGenerateOpen(true)}
           className="flex items-center gap-2 min-h-[44px] shadow-sm font-semibold"
         >
@@ -107,81 +105,79 @@ export function BillingInvoicesView() {
 
       {/* 4 Financial Metric Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
-        <Card className="p-4 bg-surface border-border flex flex-col justify-between">
+        <Card variant="goldAccent" className="p-5 flex flex-col justify-between space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-foreground-muted uppercase tracking-wider">
+            <span className="text-[11px] font-bold text-foreground-muted uppercase tracking-wider">
               Total Invoiced
             </span>
-            <div className="p-2 rounded-lg bg-primary/10 text-primary">
+            <div className="p-1.5 rounded-lg bg-primary/10 text-primary border border-border-gold/40">
               <FileText className="size-4" />
             </div>
           </div>
-          <div className="mt-3">
+          <div>
             <CurrencyDisplay
               amount={metrics.totalBilled}
               large
-              className="text-xl md:text-2xl font-extrabold text-foreground"
+              className="text-2xl font-bold font-display text-foreground tabular-nums"
             />
-            <p className="text-[11px] text-foreground-muted mt-0.5">Across all selected bills</p>
+            <p className="text-[11px] text-foreground-muted mt-1">Across all selected bills</p>
           </div>
         </Card>
 
-        <Card className="p-4 bg-surface border-border flex flex-col justify-between">
+        <Card variant="default" className="p-5 flex flex-col justify-between space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-foreground-muted uppercase tracking-wider">
+            <span className="text-[11px] font-bold text-foreground-muted uppercase tracking-wider">
               Total Collected
             </span>
-            <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+            <div className="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20">
               <TrendingUp className="size-4" />
             </div>
           </div>
-          <div className="mt-3">
+          <div>
             <CurrencyDisplay
               amount={metrics.totalCollected}
               large
-              className="text-xl md:text-2xl font-extrabold text-emerald-600 dark:text-emerald-400"
+              className="text-2xl font-bold font-display text-emerald-700 dark:text-emerald-400 tabular-nums"
             />
-            <p className="text-[11px] text-foreground-muted mt-0.5">bKash, Bank & Cash collected</p>
+            <p className="text-[11px] text-foreground-muted mt-1">bKash, Bank & Cash collected</p>
           </div>
         </Card>
 
-        <Card className="p-4 bg-surface border-border flex flex-col justify-between">
+        <Card variant="default" className="p-5 flex flex-col justify-between space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-foreground-muted uppercase tracking-wider">
+            <span className="text-[11px] font-bold text-foreground-muted uppercase tracking-wider">
               Outstanding Dues
             </span>
-            <div className="p-2 rounded-lg bg-rose-500/10 text-rose-600 dark:text-rose-400">
+            <div className="p-1.5 rounded-lg bg-rose-500/10 text-rose-700 dark:text-rose-400 border border-rose-500/20">
               <TrendingDown className="size-4" />
             </div>
           </div>
-          <div className="mt-3">
+          <div>
             <CurrencyDisplay
               amount={metrics.totalOutstanding}
               large
-              className="text-xl md:text-2xl font-extrabold text-rose-600 dark:text-rose-400"
+              className="text-2xl font-bold font-display text-destructive tabular-nums"
             />
-            <p className="text-[11px] text-foreground-muted mt-0.5">
-              Receivable from active tenants
-            </p>
+            <p className="text-[11px] text-foreground-muted mt-1">Receivable from active tenants</p>
           </div>
         </Card>
 
-        <Card className="p-4 bg-surface border-border flex flex-col justify-between">
+        <Card variant="default" className="p-5 flex flex-col justify-between space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-foreground-muted uppercase tracking-wider">
+            <span className="text-[11px] font-bold text-foreground-muted uppercase tracking-wider">
               Advance Adjusted
             </span>
-            <div className="p-2 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400">
+            <div className="p-1.5 rounded-lg bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20">
               <Coins className="size-4" />
             </div>
           </div>
-          <div className="mt-3">
+          <div>
             <CurrencyDisplay
               amount={metrics.totalAdvanceAdjusted}
               large
-              className="text-xl md:text-2xl font-extrabold text-amber-600 dark:text-amber-400"
+              className="text-2xl font-bold font-display text-primary tabular-nums"
             />
-            <p className="text-[11px] text-foreground-muted mt-0.5">Drawn from deposit ledger</p>
+            <p className="text-[11px] text-foreground-muted mt-1">Drawn from deposit ledger</p>
           </div>
         </Card>
       </div>
@@ -234,10 +230,10 @@ export function BillingInvoicesView() {
               key={st.id}
               type="button"
               onClick={() => setSelectedStatus(st.id)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors min-h-[36px] ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all min-h-[36px] ${
                 selectedStatus === st.id
-                  ? "bg-primary text-primary-foreground font-semibold shadow-xs"
-                  : "bg-surface-muted hover:bg-surface-muted/80 text-foreground-muted"
+                  ? "bg-card text-foreground font-bold shadow-xs border border-border-gold/50"
+                  : "bg-surface hover:bg-surface/80 text-foreground-muted"
               }`}
             >
               {st.label}
@@ -388,9 +384,10 @@ export function BillingInvoicesView() {
 
                           {balanceDueNum > 0 && (
                             <Button
+                              variant="luxury"
                               size="sm"
                               onClick={() => setSelectedBillIdForPayment(bill.id)}
-                              className="text-xs min-h-[36px] bg-primary text-primary-foreground font-semibold flex items-center gap-1"
+                              className="text-xs min-h-[36px] font-bold flex items-center gap-1 shadow-xs"
                             >
                               <CreditCard className="size-3" />
                               Pay
@@ -399,7 +396,7 @@ export function BillingInvoicesView() {
 
                           {balanceDueNum > 0 && remainingDeposit > 0 && (
                             <Button
-                              variant="outline"
+                              variant="goldOutline"
                               size="sm"
                               onClick={() =>
                                 setAdvanceAdjustmentTarget({
@@ -407,7 +404,7 @@ export function BillingInvoicesView() {
                                   billId: bill.id,
                                 })
                               }
-                              className="text-xs min-h-[36px] text-emerald-600 dark:text-emerald-400 border-emerald-500/20"
+                              className="text-xs min-h-[36px]"
                             >
                               Adjust Adv.
                             </Button>

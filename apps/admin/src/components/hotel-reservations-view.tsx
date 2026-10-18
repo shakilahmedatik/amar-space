@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@omniheaven/ui";
 import {
   AlertCircle,
   Ban,
@@ -138,9 +139,9 @@ export function HotelReservationsView() {
   return (
     <div className="space-y-6">
       {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-border-gold/30">
         <div>
-          <h2 className="text-xl sm:text-2xl font-bold font-heading text-foreground">
+          <h2 className="text-xl sm:text-2xl font-serif font-bold text-foreground tracking-tight">
             Front Desk & Tape Chart
           </h2>
           <p className="text-xs sm:text-sm text-foreground-muted mt-0.5">
@@ -149,7 +150,7 @@ export function HotelReservationsView() {
         </div>
 
         <div className="flex items-center gap-2">
-          <div className="flex items-center p-1 bg-surface border border-border rounded-xl">
+          <div className="flex items-center p-1 bg-surface border border-border-gold/30 rounded-xl">
             <button
               type="button"
               onClick={() => setActiveViewMode("matrix")}
@@ -175,17 +176,18 @@ export function HotelReservationsView() {
               <span>Table List</span>
             </button>
           </div>
-          <button
+          <Button
             type="button"
+            variant="luxury"
             onClick={() => {
               setActionError(null);
               setIsNewBookingModalOpen(true);
             }}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold shadow-sm transition-all"
+            className="flex items-center gap-2 text-xs font-semibold shadow-xs"
           >
             <Plus className="size-4" />
             <span>New Reservation</span>
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -208,59 +210,73 @@ export function HotelReservationsView() {
 
       {/* KPI Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="p-4 rounded-2xl bg-card border border-border shadow-xs">
+        <div className="p-4 rounded-2xl bg-card border border-border-gold/30 shadow-xs hover:border-border-gold/60 transition-all">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-foreground-muted">Occupancy Rate</span>
-            <div className="p-2 rounded-xl bg-amber-500/10 text-amber-600">
+            <span className="text-xs font-semibold text-foreground-muted uppercase tracking-wider">
+              Occupancy Rate
+            </span>
+            <div className="p-2 rounded-xl bg-primary/10 text-primary border border-border-gold/30">
               <DoorOpen className="size-4" />
             </div>
           </div>
-          <p className="text-2xl font-bold text-foreground mt-2">{occupancyPercent}%</p>
+          <p className="text-2xl font-serif font-bold text-foreground mt-2">{occupancyPercent}%</p>
           <span className="text-[11px] text-foreground-muted">
             {inHouseGuestsCount} of {totalRoomsCount} rooms occupied
           </span>
         </div>
 
-        <div className="p-4 rounded-2xl bg-card border border-border shadow-xs">
+        <div className="p-4 rounded-2xl bg-card border border-border-gold/30 shadow-xs hover:border-border-gold/60 transition-all">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-foreground-muted">In-House Guests</span>
-            <div className="p-2 rounded-xl bg-emerald-500/10 text-emerald-600">
+            <span className="text-xs font-semibold text-foreground-muted uppercase tracking-wider">
+              In-House Guests
+            </span>
+            <div className="p-2 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
               <UserCheck className="size-4" />
             </div>
           </div>
-          <p className="text-2xl font-bold text-foreground mt-2">{inHouseGuestsCount}</p>
-          <span className="text-[11px] text-emerald-600 font-medium">Currently checked in</span>
+          <p className="text-2xl font-serif font-bold text-foreground mt-2">{inHouseGuestsCount}</p>
+          <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">
+            Currently checked in
+          </span>
         </div>
 
-        <div className="p-4 rounded-2xl bg-card border border-border shadow-xs">
+        <div className="p-4 rounded-2xl bg-card border border-border-gold/30 shadow-xs hover:border-border-gold/60 transition-all">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-foreground-muted">Active Bookings</span>
-            <div className="p-2 rounded-xl bg-blue-500/10 text-blue-600">
+            <span className="text-xs font-semibold text-foreground-muted uppercase tracking-wider">
+              Active Bookings
+            </span>
+            <div className="p-2 rounded-xl bg-primary/10 text-primary border border-border-gold/30">
               <CalendarIcon className="size-4" />
             </div>
           </div>
-          <p className="text-2xl font-bold text-foreground mt-2">{activeBookingsCount}</p>
+          <p className="text-2xl font-serif font-bold text-foreground mt-2">
+            {activeBookingsCount}
+          </p>
           <span className="text-[11px] text-foreground-muted">Confirmed & Arriving</span>
         </div>
 
-        <div className="p-4 rounded-2xl bg-card border border-border shadow-xs">
+        <div className="p-4 rounded-2xl bg-card border border-border-gold/30 shadow-xs hover:border-border-gold/60 transition-all">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-foreground-muted">Room Inventory</span>
-            <div className="p-2 rounded-xl bg-purple-500/10 text-purple-600">
+            <span className="text-xs font-semibold text-foreground-muted uppercase tracking-wider">
+              Room Inventory
+            </span>
+            <div className="p-2 rounded-xl bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-border-gold/30">
               <Users className="size-4" />
             </div>
           </div>
-          <p className="text-2xl font-bold text-foreground mt-2">{totalRoomsCount}</p>
+          <p className="text-2xl font-serif font-bold text-foreground mt-2">{totalRoomsCount}</p>
           <span className="text-[11px] text-foreground-muted">Across {roomTypes.length} types</span>
         </div>
       </div>
 
       {/* TAPE CHART MATRIX VIEW */}
       {activeViewMode === "matrix" && (
-        <div className="p-4 sm:p-6 rounded-2xl bg-card border border-border shadow-xs space-y-4">
+        <div className="p-4 sm:p-6 rounded-2xl bg-card border border-border-gold/30 shadow-xs space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-sm font-bold text-foreground">Room Tape Chart Calendar</h3>
+              <h3 className="text-sm font-serif font-bold text-foreground">
+                Room Tape Chart Calendar
+              </h3>
               <p className="text-xs text-foreground-muted">
                 7-day occupancy timeline with color-coded reservation blocks.
               </p>
@@ -271,21 +287,21 @@ export function HotelReservationsView() {
                 <span className="text-foreground-muted">Checked In</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <span className="size-2.5 rounded-full bg-amber-500 inline-block" />
+                <span className="size-2.5 rounded-full bg-primary inline-block" />
                 <span className="text-foreground-muted">Confirmed</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <span className="size-2.5 rounded-full bg-slate-400 inline-block" />
+                <span className="size-2.5 rounded-full bg-border-gold inline-block" />
                 <span className="text-foreground-muted">Available</span>
               </div>
             </div>
           </div>
 
-          <div className="overflow-x-auto border border-border rounded-xl">
+          <div className="overflow-x-auto border border-border-gold/30 rounded-xl">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
-                <tr className="bg-surface border-b border-border">
-                  <th className="p-3 font-semibold text-foreground min-w-[120px] sticky left-0 bg-surface z-10">
+                <tr className="bg-surface border-b border-border-gold/30">
+                  <th className="p-3 font-semibold text-foreground min-w-[120px] sticky left-0 bg-surface z-10 border-r border-border-gold/30">
                     Room
                   </th>
                   {next7Days.map((dateStr) => {
@@ -295,32 +311,32 @@ export function HotelReservationsView() {
                     return (
                       <th
                         key={dateStr}
-                        className="p-3 font-semibold text-foreground text-center min-w-[130px] border-l border-border"
+                        className="p-3 font-semibold text-foreground text-center min-w-[130px] border-l border-border-gold/20"
                       >
                         <span className="block text-[11px] text-foreground-muted uppercase">
                           {dayName}
                         </span>
-                        <span className="text-sm font-bold">{dayNum}</span>
+                        <span className="text-sm font-serif font-bold">{dayNum}</span>
                       </th>
                     );
                   })}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-border">
+              <tbody className="divide-y divide-border-gold/20">
                 {rooms.map((room) => (
-                  <tr key={room.id} className="hover:bg-surface/50 transition-colors">
-                    <td className="p-3 sticky left-0 bg-card z-10 border-r border-border">
+                  <tr key={room.id} className="hover:bg-primary/[0.03] transition-colors">
+                    <td className="p-3 sticky left-0 bg-card z-10 border-r border-border-gold/30">
                       <div className="flex items-center justify-between">
                         <span className="font-bold text-foreground">Room {room.roomNumber}</span>
                         <span
                           className={`text-[9px] px-1.5 py-0.5 rounded-md font-semibold ${
                             room.status === "available"
-                              ? "bg-emerald-500/10 text-emerald-600"
+                              ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
                               : room.status === "occupied"
-                                ? "bg-blue-500/10 text-blue-600"
+                                ? "bg-primary/15 text-primary border border-border-gold/40"
                                 : room.status === "cleaning"
-                                  ? "bg-amber-500/10 text-amber-600"
-                                  : "bg-rose-500/10 text-rose-600"
+                                  ? "bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/20"
+                                  : "bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20"
                           }`}
                         >
                           {room.status}
@@ -346,7 +362,7 @@ export function HotelReservationsView() {
                         return (
                           <td
                             key={dateStr}
-                            className="p-1.5 border-l border-border text-center align-middle"
+                            className="p-1.5 border-l border-border-gold/20 text-center align-middle"
                           >
                             <button
                               type="button"
@@ -357,16 +373,16 @@ export function HotelReservationsView() {
                                   setSelectedBookingForCheckIn(bookingForDate);
                                 }
                               }}
-                              className={`w-full p-2 rounded-lg text-left transition-transform active:scale-95 ${
+                              className={`w-full p-2 rounded-lg text-left transition-transform active:scale-95 shadow-xs ${
                                 isCheckedIn
                                   ? "bg-emerald-600/90 text-white hover:bg-emerald-700"
-                                  : "bg-amber-500/90 text-white hover:bg-amber-600"
+                                  : "bg-primary/90 text-primary-foreground hover:bg-primary"
                               }`}
                             >
                               <span className="font-bold block truncate text-[11px]">
                                 {bookingForDate.guestName}
                               </span>
-                              <span className="text-[9px] opacity-80 block truncate">
+                              <span className="text-[9px] opacity-80 block truncate font-mono">
                                 {bookingForDate.bookingReference}
                               </span>
                             </button>
@@ -377,7 +393,7 @@ export function HotelReservationsView() {
                       return (
                         <td
                           key={dateStr}
-                          className="p-1.5 border-l border-border text-center align-middle bg-surface/20"
+                          className="p-1.5 border-l border-border-gold/20 text-center align-middle bg-surface/20"
                         >
                           <span className="text-[11px] text-foreground-muted/40 font-mono">
                             Free
@@ -395,7 +411,7 @@ export function HotelReservationsView() {
 
       {/* TABLE LIST VIEW */}
       {activeViewMode === "table" && (
-        <div className="p-4 sm:p-6 rounded-2xl bg-card border border-border shadow-xs space-y-4">
+        <div className="p-4 sm:p-6 rounded-2xl bg-card border border-border-gold/30 shadow-xs space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="relative flex-1 max-w-sm">
               <Search className="size-4 absolute left-3 top-1/2 -translate-y-1/2 text-foreground-muted" />
@@ -404,7 +420,7 @@ export function HotelReservationsView() {
                 placeholder="Search by guest, reference, or phone..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-9 pr-3 py-2 rounded-xl bg-surface border border-border text-xs text-foreground focus:outline-hidden focus:border-primary"
+                className="w-full pl-9 pr-3 py-2 rounded-xl bg-surface border border-border-gold/30 text-xs text-foreground focus:outline-hidden focus:border-primary placeholder:text-foreground-muted"
               />
             </div>
             <div className="flex items-center gap-2">
@@ -412,7 +428,7 @@ export function HotelReservationsView() {
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="px-3 py-2 rounded-xl bg-surface border border-border text-xs text-foreground focus:outline-hidden"
+                className="px-3 py-2 rounded-xl bg-surface border border-border-gold/30 text-xs text-foreground focus:outline-hidden focus:border-primary"
               >
                 <option value="all">All Statuses</option>
                 <option value="confirmed">Confirmed</option>
@@ -423,10 +439,10 @@ export function HotelReservationsView() {
             </div>
           </div>
 
-          <div className="overflow-x-auto border border-border rounded-xl">
+          <div className="overflow-x-auto border border-border-gold/30 rounded-xl">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
-                <tr className="bg-surface border-b border-border text-foreground-muted">
+                <tr className="bg-surface border-b border-border-gold/30 text-foreground-muted">
                   <th className="p-3 font-semibold">Reference</th>
                   <th className="p-3 font-semibold">Guest</th>
                   <th className="p-3 font-semibold">Room & Type</th>
@@ -436,9 +452,9 @@ export function HotelReservationsView() {
                   <th className="p-3 font-semibold text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-border">
+              <tbody className="divide-y divide-border-gold/20">
                 {filteredBookings.map((b) => (
-                  <tr key={b.id} className="hover:bg-surface/50 transition-colors">
+                  <tr key={b.id} className="hover:bg-primary/[0.03] transition-colors">
                     <td className="p-3 font-mono font-bold text-foreground">
                       {b.bookingReference}
                     </td>
@@ -463,7 +479,7 @@ export function HotelReservationsView() {
                     <td className="p-3">
                       <p className="font-bold text-foreground">৳ {b.totalPrice}</p>
                       {Number(b.extraCharges) > 0 && (
-                        <p className="text-[10px] text-amber-600">
+                        <p className="text-[10px] text-primary font-medium">
                           +৳ {b.extraCharges} Folio Extras
                         </p>
                       )}
@@ -472,12 +488,12 @@ export function HotelReservationsView() {
                       <span
                         className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider ${
                           b.status === "checked_in"
-                            ? "bg-emerald-500/10 text-emerald-600"
+                            ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
                             : b.status === "confirmed"
-                              ? "bg-amber-500/10 text-amber-600"
+                              ? "bg-primary/10 text-primary border border-border-gold/30"
                               : b.status === "checked_out"
-                                ? "bg-slate-500/10 text-slate-600"
-                                : "bg-rose-500/10 text-rose-600"
+                                ? "bg-surface border border-border-gold/30 text-foreground-muted"
+                                : "bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20"
                         }`}
                       >
                         {b.status.replace("_", " ")}
@@ -492,7 +508,7 @@ export function HotelReservationsView() {
                               setActionError(null);
                               setSelectedBookingForCheckIn(b);
                             }}
-                            className="px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-semibold transition-colors"
+                            className="px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-semibold transition-colors shadow-xs"
                           >
                             Check In
                           </button>
@@ -684,17 +700,17 @@ function CheckInModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-      <div className="bg-card w-full max-w-lg rounded-2xl border border-border shadow-2xl p-6 space-y-5">
-        <div className="flex items-center justify-between pb-3 border-b border-border">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
+      <div className="bg-card w-full max-w-lg rounded-2xl border border-border-gold/40 shadow-2xl p-6 space-y-5 text-foreground">
+        <div className="flex items-center justify-between pb-3 border-b border-border-gold/30">
           <div>
-            <h3 className="text-base font-bold text-foreground">Guest Check-In</h3>
+            <h3 className="text-base font-serif font-bold text-foreground">Guest Check-In</h3>
             <p className="text-xs text-foreground-muted">{booking.bookingReference}</p>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="p-1 rounded-lg text-foreground-muted hover:text-foreground"
+            className="p-1 rounded-lg text-foreground-muted hover:text-foreground transition-colors"
           >
             <X className="size-4" />
           </button>
@@ -708,7 +724,7 @@ function CheckInModal({
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="p-3 rounded-xl bg-surface border border-border text-xs space-y-1">
+          <div className="p-3 rounded-xl bg-surface border border-border-gold/30 text-xs space-y-1">
             <p className="font-semibold text-foreground">Guest: {booking.guestName}</p>
             <p className="text-foreground-muted">Phone: {booking.guestPhone}</p>
             <p className="text-foreground-muted">
@@ -724,7 +740,7 @@ function CheckInModal({
               Assign Physical Room *
             </label>
             {availableRooms.length === 0 ? (
-              <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-700">
+              <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-700 dark:text-amber-300">
                 No rooms currently ready for this suite type. Please check the Housekeeping Board to
                 inspect or clean a room first.
               </div>
@@ -734,7 +750,7 @@ function CheckInModal({
                 value={selectedRoomId}
                 onChange={(e) => setSelectedRoomId(e.target.value)}
                 required
-                className="w-full px-3 py-2 rounded-xl bg-surface border border-border text-xs text-foreground focus:outline-hidden"
+                className="w-full px-3 py-2 rounded-xl bg-surface border border-border-gold/40 text-xs text-foreground focus:outline-hidden focus:border-primary"
               >
                 <option value="">Select a ready room...</option>
                 {availableRooms.map((r) => (
@@ -760,7 +776,7 @@ function CheckInModal({
               placeholder="e.g. 19912692019000456 or A04892140"
               value={guestNidOrPassport}
               onChange={(e) => setGuestNidOrPassport(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl bg-surface border border-border text-xs text-foreground focus:outline-hidden focus:border-primary"
+              className="w-full px-3 py-2 rounded-xl bg-surface border border-border-gold/40 text-xs text-foreground focus:outline-hidden focus:border-primary placeholder:text-foreground-muted"
             />
             <span className="text-[10px] text-foreground-muted mt-1 block">
               Mandatory government KYC compliance for hospitality check-ins.
@@ -780,25 +796,22 @@ function CheckInModal({
               value={specialRequests}
               onChange={(e) => setSpecialRequests(e.target.value)}
               placeholder="e.g. Extra pillows provided, late checkout requested"
-              className="w-full px-3 py-2 rounded-xl bg-surface border border-border text-xs text-foreground focus:outline-hidden focus:border-primary"
+              className="w-full px-3 py-2 rounded-xl bg-surface border border-border-gold/40 text-xs text-foreground focus:outline-hidden focus:border-primary placeholder:text-foreground-muted"
             />
           </div>
 
-          <div className="flex items-center justify-end gap-3 pt-3 border-t border-border">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 rounded-xl border border-border text-xs font-semibold hover:bg-surface transition-colors"
-            >
+          <div className="flex items-center justify-end gap-3 pt-3 border-t border-border-gold/30">
+            <Button type="button" variant="outline" onClick={onClose} className="text-xs">
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button
               type="submit"
+              variant="luxury"
               disabled={isLoading || !guestNidOrPassport}
-              className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all shadow-xs disabled:opacity-50"
+              className="text-xs font-bold shadow-xs"
             >
               {isLoading ? "Processing..." : "Complete Check-In"}
-            </button>
+            </Button>
           </div>
         </form>
       </div>
@@ -836,17 +849,17 @@ function CheckOutModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-      <div className="bg-card w-full max-w-md rounded-2xl border border-border shadow-2xl p-6 space-y-5">
-        <div className="flex items-center justify-between pb-3 border-b border-border">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
+      <div className="bg-card w-full max-w-md rounded-2xl border border-border-gold/40 shadow-2xl p-6 space-y-5 text-foreground">
+        <div className="flex items-center justify-between pb-3 border-b border-border-gold/30">
           <div>
-            <h3 className="text-base font-bold text-foreground">Process Checkout</h3>
+            <h3 className="text-base font-serif font-bold text-foreground">Process Checkout</h3>
             <p className="text-xs text-foreground-muted">{booking.bookingReference}</p>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="p-1 rounded-lg text-foreground-muted hover:text-foreground"
+            className="p-1 rounded-lg text-foreground-muted hover:text-foreground transition-colors"
           >
             <X className="size-4" />
           </button>
@@ -860,7 +873,7 @@ function CheckOutModal({
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="p-3 rounded-xl bg-surface border border-border text-xs space-y-1.5">
+          <div className="p-3 rounded-xl bg-surface border border-border-gold/30 text-xs space-y-1.5">
             <div className="flex justify-between">
               <span className="text-foreground-muted">Guest</span>
               <span className="font-semibold text-foreground">{booking.guestName}</span>
@@ -875,7 +888,7 @@ function CheckOutModal({
               <span className="text-foreground-muted">Room Base Rate</span>
               <span className="font-bold text-foreground">৳ {booking.totalPrice}</span>
             </div>
-            <div className="flex justify-between text-amber-600">
+            <div className="flex justify-between text-primary font-semibold">
               <span>Existing Folio Charges</span>
               <span className="font-bold">৳ {currentExtraCharges.toFixed(2)}</span>
             </div>
@@ -895,7 +908,7 @@ function CheckOutModal({
               step="50"
               value={additionalCharges}
               onChange={(e) => setAdditionalCharges(Number(e.target.value))}
-              className="w-full px-3 py-2 rounded-xl bg-surface border border-border text-xs text-foreground focus:outline-hidden"
+              className="w-full px-3 py-2 rounded-xl bg-surface border border-border-gold/40 text-xs text-foreground focus:outline-hidden focus:border-primary"
             />
           </div>
 
@@ -910,7 +923,7 @@ function CheckOutModal({
               id="checkout-payment-method"
               value={paymentMethod}
               onChange={(e) => setPaymentMethod(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl bg-surface border border-border text-xs text-foreground focus:outline-hidden"
+              className="w-full px-3 py-2 rounded-xl bg-surface border border-border-gold/40 text-xs text-foreground focus:outline-hidden focus:border-primary"
             >
               <option value="cash">Cash Collection</option>
               <option value="bkash">bKash Merchant Pay</option>
@@ -920,27 +933,24 @@ function CheckOutModal({
             </select>
           </div>
 
-          <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-700">
+          <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-700 dark:text-amber-300">
             <span className="font-bold block mb-1">Notice:</span>
             Upon checkout, Room {booking.room?.roomNumber} will automatically transition to{" "}
             <strong>Cleaning</strong> status to trigger turnover housekeeping.
           </div>
 
-          <div className="flex items-center justify-end gap-3 pt-3 border-t border-border">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 rounded-xl border border-border text-xs font-semibold hover:bg-surface"
-            >
+          <div className="flex items-center justify-end gap-3 pt-3 border-t border-border-gold/30">
+            <Button type="button" variant="outline" onClick={onClose} className="text-xs">
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button
               type="submit"
+              variant="luxury"
               disabled={isLoading}
-              className="px-5 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold transition-all shadow-xs"
+              className="text-xs font-bold shadow-xs"
             >
               {isLoading ? "Settling..." : "Settle & Checkout"}
-            </button>
+            </Button>
           </div>
         </form>
       </div>
@@ -971,14 +981,18 @@ function AddFolioChargeModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-      <div className="bg-card w-full max-w-sm rounded-2xl border border-border shadow-2xl p-6 space-y-4">
-        <div className="flex items-center justify-between pb-2 border-b border-border">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
+      <div className="bg-card w-full max-w-sm rounded-2xl border border-border-gold/40 shadow-2xl p-6 space-y-4 text-foreground">
+        <div className="flex items-center justify-between pb-2 border-b border-border-gold/30">
           <div>
-            <h3 className="text-sm font-bold text-foreground">Add Folio Charge</h3>
+            <h3 className="text-sm font-serif font-bold text-foreground">Add Folio Charge</h3>
             <p className="text-[11px] text-foreground-muted">{booking.bookingReference}</p>
           </div>
-          <button type="button" onClick={onClose} className="p-1 text-foreground-muted">
+          <button
+            type="button"
+            onClick={onClose}
+            className="p-1 text-foreground-muted hover:text-foreground"
+          >
             <X className="size-4" />
           </button>
         </div>
@@ -1005,7 +1019,7 @@ function AddFolioChargeModal({
               placeholder="e.g. Room Service Dining, Laundry"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl bg-surface border border-border text-xs text-foreground focus:outline-hidden"
+              className="w-full px-3 py-2 rounded-xl bg-surface border border-border-gold/40 text-xs text-foreground focus:outline-hidden focus:border-primary placeholder:text-foreground-muted"
             />
           </div>
 
@@ -1024,25 +1038,22 @@ function AddFolioChargeModal({
               required
               value={amount}
               onChange={(e) => setAmount(Number(e.target.value))}
-              className="w-full px-3 py-2 rounded-xl bg-surface border border-border text-xs text-foreground focus:outline-hidden"
+              className="w-full px-3 py-2 rounded-xl bg-surface border border-border-gold/40 text-xs text-foreground focus:outline-hidden focus:border-primary"
             />
           </div>
 
-          <div className="flex items-center justify-end gap-2 pt-2">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-3 py-1.5 rounded-lg border border-border text-xs font-medium"
-            >
+          <div className="flex items-center justify-end gap-2 pt-2 border-t border-border-gold/30">
+            <Button type="button" variant="outline" onClick={onClose} className="text-xs">
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button
               type="submit"
+              variant="luxury"
               disabled={isLoading || !description || amount <= 0}
-              className="px-4 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold"
+              className="text-xs font-bold"
             >
               {isLoading ? "Saving..." : "Add to Folio"}
-            </button>
+            </Button>
           </div>
         </form>
       </div>
@@ -1072,16 +1083,20 @@ function CancelBookingModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-      <div className="bg-card w-full max-w-sm rounded-2xl border border-border shadow-2xl p-6 space-y-4">
-        <div className="flex items-center justify-between pb-2 border-b border-border">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
+      <div className="bg-card w-full max-w-sm rounded-2xl border border-border-gold/40 shadow-2xl p-6 space-y-4 text-foreground">
+        <div className="flex items-center justify-between pb-2 border-b border-border-gold/30">
           <div>
-            <h3 className="text-sm font-bold text-destructive flex items-center gap-1.5">
+            <h3 className="text-sm font-serif font-bold text-destructive flex items-center gap-1.5">
               <Ban className="size-4" /> Cancel Reservation
             </h3>
             <p className="text-[11px] text-foreground-muted">{booking.bookingReference}</p>
           </div>
-          <button type="button" onClick={onClose} className="p-1 text-foreground-muted">
+          <button
+            type="button"
+            onClick={onClose}
+            className="p-1 text-foreground-muted hover:text-foreground"
+          >
             <X className="size-4" />
           </button>
         </div>
@@ -1094,7 +1109,7 @@ function CancelBookingModal({
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="p-3 rounded-xl bg-surface border border-border text-xs space-y-1">
+          <div className="p-3 rounded-xl bg-surface border border-border-gold/30 text-xs space-y-1">
             <p className="font-semibold text-foreground">Guest: {booking.guestName}</p>
             <p className="text-foreground-muted">
               Dates: {booking.checkInDate} → {booking.checkOutDate}
@@ -1116,22 +1131,18 @@ function CancelBookingModal({
               placeholder="e.g. Guest requested cancellation via phone call / flight cancelled"
               value={reason}
               onChange={(e) => setReason(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl bg-surface border border-border text-xs text-foreground focus:outline-hidden"
+              className="w-full px-3 py-2 rounded-xl bg-surface border border-border-gold/40 text-xs text-foreground focus:outline-hidden focus:border-primary placeholder:text-foreground-muted"
             />
           </div>
 
-          <div className="flex items-center justify-end gap-2 pt-2 border-t border-border">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-3 py-1.5 rounded-lg border border-border text-xs font-medium"
-            >
+          <div className="flex items-center justify-end gap-2 pt-2 border-t border-border-gold/30">
+            <Button type="button" variant="outline" onClick={onClose} className="text-xs">
               Keep Booking
-            </button>
+            </Button>
             <button
               type="submit"
               disabled={isLoading || reason.trim().length < 3}
-              className="px-4 py-1.5 rounded-lg bg-destructive hover:bg-destructive/90 text-destructive-foreground text-xs font-bold transition-all shadow-xs disabled:opacity-50"
+              className="px-4 py-2 rounded-xl bg-destructive hover:bg-destructive/90 text-destructive-foreground text-xs font-bold transition-all shadow-xs disabled:opacity-50"
             >
               {isLoading ? "Cancelling..." : "Confirm Cancellation"}
             </button>
@@ -1191,11 +1202,17 @@ function NewReservationModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-      <div className="bg-card w-full max-w-lg rounded-2xl border border-border shadow-2xl p-6 space-y-4">
-        <div className="flex items-center justify-between pb-3 border-b border-border">
-          <h3 className="text-base font-bold text-foreground">Create Walk-in Reservation</h3>
-          <button type="button" onClick={onClose} className="p-1 text-foreground-muted">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
+      <div className="bg-card w-full max-w-lg rounded-2xl border border-border-gold/40 shadow-2xl p-6 space-y-4 text-foreground">
+        <div className="flex items-center justify-between pb-3 border-b border-border-gold/30">
+          <h3 className="text-base font-serif font-bold text-foreground">
+            Create Walk-in Reservation
+          </h3>
+          <button
+            type="button"
+            onClick={onClose}
+            className="p-1 text-foreground-muted hover:text-foreground"
+          >
             <X className="size-4" />
           </button>
         </div>
@@ -1222,7 +1239,7 @@ function NewReservationModal({
                 required
                 value={checkInDate}
                 onChange={(e) => setCheckInDate(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl bg-surface border border-border text-xs text-foreground focus:outline-hidden"
+                className="w-full px-3 py-2 rounded-xl bg-surface border border-border-gold/40 text-xs text-foreground focus:outline-hidden focus:border-primary"
               />
             </div>
             <div>
@@ -1238,7 +1255,7 @@ function NewReservationModal({
                 required
                 value={checkOutDate}
                 onChange={(e) => setCheckOutDate(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl bg-surface border border-border text-xs text-foreground focus:outline-hidden"
+                className="w-full px-3 py-2 rounded-xl bg-surface border border-border-gold/40 text-xs text-foreground focus:outline-hidden focus:border-primary"
               />
             </div>
           </div>
@@ -1254,7 +1271,7 @@ function NewReservationModal({
               id="res-room-type"
               value={roomTypeId}
               onChange={(e) => setRoomTypeId(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl bg-surface border border-border text-xs text-foreground focus:outline-hidden"
+              className="w-full px-3 py-2 rounded-xl bg-surface border border-border-gold/40 text-xs text-foreground focus:outline-hidden focus:border-primary"
             >
               {roomTypes.map((rt) => (
                 <option key={rt.id} value={rt.id}>
@@ -1279,7 +1296,7 @@ function NewReservationModal({
                 placeholder="e.g. Mahfuzur Rahman"
                 value={guestName}
                 onChange={(e) => setGuestName(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl bg-surface border border-border text-xs text-foreground focus:outline-hidden"
+                className="w-full px-3 py-2 rounded-xl bg-surface border border-border-gold/40 text-xs text-foreground focus:outline-hidden focus:border-primary placeholder:text-foreground-muted"
               />
             </div>
             <div>
@@ -1296,7 +1313,7 @@ function NewReservationModal({
                 placeholder="01712345678"
                 value={guestPhone}
                 onChange={(e) => setGuestPhone(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl bg-surface border border-border text-xs text-foreground focus:outline-hidden"
+                className="w-full px-3 py-2 rounded-xl bg-surface border border-border-gold/40 text-xs text-foreground focus:outline-hidden focus:border-primary placeholder:text-foreground-muted"
               />
             </div>
           </div>
@@ -1315,30 +1332,27 @@ function NewReservationModal({
               placeholder="guest@example.com"
               value={guestEmail}
               onChange={(e) => setGuestEmail(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl bg-surface border border-border text-xs text-foreground focus:outline-hidden"
+              className="w-full px-3 py-2 rounded-xl bg-surface border border-border-gold/40 text-xs text-foreground focus:outline-hidden focus:border-primary placeholder:text-foreground-muted"
             />
           </div>
 
-          <div className="p-3 rounded-xl bg-surface border border-border flex items-center justify-between text-xs">
+          <div className="p-3 rounded-xl bg-surface border border-border-gold/30 flex items-center justify-between text-xs">
             <span className="text-foreground-muted">Calculated Total ({nights} nights)</span>
-            <span className="font-bold text-foreground text-sm">৳ {estimatedTotal}</span>
+            <span className="font-serif font-bold text-foreground text-sm">৳ {estimatedTotal}</span>
           </div>
 
-          <div className="flex items-center justify-end gap-3 pt-3 border-t border-border">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 rounded-xl border border-border text-xs font-semibold"
-            >
+          <div className="flex items-center justify-end gap-3 pt-3 border-t border-border-gold/30">
+            <Button type="button" variant="outline" onClick={onClose} className="text-xs">
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button
               type="submit"
+              variant="luxury"
               disabled={isLoading || !guestName || !guestPhone || !guestEmail}
-              className="px-5 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold shadow-xs"
+              className="text-xs font-bold shadow-xs"
             >
               {isLoading ? "Creating..." : "Confirm Reservation"}
-            </button>
+            </Button>
           </div>
         </form>
       </div>

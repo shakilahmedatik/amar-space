@@ -1,6 +1,6 @@
 "use client";
 
-import { Badge, Button } from "@omniheaven/ui";
+import { Badge, Button, Card } from "@omniheaven/ui";
 import { ArrowLeft, Building2, ChevronRight, Clock, Grid, MapPin, Plus, Zap } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useOrganization } from "../lib/organization-context";
@@ -351,38 +351,38 @@ export function PropertyHierarchyView() {
 
           {/* Metrics Row */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <div className="p-4 rounded-2xl bg-card border border-border shadow-2xs">
+            <Card variant="default" className="p-4 shadow-2xs">
               <p className="text-[11px] font-bold text-foreground-muted uppercase tracking-wider">
                 Total Properties
               </p>
               <p className="text-2xl font-bold font-display text-foreground mt-1 tabular-nums">
                 {totalBuildingsCount}
               </p>
-            </div>
-            <div className="p-4 rounded-2xl bg-card border border-border shadow-2xs">
+            </Card>
+            <Card variant="goldAccent" className="p-4 shadow-2xs">
               <p className="text-[11px] font-bold text-foreground-muted uppercase tracking-wider">
                 Total Flats / Units
               </p>
               <p className="text-2xl font-bold font-display text-primary mt-1 tabular-nums">
                 {totalUnitsCount}
               </p>
-            </div>
-            <div className="p-4 rounded-2xl bg-card border border-border shadow-2xs">
+            </Card>
+            <Card variant="default" className="p-4 shadow-2xs">
               <p className="text-[11px] font-bold text-foreground-muted uppercase tracking-wider">
                 Occupancy Rate
               </p>
-              <p className="text-2xl font-bold font-display text-emerald-600 dark:text-emerald-400 mt-1 tabular-nums">
+              <p className="text-2xl font-bold font-display text-emerald-700 dark:text-emerald-400 mt-1 tabular-nums">
                 {overallOccupancyRate}%
               </p>
-            </div>
-            <div className="p-4 rounded-2xl bg-card border border-border shadow-2xs">
+            </Card>
+            <Card variant="default" className="p-4 shadow-2xs">
               <p className="text-[11px] font-bold text-foreground-muted uppercase tracking-wider">
                 Est. Monthly Value
               </p>
               <p className="text-2xl font-bold font-display text-foreground mt-1 tabular-nums">
                 ৳{totalMonthlyRentalValue.toLocaleString()}
               </p>
-            </div>
+            </Card>
           </div>
 
           {/* Buildings Grid */}
@@ -419,10 +419,7 @@ export function PropertyHierarchyView() {
                         </div>
                       </div>
 
-                      <Badge
-                        variant="outline"
-                        className="text-[10px] font-bold px-2 py-0.5 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 bg-emerald-500/10"
-                      >
+                      <Badge variant="success" className="text-[10px] font-bold px-2 py-0.5">
                         {b.stats?.occupancyRate || 0}% Leased
                       </Badge>
                     </div>
@@ -456,13 +453,13 @@ export function PropertyHierarchyView() {
                       </div>
                       <div>
                         <p className="text-[10px] text-foreground-muted">Occupied</p>
-                        <p className="text-xs font-bold text-amber-600 tabular-nums">
+                        <p className="text-xs font-bold text-amber-700 dark:text-amber-400 tabular-nums">
                           {b.stats?.occupiedFlats || 0}
                         </p>
                       </div>
                       <div>
                         <p className="text-[10px] text-foreground-muted">Available</p>
-                        <p className="text-xs font-bold text-emerald-600 tabular-nums">
+                        <p className="text-xs font-bold text-emerald-700 dark:text-emerald-400 tabular-nums">
                           {b.stats?.vacantFlats || 0}
                         </p>
                       </div>
@@ -579,10 +576,10 @@ export function PropertyHierarchyView() {
                     </div>
 
                     <div className="flex items-center gap-3 text-[11px]">
-                      <span className="flex items-center gap-1 text-emerald-600 font-semibold">
+                      <span className="flex items-center gap-1 text-emerald-700 dark:text-emerald-400 font-semibold">
                         ● {floorFlats.filter((f) => f.status === "vacant").length} Available
                       </span>
-                      <span className="flex items-center gap-1 text-amber-600 font-semibold">
+                      <span className="flex items-center gap-1 text-amber-700 dark:text-amber-400 font-semibold">
                         ● {floorFlats.filter((f) => f.status === "occupied").length} Occupied
                       </span>
                     </div>
@@ -597,9 +594,9 @@ export function PropertyHierarchyView() {
                         onClick={() => setSelectedFlatForDetail(flat)}
                         className={`w-full p-3.5 rounded-xl border text-left cursor-pointer transition-all hover:scale-[1.01] active:scale-[0.99] min-h-[52px] group ${
                           flat.status === "vacant"
-                            ? "bg-emerald-500/5 border-emerald-500/25 hover:border-emerald-500/50"
+                            ? "bg-card border-border hover:border-emerald-500/50"
                             : flat.status === "occupied"
-                              ? "bg-amber-500/5 border-amber-500/25 hover:border-amber-500/50"
+                              ? "bg-card border-border hover:border-amber-500/50"
                               : "bg-surface border-border hover:border-border/80"
                         }`}
                       >
@@ -624,7 +621,7 @@ export function PropertyHierarchyView() {
                                 ? "bg-emerald-500 ring-2 ring-emerald-500/30 animate-pulse"
                                 : flat.status === "occupied"
                                   ? "bg-amber-500"
-                                  : "bg-slate-400"
+                                  : "bg-muted-foreground"
                             }`}
                           />
                         </div>

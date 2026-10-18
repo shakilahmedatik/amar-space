@@ -161,18 +161,50 @@ export const TenantManagementScreen: React.FC<TenantManagementScreenProps> = ({
             >
               Residential Property Desk
             </span>
-            <h2 style={{ fontSize: 20, fontWeight: "bold", margin: "2px 0 0" }}>
+            <h2
+              style={{
+                fontSize: 22,
+                fontFamily: "'Playfair Display', Georgia, serif",
+                fontWeight: "600",
+                margin: "2px 0 0",
+                letterSpacing: "-0.25px",
+                color: theme.colors.textPrimary,
+              }}
+            >
               Tenants & Collections
             </h2>
           </div>
           <span
             style={{
-              padding: "4px 8px",
-              borderRadius: 8,
+              padding: "4px 10px",
+              borderRadius: 20,
               fontSize: 11,
-              fontWeight: "bold",
-              backgroundColor: unpaidCount > 0 ? "#7f1d1d" : "#065f46",
-              color: unpaidCount > 0 ? "#fca5a5" : "#6ee7b7",
+              fontWeight: "700",
+              backgroundColor:
+                unpaidCount > 0
+                  ? theme.isDark
+                    ? "rgba(192, 57, 43, 0.2)"
+                    : "#FDF0ED"
+                  : theme.isDark
+                    ? "rgba(30, 130, 76, 0.2)"
+                    : "#EAF7F0",
+              color:
+                unpaidCount > 0
+                  ? theme.isDark
+                    ? "#fca5a5"
+                    : "#C0392B"
+                  : theme.isDark
+                    ? "#6ee7b7"
+                    : "#1E824C",
+              border: `1px solid ${
+                unpaidCount > 0
+                  ? theme.isDark
+                    ? "rgba(192, 57, 43, 0.4)"
+                    : "#F8D7DA"
+                  : theme.isDark
+                    ? "rgba(30, 130, 76, 0.4)"
+                    : "#B7E4C7"
+              }`,
             }}
           >
             {unpaidCount} Overdue / Unpaid
@@ -184,39 +216,60 @@ export const TenantManagementScreen: React.FC<TenantManagementScreenProps> = ({
       <div
         style={{
           backgroundColor: theme.colors.surface,
-          borderRadius: 12,
-          padding: "12px 14px",
+          borderRadius: 16,
+          padding: "14px 16px",
           border: `1px solid ${theme.colors.borderGold}`,
-          marginBottom: 14,
+          boxShadow: theme.isDark
+            ? "0 4px 20px rgba(0, 0, 0, 0.3)"
+            : "0 4px 16px rgba(197, 168, 128, 0.12)",
+          marginBottom: 16,
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
         }}
       >
         <div>
-          <span style={{ fontSize: 10, color: theme.colors.textMuted, textTransform: "uppercase" }}>
-            Uncollected Rent
+          <span
+            style={{
+              fontSize: 10,
+              color: theme.colors.textMuted,
+              textTransform: "uppercase",
+              letterSpacing: 1,
+              fontWeight: "600",
+            }}
+          >
+            Total Uncollected Receivables
           </span>
           <p
             style={{
-              margin: "2px 0 0",
-              fontSize: 18,
-              fontWeight: "bold",
-              color: theme.colors.error,
+              margin: "3px 0 0",
+              fontSize: 20,
+              fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif",
+              fontWeight: "700",
+              color: unpaidTotalAmount > 0 ? theme.colors.error : theme.colors.goldPrimary,
             }}
           >
             ৳{unpaidTotalAmount.toLocaleString()}
           </p>
         </div>
         <div style={{ textAlign: "right" }}>
-          <span style={{ fontSize: 10, color: theme.colors.textMuted, textTransform: "uppercase" }}>
+          <span
+            style={{
+              fontSize: 10,
+              color: theme.colors.textMuted,
+              textTransform: "uppercase",
+              letterSpacing: 1,
+              fontWeight: "600",
+            }}
+          >
             Total Flats
           </span>
           <p
             style={{
-              margin: "2px 0 0",
-              fontSize: 18,
-              fontWeight: "bold",
+              margin: "3px 0 0",
+              fontSize: 20,
+              fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif",
+              fontWeight: "700",
               color: theme.colors.textPrimary,
             }}
           >
@@ -229,13 +282,13 @@ export const TenantManagementScreen: React.FC<TenantManagementScreenProps> = ({
       {actionNotice && (
         <div
           style={{
-            padding: "10px 12px",
+            padding: "10px 14px",
             borderRadius: 10,
-            backgroundColor: "rgba(16, 185, 129, 0.15)",
-            border: "1px solid rgba(16, 185, 129, 0.3)",
+            backgroundColor: theme.isDark ? "rgba(30, 130, 76, 0.2)" : "#EAF7F0",
+            border: `1px solid ${theme.isDark ? "rgba(30, 130, 76, 0.4)" : "#B7E4C7"}`,
             fontSize: 12,
-            color: "#34d399",
-            marginBottom: 12,
+            color: theme.isDark ? "#6ee7b7" : "#1E824C",
+            marginBottom: 14,
             display: "flex",
             alignItems: "center",
             gap: 8,
@@ -292,7 +345,7 @@ export const TenantManagementScreen: React.FC<TenantManagementScreenProps> = ({
             type="button"
             onClick={() => setFilter(item.id)}
             style={{
-              padding: "6px 12px",
+              padding: "7px 14px",
               borderRadius: 8,
               fontSize: 11,
               fontWeight: filter === item.id ? "700" : "500",
@@ -305,6 +358,7 @@ export const TenantManagementScreen: React.FC<TenantManagementScreenProps> = ({
                   : theme.colors.textMuted,
               border: `1px solid ${filter === item.id ? theme.colors.goldPrimary : theme.colors.border}`,
               cursor: "pointer",
+              boxShadow: filter === item.id ? "0 2px 8px rgba(197, 168, 128, 0.3)" : "none",
             }}
           >
             {item.label}
@@ -358,9 +412,18 @@ export const TenantManagementScreen: React.FC<TenantManagementScreenProps> = ({
                 key={t.id}
                 style={{
                   backgroundColor: theme.colors.surface,
-                  borderRadius: 12,
-                  padding: 14,
-                  border: `1px solid ${!isPaid ? (isOverdue ? "#7f1d1d" : theme.colors.borderGold) : theme.colors.border}`,
+                  borderRadius: 14,
+                  padding: 16,
+                  border: `1px solid ${
+                    !isPaid
+                      ? isOverdue
+                        ? theme.isDark
+                          ? "rgba(192, 57, 43, 0.4)"
+                          : "#F8D7DA"
+                        : theme.colors.borderGold
+                      : theme.colors.border
+                  }`,
+                  boxShadow: "0 2px 10px rgba(42, 32, 28, 0.04)",
                 }}
               >
                 <div
@@ -371,14 +434,14 @@ export const TenantManagementScreen: React.FC<TenantManagementScreenProps> = ({
                   }}
                 >
                   <div>
-                    <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 2 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
                       <span
                         style={{
-                          fontSize: 10,
-                          fontWeight: "bold",
-                          padding: "2px 6px",
+                          fontSize: 11,
+                          fontWeight: "700",
+                          padding: "2px 8px",
                           borderRadius: 6,
-                          backgroundColor: theme.colors.surfaceElevated,
+                          backgroundColor: "rgba(197, 168, 128, 0.15)",
                           color: theme.colors.goldPrimary,
                           border: `1px solid ${theme.colors.borderGold}`,
                         }}
@@ -393,7 +456,8 @@ export const TenantManagementScreen: React.FC<TenantManagementScreenProps> = ({
                     <h4
                       style={{
                         fontSize: 16,
-                        fontWeight: "bold",
+                        fontFamily: "'Playfair Display', Georgia, serif",
+                        fontWeight: "600",
                         margin: "4px 0 0",
                         color: theme.colors.textPrimary,
                       }}
@@ -401,7 +465,7 @@ export const TenantManagementScreen: React.FC<TenantManagementScreenProps> = ({
                       {t.tenantName}
                     </h4>
 
-                    <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 4 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 6 }}>
                       <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
                         <Phone style={{ width: 11, height: 11, color: theme.colors.textMuted }} />
                         <span style={{ fontSize: 11, color: theme.colors.textMuted }}>
@@ -421,21 +485,56 @@ export const TenantManagementScreen: React.FC<TenantManagementScreenProps> = ({
                     <span
                       style={{
                         fontSize: 10,
-                        fontWeight: "bold",
-                        padding: "2px 8px",
-                        borderRadius: 10,
-                        backgroundColor: isPaid ? "#065f46" : isOverdue ? "#7f1d1d" : "#78350f",
-                        color: isPaid ? "#6ee7b7" : isOverdue ? "#fca5a5" : "#fde68a",
+                        fontWeight: "700",
+                        padding: "3px 8px",
+                        borderRadius: 20,
+                        backgroundColor: isPaid
+                          ? theme.isDark
+                            ? "rgba(30, 130, 76, 0.2)"
+                            : "#EAF7F0"
+                          : isOverdue
+                            ? theme.isDark
+                              ? "rgba(192, 57, 43, 0.2)"
+                              : "#FDF0ED"
+                            : theme.isDark
+                              ? "rgba(217, 119, 6, 0.2)"
+                              : "#FEF3C7",
+                        color: isPaid
+                          ? theme.isDark
+                            ? "#6ee7b7"
+                            : "#1E824C"
+                          : isOverdue
+                            ? theme.isDark
+                              ? "#fca5a5"
+                              : "#C0392B"
+                            : theme.isDark
+                              ? "#fde68a"
+                              : "#D97706",
+                        border: `1px solid ${
+                          isPaid
+                            ? theme.isDark
+                              ? "rgba(30, 130, 76, 0.4)"
+                              : "#B7E4C7"
+                            : isOverdue
+                              ? theme.isDark
+                                ? "rgba(192, 57, 43, 0.4)"
+                                : "#F8D7DA"
+                              : theme.isDark
+                                ? "rgba(217, 119, 6, 0.4)"
+                                : "#FDE68A"
+                        }`,
                         textTransform: "uppercase",
+                        letterSpacing: 0.5,
                       }}
                     >
                       {t.billStatus}
                     </span>
                     <p
                       style={{
-                        fontSize: 15,
-                        fontWeight: "bold",
-                        margin: "4px 0 0",
+                        fontSize: 16,
+                        fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif",
+                        fontWeight: "700",
+                        margin: "6px 0 0",
                         color: theme.colors.goldPrimary,
                       }}
                     >
@@ -463,18 +562,18 @@ export const TenantManagementScreen: React.FC<TenantManagementScreenProps> = ({
                       type="button"
                       onClick={() => handleSendReminder(t)}
                       style={{
-                        padding: "6px 12px",
-                        backgroundColor: "#10b981",
-                        color: "#ffffff",
+                        padding: "7px 14px",
+                        backgroundColor: theme.colors.goldPrimary,
+                        color: theme.isDark ? "#14110F" : "#1F1714",
                         border: "none",
                         borderRadius: 8,
                         fontSize: 11,
-                        fontWeight: "bold",
+                        fontWeight: "700",
                         cursor: "pointer",
                         display: "flex",
                         alignItems: "center",
                         gap: 6,
-                        boxShadow: "0 2px 8px rgba(16, 185, 129, 0.25)",
+                        boxShadow: "0 2px 8px rgba(197, 168, 128, 0.35)",
                       }}
                     >
                       <MessageSquare style={{ width: 13, height: 13 }} />
@@ -530,12 +629,21 @@ export const TenantManagementScreen: React.FC<TenantManagementScreenProps> = ({
                     fontSize: 10,
                     color: theme.colors.goldPrimary,
                     textTransform: "uppercase",
+                    letterSpacing: 1,
                     fontWeight: "700",
                   }}
                 >
                   Automated SMS Dispatch
                 </span>
-                <h3 style={{ fontSize: 17, fontWeight: "bold", margin: "2px 0 0" }}>
+                <h3
+                  style={{
+                    fontSize: 18,
+                    fontFamily: "'Playfair Display', Georgia, serif",
+                    fontWeight: "600",
+                    margin: "2px 0 0",
+                    color: theme.colors.textPrimary,
+                  }}
+                >
                   Send Collection Reminder
                 </h3>
               </div>
@@ -605,16 +713,17 @@ export const TenantManagementScreen: React.FC<TenantManagementScreenProps> = ({
                   flex: 2,
                   padding: "12px",
                   borderRadius: 10,
-                  backgroundColor: "#10b981",
-                  color: "#ffffff",
+                  backgroundColor: theme.colors.goldPrimary,
+                  color: theme.isDark ? "#14110F" : "#1F1714",
                   border: "none",
                   fontSize: 12,
-                  fontWeight: "bold",
+                  fontWeight: "700",
                   cursor: "pointer",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
                   gap: 6,
+                  boxShadow: "0 4px 14px rgba(197, 168, 128, 0.4)",
                 }}
               >
                 <Send style={{ width: 14, height: 14 }} />

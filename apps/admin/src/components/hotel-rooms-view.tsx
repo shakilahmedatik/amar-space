@@ -1,5 +1,6 @@
 "use client";
 
+import { Badge, Button, Card, StatusBadge } from "@omniheaven/ui";
 import {
   AlertCircle,
   CheckCircle2,
@@ -12,6 +13,7 @@ import {
   Wrench,
   X,
 } from "lucide-react";
+import type React from "react";
 import { useState } from "react";
 import { trpc } from "../lib/trpc";
 
@@ -71,7 +73,6 @@ export function HotelRoomsView() {
   });
 
   // KPI Calculations
-  const _totalRoomsCount = rooms.length;
   const availableCount = rooms.filter((r) => r.status === "available").length;
   const cleaningCount = rooms.filter((r) => r.status === "cleaning").length;
   const occupiedCount = rooms.filter((r) => r.status === "occupied").length;
@@ -93,28 +94,36 @@ export function HotelRoomsView() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      {/* Header Banner */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-3 border-b border-border">
         <div>
-          <h2 className="text-xl sm:text-2xl font-bold font-heading text-foreground">
-            Rooms & Housekeeping
-          </h2>
-          <p className="text-xs sm:text-sm text-foreground-muted mt-0.5">
-            Real-time housekeeping board, physical room statuses, and room type specifications.
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl sm:text-3xl font-display font-bold text-foreground tracking-tight">
+              Suites & Housekeeping Desk
+            </h1>
+            <Badge variant="gold" className="text-[11px] px-2.5 py-0.5">
+              Inventory Matrix
+            </Badge>
+          </div>
+          <p className="text-xs sm:text-sm text-foreground-muted mt-1">
+            Real-time housekeeping board, physical suite availability, and luxury catalog
+            specifications.
           </p>
         </div>
-        <div className="flex items-center gap-2">
+
+        <div className="flex flex-wrap items-center gap-2.5">
+          {/* View Tab Switcher */}
           <div className="flex items-center p-1 bg-surface border border-border rounded-xl">
             <button
               type="button"
               onClick={() => setActiveTab("housekeeping")}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                 activeTab === "housekeeping"
-                  ? "bg-primary text-primary-foreground shadow-xs"
+                  ? "bg-card text-foreground shadow-xs border border-border-gold/50 font-bold"
                   : "text-foreground-muted hover:text-foreground"
               }`}
             >
-              <Sparkles className="size-3.5" />
+              <Sparkles className="size-3.5 text-primary" />
               <span>Housekeeping Board</span>
             </button>
             <button
@@ -122,119 +131,158 @@ export function HotelRoomsView() {
               onClick={() => setActiveTab("catalog")}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                 activeTab === "catalog"
-                  ? "bg-primary text-primary-foreground shadow-xs"
+                  ? "bg-card text-foreground shadow-xs border border-border-gold/50 font-bold"
                   : "text-foreground-muted hover:text-foreground"
               }`}
             >
-              <Layers className="size-3.5" />
+              <Layers className="size-3.5 text-primary" />
               <span>Room Types Catalog</span>
             </button>
           </div>
+
           {activeTab === "housekeeping" ? (
-            <button
-              type="button"
+            <Button
+              variant="luxury"
+              size="sm"
               onClick={() => {
                 setActionError(null);
                 setIsAddRoomModalOpen(true);
               }}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-primary-foreground text-xs font-semibold shadow-sm transition-all"
+              className="gap-1.5 shadow-sm min-h-[40px]"
             >
               <Plus className="size-4" />
               <span>Add Physical Room</span>
-            </button>
+            </Button>
           ) : (
-            <button
-              type="button"
+            <Button
+              variant="luxury"
+              size="sm"
               onClick={() => {
                 setActionError(null);
                 setIsAddRoomTypeModalOpen(true);
               }}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold shadow-sm transition-all"
+              className="gap-1.5 shadow-sm min-h-[40px]"
             >
               <Plus className="size-4" />
               <span>Add Room Type</span>
-            </button>
+            </Button>
           )}
         </div>
       </div>
 
       {/* Success Notification Banner */}
       {successNotice && (
-        <div className="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-xs text-emerald-600 dark:text-emerald-400 flex items-center justify-between">
+        <div className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-xs text-emerald-800 dark:text-emerald-400 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <CheckCircle2 className="size-4 shrink-0" />
+            <CheckCircle2 className="size-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
             <span>{successNotice}</span>
           </div>
           <button
             type="button"
             onClick={() => setSuccessNotice(null)}
-            className="text-emerald-600 hover:text-emerald-700"
+            className="text-emerald-700 dark:text-emerald-400 hover:opacity-80"
           >
             <X className="size-3.5" />
           </button>
         </div>
       )}
 
-      {/* KPI Cards */}
+      {/* Top 4 KPI Summary Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="p-4 rounded-2xl bg-card border border-border shadow-xs">
+        <Card variant="goldAccent" className="p-4 space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-foreground-muted">Clean & Ready</span>
-            <div className="p-2 rounded-xl bg-emerald-500/10 text-emerald-600">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-foreground-muted">
+              Clean & Ready
+            </span>
+            <div className="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20">
               <CheckCircle2 className="size-4" />
             </div>
           </div>
-          <p className="text-2xl font-bold text-foreground mt-2">{availableCount}</p>
-          <span className="text-[11px] text-emerald-600 font-medium">Available for check-in</span>
-        </div>
+          <div className="flex items-baseline gap-2">
+            <p className="text-2xl font-bold font-display text-foreground tabular-nums">
+              {availableCount}
+            </p>
+            <span className="text-xs font-semibold text-emerald-700 dark:text-emerald-400">
+              Available
+            </span>
+          </div>
+          <p className="text-[11px] text-foreground-muted">
+            Inspected and ready for guest check-in
+          </p>
+        </Card>
 
-        <div className="p-4 rounded-2xl bg-card border border-border shadow-xs">
+        <Card variant="default" className="p-4 space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-foreground-muted">Needs Cleaning</span>
-            <div className="p-2 rounded-xl bg-amber-500/10 text-amber-600">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-foreground-muted">
+              Needs Cleaning
+            </span>
+            <div className="p-1.5 rounded-lg bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20">
               <Paintbrush className="size-4" />
             </div>
           </div>
-          <p className="text-2xl font-bold text-foreground mt-2">{cleaningCount}</p>
-          <span className="text-[11px] text-amber-600 font-medium">Turnover cleaning queue</span>
-        </div>
+          <div className="flex items-baseline gap-2">
+            <p className="text-2xl font-bold font-display text-foreground tabular-nums">
+              {cleaningCount}
+            </p>
+            <span className="text-xs font-semibold text-amber-700 dark:text-amber-400">
+              In Queue
+            </span>
+          </div>
+          <p className="text-[11px] text-foreground-muted">Turnover cleaning active or pending</p>
+        </Card>
 
-        <div className="p-4 rounded-2xl bg-card border border-border shadow-xs">
+        <Card variant="default" className="p-4 space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-foreground-muted">In-House Guests</span>
-            <div className="p-2 rounded-xl bg-blue-500/10 text-blue-600">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-foreground-muted">
+              In-House Guests
+            </span>
+            <div className="p-1.5 rounded-lg bg-primary/10 text-primary border border-border-gold/40">
               <DoorOpen className="size-4" />
             </div>
           </div>
-          <p className="text-2xl font-bold text-foreground mt-2">{occupiedCount}</p>
-          <span className="text-[11px] text-blue-600 font-medium">Occupied suites</span>
-        </div>
+          <div className="flex items-baseline gap-2">
+            <p className="text-2xl font-bold font-display text-foreground tabular-nums">
+              {occupiedCount}
+            </p>
+            <span className="text-xs font-semibold text-primary">Occupied</span>
+          </div>
+          <p className="text-[11px] text-foreground-muted">Occupied suites with active folio</p>
+        </Card>
 
-        <div className="p-4 rounded-2xl bg-card border border-border shadow-xs">
+        <Card variant="default" className="p-4 space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-foreground-muted">Out of Order</span>
-            <div className="p-2 rounded-xl bg-rose-500/10 text-rose-600">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-foreground-muted">
+              Out of Order
+            </span>
+            <div className="p-1.5 rounded-lg bg-rose-500/10 text-rose-700 dark:text-rose-400 border border-rose-500/20">
               <Wrench className="size-4" />
             </div>
           </div>
-          <p className="text-2xl font-bold text-foreground mt-2">{maintenanceCount}</p>
-          <span className="text-[11px] text-rose-600 font-medium">Maintenance / repair</span>
-        </div>
+          <div className="flex items-baseline gap-2">
+            <p className="text-2xl font-bold font-display text-foreground tabular-nums">
+              {maintenanceCount}
+            </p>
+            <span className="text-xs font-semibold text-rose-700 dark:text-rose-400">
+              Maintenance
+            </span>
+          </div>
+          <p className="text-[11px] text-foreground-muted">HVAC, plumbing or interior repairs</p>
+        </Card>
       </div>
 
-      {/* HOUSEKEEPING TAB */}
+      {/* HOUSEKEEPING BOARD TAB */}
       {activeTab === "housekeeping" && (
         <div className="space-y-4">
-          {/* Filter Bar */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl bg-card border border-border shadow-xs">
+          {/* Operational Toolbar & Filter Bar */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 rounded-xl bg-card border border-border shadow-xs">
             <div className="relative flex-1 max-w-sm">
               <Search className="size-4 absolute left-3 top-1/2 -translate-y-1/2 text-foreground-muted" />
               <input
                 type="text"
-                placeholder="Search by room number or type..."
+                placeholder="Search suite number or type..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-9 pr-3 py-2 rounded-xl bg-surface border border-border text-xs text-foreground focus:outline-hidden"
+                className="w-full pl-9 pr-3 py-2 rounded-xl bg-surface border border-border text-xs text-foreground placeholder:text-foreground-muted focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all"
               />
             </div>
 
@@ -244,7 +292,7 @@ export function HotelRoomsView() {
                 <select
                   value={floorFilter}
                   onChange={(e) => setFloorFilter(e.target.value)}
-                  className="px-2.5 py-1.5 rounded-xl bg-surface border border-border text-xs text-foreground focus:outline-hidden"
+                  className="px-2.5 py-1.5 rounded-xl bg-surface border border-border text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary transition-all"
                 >
                   <option value="all">All Floors</option>
                   {uniqueFloors.map((f) => (
@@ -260,7 +308,7 @@ export function HotelRoomsView() {
                 <select
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
-                  className="px-2.5 py-1.5 rounded-xl bg-surface border border-border text-xs text-foreground focus:outline-hidden"
+                  className="px-2.5 py-1.5 rounded-xl bg-surface border border-border text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary transition-all"
                 >
                   <option value="all">All Statuses</option>
                   <option value="available">Available (Clean)</option>
@@ -280,47 +328,29 @@ export function HotelRoomsView() {
               const isAvailable = room.status === "available";
 
               return (
-                <div
+                <Card
                   key={room.id}
-                  className={`p-4 rounded-2xl border transition-all shadow-xs flex flex-col justify-between ${
-                    isCleaning
-                      ? "bg-amber-500/5 border-amber-500/30 hover:border-amber-500/50"
-                      : isAvailable
-                        ? "bg-card border-border hover:border-emerald-500/50"
-                        : room.status === "occupied"
-                          ? "bg-blue-500/5 border-blue-500/30"
-                          : "bg-rose-500/5 border-rose-500/30"
-                  }`}
+                  variant={isAvailable ? "goldAccent" : "default"}
+                  className="p-4 transition-all shadow-xs flex flex-col justify-between hover:border-primary/50 group"
                 >
                   <div>
                     <div className="flex items-center justify-between">
-                      <span className="text-lg font-bold font-mono text-foreground">
+                      <span className="text-base font-bold font-sans text-foreground tabular-nums">
                         Room {room.roomNumber}
                       </span>
-                      <span
-                        className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider ${
-                          isAvailable
-                            ? "bg-emerald-500/10 text-emerald-600"
-                            : isCleaning
-                              ? "bg-amber-500/20 text-amber-700 animate-pulse"
-                              : room.status === "occupied"
-                                ? "bg-blue-500/10 text-blue-600"
-                                : "bg-rose-500/10 text-rose-600"
-                        }`}
-                      >
-                        {room.status}
-                      </span>
+                      <StatusBadge status={room.status} />
                     </div>
 
-                    <p className="text-xs font-semibold text-foreground mt-1 truncate">
+                    <p className="text-xs font-semibold text-foreground mt-2 truncate">
                       {room.roomType?.name}
                     </p>
-                    <span className="text-[11px] text-foreground-muted block">
-                      Floor {room.floor} • ৳ {room.roomType?.basePrice}/night
+                    <span className="text-[11px] text-foreground-muted block mt-0.5">
+                      Floor {room.floor} • ৳{Number(room.roomType?.basePrice || 0).toLocaleString()}{" "}
+                      / night
                     </span>
 
                     {currentBooking && (
-                      <div className="mt-3 p-2.5 rounded-xl bg-surface/80 border border-border/80 text-[11px] space-y-0.5">
+                      <div className="mt-3 p-2.5 rounded-xl bg-surface border border-border/80 text-[11px] space-y-0.5">
                         <span className="font-semibold text-foreground block truncate">
                           Guest: {currentBooking.guestName}
                         </span>
@@ -331,7 +361,7 @@ export function HotelRoomsView() {
                     )}
 
                     {room.housekeepingNotes && (
-                      <p className="mt-2 text-[11px] text-amber-700 bg-amber-500/10 p-2 rounded-lg border border-amber-500/20 italic">
+                      <p className="mt-2 text-[11px] text-amber-800 dark:text-amber-300 bg-amber-500/10 p-2 rounded-lg border border-amber-500/20 italic">
                         &quot;{room.housekeepingNotes}&quot;
                       </p>
                     )}
@@ -340,8 +370,9 @@ export function HotelRoomsView() {
                   {/* 1-Tap Housekeeping Status Action */}
                   <div className="mt-4 pt-3 border-t border-border flex items-center justify-between gap-2">
                     {isCleaning ? (
-                      <button
-                        type="button"
+                      <Button
+                        variant="luxury"
+                        size="sm"
                         onClick={() => {
                           updateRoomStatusMutation.mutate({
                             roomId: room.id,
@@ -350,22 +381,23 @@ export function HotelRoomsView() {
                           });
                         }}
                         disabled={updateRoomStatusMutation.isPending}
-                        className="w-full flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all shadow-xs"
+                        className="w-full gap-1.5 text-xs font-bold shadow-xs"
                       >
                         <CheckCircle2 className="size-3.5" />
                         <span>Mark Clean & Ready</span>
-                      </button>
+                      </Button>
                     ) : (
-                      <button
-                        type="button"
+                      <Button
+                        variant="outline"
+                        size="sm"
                         onClick={() => setSelectedRoomForStatus(room)}
-                        className="w-full py-1.5 px-3 rounded-xl bg-surface hover:bg-surface/80 border border-border text-foreground text-xs font-semibold transition-colors"
+                        className="w-full text-xs font-semibold"
                       >
                         Change Status
-                      </button>
+                      </Button>
                     )}
                   </div>
-                </div>
+                </Card>
               );
             })}
           </div>
@@ -376,19 +408,22 @@ export function HotelRoomsView() {
       {activeTab === "catalog" && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {roomTypes.map((rt) => (
-            <div
+            <Card
               key={rt.id}
-              className="p-5 rounded-2xl bg-card border border-border shadow-xs space-y-4"
+              variant="default"
+              className="p-5 space-y-4 hover:border-primary/50 transition-all shadow-xs"
             >
               <div className="flex items-start justify-between">
                 <div>
-                  <h3 className="text-base font-bold text-foreground">{rt.name}</h3>
+                  <h3 className="text-base font-bold font-display text-foreground">{rt.name}</h3>
                   <p className="text-xs text-foreground-muted mt-0.5 line-clamp-2">
                     {rt.description || "No description provided."}
                   </p>
                 </div>
                 <div className="text-right shrink-0">
-                  <span className="text-lg font-bold text-amber-600">৳ {rt.basePrice}</span>
+                  <span className="text-lg font-bold text-primary tabular-nums">
+                    ৳{Number(rt.basePrice || 0).toLocaleString()}
+                  </span>
                   <span className="text-[10px] text-foreground-muted block">per night</span>
                 </div>
               </div>
@@ -408,7 +443,7 @@ export function HotelRoomsView() {
                 </div>
                 <div>
                   <span className="text-foreground-muted block">Inventory</span>
-                  <span className="font-semibold text-emerald-600">
+                  <span className="font-semibold text-emerald-700 dark:text-emerald-400">
                     {rt.rooms?.length ?? 0} physical rooms
                   </span>
                 </div>
@@ -426,7 +461,7 @@ export function HotelRoomsView() {
                   ))}
                 </div>
               )}
-            </div>
+            </Card>
           ))}
         </div>
       )}
@@ -505,10 +540,16 @@ function RoomStatusModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-      <div className="bg-card w-full max-w-sm rounded-2xl border border-border shadow-2xl p-6 space-y-4">
+      <div className="bg-card w-full max-w-sm rounded-2xl border border-border-gold/50 shadow-2xl p-6 space-y-4">
         <div className="flex items-center justify-between pb-2 border-b border-border">
-          <h3 className="text-sm font-bold text-foreground">Room {room.roomNumber} Status</h3>
-          <button type="button" onClick={onClose} className="p-1 text-foreground-muted">
+          <h3 className="font-display text-base font-bold text-foreground">
+            Room {room.roomNumber} Status
+          </h3>
+          <button
+            type="button"
+            onClick={onClose}
+            className="p-1 text-foreground-muted hover:text-foreground"
+          >
             <X className="size-4" />
           </button>
         </div>
@@ -532,7 +573,7 @@ function RoomStatusModal({
               id="modal-status-select"
               value={status}
               onChange={(e) => setStatus(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl bg-surface border border-border text-xs text-foreground focus:outline-hidden"
+              className="w-full px-3 py-2 rounded-xl bg-surface border border-border text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
             >
               <option value="available">Available (Inspected & Clean)</option>
               <option value="cleaning">Cleaning (Turnover Needed)</option>
@@ -552,26 +593,18 @@ function RoomStatusModal({
               rows={2}
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder="e.g. Linen changed, minibar restocked"
-              className="w-full px-3 py-2 rounded-xl bg-surface border border-border text-xs text-foreground focus:outline-hidden"
+              placeholder="e.g. Linen changed, amenities restocked"
+              className="w-full px-3 py-2 rounded-xl bg-surface border border-border text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
             />
           </div>
 
           <div className="flex items-center justify-end gap-2 pt-2 border-t border-border">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-3 py-1.5 rounded-lg border border-border text-xs font-medium"
-            >
+            <Button type="button" variant="outline" size="sm" onClick={onClose}>
               Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="px-4 py-1.5 rounded-lg bg-primary text-primary-foreground text-xs font-semibold"
-            >
+            </Button>
+            <Button type="submit" variant="luxury" size="sm" disabled={isLoading}>
               {isLoading ? "Updating..." : "Update Status"}
-            </button>
+            </Button>
           </div>
         </form>
       </div>
@@ -604,10 +637,14 @@ function AddRoomModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-      <div className="bg-card w-full max-w-sm rounded-2xl border border-border shadow-2xl p-6 space-y-4">
+      <div className="bg-card w-full max-w-sm rounded-2xl border border-border-gold/50 shadow-2xl p-6 space-y-4">
         <div className="flex items-center justify-between pb-2 border-b border-border">
-          <h3 className="text-sm font-bold text-foreground">Add Physical Room</h3>
-          <button type="button" onClick={onClose} className="p-1 text-foreground-muted">
+          <h3 className="font-display text-base font-bold text-foreground">Add Physical Room</h3>
+          <button
+            type="button"
+            onClick={onClose}
+            className="p-1 text-foreground-muted hover:text-foreground"
+          >
             <X className="size-4" />
           </button>
         </div>
@@ -631,7 +668,7 @@ function AddRoomModal({
               id="modal-roomtype-select"
               value={roomTypeId}
               onChange={(e) => setRoomTypeId(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl bg-surface border border-border text-xs text-foreground focus:outline-hidden"
+              className="w-full px-3 py-2 rounded-xl bg-surface border border-border text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
             >
               {roomTypes.map((rt) => (
                 <option key={rt.id} value={rt.id}>
@@ -655,7 +692,7 @@ function AddRoomModal({
               placeholder="e.g. 401, Suite A"
               value={roomNumber}
               onChange={(e) => setRoomNumber(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl bg-surface border border-border text-xs text-foreground focus:outline-hidden"
+              className="w-full px-3 py-2 rounded-xl bg-surface border border-border text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
             />
           </div>
 
@@ -674,25 +711,17 @@ function AddRoomModal({
               required
               value={floor}
               onChange={(e) => setFloor(Number(e.target.value))}
-              className="w-full px-3 py-2 rounded-xl bg-surface border border-border text-xs text-foreground focus:outline-hidden"
+              className="w-full px-3 py-2 rounded-xl bg-surface border border-border text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
             />
           </div>
 
           <div className="flex items-center justify-end gap-2 pt-2 border-t border-border">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-3 py-1.5 rounded-lg border border-border text-xs font-medium"
-            >
+            <Button type="button" variant="outline" size="sm" onClick={onClose}>
               Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={isLoading || !roomNumber}
-              className="px-4 py-1.5 rounded-lg bg-primary text-primary-foreground text-xs font-semibold"
-            >
+            </Button>
+            <Button type="submit" variant="luxury" size="sm" disabled={isLoading || !roomNumber}>
               {isLoading ? "Saving..." : "Add Room"}
-            </button>
+            </Button>
           </div>
         </form>
       </div>
@@ -740,10 +769,16 @@ function AddRoomTypeModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-      <div className="bg-card w-full max-w-md rounded-2xl border border-border shadow-2xl p-6 space-y-4">
+      <div className="bg-card w-full max-w-md rounded-2xl border border-border-gold/50 shadow-2xl p-6 space-y-4">
         <div className="flex items-center justify-between pb-2 border-b border-border">
-          <h3 className="text-sm font-bold text-foreground">Add Room Type / Category</h3>
-          <button type="button" onClick={onClose} className="p-1 text-foreground-muted">
+          <h3 className="font-display text-base font-bold text-foreground">
+            Add Room Type / Category
+          </h3>
+          <button
+            type="button"
+            onClick={onClose}
+            className="p-1 text-foreground-muted hover:text-foreground"
+          >
             <X className="size-4" />
           </button>
         </div>
@@ -770,7 +805,7 @@ function AddRoomTypeModal({
               placeholder="e.g. Royal Honeymoon Suite"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl bg-surface border border-border text-xs text-foreground focus:outline-hidden"
+              className="w-full px-3 py-2 rounded-xl bg-surface border border-border text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
             />
           </div>
 
@@ -790,7 +825,7 @@ function AddRoomTypeModal({
                 required
                 value={basePrice}
                 onChange={(e) => setBasePrice(Number(e.target.value))}
-                className="w-full px-3 py-2 rounded-xl bg-surface border border-border text-xs text-foreground focus:outline-hidden"
+                className="w-full px-3 py-2 rounded-xl bg-surface border border-border text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
               />
             </div>
             <div>
@@ -804,7 +839,7 @@ function AddRoomTypeModal({
                 id="modal-type-bed"
                 value={bedType}
                 onChange={(e) => setBedType(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl bg-surface border border-border text-xs text-foreground focus:outline-hidden"
+                className="w-full px-3 py-2 rounded-xl bg-surface border border-border text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
               >
                 <option value="single">Single Bed</option>
                 <option value="double">Double Bed</option>
@@ -830,7 +865,7 @@ function AddRoomTypeModal({
                 max="10"
                 value={capacityAdults}
                 onChange={(e) => setCapacityAdults(Number(e.target.value))}
-                className="w-full px-3 py-2 rounded-xl bg-surface border border-border text-xs text-foreground focus:outline-hidden"
+                className="w-full px-3 py-2 rounded-xl bg-surface border border-border text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
               />
             </div>
             <div>
@@ -846,7 +881,7 @@ function AddRoomTypeModal({
                 min="100"
                 value={sizeSqFt}
                 onChange={(e) => setSizeSqFt(Number(e.target.value))}
-                className="w-full px-3 py-2 rounded-xl bg-surface border border-border text-xs text-foreground focus:outline-hidden"
+                className="w-full px-3 py-2 rounded-xl bg-surface border border-border text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
               />
             </div>
           </div>
@@ -864,25 +899,17 @@ function AddRoomTypeModal({
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Key suite features, view, and furnishings"
-              className="w-full px-3 py-2 rounded-xl bg-surface border border-border text-xs text-foreground focus:outline-hidden"
+              className="w-full px-3 py-2 rounded-xl bg-surface border border-border text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
             />
           </div>
 
           <div className="flex items-center justify-end gap-2 pt-2 border-t border-border">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-3 py-1.5 rounded-lg border border-border text-xs font-medium"
-            >
+            <Button type="button" variant="outline" size="sm" onClick={onClose}>
               Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={isLoading || !name}
-              className="px-4 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold"
-            >
+            </Button>
+            <Button type="submit" variant="luxury" size="sm" disabled={isLoading || !name}>
               {isLoading ? "Creating..." : "Create Room Type"}
-            </button>
+            </Button>
           </div>
         </form>
       </div>

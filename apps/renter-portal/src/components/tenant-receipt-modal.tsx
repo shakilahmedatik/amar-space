@@ -73,16 +73,14 @@ export function TenantReceiptModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
-      <div className="bg-white dark:bg-slate-900 w-full max-w-xl rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl p-6 space-y-5 max-h-[95vh] overflow-y-auto">
+      <div className="bg-card w-full max-w-xl rounded-2xl border border-border-gold/40 shadow-2xl p-6 space-y-5 max-h-[95vh] overflow-y-auto text-foreground">
         {/* Modal Controls Header */}
-        <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800 print:hidden">
+        <div className="flex items-center justify-between pb-3 border-b border-border-gold/30 print:hidden">
           <div className="flex items-center gap-2">
-            <h3 className="text-sm font-bold text-slate-900 dark:text-white">
-              Official Money Receipt
-            </h3>
+            <h3 className="text-sm font-serif font-bold text-foreground">Official Money Receipt</h3>
             <Badge
               variant="outline"
-              className="text-[10px] bg-emerald-50 text-emerald-600 border-emerald-500/20 font-bold"
+              className="text-[10px] bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 font-bold"
             >
               Verified & Paid
             </Badge>
@@ -93,14 +91,15 @@ export function TenantReceiptModal({
               variant="outline"
               size="sm"
               onClick={handlePrint}
-              className="text-xs flex items-center gap-1.5 h-8"
+              className="text-xs flex items-center gap-1.5 h-8 border-border-gold/40 hover:bg-primary/10"
             >
-              <Printer className="size-3.5" /> Print / Save PDF
+              <Printer className="size-3.5 text-primary" /> Print / Save PDF
             </Button>
             <button
               type="button"
               onClick={onClose}
-              className="p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+              className="p-1 rounded-lg text-foreground-muted hover:text-foreground transition-colors"
+              aria-label="Close"
             >
               <X className="size-4" />
             </button>
@@ -108,74 +107,80 @@ export function TenantReceiptModal({
         </div>
 
         {/* Printable Receipt Paper Container */}
-        <div className="p-6 rounded-xl border border-slate-200 dark:border-slate-700 bg-white text-slate-900 space-y-5 shadow-xs font-sans">
+        <div className="p-6 rounded-xl border border-border-gold/40 bg-surface text-foreground space-y-5 shadow-xs font-sans print:border-none print:shadow-none">
           {/* Top Brand Banner */}
-          <div className="flex items-start justify-between border-b pb-4 border-slate-200">
+          <div className="flex items-start justify-between border-b pb-4 border-border-gold/30">
             <div>
               <div className="flex items-center gap-2">
-                <span className="size-7 rounded-md bg-indigo-600 text-white font-black text-xs flex items-center justify-center">
+                <span className="size-8 rounded-lg bg-primary text-primary-foreground font-serif font-bold text-sm flex items-center justify-center shadow-xs">
                   Ω
                 </span>
-                <span className="text-base font-black tracking-tight text-slate-900">
+                <span className="text-base font-serif font-bold tracking-tight text-foreground">
                   {buildingName}
                 </span>
               </div>
-              <p className="text-[11px] text-slate-500 mt-1">{buildingAddress}</p>
-              <p className="text-[10px] text-slate-400">Managed via OmniHeaven Property System</p>
+              <p className="text-[11px] text-foreground-muted mt-1">{buildingAddress}</p>
+              <p className="text-[10px] text-primary/80 font-medium">
+                Managed via OmniHeaven Property System
+              </p>
             </div>
 
             <div className="text-right">
-              <span className="text-xs uppercase tracking-wider font-extrabold text-indigo-700 bg-indigo-50 px-2.5 py-1 rounded-md block mb-1">
+              <span className="text-xs uppercase tracking-wider font-extrabold text-primary bg-primary/10 px-2.5 py-1 rounded-md block mb-1 border border-border-gold/30">
                 Money Receipt / ভাড়ার রসিদ
               </span>
-              <p className="text-xs font-mono font-bold text-slate-800">{receiptNumber}</p>
-              <p className="text-[11px] text-slate-500">Date: {paymentDate}</p>
+              <p className="text-xs font-mono font-bold text-foreground">{receiptNumber}</p>
+              <p className="text-[11px] text-foreground-muted">Date: {paymentDate}</p>
             </div>
           </div>
 
           {/* Renter & Flat Metadata Grid */}
-          <div className="grid grid-cols-2 gap-4 text-xs bg-slate-50 p-3.5 rounded-lg border border-slate-200">
+          <div className="grid grid-cols-2 gap-4 text-xs bg-card p-3.5 rounded-lg border border-border-gold/30">
             <div>
-              <span className="text-[10px] text-slate-400 uppercase font-bold block">
+              <span className="text-[10px] text-foreground-muted uppercase font-bold tracking-wider block">
                 Received From (Tenant)
               </span>
-              <p className="font-bold text-slate-900 text-sm mt-0.5">{renterName}</p>
-              {renterPhone && <p className="text-[11px] text-slate-600">Phone: {renterPhone}</p>}
+              <p className="font-bold text-foreground text-sm mt-0.5">{renterName}</p>
+              {renterPhone && (
+                <p className="text-[11px] text-foreground-muted">Phone: {renterPhone}</p>
+              )}
               {renterNid && (
-                <p className="text-[10px] text-slate-500 font-mono">NID: {renterNid}</p>
+                <p className="text-[10px] text-foreground-muted font-mono">NID: {renterNid}</p>
               )}
             </div>
 
             <div>
-              <span className="text-[10px] text-slate-400 uppercase font-bold block">
+              <span className="text-[10px] text-foreground-muted uppercase font-bold tracking-wider block">
                 Premises Leased
               </span>
-              <p className="font-bold text-slate-900 text-sm mt-0.5">
+              <p className="font-bold text-foreground text-sm mt-0.5">
                 Flat {flatNumber} (Floor {floor})
               </p>
-              <p className="text-[11px] text-slate-600">Invoice: {bill.billNumber}</p>
-              <p className="text-[11px] text-slate-600">Billing Period: {bill.billingMonth}</p>
+              <p className="text-[11px] text-foreground-muted">Invoice: {bill.billNumber}</p>
+              <p className="text-[11px] text-foreground-muted">
+                Billing Period: {bill.billingMonth}
+              </p>
             </div>
           </div>
 
           {/* Itemized Charges Table */}
           <table className="w-full text-xs border-collapse">
             <thead>
-              <tr className="border-b border-slate-300 text-slate-500 text-[11px]">
+              <tr className="border-b border-border-gold/30 text-foreground-muted text-[11px]">
                 <th className="py-2 text-left font-semibold">Description / Particulars</th>
                 <th className="py-2 text-right font-semibold">Amount (BDT)</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-border-gold/20">
               <tr>
-                <td className="py-1.5 text-slate-800 font-medium">Monthly Apartment Rent</td>
+                <td className="py-1.5 text-foreground font-medium">Monthly Apartment Rent</td>
                 <td className="py-1.5 text-right font-mono font-semibold">
                   ৳{rent.toLocaleString("en-BD")}.00
                 </td>
               </tr>
               {service > 0 && (
                 <tr>
-                  <td className="py-1.5 text-slate-800 font-medium">
+                  <td className="py-1.5 text-foreground font-medium">
                     Building Service & Maintenance Charge
                   </td>
                   <td className="py-1.5 text-right font-mono font-semibold">
@@ -185,7 +190,7 @@ export function TenantReceiptModal({
               )}
               {elec > 0 && (
                 <tr>
-                  <td className="py-1.5 text-slate-800 font-medium">
+                  <td className="py-1.5 text-foreground font-medium">
                     Electricity Consumption (Submeter Reading)
                   </td>
                   <td className="py-1.5 text-right font-mono font-semibold">
@@ -195,7 +200,7 @@ export function TenantReceiptModal({
               )}
               {gas > 0 && (
                 <tr>
-                  <td className="py-1.5 text-slate-800 font-medium">Gas Utility Supply</td>
+                  <td className="py-1.5 text-foreground font-medium">Gas Utility Supply</td>
                   <td className="py-1.5 text-right font-mono font-semibold">
                     ৳{gas.toLocaleString("en-BD")}.00
                   </td>
@@ -203,7 +208,7 @@ export function TenantReceiptModal({
               )}
               {water > 0 && (
                 <tr>
-                  <td className="py-1.5 text-slate-800 font-medium">Water Supply & Sewerage</td>
+                  <td className="py-1.5 text-foreground font-medium">Water Supply & Sewerage</td>
                   <td className="py-1.5 text-right font-mono font-semibold">
                     ৳{water.toLocaleString("en-BD")}.00
                   </td>
@@ -211,7 +216,7 @@ export function TenantReceiptModal({
               )}
               {waste > 0 && (
                 <tr>
-                  <td className="py-1.5 text-slate-800 font-medium">
+                  <td className="py-1.5 text-foreground font-medium">
                     Waste Disposal & Common Utilities
                   </td>
                   <td className="py-1.5 text-right font-mono font-semibold">
@@ -221,21 +226,23 @@ export function TenantReceiptModal({
               )}
               {late > 0 && (
                 <tr>
-                  <td className="py-1.5 text-rose-600 font-medium">Late Payment Fee</td>
-                  <td className="py-1.5 text-right font-mono font-semibold text-rose-600">
+                  <td className="py-1.5 text-rose-600 dark:text-rose-400 font-medium">
+                    Late Payment Fee
+                  </td>
+                  <td className="py-1.5 text-right font-mono font-semibold text-rose-600 dark:text-rose-400">
                     ৳{late.toLocaleString("en-BD")}.00
                   </td>
                 </tr>
               )}
             </tbody>
             <tfoot>
-              <tr className="border-t-2 border-slate-300 font-bold">
-                <td className="pt-2 text-slate-900">Total Billed:</td>
-                <td className="pt-2 text-right font-mono text-slate-900">
+              <tr className="border-t-2 border-border-gold/40 font-bold">
+                <td className="pt-2 text-foreground">Total Billed:</td>
+                <td className="pt-2 text-right font-mono text-foreground">
                   ৳{total.toLocaleString("en-BD")}.00
                 </td>
               </tr>
-              <tr className="font-extrabold text-sm text-emerald-700">
+              <tr className="font-extrabold text-sm text-emerald-600 dark:text-emerald-400">
                 <td className="py-1">Total Paid / Settled:</td>
                 <td className="py-1 text-right font-mono">৳{paid.toLocaleString("en-BD")}.00</td>
               </tr>
@@ -243,40 +250,40 @@ export function TenantReceiptModal({
           </table>
 
           {/* Payment Method & QR Code Stamp */}
-          <div className="pt-3 border-t border-slate-200 flex items-center justify-between text-xs">
+          <div className="pt-3 border-t border-border-gold/30 flex items-center justify-between text-xs">
             <div className="space-y-1">
-              <p className="text-[11px] text-slate-500">
+              <p className="text-[11px] text-foreground-muted">
                 Payment Channel:{" "}
-                <strong className="uppercase text-slate-800">{paymentMethod}</strong>
+                <strong className="uppercase text-foreground">{paymentMethod}</strong>
               </p>
-              <p className="text-[11px] text-slate-500 font-mono">
-                Transaction Ref: <strong className="text-slate-800">{transactionId}</strong>
+              <p className="text-[11px] text-foreground-muted font-mono">
+                Transaction Ref: <strong className="text-foreground">{transactionId}</strong>
               </p>
-              <p className="text-[10px] text-slate-400 italic">
+              <p className="text-[10px] text-foreground-muted italic">
                 * This computer-generated receipt is electronically verified and requires no manual
                 physical stamp.
               </p>
             </div>
 
-            <div className="text-center p-2 rounded-lg bg-slate-50 border border-slate-200">
-              <QrCode className="size-12 text-slate-800 mx-auto" />
-              <span className="text-[9px] text-slate-400 block mt-0.5 uppercase tracking-wider font-semibold">
+            <div className="text-center p-2 rounded-lg bg-card border border-border-gold/30">
+              <QrCode className="size-12 text-foreground mx-auto" />
+              <span className="text-[9px] text-foreground-muted block mt-0.5 uppercase tracking-wider font-semibold">
                 Verified Token
               </span>
             </div>
           </div>
 
           {/* Signatures */}
-          <div className="pt-8 flex items-center justify-between text-xs text-slate-400 border-t border-dashed border-slate-200">
+          <div className="pt-8 flex items-center justify-between text-xs text-foreground-muted border-t border-dashed border-border-gold/30">
             <div className="text-center">
-              <div className="w-32 border-b border-slate-300 pb-1 mb-1 font-mono text-slate-700 text-[11px] font-bold">
+              <div className="w-32 border-b border-border-gold/40 pb-1 mb-1 font-mono text-foreground text-[11px] font-bold">
                 {renterName}
               </div>
               <span className="text-[10px]">Tenant Signature</span>
             </div>
 
             <div className="text-center">
-              <div className="w-36 border-b border-slate-300 pb-1 mb-1 text-indigo-700 font-bold text-[11px]">
+              <div className="w-36 border-b border-border-gold/40 pb-1 mb-1 text-primary font-bold text-[11px]">
                 OmniHeaven Admin
               </div>
               <span className="text-[10px]">Authorized Landlord / Manager</span>
@@ -286,7 +293,7 @@ export function TenantReceiptModal({
 
         {/* Action button in modal */}
         <div className="flex justify-end pt-2 print:hidden">
-          <Button type="button" onClick={onClose} className="bg-slate-900 text-white text-xs px-4">
+          <Button type="button" variant="outline" onClick={onClose} className="text-xs px-4">
             Close Voucher
           </Button>
         </div>

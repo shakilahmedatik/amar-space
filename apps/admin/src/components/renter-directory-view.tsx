@@ -211,13 +211,16 @@ export function RenterDirectoryView() {
   return (
     <div className="space-y-6">
       {/* Top Banner & Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-border">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-border-gold/30">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
-            <h1 className="text-2xl sm:text-3xl font-display font-black tracking-tight text-foreground">
+            <h1 className="text-2xl sm:text-3xl font-serif font-bold tracking-tight text-foreground">
               Renter Lifecycle & Tenancy Leases
             </h1>
-            <Badge variant="outline" className="text-xs font-semibold">
+            <Badge
+              variant="outline"
+              className="text-xs font-semibold border-border-gold/30 bg-primary/5"
+            >
               KYC & Ledger
             </Badge>
           </div>
@@ -233,7 +236,7 @@ export function RenterDirectoryView() {
             variant="outline"
             size="sm"
             onClick={() => setContractOpen(true)}
-            className="text-xs gap-1.5 h-10 min-h-[44px]"
+            className="text-xs gap-1.5 h-10 min-h-[44px] border-border-gold/40 hover:bg-primary/10"
           >
             <FileCheck2 className="size-4 text-primary" />
             <span>Draft Lease</span>
@@ -254,56 +257,64 @@ export function RenterDirectoryView() {
       {/* Aggregate KPI Metric Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {/* KPI 1: Total Tenants */}
-        <div className="p-4 rounded-2xl bg-card border border-border space-y-1 shadow-2xs">
+        <div className="p-4 rounded-2xl bg-card border border-border-gold/30 space-y-1 shadow-xs hover:border-border-gold/60 transition-all">
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-bold uppercase tracking-wider text-foreground-muted">
               Registered Tenants
             </span>
-            <Users className="size-4 text-primary" />
+            <div className="p-1.5 rounded-lg bg-primary/10 border border-border-gold/30">
+              <Users className="size-4 text-primary" />
+            </div>
           </div>
-          <p className="text-2xl font-display font-extrabold text-foreground tabular-nums">
+          <p className="text-2xl font-serif font-black text-foreground tabular-nums">
             {metrics.totalRenters}
           </p>
           <p className="text-[11px] text-foreground-muted">Verified KYC records</p>
         </div>
 
         {/* KPI 2: Active Leases */}
-        <div className="p-4 rounded-2xl bg-card border border-border space-y-1 shadow-2xs">
+        <div className="p-4 rounded-2xl bg-card border border-border-gold/30 space-y-1 shadow-xs hover:border-border-gold/60 transition-all">
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-bold uppercase tracking-wider text-foreground-muted">
               Active Tenancies
             </span>
-            <UserCheck className="size-4 text-emerald-500" />
+            <div className="p-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/30">
+              <UserCheck className="size-4 text-emerald-600 dark:text-emerald-400" />
+            </div>
           </div>
-          <p className="text-2xl font-display font-extrabold text-emerald-600 dark:text-emerald-400 tabular-nums">
+          <p className="text-2xl font-serif font-black text-emerald-600 dark:text-emerald-400 tabular-nums">
             {metrics.activeLeases}
           </p>
           <p className="text-[11px] text-foreground-muted">Occupied residential units</p>
         </div>
 
         {/* KPI 3: Notice Period */}
-        <div className="p-4 rounded-2xl bg-card border border-border space-y-1 shadow-2xs">
+        <div className="p-4 rounded-2xl bg-card border border-border-gold/30 space-y-1 shadow-xs hover:border-border-gold/60 transition-all">
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-bold uppercase tracking-wider text-foreground-muted">
               Notice Period
             </span>
-            <Clock className="size-4 text-amber-500" />
+            <div className="p-1.5 rounded-lg bg-amber-500/10 border border-amber-500/30">
+              <Clock className="size-4 text-amber-700 dark:text-amber-300" />
+            </div>
           </div>
-          <p className="text-2xl font-display font-extrabold text-amber-600 dark:text-amber-400 tabular-nums">
+          <p className="text-2xl font-serif font-black text-amber-700 dark:text-amber-300 tabular-nums">
             {metrics.noticePeriodCount}
           </p>
           <p className="text-[11px] text-foreground-muted">Expected departures pending</p>
         </div>
 
         {/* KPI 4: Security Deposit Ledger */}
-        <div className="p-4 rounded-2xl bg-card border border-border space-y-1 shadow-2xs">
+        <div className="p-4 rounded-2xl bg-card border border-border-gold/30 space-y-1 shadow-xs hover:border-border-gold/60 transition-all">
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-bold uppercase tracking-wider text-foreground-muted">
               Advance Deposit Ledger
             </span>
-            <CreditCard className="size-4 text-primary" />
+            <div className="p-1.5 rounded-lg bg-primary/10 border border-border-gold/30">
+              <CreditCard className="size-4 text-primary" />
+            </div>
           </div>
-          <p className="text-xl sm:text-2xl font-display font-extrabold text-foreground tabular-nums">
+          <p className="text-xl sm:text-2xl font-serif font-black text-foreground tabular-nums">
             ৳{metrics.totalDeposit.toLocaleString()}
           </p>
           <p className="text-[11px] text-foreground-muted">Total escrow holding balance</p>
@@ -320,12 +331,12 @@ export function RenterDirectoryView() {
               placeholder="Search by tenant name, phone, NID, or occupation..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-10 h-11 text-xs bg-card border-border"
+              className="pl-10 h-11 text-xs bg-surface border-border-gold/30 text-foreground placeholder:text-foreground-muted focus:border-primary"
             />
           </div>
 
           {/* Status Tabs */}
-          <div className="flex items-center gap-1 p-1 rounded-xl bg-surface border border-border text-xs shrink-0 overflow-x-auto">
+          <div className="flex items-center gap-1 p-1 rounded-xl bg-surface border border-border-gold/30 text-xs shrink-0 overflow-x-auto">
             {["all", "active", "notice_period", "draft", "terminated"].map((status) => (
               <button
                 type="button"
@@ -333,7 +344,7 @@ export function RenterDirectoryView() {
                 onClick={() => setStatusFilter(status)}
                 className={`px-3 py-1.5 rounded-lg text-xs font-semibold capitalize transition-all ${
                   statusFilter === status
-                    ? "bg-card text-foreground shadow-2xs font-bold"
+                    ? "bg-primary text-primary-foreground shadow-xs font-bold"
                     : "text-foreground-muted hover:text-foreground"
                 }`}
               >
@@ -356,8 +367,8 @@ export function RenterDirectoryView() {
               onClick={() => setSelectedBloodGroup(bg)}
               className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all border shrink-0 ${
                 selectedBloodGroup === bg
-                  ? "bg-rose-500 text-white border-rose-600 shadow-2xs"
-                  : "bg-surface border-border text-foreground hover:border-border/80"
+                  ? "bg-primary text-primary-foreground border-primary shadow-xs"
+                  : "bg-surface border-border-gold/30 text-foreground hover:border-border-gold/60"
               }`}
             >
               {bg}
@@ -367,11 +378,11 @@ export function RenterDirectoryView() {
       </div>
 
       {/* Renter Directory: Table & Responsive Card Grid */}
-      <div className="rounded-2xl border border-border bg-card overflow-hidden shadow-2xs">
+      <div className="rounded-2xl border border-border-gold/30 bg-card overflow-hidden shadow-xs">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="border-b border-border bg-surface text-[10px] font-bold uppercase tracking-wider text-foreground-muted">
+              <tr className="border-b border-border-gold/30 bg-surface text-[10px] font-bold uppercase tracking-wider text-foreground-muted">
                 <th className="py-3 px-4">Tenant & Contact</th>
                 <th className="py-3 px-4">Allocated Flat</th>
                 <th className="py-3 px-4">National ID (NID)</th>
@@ -381,7 +392,7 @@ export function RenterDirectoryView() {
                 <th className="py-3 px-4 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-border text-xs">
+            <tbody className="divide-y divide-border-gold/20 text-xs">
               {filteredRenters.map((renter) => {
                 const contract = renter.contracts?.[0];
                 const rentAmount = contract ? Number(contract.monthlyRent || 0) : null;
@@ -392,13 +403,13 @@ export function RenterDirectoryView() {
                 return (
                   <tr
                     key={renter.id}
-                    className="hover:bg-surface/50 transition-colors group cursor-pointer"
+                    className="hover:bg-primary/[0.03] transition-colors group cursor-pointer"
                     onClick={() => handleOpenContractDetails(renter)}
                   >
                     {/* Tenant & Contact */}
                     <td className="py-3.5 px-4">
                       <div className="flex items-center gap-3">
-                        <span className="size-9 rounded-xl bg-primary/10 text-primary border border-primary/20 flex items-center justify-center font-bold text-xs shrink-0">
+                        <span className="size-9 rounded-xl bg-primary/10 text-primary border border-border-gold/40 flex items-center justify-center font-bold font-serif text-xs shrink-0 shadow-xs">
                           {renter.fullName
                             ?.split(" ")
                             .map((s: string) => s[0])
@@ -420,7 +431,7 @@ export function RenterDirectoryView() {
                     <td className="py-3.5 px-4">
                       {renter.flat ? (
                         <div className="flex items-center gap-2">
-                          <span className="size-7 rounded-lg bg-surface border border-border font-bold text-xs flex items-center justify-center text-foreground tabular-nums shrink-0">
+                          <span className="size-7 rounded-lg bg-surface border border-border-gold/30 font-bold text-xs flex items-center justify-center text-foreground tabular-nums shrink-0">
                             {renter.flat.flatNumber}
                           </span>
                           <div>
@@ -433,7 +444,10 @@ export function RenterDirectoryView() {
                           </div>
                         </div>
                       ) : (
-                        <Badge variant="outline" className="text-foreground-muted text-[10px]">
+                        <Badge
+                          variant="outline"
+                          className="text-foreground-muted text-[10px] border-border-gold/30"
+                        >
                           Unassigned
                         </Badge>
                       )}
