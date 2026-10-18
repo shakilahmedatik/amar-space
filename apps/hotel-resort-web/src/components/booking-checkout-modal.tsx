@@ -13,6 +13,7 @@ import {
   X,
 } from "lucide-react";
 import { useState } from "react";
+import { trpc } from "../lib/trpc";
 import type { HotelRoomTypeView } from "../types/hotel-website";
 
 interface BookingCheckoutModalProps {
@@ -20,6 +21,7 @@ interface BookingCheckoutModalProps {
   hotelName: string;
   hotelAddress: string;
   accentColor: string;
+  organizationId?: string;
   initialCheckIn?: string;
   initialCheckOut?: string;
   initialAdults?: number;
@@ -32,6 +34,7 @@ export function BookingCheckoutModal({
   hotelName,
   hotelAddress,
   accentColor,
+  organizationId = "org-grand-haven",
   initialCheckIn,
   initialCheckOut,
   initialAdults = 2,
@@ -56,9 +59,11 @@ export function BookingCheckoutModal({
   // Payment
   const [paymentMethod, setPaymentMethod] = useState<
     "paystation" | "bkash" | "card" | "pay_at_hotel"
-  >("paystation");
-  const [isProcessing, setIsProcessing] = useState(false);
+  >("pay_at_hotel");
   const [bookingRef, setBookingRef] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
+
+  const createBookingMutation = trpc.hotel.publicCreateBooking.useMutation();
 
   if (!room) return null;
 
@@ -73,14 +78,30 @@ export function BookingCheckoutModal({
   const taxAndService = Math.round(subtotal * 0.15); // 15% VAT & Service
   const grandTotal = subtotal + taxAndService;
 
-  const handleConfirmBooking = () => {
-    setIsProcessing(true);
-    setTimeout(() => {
-      setIsProcessing(false);
-      const randomCode = `OHB-${Math.floor(100000 + Math.random() * 900000)}`;
-      setBookingRef(randomCode);
+  const handleConfirmBooking = async () => {
+    setErrorMessage("");
+    try {
+      const result = await createBookingMutation.mutateAsync({
+        organizationId,
+        roomTypeId: room.id,
+        checkInDate: checkIn,
+        checkOutDate: checkOut,
+        guestName: guestName.trim(),
+        guestEmail: guestEmail.trim(),
+        guestPhone: guestPhone.trim(),
+        adultsCount: adults,
+        childrenCount: children,
+        specialRequests: specialRequests.trim() || undefined,
+        paymentMethod,
+      });
+
+      setBookingRef(result.bookingReference);
       setStep(4);
-    }, 1000);
+    } catch (err: any) {
+      setErrorMessage(
+        err.message || "Failed to confirm reservation. Please review your details and try again.",
+      );
+    }
   };
 
   return (
@@ -322,9 +343,16 @@ export function BookingCheckoutModal({
                 Select Payment Option
               </h4>
 
+              {errorMessage && (
+                <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-xs text-red-700">
+                  {errorMessage}
+                </div>
+              )}
+
               <div className="space-y-2.5">
                 {/* Paystation */}
                 <label
+                  htmlFor="pm-paystation"
                   className={`flex items-start gap-3 p-3.5 rounded-xl border cursor-pointer transition-colors ${
                     paymentMethod === "paystation"
                       ? "border-slate-900 bg-slate-50/80 shadow-2xs"
@@ -332,6 +360,7 @@ export function BookingCheckoutModal({
                   }`}
                 >
                   <input
+                    id="pm-paystation"
                     type="radio"
                     name="payment_opt"
                     checked={paymentMethod === "paystation"}
@@ -356,6 +385,7 @@ export function BookingCheckoutModal({
 
                 {/* Direct bKash / Nagad */}
                 <label
+                  htmlFor="pm-bkash"
                   className={`flex items-start gap-3 p-3.5 rounded-xl border cursor-pointer transition-colors ${
                     paymentMethod === "bkash"
                       ? "border-slate-900 bg-slate-50/80 shadow-2xs"
@@ -363,6 +393,7 @@ export function BookingCheckoutModal({
                   }`}
                 >
                   <input
+                    id="pm-bkash"
                     type="radio"
                     name="payment_opt"
                     checked={paymentMethod === "bkash"}
@@ -381,6 +412,7 @@ export function BookingCheckoutModal({
 
                 {/* International Card */}
                 <label
+                  htmlFor="pm-card"
                   className={`flex items-start gap-3 p-3.5 rounded-xl border cursor-pointer transition-colors ${
                     paymentMethod === "card"
                       ? "border-slate-900 bg-slate-50/80 shadow-2xs"
@@ -388,6 +420,7 @@ export function BookingCheckoutModal({
                   }`}
                 >
                   <input
+                    id="pm-card"
                     type="radio"
                     name="payment_opt"
                     checked={paymentMethod === "card"}
@@ -407,6 +440,7 @@ export function BookingCheckoutModal({
 
                 {/* Pay at Hotel */}
                 <label
+                  htmlFor="pm-pay-at-hotel"
                   className={`flex items-start gap-3 p-3.5 rounded-xl border cursor-pointer transition-colors ${
                     paymentMethod === "pay_at_hotel"
                       ? "border-slate-900 bg-slate-50/80 shadow-2xs"
@@ -414,6 +448,7 @@ export function BookingCheckoutModal({
                   }`}
                 >
                   <input
+                    id="pm-pay-at-hotel"
                     type="radio"
                     name="payment_opt"
                     checked={paymentMethod === "pay_at_hotel"}
@@ -574,11 +609,11 @@ export function BookingCheckoutModal({
                 <button
                   type="button"
                   onClick={handleConfirmBooking}
-                  disabled={isProcessing}
+                  disabled={createBookingMutation.isPending}
                   className="px-6 py-2.5 rounded-xl text-xs font-bold text-white shadow-md flex items-center gap-1.5 disabled:opacity-50"
                   style={{ backgroundColor: accentColor }}
                 >
-                  {isProcessing ? (
+                  {createBookingMutation.isPending ? (
                     "Confirming Booking..."
                   ) : (
                     <>

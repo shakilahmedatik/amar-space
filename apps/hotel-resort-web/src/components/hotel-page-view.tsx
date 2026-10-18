@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { trpc } from "../lib/trpc";
 import type { HotelRoomTypeView, HotelWebsiteData } from "../types/hotel-website";
 import { AmenitiesSection } from "./amenities-section";
 import { BookingCheckoutModal } from "./booking-checkout-modal";
@@ -37,6 +38,46 @@ export function HotelPageView({ initialHotelData }: HotelPageViewProps) {
     adults: 2,
     children: 0,
   });
+
+  // Live Availability Query from tRPC Hotel Router
+  const availabilityQuery = trpc.hotel.publicSearchAvailability.useQuery(
+    {
+      organizationId: hotel.id,
+      checkInDate: searchCriteria.checkIn,
+      checkOutDate: searchCriteria.checkOut,
+      adultsCount: searchCriteria.adults,
+      childrenCount: searchCriteria.children,
+    },
+    {
+      enabled: Boolean(
+        hotel.id &&
+          searchCriteria.checkIn &&
+          searchCriteria.checkOut &&
+          searchCriteria.checkOut > searchCriteria.checkIn,
+      ),
+    },
+  );
+
+  // Merge live availability count into roomTypes
+  const enrichedRoomTypes = useMemo(() => {
+    return hotel.roomTypes.map((room) => {
+      const liveMatch = availabilityQuery.data?.find(
+        (avail: { id: string; availableRoomsCount: number }) => avail.id === room.id,
+      );
+      if (!liveMatch) return room;
+      return {
+        ...room,
+        availableRoomCount: liveMatch.availableRoomsCount,
+      };
+    });
+  }, [hotel.roomTypes, availabilityQuery.data]);
+
+  const hotelWithEnrichedRooms = useMemo(() => {
+    return {
+      ...hotel,
+      roomTypes: enrichedRoomTypes,
+    };
+  }, [hotel, enrichedRoomTypes]);
 
   // Handle theme switching preview
   const handleThemeChange = (
@@ -81,7 +122,7 @@ export function HotelPageView({ initialHotelData }: HotelPageViewProps) {
     });
 
     if (criteria.roomTypeId) {
-      const match = hotel.roomTypes.find((r) => r.id === criteria.roomTypeId);
+      const match = enrichedRoomTypes.find((r) => r.id === criteria.roomTypeId);
       if (match) {
         setSelectedRoomForBooking(match);
         setBookingModalOpen(true);
@@ -102,14 +143,14 @@ export function HotelPageView({ initialHotelData }: HotelPageViewProps) {
   };
 
   const handleOpenGeneralBooking = () => {
-    setSelectedRoomForBooking(hotel.roomTypes[0] || null);
+    setSelectedRoomForBooking(enrichedRoomTypes[0] || null);
     setBookingModalOpen(true);
   };
 
   return (
     <ThemeWrapper config={hotel.builderConfig}>
       <Header
-        hotel={hotel}
+        hotel={hotelWithEnrichedRooms}
         activeTheme={hotel.builderConfig.themeSlug}
         onThemeChange={handleThemeChange}
         onOpenBooking={handleOpenGeneralBooking}
@@ -117,7 +158,7 @@ export function HotelPageView({ initialHotelData }: HotelPageViewProps) {
 
       <main>
         <HeroSection
-          hotel={hotel}
+          hotel={hotelWithEnrichedRooms}
           onSearch={handleSearch}
           onExploreSuites={() => {
             document.getElementById("rooms")?.scrollIntoView({ behavior: "smooth" });
@@ -125,7 +166,7 @@ export function HotelPageView({ initialHotelData }: HotelPageViewProps) {
         />
 
         <RoomsSection
-          roomTypes={hotel.roomTypes}
+          roomTypes={enrichedRoomTypes}
           accentColor={hotel.builderConfig.brand.accentColor}
           onBookRoom={handleBookRoom}
         />
@@ -158,6 +199,7 @@ export function HotelPageView({ initialHotelData }: HotelPageViewProps) {
       {bookingModalOpen && (
         <BookingCheckoutModal
           room={selectedRoomForBooking}
+          organizationId={hotel.id}
           hotelName={hotel.name}
           hotelAddress={hotel.address}
           accentColor={hotel.builderConfig.brand.accentColor}

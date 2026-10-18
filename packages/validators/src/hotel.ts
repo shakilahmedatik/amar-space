@@ -166,6 +166,7 @@ export const publicCreateBookingSchema = z
     adultsCount: z.coerce.number().int().min(1).default(1),
     childrenCount: z.coerce.number().int().min(0).default(0),
     specialRequests: z.string().max(1000).optional().nullable(),
+    paymentMethod: z.string().optional(),
   })
   .refine((data) => data.checkOutDate > data.checkInDate, {
     message: "Check-out date must be strictly after check-in date",

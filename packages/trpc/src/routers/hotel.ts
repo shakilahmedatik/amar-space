@@ -1037,6 +1037,7 @@ export const hotelRouter = router({
         newValue: booking,
         metadata: {
           channel: "direct_web_booking",
+          paymentMethod: input.paymentMethod ?? "pay_at_hotel",
           bookingReference,
           nights,
           totalPrice,

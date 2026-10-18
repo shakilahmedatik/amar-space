@@ -13,6 +13,7 @@ export interface HotelRoomTypeView {
   amenities: string[];
   photos: string[];
   tag?: string;
+  availableRoomCount?: number;
 }
 
 export interface HotelAmenityItem {

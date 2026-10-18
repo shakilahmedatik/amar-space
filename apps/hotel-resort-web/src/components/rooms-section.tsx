@@ -160,6 +160,23 @@ export function RoomsSection({ roomTypes, accentColor, onBookRoom }: RoomsSectio
                       </span>
                     )}
                   </div>
+                  {/* Live Inventory Status */}
+                  {room.availableRoomCount !== undefined && (
+                    <div className="mt-3 flex items-center">
+                      {room.availableRoomCount > 0 ? (
+                        <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-md">
+                          <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                          {room.availableRoomCount}{" "}
+                          {room.availableRoomCount === 1 ? "room" : "rooms"} available
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-rose-700 bg-rose-50 border border-rose-100 px-2 py-0.5 rounded-md">
+                          <span className="size-1.5 rounded-full bg-rose-500" />
+                          Sold Out for Selected Dates
+                        </span>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 {/* Pricing & CTA */}
@@ -178,12 +195,19 @@ export function RoomsSection({ roomTypes, accentColor, onBookRoom }: RoomsSectio
 
                   <button
                     type="button"
+                    disabled={room.availableRoomCount === 0}
                     onClick={() => onBookRoom(room)}
-                    className="px-4 py-2 rounded-xl text-xs font-bold text-white shadow-xs hover:shadow-md transition-all active:scale-95 flex items-center gap-1.5"
-                    style={{ backgroundColor: accentColor }}
+                    className={`px-4 py-2 rounded-xl text-xs font-bold text-white shadow-xs hover:shadow-md transition-all active:scale-95 flex items-center gap-1.5 ${
+                      room.availableRoomCount === 0
+                        ? "opacity-50 cursor-not-allowed"
+                        : "cursor-pointer"
+                    }`}
+                    style={{
+                      backgroundColor: room.availableRoomCount === 0 ? "#64748b" : accentColor,
+                    }}
                   >
-                    <span>Book Suite</span>
-                    <ArrowRight className="size-3.5" />
+                    <span>{room.availableRoomCount === 0 ? "Sold Out" : "Book Suite"}</span>
+                    {room.availableRoomCount !== 0 && <ArrowRight className="size-3.5" />}
                   </button>
                 </div>
               </div>

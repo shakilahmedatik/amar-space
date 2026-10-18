@@ -194,9 +194,22 @@ export function RoomModal({ room, accentColor, onClose, onBookRoom }: RoomModalP
         <div className="p-4 sm:p-6 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
           <div>
             <span className="text-xs text-slate-400 block">Total per night</span>
-            <span className="text-xl font-bold text-slate-900">
-              ৳{room.basePrice.toLocaleString()}
-            </span>
+            <div className="flex items-baseline gap-2">
+              <span className="text-xl font-bold text-slate-900">
+                ৳{room.basePrice.toLocaleString()}
+              </span>
+              {room.availableRoomCount !== undefined && (
+                <span
+                  className={`text-[11px] font-semibold px-2 py-0.5 rounded-md ${
+                    room.availableRoomCount > 0
+                      ? "text-emerald-700 bg-emerald-50"
+                      : "text-rose-700 bg-rose-50"
+                  }`}
+                >
+                  {room.availableRoomCount > 0 ? `${room.availableRoomCount} left` : "Sold out"}
+                </span>
+              )}
+            </div>
           </div>
 
           <div className="flex items-center gap-3">
@@ -209,15 +222,18 @@ export function RoomModal({ room, accentColor, onClose, onBookRoom }: RoomModalP
             </button>
             <button
               type="button"
+              disabled={room.availableRoomCount === 0}
               onClick={() => {
                 onClose();
                 onBookRoom(room);
               }}
-              className="px-6 py-2.5 rounded-xl text-sm font-bold text-white shadow-md hover:shadow-lg transition-all active:scale-95 flex items-center gap-2"
-              style={{ backgroundColor: accentColor }}
+              className={`px-6 py-2.5 rounded-xl text-sm font-bold text-white shadow-md hover:shadow-lg transition-all active:scale-95 flex items-center gap-2 ${
+                room.availableRoomCount === 0 ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
+              }`}
+              style={{ backgroundColor: room.availableRoomCount === 0 ? "#64748b" : accentColor }}
             >
               <Sparkles className="size-4" />
-              <span>Reserve Suite Now</span>
+              <span>{room.availableRoomCount === 0 ? "Sold Out" : "Reserve Suite Now"}</span>
             </button>
           </div>
         </div>
