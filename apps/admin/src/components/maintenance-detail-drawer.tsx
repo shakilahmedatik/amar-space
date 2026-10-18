@@ -142,16 +142,16 @@ export function MaintenanceDetailDrawer({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-      <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto bg-card border border-border shadow-2xl rounded-2xl flex flex-col">
+      <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto bg-card border border-border-gold/30 shadow-2xl rounded-2xl flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between p-5 border-b border-border sticky top-0 bg-card z-10">
+        <div className="flex items-center justify-between p-5 border-b border-border-gold/20 sticky top-0 bg-card z-10">
           <div className="flex items-center gap-3">
-            <div className="size-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
+            <div className="size-10 rounded-xl bg-primary/10 border border-border-gold/30 flex items-center justify-center text-primary">
               <Wrench className="size-5" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-base font-bold text-foreground">
+                <h2 className="text-base font-serif font-bold text-foreground">
                   {ticket?.title || "Maintenance Ticket"}
                 </h2>
                 {ticket?.status && <StatusBadge status={ticket.status as any} />}
@@ -249,7 +249,9 @@ export function MaintenanceDetailDrawer({
                       ? "text-rose-600 bg-rose-500/10 border-rose-500/20"
                       : ticket.priority === "high"
                         ? "text-amber-600 bg-amber-500/10 border-amber-500/20"
-                        : "text-blue-600 bg-blue-500/10 border-blue-500/20"
+                        : ticket.priority === "medium"
+                          ? "text-primary bg-primary/10 border-border-gold/30"
+                          : "text-foreground-muted bg-surface border-border"
                   }`}
                 >
                   {ticket.priority}
@@ -334,7 +336,7 @@ export function MaintenanceDetailDrawer({
                 {ticket.assignedToStaff && (
                   <Badge
                     variant="outline"
-                    className="text-[10px] bg-blue-500/10 text-blue-600 border-blue-500/20 font-semibold"
+                    className="text-[10px] bg-primary/10 text-primary border-border-gold/30 font-semibold"
                   >
                     Dispatched
                   </Badge>
@@ -357,9 +359,10 @@ export function MaintenanceDetailDrawer({
                   </select>
                   <Button
                     type="button"
+                    variant="luxury"
                     onClick={handleAssignStaff}
                     disabled={!selectedStaffId || assignStaffMutation.isPending}
-                    className="h-10 px-4 text-xs font-semibold bg-primary text-primary-foreground min-h-[40px]"
+                    className="h-10 px-4 text-xs font-semibold min-h-[40px]"
                   >
                     {assignStaffMutation.isPending ? "Assigning..." : "Assign Staff"}
                   </Button>

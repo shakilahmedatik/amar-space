@@ -178,13 +178,13 @@ export function RegisterRenterModal({ open, onOpenChange, onSuccess }: RegisterR
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl bg-card border-border shadow-2xl p-6 sm:p-8 max-h-[92vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl bg-card border-border-gold/30 shadow-2xl p-6 sm:p-8 max-h-[92vh] overflow-y-auto">
         <DialogHeader className="space-y-2">
           <div className="flex items-center gap-2">
             <span className="size-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
               <IdCard className="size-4" />
             </span>
-            <DialogTitle className="text-xl sm:text-2xl font-display font-bold text-foreground">
+            <DialogTitle className="text-xl sm:text-2xl font-serif font-bold text-foreground">
               Register New Renter
             </DialogTitle>
           </div>

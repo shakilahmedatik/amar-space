@@ -96,14 +96,19 @@ export function EmergencyContactsWidget({
 
   return (
     <>
-      <Card variant="default" className="border border-border bg-card p-4 sm:p-5 rounded-2xl">
-        <div className="flex items-center justify-between pb-3 border-b border-border">
+      <Card
+        variant="default"
+        className="border border-border-gold/30 bg-card p-4 sm:p-5 rounded-2xl shadow-xs"
+      >
+        <div className="flex items-center justify-between pb-3 border-b border-border-gold/20">
           <div className="flex items-center gap-2">
             <span className="size-8 rounded-lg bg-rose-500/10 text-rose-600 dark:text-rose-400 flex items-center justify-center">
               <PhoneCall className="size-4" />
             </span>
             <div>
-              <h3 className="text-sm font-bold text-foreground">Emergency & Caretaker Directory</h3>
+              <h3 className="text-sm font-serif font-bold text-foreground">
+                Emergency & Caretaker Directory
+              </h3>
               <p className="text-[11px] text-foreground-muted">
                 Essential helplines for {buildingName}
               </p>
@@ -171,9 +176,9 @@ export function EmergencyContactsWidget({
 
       {/* Add Contact Modal */}
       <Dialog open={isAddModalOpen} onOpenChange={setAddModalOpen}>
-        <DialogContent className="max-w-md bg-card border-border shadow-2xl p-6">
+        <DialogContent className="max-w-md bg-card border-border-gold/30 shadow-2xl p-6">
           <DialogHeader className="space-y-1">
-            <DialogTitle className="text-lg font-bold font-display text-foreground">
+            <DialogTitle className="text-lg font-serif font-bold text-foreground">
               Add Emergency Contact
             </DialogTitle>
             <DialogDescription className="text-foreground-muted text-xs">

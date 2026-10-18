@@ -118,23 +118,23 @@ export function WebsiteBuilderView({
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 pb-4 border-b border-slate-200 dark:border-slate-800">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
+            <h1 className="text-2xl font-serif font-bold tracking-tight text-foreground">
               Website Builder & Theme Studio
             </h1>
             <Badge
               variant="outline"
-              className="bg-amber-500/10 text-amber-600 border-amber-500/20 text-xs font-semibold"
+              className="bg-primary/10 text-primary border-border-gold/40 text-xs font-semibold"
             >
               <Sparkles className="size-3 mr-1" /> Live Engine
             </Badge>
           </div>
-          <p className="text-sm text-slate-500 mt-1">
+          <p className="text-sm text-foreground-muted mt-1">
             Customer-facing site URL:{" "}
             <a
               href={`https://${organizationSlug}.omniheaven.com`}
               target="_blank"
               rel="noreferrer"
-              className="text-indigo-600 font-medium hover:underline inline-flex items-center gap-1"
+              className="text-primary font-medium hover:underline inline-flex items-center gap-1"
             >
               {organizationSlug}.omniheaven.com
               <ExternalLink className="size-3" />
@@ -147,7 +147,7 @@ export function WebsiteBuilderView({
             variant="outline"
             size="sm"
             onClick={() => setPreviewMode(previewMode === "desktop" ? "mobile" : "desktop")}
-            className="flex items-center gap-1.5"
+            className="flex items-center gap-1.5 border-border-gold/30 hover:bg-surface"
           >
             {previewMode === "desktop" ? (
               <Smartphone className="size-4" />
@@ -159,9 +159,10 @@ export function WebsiteBuilderView({
 
           <Button
             size="sm"
+            variant="luxury"
             onClick={handleSave}
             disabled={isSaving}
-            className="flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white"
+            className="flex items-center gap-1.5 shadow-xs"
           >
             {saveSuccess ? (
               <>
@@ -241,23 +242,21 @@ export function WebsiteBuilderView({
                     onClick={() => handleSelectTheme(theme)}
                     className={`p-4 cursor-pointer transition-all border-2 ${
                       isSelected
-                        ? "border-indigo-600 bg-indigo-50/20 dark:bg-indigo-950/20 shadow-sm"
-                        : "border-slate-200 dark:border-slate-800 hover:border-slate-300"
+                        ? "border-primary bg-primary/10 shadow-sm"
+                        : "border-border-gold/30 hover:border-border-gold/60 bg-card"
                     }`}
                   >
                     <div className="flex items-start justify-between">
                       <div>
                         <div className="flex items-center gap-2">
-                          <h3 className="font-semibold text-slate-900 dark:text-white text-sm">
-                            {theme.name}
-                          </h3>
+                          <h3 className="font-semibold text-foreground text-sm">{theme.name}</h3>
                           {isSelected && (
-                            <Badge className="bg-indigo-600 text-white text-[10px] px-1.5 py-0">
+                            <Badge className="bg-primary text-primary-foreground text-[10px] px-1.5 py-0 font-bold">
                               Active
                             </Badge>
                           )}
                         </div>
-                        <p className="text-xs text-slate-500 mt-0.5">{theme.tagline}</p>
+                        <p className="text-xs text-foreground-muted mt-0.5">{theme.tagline}</p>
                       </div>
 
                       <div className="flex items-center gap-1.5 shrink-0">
@@ -274,12 +273,11 @@ export function WebsiteBuilderView({
                       </div>
                     </div>
 
-                    <div className="mt-3 flex items-center justify-between text-[11px] text-slate-400 border-t border-slate-100 dark:border-slate-800/60 pt-2">
+                    <div className="mt-3 flex items-center justify-between text-[11px] text-foreground-muted border-t border-border-gold/20 pt-2">
                       <span>
-                        Typography:{" "}
-                        <strong className="text-slate-700 dark:text-slate-300">{theme.font}</strong>
+                        Typography: <strong className="text-foreground">{theme.font}</strong>
                       </span>
-                      <span className="text-indigo-600 font-medium">Click to apply</span>
+                      <span className="text-primary font-medium">Click to apply</span>
                     </div>
                   </Card>
                 );

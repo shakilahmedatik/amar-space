@@ -35,7 +35,7 @@ const CATEGORIES = [
 
 const PRIORITIES = [
   { id: "low", label: "Low", color: "text-foreground-muted border-border" },
-  { id: "medium", label: "Medium", color: "text-blue-600 border-blue-500/20 bg-blue-500/10" },
+  { id: "medium", label: "Medium", color: "text-primary border-border-gold/40 bg-primary/10" },
   { id: "high", label: "High", color: "text-amber-600 border-amber-500/20 bg-amber-500/10" },
   { id: "urgent", label: "Urgent", color: "text-rose-600 border-rose-500/20 bg-rose-500/10" },
 ] as const;
@@ -141,15 +141,17 @@ export function ReportMaintenanceModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-      <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto bg-card border border-border shadow-2xl rounded-2xl flex flex-col">
+      <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto bg-card border border-border-gold/30 shadow-2xl rounded-2xl flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between p-5 border-b border-border sticky top-0 bg-card z-10">
+        <div className="flex items-center justify-between p-5 border-b border-border-gold/20 sticky top-0 bg-card z-10">
           <div className="flex items-center gap-3">
-            <div className="size-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
+            <div className="size-10 rounded-xl bg-primary/10 border border-border-gold/30 flex items-center justify-center text-primary">
               <Wrench className="size-5" />
             </div>
             <div>
-              <h2 className="text-base font-bold text-foreground">Report Maintenance Ticket</h2>
+              <h2 className="text-base font-serif font-bold text-foreground">
+                Report Maintenance Ticket
+              </h2>
               <p className="text-xs text-foreground-muted">
                 Create a facility repair ticket, assign priority, and dispatch staff
               </p>
@@ -374,8 +376,9 @@ export function ReportMaintenanceModal({
             </Button>
             <Button
               type="submit"
+              variant="luxury"
               disabled={createTicketMutation.isPending}
-              className="h-11 px-6 text-xs font-bold bg-primary text-primary-foreground min-h-[44px] flex items-center gap-2"
+              className="h-11 px-6 text-xs font-bold min-h-[44px] flex items-center gap-2"
             >
               {createTicketMutation.isPending ? (
                 <>

@@ -165,9 +165,9 @@ export function CreateOrganizationModal() {
 
   return (
     <Dialog open={isCreateModalOpen} onOpenChange={setCreateModalOpen}>
-      <DialogContent className="max-w-2xl bg-card border-border shadow-2xl p-6 sm:p-8">
+      <DialogContent className="max-w-2xl bg-card border-border-gold/30 shadow-2xl p-6 sm:p-8">
         <DialogHeader className="space-y-1">
-          <DialogTitle className="text-xl sm:text-2xl font-display font-bold text-foreground tracking-tight">
+          <DialogTitle className="text-xl sm:text-2xl font-serif font-bold text-foreground tracking-tight">
             Create New Property Workspace
           </DialogTitle>
           <DialogDescription className="text-foreground-muted text-xs sm:text-sm">

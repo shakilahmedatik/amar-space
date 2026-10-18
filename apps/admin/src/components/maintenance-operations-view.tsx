@@ -118,15 +118,15 @@ export function MaintenanceOperationsView({
     {
       id: "assigned",
       label: "Assigned",
-      color: "border-blue-500/30 bg-blue-500/5",
-      badgeColor: "bg-blue-500/10 text-blue-600 border-blue-500/20",
+      color: "border-border-gold/40 bg-primary/5",
+      badgeColor: "bg-primary/10 text-primary border-border-gold/30",
       tickets: filteredTickets.filter((t) => t.status === "assigned"),
     },
     {
       id: "in_progress",
       label: "In Progress",
-      color: "border-purple-500/30 bg-purple-500/5",
-      badgeColor: "bg-purple-500/10 text-purple-600 border-purple-500/20",
+      color: "border-amber-600/30 bg-amber-600/5",
+      badgeColor: "bg-amber-600/10 text-amber-700 dark:text-amber-300 border-amber-600/30",
       tickets: filteredTickets.filter((t) => t.status === "in_progress"),
     },
     {
@@ -148,9 +148,9 @@ export function MaintenanceOperationsView({
   return (
     <div className="space-y-6">
       {/* Top Banner & Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-border-gold/30">
         <div>
-          <h1 className="text-xl md:text-2xl font-bold text-foreground">
+          <h1 className="text-xl md:text-2xl font-serif font-bold text-foreground">
             Maintenance & Operations
           </h1>
           <p className="text-xs text-foreground-muted mt-1">
@@ -162,16 +162,18 @@ export function MaintenanceOperationsView({
           {activeSubTab === "maintenance" ? (
             <Button
               type="button"
+              variant="luxury"
               onClick={() => setIsReportModalOpen(true)}
-              className="h-11 px-4 text-xs font-bold bg-primary text-primary-foreground shadow-sm flex items-center gap-2 min-h-[44px]"
+              className="h-11 px-4 text-xs font-bold shadow-sm flex items-center gap-2 min-h-[44px]"
             >
               <Plus className="size-4" /> Report Issue
             </Button>
           ) : (
             <Button
               type="button"
+              variant="luxury"
               onClick={() => setIsNoticeModalOpen(true)}
-              className="h-11 px-4 text-xs font-bold bg-amber-600 hover:bg-amber-700 text-white shadow-sm flex items-center gap-2 min-h-[44px]"
+              className="h-11 px-4 text-xs font-bold shadow-sm flex items-center gap-2 min-h-[44px]"
             >
               <Plus className="size-4" /> Publish Notice
             </Button>
@@ -181,20 +183,20 @@ export function MaintenanceOperationsView({
 
       {/* Summary KPI Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
-        <Card className="p-4 bg-card border border-border">
+        <Card className="p-4 bg-card border border-border-gold/30 shadow-xs rounded-2xl">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-bold uppercase tracking-wider text-foreground-muted">
               Active Tickets
             </span>
-            <div className="size-8 rounded-lg bg-blue-500/10 text-blue-600 flex items-center justify-center">
+            <div className="size-8 rounded-lg bg-primary/10 text-primary border border-border-gold/30 flex items-center justify-center">
               <Wrench className="size-4" />
             </div>
           </div>
-          <p className="text-2xl font-bold text-foreground mt-2">{activeTicketsCount}</p>
+          <p className="text-2xl font-serif font-bold text-foreground mt-2">{activeTicketsCount}</p>
           <span className="text-[10px] text-foreground-muted">Open, assigned, or active</span>
         </Card>
 
-        <Card className="p-4 bg-card border border-border">
+        <Card className="p-4 bg-card border border-border-gold/30 shadow-xs rounded-2xl">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-bold uppercase tracking-wider text-foreground-muted">
               Urgent Attention
@@ -203,11 +205,11 @@ export function MaintenanceOperationsView({
               <AlertTriangle className="size-4" />
             </div>
           </div>
-          <p className="text-2xl font-bold text-rose-600 mt-2">{urgentTicketsCount}</p>
+          <p className="text-2xl font-serif font-bold text-rose-600 mt-2">{urgentTicketsCount}</p>
           <span className="text-[10px] text-foreground-muted">High or urgent dispatch</span>
         </Card>
 
-        <Card className="p-4 bg-card border border-border">
+        <Card className="p-4 bg-card border border-border-gold/30 shadow-xs rounded-2xl">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-bold uppercase tracking-wider text-foreground-muted">
               Resolved Tickets
@@ -216,11 +218,11 @@ export function MaintenanceOperationsView({
               <CheckCircle2 className="size-4" />
             </div>
           </div>
-          <p className="text-2xl font-bold text-foreground mt-2">{resolvedCount}</p>
+          <p className="text-2xl font-serif font-bold text-foreground mt-2">{resolvedCount}</p>
           <span className="text-[10px] text-emerald-600">Work completed & signed off</span>
         </Card>
 
-        <Card className="p-4 bg-card border border-border">
+        <Card className="p-4 bg-card border border-border-gold/30 shadow-xs rounded-2xl">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-bold uppercase tracking-wider text-foreground-muted">
               Active Notices
@@ -229,7 +231,7 @@ export function MaintenanceOperationsView({
               <Bell className="size-4" />
             </div>
           </div>
-          <p className="text-2xl font-bold text-foreground mt-2">{activeNoticesCount}</p>
+          <p className="text-2xl font-serif font-bold text-foreground mt-2">{activeNoticesCount}</p>
           <span className="text-[10px] text-foreground-muted">Building broadcast alerts</span>
         </Card>
       </div>
@@ -396,7 +398,7 @@ export function MaintenanceOperationsView({
                       <Card
                         key={t.id}
                         onClick={() => setSelectedTicketId(t.id)}
-                        className="p-3.5 bg-card border border-border hover:border-primary/50 transition-all cursor-pointer shadow-xs hover:shadow-md space-y-2.5 rounded-xl group"
+                        className="p-3.5 bg-card border border-border-gold/20 hover:border-primary/50 transition-all cursor-pointer shadow-xs hover:shadow-md space-y-2.5 rounded-xl group"
                       >
                         <div className="flex items-start justify-between gap-2">
                           <span className="text-xs font-bold text-foreground group-hover:text-primary transition-colors line-clamp-2">
@@ -409,7 +411,9 @@ export function MaintenanceOperationsView({
                                 ? "text-rose-600 bg-rose-500/10 border-rose-500/20"
                                 : t.priority === "high"
                                   ? "text-amber-600 bg-amber-500/10 border-amber-500/20"
-                                  : "text-blue-600 bg-blue-500/10 border-blue-500/20"
+                                  : t.priority === "medium"
+                                    ? "text-primary bg-primary/10 border-border-gold/30"
+                                    : "text-foreground-muted bg-surface border-border"
                             }`}
                           >
                             {t.priority}
@@ -439,7 +443,7 @@ export function MaintenanceOperationsView({
             </div>
           ) : (
             /* TABLE VIEW */
-            <Card className="overflow-hidden border border-border">
+            <Card className="overflow-hidden border border-border-gold/30 shadow-xs">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -470,7 +474,9 @@ export function MaintenanceOperationsView({
                               ? "text-rose-600 bg-rose-500/10 border-rose-500/20"
                               : t.priority === "high"
                                 ? "text-amber-600 bg-amber-500/10 border-amber-500/20"
-                                : "text-blue-600 bg-blue-500/10 border-blue-500/20"
+                                : t.priority === "medium"
+                                  ? "text-primary bg-primary/10 border-border-gold/30"
+                                  : "text-foreground-muted bg-surface border-border"
                           }`}
                         >
                           {t.priority}
@@ -539,7 +545,7 @@ export function MaintenanceOperationsView({
                     className={`p-5 transition-all rounded-2xl border ${
                       n.isPinned
                         ? "border-amber-500/40 bg-amber-500/5 shadow-xs"
-                        : "border-border bg-card"
+                        : "border-border-gold/20 bg-card"
                     }`}
                   >
                     <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">

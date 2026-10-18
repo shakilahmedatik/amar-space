@@ -39,7 +39,7 @@ function getRoleBadge(role: string) {
       );
     case "admin":
       return (
-        <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 border border-indigo-500/30">
+        <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-primary/15 text-primary border border-border-gold/40">
           <ShieldCheck className="size-3" /> Admin
         </span>
       );
@@ -196,9 +196,9 @@ export function TeamRolesView() {
   return (
     <div className="space-y-6">
       {/* Top Banner & Stats Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-border">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-border-gold/30">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-display font-bold text-foreground tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-serif font-bold text-foreground tracking-tight">
             Team & Role Governance
           </h1>
           <p className="text-xs sm:text-sm text-foreground-muted mt-1">
@@ -252,35 +252,35 @@ export function TeamRolesView() {
 
       {/* Metrics Row */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <div className="p-4 rounded-2xl bg-card border border-border shadow-2xs">
+        <div className="p-4 rounded-2xl bg-card border border-border-gold/30 shadow-xs">
           <p className="text-[11px] font-bold text-foreground-muted uppercase tracking-wider">
             Total Staff
           </p>
-          <p className="text-2xl font-bold font-display text-foreground mt-1 tabular-nums">
+          <p className="text-2xl font-bold font-serif text-foreground mt-1 tabular-nums">
             {members.length}
           </p>
         </div>
-        <div className="p-4 rounded-2xl bg-card border border-border shadow-2xs">
+        <div className="p-4 rounded-2xl bg-card border border-border-gold/30 shadow-xs">
           <p className="text-[11px] font-bold text-foreground-muted uppercase tracking-wider">
             Owners & Admins
           </p>
-          <p className="text-2xl font-bold font-display text-primary mt-1 tabular-nums">
+          <p className="text-2xl font-bold font-serif text-primary mt-1 tabular-nums">
             {members.filter((m) => m.role === "owner" || m.role === "admin").length}
           </p>
         </div>
-        <div className="p-4 rounded-2xl bg-card border border-border shadow-2xs">
+        <div className="p-4 rounded-2xl bg-card border border-border-gold/30 shadow-xs">
           <p className="text-[11px] font-bold text-foreground-muted uppercase tracking-wider">
             Property Managers
           </p>
-          <p className="text-2xl font-bold font-display text-emerald-600 dark:text-emerald-400 mt-1 tabular-nums">
+          <p className="text-2xl font-bold font-serif text-emerald-600 dark:text-emerald-400 mt-1 tabular-nums">
             {members.filter((m) => m.role === "manager").length}
           </p>
         </div>
-        <div className="p-4 rounded-2xl bg-card border border-border shadow-2xs">
+        <div className="p-4 rounded-2xl bg-card border border-border-gold/30 shadow-xs">
           <p className="text-[11px] font-bold text-foreground-muted uppercase tracking-wider">
             Pending Invites
           </p>
-          <p className="text-2xl font-bold font-display text-amber-500 mt-1 tabular-nums">
+          <p className="text-2xl font-bold font-serif text-amber-500 mt-1 tabular-nums">
             {invitations.filter((i) => i.status === "pending").length}
           </p>
         </div>
@@ -317,7 +317,10 @@ export function TeamRolesView() {
 
       {/* Tab 1: Active Members Table */}
       {activeTab === "members" && (
-        <Card variant="default" className="border border-border bg-card overflow-hidden">
+        <Card
+          variant="default"
+          className="border border-border-gold/30 bg-card overflow-hidden shadow-xs"
+        >
           <div className="overflow-x-auto">
             <Table>
               <TableHeader className="bg-surface/60">
@@ -421,7 +424,10 @@ export function TeamRolesView() {
 
       {/* Tab 2: Pending Invitations Table */}
       {activeTab === "invitations" && (
-        <Card variant="default" className="border border-border bg-card overflow-hidden">
+        <Card
+          variant="default"
+          className="border border-border-gold/30 bg-card overflow-hidden shadow-xs"
+        >
           <div className="overflow-x-auto">
             <Table>
               <TableHeader className="bg-surface/60">

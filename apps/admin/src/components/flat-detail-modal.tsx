@@ -161,15 +161,15 @@ export function FlatDetailModal({ open, onOpenChange, flat, buildingName }: Flat
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl bg-card border-border shadow-2xl p-6 sm:p-8 max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl bg-card border-border-gold/30 shadow-2xl p-6 sm:p-8 max-h-[90vh] overflow-y-auto">
         <DialogHeader className="space-y-1">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="size-9 rounded-xl bg-primary/10 text-primary border border-primary/20 flex items-center justify-center font-bold text-sm">
+              <span className="size-9 rounded-xl bg-primary/10 text-primary border border-border-gold/30 flex items-center justify-center font-bold text-sm">
                 {flat.flatNumber}
               </span>
               <div>
-                <DialogTitle className="text-xl sm:text-2xl font-display font-bold text-foreground">
+                <DialogTitle className="text-xl sm:text-2xl font-serif font-bold text-foreground">
                   Unit {flat.flatNumber} Specifications
                 </DialogTitle>
                 <DialogDescription className="text-foreground-muted text-xs">

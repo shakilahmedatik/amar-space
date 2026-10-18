@@ -180,19 +180,19 @@ export function AuditLogsView() {
         );
       case "ADJUST":
         return (
-          <Badge className="bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/30 font-semibold text-[10px]">
+          <Badge className="bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30 font-semibold text-[10px]">
             ADJUST
           </Badge>
         );
       case "PAY":
         return (
-          <Badge className="bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30 font-semibold text-[10px]">
+          <Badge className="bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30 font-semibold text-[10px]">
             PAY
           </Badge>
         );
       case "ASSIGN":
         return (
-          <Badge className="bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/30 font-semibold text-[10px]">
+          <Badge className="bg-primary/15 text-primary border-border-gold/40 font-semibold text-[10px]">
             ASSIGN
           </Badge>
         );
@@ -214,10 +214,10 @@ export function AuditLogsView() {
   return (
     <div className="space-y-6">
       {/* View Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-border">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-border-gold/30">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold font-display tracking-tight text-foreground">
+            <h1 className="text-2xl font-bold font-serif tracking-tight text-foreground">
               Audit Logs & Security
             </h1>
             <Badge
@@ -260,34 +260,34 @@ export function AuditLogsView() {
 
       {/* KPI Summary Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="p-4 bg-card border-border hover:border-primary/40 transition-all">
+        <Card className="p-4 bg-card border border-border-gold/30 shadow-xs hover:border-primary/40 transition-all rounded-2xl">
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-foreground-muted">Total Mutations</span>
             <Activity className="size-4 text-primary" />
           </div>
-          <p className="text-2xl font-bold font-sans tabular-nums text-foreground mt-2">
+          <p className="text-2xl font-serif font-bold tabular-nums text-foreground mt-2">
             {kpiStats.total}
           </p>
           <p className="text-[11px] text-foreground-muted mt-0.5">Committed across platform</p>
         </Card>
 
-        <Card className="p-4 bg-card border-border hover:border-primary/40 transition-all">
+        <Card className="p-4 bg-card border border-border-gold/30 shadow-xs hover:border-primary/40 transition-all rounded-2xl">
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-foreground-muted">Financial Edits</span>
             <FileSpreadsheet className="size-4 text-amber-500" />
           </div>
-          <p className="text-2xl font-bold font-sans tabular-nums text-foreground mt-2">
+          <p className="text-2xl font-serif font-bold tabular-nums text-foreground mt-2">
             {kpiStats.financial}
           </p>
           <p className="text-[11px] text-foreground-muted mt-0.5">Bills, payments & adjustments</p>
         </Card>
 
-        <Card className="p-4 bg-card border-border hover:border-primary/40 transition-all">
+        <Card className="p-4 bg-card border border-border-gold/30 shadow-xs hover:border-primary/40 transition-all rounded-2xl">
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-foreground-muted">Operations & Notices</span>
             <FileCheck2 className="size-4 text-emerald-500" />
           </div>
-          <p className="text-2xl font-bold font-sans tabular-nums text-foreground mt-2">
+          <p className="text-2xl font-serif font-bold tabular-nums text-foreground mt-2">
             {kpiStats.operations}
           </p>
           <p className="text-[11px] text-foreground-muted mt-0.5">
@@ -295,12 +295,12 @@ export function AuditLogsView() {
           </p>
         </Card>
 
-        <Card className="p-4 bg-card border-border hover:border-primary/40 transition-all">
+        <Card className="p-4 bg-card border border-border-gold/30 shadow-xs hover:border-primary/40 transition-all rounded-2xl">
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-foreground-muted">Distinct Actors</span>
-            <User className="size-4 text-indigo-500" />
+            <User className="size-4 text-primary" />
           </div>
-          <p className="text-2xl font-bold font-sans tabular-nums text-foreground mt-2">
+          <p className="text-2xl font-serif font-bold tabular-nums text-foreground mt-2">
             {kpiStats.uniqueActors}
           </p>
           <p className="text-[11px] text-foreground-muted mt-0.5">Active team members logged</p>
@@ -308,7 +308,7 @@ export function AuditLogsView() {
       </div>
 
       {/* Filter Bar */}
-      <Card className="p-4 bg-card border-border space-y-3">
+      <Card className="p-4 bg-card border border-border-gold/30 shadow-xs rounded-2xl space-y-3">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
           {/* Search Input */}
           <div className="relative">
@@ -413,7 +413,7 @@ export function AuditLogsView() {
       </Card>
 
       {/* Audit Log Table (Desktop) / Cards (Mobile) */}
-      <Card className="bg-card border-border overflow-hidden">
+      <Card className="bg-card border border-border-gold/30 shadow-xs rounded-2xl overflow-hidden">
         {isLoading ? (
           <div className="p-8 space-y-3">
             {[1, 2, 3, 4, 5].map((i) => (
@@ -607,10 +607,10 @@ export function AuditLogsView() {
       {/* Log Inspection Dialog */}
       {inspectingLog && (
         <Dialog open={Boolean(inspectingLog)} onOpenChange={() => setInspectingLog(null)}>
-          <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto border-border-gold/30 shadow-2xl">
             <DialogHeader>
               <div className="flex items-center gap-2">
-                <DialogTitle className="text-lg font-bold font-display">
+                <DialogTitle className="text-lg font-bold font-serif">
                   Audit Entry Details
                 </DialogTitle>
                 {getActionBadge(inspectingLog.action)}
@@ -709,9 +709,9 @@ export function AuditLogsView() {
 
       {/* CSV Export Dialog */}
       <Dialog open={isExportModalOpen} onOpenChange={setIsExportModalOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md border-border-gold/30 shadow-2xl">
           <DialogHeader>
-            <DialogTitle className="text-lg font-bold font-display flex items-center gap-2">
+            <DialogTitle className="text-lg font-bold font-serif flex items-center gap-2">
               <FileSpreadsheet className="size-5 text-primary" />
               <span>Export Certified Audit Report</span>
             </DialogTitle>

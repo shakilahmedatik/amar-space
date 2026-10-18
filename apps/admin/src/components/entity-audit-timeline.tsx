@@ -35,7 +35,7 @@ export function EntityAuditTimeline({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <History className="size-4 text-primary" />
-          <h4 className="text-sm font-semibold text-foreground">{title}</h4>
+          <h4 className="text-sm font-serif font-bold text-foreground">{title}</h4>
         </div>
         <span className="text-xs text-foreground-muted">{logs?.length ?? 0} historical events</span>
       </div>
@@ -58,7 +58,7 @@ export function EntityAuditTimeline({
           No audit entries recorded for this {entityType} yet.
         </div>
       ) : (
-        <div className="relative pl-6 space-y-6 before:absolute before:left-2.5 before:top-3 before:bottom-3 before:w-0.5 before:bg-border">
+        <div className="relative pl-6 space-y-6 before:absolute before:left-2.5 before:top-3 before:bottom-3 before:w-0.5 before:bg-border-gold/30">
           {logs.map((log) => {
             const isExpanded = expandedLogId === log.id;
             const date = new Date(log.createdAt);
@@ -70,7 +70,7 @@ export function EntityAuditTimeline({
                   <div className="size-1.5 rounded-full bg-primary" />
                 </div>
 
-                <div className="p-4 rounded-xl border border-border bg-card hover:border-primary/40 transition-all shadow-xs space-y-3">
+                <div className="p-4 rounded-xl border border-border-gold/30 bg-card hover:border-primary/40 transition-all shadow-xs space-y-3">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                     <div className="flex items-center gap-2 flex-wrap">
                       <Badge

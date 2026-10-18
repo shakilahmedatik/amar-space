@@ -94,15 +94,17 @@ export function CreateNoticeModal({ isOpen, onClose, onSuccess }: CreateNoticeMo
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-      <Card className="w-full max-w-xl max-h-[90vh] overflow-y-auto bg-card border border-border shadow-2xl rounded-2xl flex flex-col">
+      <Card className="w-full max-w-xl max-h-[90vh] overflow-y-auto bg-card border border-border-gold/30 shadow-2xl rounded-2xl flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between p-5 border-b border-border sticky top-0 bg-card z-10">
+        <div className="flex items-center justify-between p-5 border-b border-border-gold/20 sticky top-0 bg-card z-10">
           <div className="flex items-center gap-3">
             <div className="size-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-600">
               <Bell className="size-5" />
             </div>
             <div>
-              <h2 className="text-base font-bold text-foreground">Publish Building Notice</h2>
+              <h2 className="text-base font-serif font-bold text-foreground">
+                Publish Building Notice
+              </h2>
               <p className="text-xs text-foreground-muted">
                 Broadcast announcements, service advisories, and facility alerts
               </p>
@@ -288,8 +290,9 @@ export function CreateNoticeModal({ isOpen, onClose, onSuccess }: CreateNoticeMo
             </Button>
             <Button
               type="submit"
+              variant="luxury"
               disabled={createNoticeMutation.isPending}
-              className="h-11 px-6 text-xs font-bold bg-amber-600 hover:bg-amber-700 text-white min-h-[44px] flex items-center gap-2"
+              className="h-11 px-6 text-xs font-bold min-h-[44px] flex items-center gap-2"
             >
               {createNoticeMutation.isPending ? (
                 <>

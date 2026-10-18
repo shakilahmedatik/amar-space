@@ -61,10 +61,10 @@ export function OrganizationSwitcher() {
               setDropdownOpen(!dropdownOpen);
             }
           }}
-          className="flex items-center gap-2.5 px-3 py-2 rounded-xl border border-border/70 bg-surface/50 hover:bg-surface hover:border-border transition-all text-left min-h-[48px] focus:outline-none focus:ring-2 focus:ring-primary/40 group active:scale-[0.98]"
+          className="flex items-center gap-2.5 px-3 py-2 rounded-xl border border-border-gold/30 bg-surface/50 hover:bg-surface hover:border-border-gold/50 transition-all text-left min-h-[48px] focus:outline-none focus:ring-2 focus:ring-primary/40 group active:scale-[0.98]"
           aria-label="Switch Active Organization"
         >
-          <span className="size-8 rounded-lg bg-primary/10 text-primary border border-primary/20 flex items-center justify-center shrink-0 shadow-2xs group-hover:bg-primary/20 transition-colors">
+          <span className="size-8 rounded-lg bg-primary/10 text-primary border border-border-gold/30 flex items-center justify-center shrink-0 shadow-2xs group-hover:bg-primary/20 transition-colors">
             <ActiveIcon className="size-4" />
           </span>
 
@@ -93,7 +93,7 @@ export function OrganizationSwitcher() {
 
         {/* Desktop Dropdown Content */}
         {dropdownOpen && (
-          <div className="hidden md:block absolute left-0 mt-2 w-80 bg-card border border-border/80 rounded-2xl shadow-2xl p-2 z-50 space-y-1 animate-in fade-in-0 zoom-in-95 duration-150 backdrop-blur-md">
+          <div className="hidden md:block absolute left-0 mt-2 w-80 bg-card border border-border-gold/30 rounded-2xl shadow-2xl p-2 z-50 space-y-1 animate-in fade-in-0 zoom-in-95 duration-150 backdrop-blur-md">
             <div className="px-3 py-2 flex items-center justify-between border-b border-border/50">
               <p className="text-[10px] font-bold uppercase tracking-wider text-foreground-muted">
                 Your Workspaces ({organizations.length})
@@ -175,11 +175,11 @@ export function OrganizationSwitcher() {
           />
 
           {/* Drawer Sheet */}
-          <div className="relative bg-card border-t border-border rounded-t-3xl shadow-2xl p-6 space-y-4 max-h-[85vh] overflow-y-auto z-10 animate-in slide-in-from-bottom duration-250">
+          <div className="relative bg-card border-t border-border-gold/30 rounded-t-3xl shadow-2xl p-6 space-y-4 max-h-[85vh] overflow-y-auto z-10 animate-in slide-in-from-bottom duration-250">
             {/* Drawer Handle & Header */}
-            <div className="flex items-center justify-between pb-2 border-b border-border/50">
+            <div className="flex items-center justify-between pb-2 border-b border-border-gold/20">
               <div className="space-y-0.5">
-                <p className="text-base font-display font-bold text-foreground">Switch Workspace</p>
+                <p className="text-base font-serif font-bold text-foreground">Switch Workspace</p>
                 <p className="text-xs text-foreground-muted">
                   Choose a property to manage or launch a new one
                 </p>
