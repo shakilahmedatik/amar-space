@@ -95,6 +95,21 @@ export const organizationRouter = router({
       return org;
     }),
 
+  // 2b. Check if an organization slug is available (used for real-time form validation)
+  checkSlugAvailability: publicProcedure
+    .input(z.object({ slug: z.string().min(1) }))
+    .query(async ({ ctx, input }) => {
+      const normalizedSlug = input.slug.toLowerCase().trim();
+      const existing = await ctx.db.query.organizations.findFirst({
+        where: eq(schema.organizations.slug, normalizedSlug),
+      });
+
+      return {
+        available: !existing,
+        slug: normalizedSlug,
+      };
+    }),
+
   // 3. List all organizations the current authenticated user belongs to
   listMyOrganizations: protectedProcedure.query(async ({ ctx }) => {
     const memberships = await ctx.db.query.members.findMany({

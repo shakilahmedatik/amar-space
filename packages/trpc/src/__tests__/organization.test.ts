@@ -197,4 +197,52 @@ describe("Domain 01: Organization tRPC Procedures & Security", () => {
       expect(err.message).toContain("Rate limit exceeded");
     }
   });
+
+  it("checks slug availability correctly", async () => {
+    const mockDb = {
+      query: {
+        organizations: {
+          findFirst: async () => {
+            // Simulate that 'taken-slug' exists, but 'fresh-slug' does not
+            return null;
+          },
+        },
+      },
+    } as any;
+
+    const caller = appRouter.createCaller({
+      db: mockDb,
+      session: null,
+      organizationId: null,
+      requestId: "req-slug-check",
+    });
+
+    const resultAvailable = await caller.organization.checkSlugAvailability({
+      slug: "fresh-slug",
+    });
+    expect(resultAvailable.available).toBe(true);
+    expect(resultAvailable.slug).toBe("fresh-slug");
+
+    // Test with taken slug
+    const mockDbTaken = {
+      query: {
+        organizations: {
+          findFirst: async () => ({ id: "existing-org-id", slug: "taken-slug" }),
+        },
+      },
+    } as any;
+
+    const callerTaken = appRouter.createCaller({
+      db: mockDbTaken,
+      session: null,
+      organizationId: null,
+      requestId: "req-slug-check-taken",
+    });
+
+    const resultTaken = await callerTaken.organization.checkSlugAvailability({
+      slug: "taken-slug",
+    });
+    expect(resultTaken.available).toBe(false);
+    expect(resultTaken.slug).toBe("taken-slug");
+  });
 });

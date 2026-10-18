@@ -21,7 +21,8 @@
       "rooms": "Rooms & Types",
       "websiteBuilder": "Website Builder",
       "domains": "Custom Domains",
-      "staff": "Staff",
+      "staff": "Staff & Team",
+      "team": "Team & Roles",
       "finance": "Finance & Billing"
     },
     "building": {
@@ -32,8 +33,20 @@
       "payments": "Rent Payments",
       "maintenance": "Maintenance",
       "notices": "Notices",
-      "staff": "Caretakers & Staff"
+      "staff": "Caretakers & Staff",
+      "team": "Team & Roles"
     }
+  },
+  "org": {
+    "switchWorkspace": "Switch Workspace",
+    "createWorkspace": "Create New Property Workspace",
+    "workspaceName": "Organization / Property Name",
+    "workspaceSlug": "Workspace URL Identifier (Slug)",
+    "teamAndRoles": "Team & Role Governance",
+    "inviteTeamMember": "Invite Team Member",
+    "activeTeam": "Active Team",
+    "pendingInvites": "Pending Invitations",
+    "rateLimitNotice": "Rate limit: Max 10 invites per hour per user"
   },
   "builder": {
     "title": "Website Builder",

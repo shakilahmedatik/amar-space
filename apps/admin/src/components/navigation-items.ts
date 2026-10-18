@@ -58,7 +58,13 @@ export const hotelNavItems: NavItem[] = [
     href: "/domains",
     icon: Globe,
   },
-  { id: "staff", labelKey: "nav.hotel.staff", defaultLabel: "Staff", href: "/staff", icon: Users },
+  {
+    id: "staff",
+    labelKey: "nav.hotel.staff",
+    defaultLabel: "Team & Roles",
+    href: "/staff",
+    icon: Users,
+  },
   {
     id: "billing",
     labelKey: "nav.hotel.finance",
@@ -117,6 +123,13 @@ export const buildingNavItems: NavItem[] = [
     defaultLabel: "Notices",
     href: "/notices",
     icon: Bell,
+  },
+  {
+    id: "team",
+    labelKey: "nav.building.team",
+    defaultLabel: "Team & Roles",
+    href: "/team",
+    icon: Users,
   },
   {
     id: "billing",

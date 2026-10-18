@@ -32,18 +32,18 @@
 - [x] Implement `organization.removeMember` with cascade cleanup and sole-owner check
 
 ### Tier 4: UI/UX & Responsive Frontends (`apps/admin`, `packages/ui`)
-- [ ] Build workspace switcher dropdown in top navigation bar
-- [ ] Create "Create New Organization" modal with instant slug availability debounce check
-- [ ] Create "Team & Roles" settings table showing active members, role badges, and pending invitations
-- [ ] Build "Invite Team Member" drawer with role descriptions and permission summary
-- [ ] Implement responsive mobile drawer for organization switching on viewports < 768px
-- [ ] Add Bengali (`bn-BD`) and English (`en-US`) i18n label keys for all auth and organization views
-- [ ] Verify minimum touch target size (≥48px) for mobile buttons and dropdown triggers
+- [x] Build workspace switcher dropdown in top navigation bar
+- [x] Create "Create New Organization" modal with instant slug availability debounce check
+- [x] Create "Team & Roles" settings table showing active members, role badges, and pending invitations
+- [x] Build "Invite Team Member" drawer with role descriptions and permission summary
+- [x] Implement responsive mobile drawer for organization switching on viewports < 768px
+- [x] Add Bengali (`bn-BD`) and English (`en-US`) i18n label keys for all auth and organization views
+- [x] Verify minimum touch target size (≥48px) for mobile buttons and dropdown triggers
 
 ### Tier 5: Security, Audit Logging & Telemetry
 - [x] Verify audit log write on: Org Created, Member Invited, Member Accepted, Role Changed, Member Removed
 - [x] Implement rate limiting on invitation endpoints (max 10 invites per hour per user)
-- [ ] Invalidate cached tRPC queries on active organization switch
+- [x] Invalidate cached tRPC queries on active organization switch
 - [x] Ensure Better Auth session cookies use `HttpOnly`, `SameSite=Lax`, and `Secure` flags in production
 
 ### Tier 6: Automated Testing & QA

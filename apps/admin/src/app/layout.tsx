@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Playfair_Display, Plus_Jakarta_Sans } from "next/font/google";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
+import { TRPCProvider } from "@/components/trpc-provider";
 import "./globals.css";
 
 const playfair = Playfair_Display({
@@ -29,7 +30,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     <html lang={locale} className={`${playfair.variable} ${plusJakarta.variable}`}>
       <body className="min-h-screen bg-[hsl(var(--canvas))] text-[hsl(var(--foreground))] antialiased font-sans selection:bg-primary/20 selection:text-foreground">
         <NextIntlClientProvider messages={messages} locale={locale}>
-          {children}
+          <TRPCProvider>{children}</TRPCProvider>
         </NextIntlClientProvider>
       </body>
     </html>
