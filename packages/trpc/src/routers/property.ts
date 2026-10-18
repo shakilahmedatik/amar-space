@@ -145,9 +145,14 @@ export const propertyRouter = router({
           actorEmail: ctx.user.email,
           action: "BUILDING_CREATED",
           entityType: "building",
-          entityId: buildingId,
-          details: { name: input.name, city: input.city, totalFloors: input.totalFloors },
         });
+
+        if (!newBuilding) {
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Failed to persist building record",
+          });
+        }
 
         return newBuilding;
       });

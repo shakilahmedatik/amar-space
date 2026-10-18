@@ -27,14 +27,15 @@
     },
     "building": {
       "overview": "Overview",
-      "buildings": "Buildings & Units",
+      "buildings": "Buildings & Flats",
       "renters": "Renters & Leases",
       "bills": "Bills & Utility",
       "payments": "Rent Payments",
       "maintenance": "Maintenance",
       "notices": "Notices",
       "staff": "Caretakers & Staff",
-      "team": "Team & Roles"
+      "team": "Team & Roles",
+      "billing": "Billing & Subscription"
     }
   },
   "org": {
@@ -47,6 +48,29 @@
     "activeTeam": "Active Team",
     "pendingInvites": "Pending Invitations",
     "rateLimitNotice": "Rate limit: Max 10 invites per hour per user"
+  },
+  "property": {
+    "title": "Property & Unit Hierarchy",
+    "subtitle": "Manage multi-story residential buildings, commercial towers, floor layouts, and unit occupancy.",
+    "addBuilding": "Add New Building",
+    "bulkGenerate": "Bulk Generate Flats",
+    "viewMatrix": "Floor & Unit Matrix",
+    "totalBuildings": "Total Buildings",
+    "totalUnits": "Total Flats / Units",
+    "occupancyRate": "Overall Occupancy",
+    "monthlyRentalValue": "Monthly Rental Value",
+    "occupied": "Occupied",
+    "vacant": "Available",
+    "maintenance": "Under Maintenance",
+    "floor": "Floor",
+    "rent": "Rent",
+    "serviceCharge": "Service Charge",
+    "bedrooms": "Bedrooms",
+    "bathrooms": "Bathrooms",
+    "liftAvailable": "Elevator Active",
+    "generatorAvailable": "Generator Backup",
+    "gateClosing": "Gate Closing",
+    "emergencyContacts": "Emergency Contacts Directory"
   },
   "builder": {
     "title": "Website Builder",

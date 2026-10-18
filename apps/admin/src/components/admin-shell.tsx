@@ -10,6 +10,7 @@ import { InviteMemberModal } from "./invite-member-modal";
 import { LanguageToggle } from "./language-toggle";
 import { getNavItemsForProductType } from "./navigation-items";
 import { OrganizationSwitcher } from "./organization-switcher";
+import { PropertyHierarchyView } from "./property-hierarchy-view";
 import { TeamRolesView } from "./team-roles-view";
 import { WebsiteBuilderView } from "./website-builder-view";
 
@@ -164,6 +165,8 @@ export function AdminShell({ initialLocale }: AdminShellProps) {
               organizationSlug={activeOrg.slug}
               organizationName={activeOrg.name}
             />
+          ) : activeTab === "buildings" || activeTab === "rooms" ? (
+            <PropertyHierarchyView />
           ) : (
             <DashboardOverviewView productType={productType} organizationName={activeOrg.name} />
           )}
