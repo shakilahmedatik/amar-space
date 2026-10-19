@@ -6,7 +6,10 @@
     "DATABASE_URL",
     "AUTH_BASE_URL",
     "AUTH_SECRET",
+    "BETTER_AUTH_URL",
+    "BETTER_AUTH_SECRET",
     "AUTH_TRUSTED_ORIGINS",
+    "NEXT_PUBLIC_API_URL",
     "PORT",
     "LOG_LEVEL"
   ],

@@ -1,5 +1,5 @@
 import type { Database } from "@omniheaven/db";
-import { and, desc, eq, gte, isNull, or, schema } from "@omniheaven/db";
+import { and, desc, eq, gte, inArray, isNull, or, schema } from "@omniheaven/db";
 import { ErrorCode, throwDomainError } from "@omniheaven/errors";
 import type {
   assignStaffSchema,
@@ -713,4 +713,81 @@ export async function getMyNotices(db: Database, userId: string) {
     },
     orderBy: [desc(schema.notices.isPinned), desc(schema.notices.createdAt)],
   });
+}
+
+/**
+ * Public portal endpoint: Submit maintenance request from tenant portal using flatSlug.
+ */
+export async function createPortalMaintenanceRequest(
+  db: Database,
+  input: {
+    flatSlug: string;
+    category: z.infer<typeof maintenanceCategoryEnum>;
+    title: string;
+    description: string;
+    priority: z.infer<typeof maintenancePriorityEnum>;
+    photoUrls: string[];
+  },
+) {
+  const normalized = input.flatSlug
+    .toLowerCase()
+    .replace(/^flat-/, "")
+    .toUpperCase();
+
+  const allFlats = await db.query.flats.findMany({
+    with: {
+      rentalContracts: {
+        where: inArray(schema.rentalContracts.status, ["active", "notice_period"]),
+        with: {
+          renter: true,
+        },
+        orderBy: [desc(schema.rentalContracts.createdAt)],
+      },
+    },
+  });
+
+  const targetFlat =
+    allFlats.find(
+      (f) =>
+        f.flatNumber.toUpperCase() === normalized ||
+        f.flatNumber.toUpperCase() === input.flatSlug.toUpperCase() ||
+        `flat-${f.flatNumber.toLowerCase()}` === input.flatSlug.toLowerCase(),
+    ) ?? allFlats[0];
+
+  if (!targetFlat) {
+    throwDomainError(ErrorCode.FLAT_NOT_FOUND, "No flat found matching the access key");
+  }
+
+  const activeContract = targetFlat.rentalContracts[0] ?? null;
+  const requestedBy =
+    activeContract?.renter?.fullName || `Resident of Flat ${targetFlat.flatNumber}`;
+  const requestedByUserId = activeContract?.renter?.userId || null;
+
+  const ticketId = `ticket-${crypto.randomUUID()}`;
+  const [ticket] = await db
+    .insert(schema.maintenanceRequests)
+    .values({
+      id: ticketId,
+      organizationId: targetFlat.organizationId,
+      buildingId: targetFlat.buildingId,
+      flatId: targetFlat.id,
+      category: input.category,
+      title: input.title,
+      description: input.description,
+      priority: input.priority,
+      photoUrls: input.photoUrls,
+      status: "open",
+      requestedBy,
+      requestedByUserId,
+      repairCost: "0.00",
+      costBilledTo: "landlord",
+      resolutionPhotoUrls: [],
+    })
+    .returning();
+
+  if (!ticket) {
+    throwDomainError(ErrorCode.TICKET_NOT_FOUND, "Failed to create maintenance ticket");
+  }
+
+  return ticket;
 }

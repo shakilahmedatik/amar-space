@@ -532,4 +532,68 @@ describe("Domain 05: Maintenance & Operations tRPC Procedures", () => {
     expect(notices[0]?.title).toBe("Active Generator Notice");
     expect(notices[1]?.title).toBe("Water Tank Cleaning Notice");
   });
+
+  it("createPortalMaintenanceRequest creates a ticket without login using flatSlug", async () => {
+    let portalTicket: any = null;
+
+    const mockDb = {
+      query: {
+        flats: {
+          findMany: async () => [
+            {
+              id: flatId,
+              flatNumber: "1A",
+              organizationId: orgId,
+              buildingId,
+              rentalContracts: [
+                {
+                  id: "contract-1",
+                  status: "active",
+                  renter: {
+                    id: "renter-1",
+                    fullName: "Farhana Yasmin",
+                    userId: "user-1",
+                  },
+                },
+              ],
+            },
+          ],
+        },
+      },
+      insert: () => ({
+        values: (val: any) => {
+          portalTicket = val;
+          return {
+            returning: async () => [val],
+          };
+        },
+      }),
+    };
+
+    const caller = appRouter.createCaller({
+      db: mockDb as any,
+      session: null,
+      organizationId: null,
+      requestId: "req-portal-ticket",
+    });
+
+    const ticket = await caller.operations.createPortalMaintenanceRequest({
+      flatSlug: "flat-1a",
+      category: "plumbing",
+      title: "Water leaking from kitchen sink pipe",
+      description: "Severe water leakage observed under kitchen counter.",
+      priority: "urgent",
+      photoUrls: ["https://example.com/leak.jpg"],
+    });
+
+    expect(ticket).toBeDefined();
+    if (!ticket) throw new Error("Ticket expected");
+    expect(ticket.title).toBe("Water leaking from kitchen sink pipe");
+    expect(ticket.requestedBy).toBe("Farhana Yasmin");
+    expect(ticket.flatId).toBe(flatId);
+    expect(ticket.organizationId).toBe(orgId);
+    expect(ticket.buildingId).toBe(buildingId);
+    expect(portalTicket).toBeDefined();
+    expect(portalTicket.priority).toBe("urgent");
+  });
 });

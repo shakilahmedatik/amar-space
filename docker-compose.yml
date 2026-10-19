@@ -102,7 +102,7 @@ services:
     environment:
       PORT: 3000
       NODE_ENV: production
-      NEXT_PUBLIC_API_URL: http://api:4000
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:4000}
     ports:
       - "3000:3000"
     depends_on:
@@ -124,7 +124,7 @@ services:
     environment:
       PORT: 3003
       NODE_ENV: production
-      NEXT_PUBLIC_API_URL: http://api:4000
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:4000}
     ports:
       - "3003:3003"
     depends_on:
@@ -146,7 +146,7 @@ services:
     environment:
       PORT: 3002
       NODE_ENV: production
-      NEXT_PUBLIC_API_URL: http://api:4000
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:4000}
     ports:
       - "3002:3002"
     depends_on:
@@ -168,7 +168,7 @@ services:
     environment:
       PORT: 3001
       NODE_ENV: production
-      NEXT_PUBLIC_API_URL: http://api:4000
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:4000}
     ports:
       - "3001:3001"
     depends_on:
@@ -210,6 +210,159 @@ services:
     profiles:
       - tunnel
 
+  # =========================================================================
+  # 10. OBSERVABILITY STACK: Loki + Promtail + Prometheus + Tempo + Grafana
+  # Run with: docker compose --profile observability up -d
+  # =========================================================================
+  loki:
+    image: grafana/loki:3.0.0
+    container_name: omniheaven-loki
+    restart: unless-stopped
+    command: -config.file=/etc/loki/local-config.yaml
+    volumes:
+      - ./docker/loki/loki-config.yml:/etc/loki/local-config.yaml:ro
+      - loki_data:/tmp/loki
+    ports:
+      - "3100:3100"
+    networks:
+      - omniheaven-net
+    profiles:
+      - observability
+
+  promtail:
+    image: grafana/promtail:3.0.0
+    container_name: omniheaven-promtail
+    restart: unless-stopped
+    command: -config.file=/etc/promtail/config.yml
+    volumes:
+      - ./docker/promtail/promtail-config.yml:/etc/promtail/config.yml:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    depends_on:
+      - loki
+    networks:
+      - omniheaven-net
+    profiles:
+      - observability
+
+  prometheus:
+    image: prom/prometheus:v2.51.0
+    container_name: omniheaven-prometheus
+    restart: unless-stopped
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --web.console.libraries=/usr/share/prometheus/console_libraries
+      - --web.console.templates=/usr/share/prometheus/consoles
+    volumes:
+      - ./docker/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    ports:
+      - "9090:9090"
+    depends_on:
+      - api
+    networks:
+      - omniheaven-net
+    profiles:
+      - observability
+
+  tempo:
+    image: grafana/tempo:2.4.1
+    container_name: omniheaven-tempo
+    restart: unless-stopped
+    command: -config.file=/etc/tempo.yml
+    volumes:
+      - ./docker/tempo/tempo.yml:/etc/tempo.yml:ro
+      - tempo_data:/tmp/tempo
+    ports:
+      - "3200:3200" # Tempo HTTP
+      - "4317:4317" # OTLP gRPC
+      - "4318:4318" # OTLP HTTP
+    networks:
+      - omniheaven-net
+    profiles:
+      - observability
+
+  grafana:
+    image: grafana/grafana:10.4.2
+    container_name: omniheaven-grafana
+    restart: unless-stopped
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-omniheaven_grafana_pass}
+      GF_USERS_ALLOW_SIGN_UP: false
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
+      TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID:-}
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./docker/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro
+      - ./docker/grafana/provisioning/alerting:/etc/grafana/provisioning/alerting:ro
+      - ./docker/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./docker/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    ports:
+      - "3105:3000" # Mapped to 3105 to avoid collision with admin dashboard on port 3000
+    depends_on:
+      - prometheus
+      - loki
+      - tempo
+    networks:
+      - omniheaven-net
+    profiles:
+      - observability
+
+  # =========================================================================
+  # 11. PRIVACY-FIRST ANALYTICS: Plausible Community Edition
+  # Run with: docker compose --profile analytics up -d
+  # =========================================================================
+  plausible_db:
+    image: postgres:16-alpine
+    container_name: omniheaven-plausible-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${PLAUSIBLE_DB_USER:-plausible}
+      POSTGRES_PASSWORD: ${PLAUSIBLE_DB_PASSWORD:-plausible_secret_pass}
+      POSTGRES_DB: ${PLAUSIBLE_DB_NAME:-plausible}
+    volumes:
+      - plausible_db_data:/var/lib/postgresql/data
+    networks:
+      - omniheaven-net
+    profiles:
+      - analytics
+
+  plausible_events_db:
+    image: clickhouse/clickhouse-server:24.3-alpine
+    container_name: omniheaven-plausible-events
+    restart: unless-stopped
+    volumes:
+      - plausible_events_data:/var/lib/clickhouse
+    ulimits:
+      nofile:
+        soft: 262144
+        hard: 262144
+    networks:
+      - omniheaven-net
+    profiles:
+      - analytics
+
+  plausible:
+    image: ghcr.io/plausible/community-edition:v2.1.4
+    container_name: omniheaven-plausible
+    restart: unless-stopped
+    command: sh -c "sleep 10 && /entrypoint.sh db createdb && /entrypoint.sh db migrate && /entrypoint.sh run"
+    depends_on:
+      - plausible_db
+      - plausible_events_db
+    environment:
+      BASE_URL: ${PLAUSIBLE_BASE_URL:-http://localhost:8000}
+      SECRET_KEY_BASE: ${PLAUSIBLE_SECRET_KEY_BASE:-omniheaven_random_secret_key_base_64_chars_min_for_plausible_prod}
+      DATABASE_URL: postgresql://${PLAUSIBLE_DB_USER:-plausible}:${PLAUSIBLE_DB_PASSWORD:-plausible_secret_pass}@plausible_db:5432/${PLAUSIBLE_DB_NAME:-plausible}
+      CLICKHOUSE_DATABASE_URL: http://plausible_events_db:8123/plausible_events_db
+    ports:
+      - "8000:8000"
+    networks:
+      - omniheaven-net
+    profiles:
+      - analytics
+
 networks:
   omniheaven-net:
     driver: bridge
@@ -218,3 +371,10 @@ volumes:
   postgres_data:
   valkey_data:
   seaweedfs_data:
+  loki_data:
+  prometheus_data:
+  tempo_data:
+  grafana_data:
+  plausible_db_data:
+  plausible_events_data:
+

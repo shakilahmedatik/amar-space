@@ -35,9 +35,18 @@ export function MobileTRPCProvider({
           httpBatchLink({
             url: `${process.env.EXPO_PUBLIC_API_URL || process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"}/trpc`,
             headers() {
-              return {
+              const headers: Record<string, string> = {
                 "x-organization-id": activeOrgId,
               };
+              if (typeof window !== "undefined") {
+                const token =
+                  localStorage.getItem("omniheaven_mobile_token") ||
+                  localStorage.getItem("better-auth.session_token");
+                if (token) {
+                  headers.Authorization = `Bearer ${token}`;
+                }
+              }
+              return headers;
             },
             fetch(url, options) {
               return fetch(url, {

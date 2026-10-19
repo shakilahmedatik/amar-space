@@ -11,7 +11,13 @@ import {
 } from "@omniheaven/validators";
 import { z } from "zod";
 import * as operationsService from "../services/operations.service";
-import { orgProtectedProcedure, protectedProcedure, requireRole, router } from "../trpc";
+import {
+  orgProtectedProcedure,
+  protectedProcedure,
+  publicProcedure,
+  requireRole,
+  router,
+} from "../trpc";
 
 export const operationsRouter = router({
   // 1. List Maintenance Requests (Admin / Manager)
@@ -298,5 +304,37 @@ export const operationsRouter = router({
     })
     .query(async ({ ctx }) => {
       return operationsService.getMyNotices(ctx.db, ctx.user.id);
+    }),
+
+  // 15. Renter Portal: Create Maintenance Request without Login (Flat-Scoped)
+  createPortalMaintenanceRequest: publicProcedure
+    .meta({
+      openapi: {
+        method: "POST",
+        path: "/v1/portal/maintenance/create",
+        tags: ["Tenant Portal"],
+        summary: "Submit maintenance request from tenant portal using flat slug",
+      },
+    })
+    .input(
+      z.object({
+        flatSlug: z.string().min(1),
+        category: maintenanceCategoryEnum.default("general"),
+        title: z
+          .string()
+          .trim()
+          .min(3, "Title must be at least 3 characters")
+          .max(120, "Title cannot exceed 120 characters"),
+        description: z
+          .string()
+          .trim()
+          .min(10, "Description must be at least 10 characters")
+          .max(2000),
+        priority: maintenancePriorityEnum.default("medium"),
+        photoUrls: z.array(z.string().url()).max(5).default([]),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      return operationsService.createPortalMaintenanceRequest(ctx.db, input);
     }),
 });

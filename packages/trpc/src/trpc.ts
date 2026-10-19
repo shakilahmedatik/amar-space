@@ -10,6 +10,7 @@ export interface TRPCContext {
   session: Session | null;
   organizationId?: string | null;
   requestId: string;
+  traceId?: string;
 }
 
 export interface AuthenticatedContext extends TRPCContext {

@@ -1,0 +1,26 @@
+apiVersion: 1
+
+contactPoints:
+  - orgId: 1
+    name: Telegram Alerts
+    receivers:
+      - uid: telegram-receiver
+        type: telegram
+        settings:
+          bottoken: '${TELEGRAM_BOT_TOKEN}'
+          chatid: '${TELEGRAM_CHAT_ID}'
+          parse_mode: HTML
+          message: |
+            <b>🚨 omniHeaven Alert: {{ .CommonLabels.alertname }}</b>
+            <b>Severity:</b> {{ .CommonLabels.severity }}
+            <b>Service:</b> {{ .CommonLabels.service }}
+            <b>Summary:</b> {{ .CommonAnnotations.summary }}
+            <b>Description:</b> {{ .CommonAnnotations.description }}
+
+policies:
+  - orgId: 1
+    receiver: Telegram Alerts
+    group_by: ['alertname', 'service']
+    group_wait: 30s
+    group_interval: 5m
+    repeat_interval: 4h

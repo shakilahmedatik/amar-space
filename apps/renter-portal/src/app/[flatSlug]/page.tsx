@@ -46,8 +46,7 @@ export default function FlatPortalDashboardPage({ params }: PageProps) {
     flatSlug,
   });
 
-  const { data: myTickets = [], refetch: refetchTickets } =
-    trpc.operations.getMyMaintenanceRequests.useQuery();
+  const myTickets = portalData?.maintenanceRequests ?? [];
 
   // Derived data with robust fallbacks
   const flat = portalData?.flat ?? {
@@ -838,7 +837,8 @@ export default function FlatPortalDashboardPage({ params }: PageProps) {
       <TenantReportProblemModal
         isOpen={isReportModalOpen}
         onClose={() => setIsReportModalOpen(false)}
-        onSuccess={() => refetchTickets()}
+        onSuccess={() => refetchBilling()}
+        flatSlug={flatSlug}
       />
     </div>
   );

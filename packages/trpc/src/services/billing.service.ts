@@ -967,6 +967,14 @@ export async function getPortalFlatBilling(db: Database, flatSlug: string) {
     orderBy: [desc(schema.notices.isPinned), desc(schema.notices.createdAt)],
   });
 
+  const maintenanceRequests = await db.query.maintenanceRequests.findMany({
+    where: eq(schema.maintenanceRequests.flatId, targetFlat.id),
+    with: {
+      assignedToStaff: true,
+    },
+    orderBy: [desc(schema.maintenanceRequests.createdAt)],
+  });
+
   return {
     flat: {
       id: targetFlat.id,
@@ -1001,5 +1009,6 @@ export async function getPortalFlatBilling(db: Database, flatSlug: string) {
     bills,
     emergencyContacts: targetFlat.building?.emergencyContacts ?? [],
     notices,
+    maintenanceRequests,
   };
 }

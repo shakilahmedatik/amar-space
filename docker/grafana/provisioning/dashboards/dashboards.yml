@@ -1,0 +1,11 @@
+apiVersion: 1
+
+providers:
+  - name: 'omniHeaven Dashboards'
+    orgId: 1
+    folder: 'omniHeaven'
+    type: file
+    disableDeletion: false
+    editable: true
+    options:
+      path: /var/lib/grafana/dashboards

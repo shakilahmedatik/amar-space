@@ -43,10 +43,15 @@ export function createLogger(module: string): pino.Logger {
 }
 
 /**
- * Creates a sub-logger tagged with a request correlation ID and optional module.
+ * Creates a sub-logger tagged with a request correlation ID and optional trace/tenant context.
  */
-export function createRequestLogger(requestId: string, module?: string): pino.Logger {
-  return rootLogger.child({ requestId, ...(module ? { module } : {}) });
+export function createRequestLogger(
+  requestId: string,
+  moduleOrContext?: string | { module?: string; traceId?: string; tenantId?: string | null },
+): pino.Logger {
+  const extra =
+    typeof moduleOrContext === "string" ? { module: moduleOrContext } : moduleOrContext || {};
+  return rootLogger.child({ requestId, ...extra });
 }
 
 export type Logger = pino.Logger;

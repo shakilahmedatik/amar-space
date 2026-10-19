@@ -18,6 +18,7 @@ interface TenantReportProblemModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
+  flatSlug?: string;
 }
 
 const CATEGORIES = [
@@ -34,6 +35,7 @@ export function TenantReportProblemModal({
   isOpen,
   onClose,
   onSuccess,
+  flatSlug,
 }: TenantReportProblemModalProps) {
   const [category, setCategory] = useState<string>("plumbing");
   const [isUrgent, setIsUrgent] = useState(false);
@@ -43,7 +45,7 @@ export function TenantReportProblemModal({
   const [photoUrls, setPhotoUrls] = useState<string[]>([]);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  const createTicketMutation = trpc.operations.createMyMaintenanceRequest.useMutation({
+  const createPortalTicketMutation = trpc.operations.createPortalMaintenanceRequest.useMutation({
     onSuccess: () => {
       resetForm();
       onSuccess();
@@ -53,6 +55,19 @@ export function TenantReportProblemModal({
       setErrorMsg(err.message || "Failed to submit request. Please try again.");
     },
   });
+
+  const createAuthTicketMutation = trpc.operations.createMyMaintenanceRequest.useMutation({
+    onSuccess: () => {
+      resetForm();
+      onSuccess();
+      onClose();
+    },
+    onError: (err) => {
+      setErrorMsg(err.message || "Failed to submit request. Please try again.");
+    },
+  });
+
+  const isPending = createPortalTicketMutation.isPending || createAuthTicketMutation.isPending;
 
   const resetForm = () => {
     setCategory("plumbing");
@@ -93,13 +108,24 @@ export function TenantReportProblemModal({
       return;
     }
 
-    createTicketMutation.mutate({
-      category: category as any,
-      priority: isUrgent ? "urgent" : "medium",
-      title: title.trim(),
-      description: description.trim(),
-      photoUrls,
-    });
+    if (flatSlug) {
+      createPortalTicketMutation.mutate({
+        flatSlug,
+        category: category as any,
+        priority: isUrgent ? "urgent" : "medium",
+        title: title.trim(),
+        description: description.trim(),
+        photoUrls,
+      });
+    } else {
+      createAuthTicketMutation.mutate({
+        category: category as any,
+        priority: isUrgent ? "urgent" : "medium",
+        title: title.trim(),
+        description: description.trim(),
+        photoUrls,
+      });
+    }
   };
 
   if (!isOpen) return null;
@@ -272,7 +298,7 @@ export function TenantReportProblemModal({
               type="button"
               variant="outline"
               onClick={onClose}
-              disabled={createTicketMutation.isPending}
+              disabled={isPending}
               className="h-11 px-5 text-xs min-h-[44px]"
             >
               Cancel
@@ -280,10 +306,10 @@ export function TenantReportProblemModal({
             <Button
               type="submit"
               variant="luxury"
-              disabled={createTicketMutation.isPending}
+              disabled={isPending}
               className="h-11 px-6 text-xs font-bold min-h-[44px] flex items-center gap-2"
             >
-              {createTicketMutation.isPending ? (
+              {isPending ? (
                 <>
                   <Loader2 className="size-3.5 animate-spin" />
                   Submitting...

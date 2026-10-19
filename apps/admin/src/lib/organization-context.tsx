@@ -18,7 +18,7 @@ export interface OrganizationInfo {
 
 // Fallback fixtures for preview/offline mode
 export const DEFAULT_DEMO_ORG: OrganizationInfo = {
-  id: "org-hotel-demo-01",
+  id: "org-grand-haven",
   name: "Grand Haven Luxury Resort",
   slug: "grand-haven",
   productType: "hotel",
@@ -28,9 +28,9 @@ export const DEFAULT_DEMO_ORG: OrganizationInfo = {
 export const DEMO_ORGANIZATIONS: OrganizationInfo[] = [
   DEFAULT_DEMO_ORG,
   {
-    id: "org-building-demo-02",
-    name: "Lakeview Residence Tower",
-    slug: "lakeview-tower",
+    id: "org-bashundhara-tower",
+    name: "Bashundhara Royal Heights",
+    slug: "bashundhara-royal-heights",
     productType: "building",
     role: "owner",
   },

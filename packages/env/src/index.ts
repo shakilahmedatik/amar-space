@@ -61,8 +61,20 @@ export const env = createEnv({
 
     STRIPE_SECRET_KEY: z.string().optional(),
     STRIPE_WEBHOOK_SECRET: z.string().optional(),
+
+    // Observability, Error Tracking & Analytics
+    SENTRY_DSN: z.string().optional(),
+    SENTRY_ENVIRONMENT: z.string().default("development"),
+    OTEL_EXPORTER_OTLP_ENDPOINT: z.string().url().default("http://localhost:4318"),
+    PROMETHEUS_METRICS_ENABLED: z.coerce.boolean().default(true),
+    PLAUSIBLE_DOMAIN: z.string().default("omniheaven.com"),
+    PLAUSIBLE_HOST: z.string().url().default("http://localhost:8000"),
   },
-  runtimeEnv: process.env,
+  runtimeEnv: {
+    ...process.env,
+    BETTER_AUTH_SECRET: process.env.BETTER_AUTH_SECRET || process.env.AUTH_SECRET,
+    BETTER_AUTH_URL: process.env.BETTER_AUTH_URL || process.env.AUTH_BASE_URL,
+  },
   emptyStringAsUndefined: true,
 });
 

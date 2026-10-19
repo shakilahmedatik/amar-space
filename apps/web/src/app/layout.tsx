@@ -1,3 +1,4 @@
+import { PlausibleTracker } from "@omniheaven/ui";
 import type { Metadata } from "next";
 import { Playfair_Display, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
@@ -34,6 +35,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${playfair.variable} ${plusJakarta.variable}`}>
       <body className="antialiased bg-[hsl(var(--canvas))] text-[hsl(var(--foreground))] selection:bg-primary/20 selection:text-foreground font-sans">
+        <PlausibleTracker />
         {children}
       </body>
     </html>

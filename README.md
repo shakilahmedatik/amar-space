@@ -95,9 +95,44 @@ bun run format
 
 ## Production & Self-Hosting
 
-Spin up the entire production stack (PostgreSQL, SeaweedFS, Cloudflare Tunnel, API, and Web Apps):
+### 1. Core Production Applications
+Spin up the core production stack (PostgreSQL, Valkey, SeaweedFS, Cloudflare Tunnel, API, and Next.js Web Apps):
 
 ```bash
 docker compose up -d --build
 ```
+
+### 2. Observability & Telemetry Stack (Loki, Tempo, Prometheus, Grafana)
+Boot the single pane of glass observability suite:
+
+```bash
+docker compose --profile observability up -d
+```
+
+| Service | Port | Description |
+|---|---|---|
+| **Grafana** | `3105` | Unified dashboards, Loki logs, Tempo traces, and alerting |
+| **Prometheus** | `9090` | Time-series metrics engine (scrapes API `/metrics`) |
+| **Loki** | `3100` | Log aggregation engine with 30-day retention |
+| **Tempo** | `3200` | Distributed tracing storage (OTLP `:4318` HTTP / `:4317` gRPC) |
+| **Promtail** | — | Automatic Docker container log shipper |
+
+### 3. Privacy-First Analytics Stack (Plausible Community Edition)
+Spin up self-hosted, lightweight GDPR-compliant web analytics:
+
+```bash
+docker compose --profile analytics up -d
+```
+
+| Service | Port | Description |
+|---|---|---|
+| **Plausible Analytics** | `8000` | Web analytics dashboard & script endpoint |
+| **Plausible ClickHouse** | `8123` | High-throughput analytics event store |
+
+### 4. Telegram Instant Alerting
+Set `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID` in `.env`. Grafana will automatically fire instant alert notifications on:
+- API 5xx error spikes (> 5% error rate)
+- Service downtime (target unreachable)
+- High latency (p95 > 1.5s)
+
 

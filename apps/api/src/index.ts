@@ -11,31 +11,110 @@ import { bodyLimit } from "hono/body-limit";
 import { cors } from "hono/cors";
 import { csrf } from "hono/csrf";
 import { secureHeaders } from "hono/secure-headers";
+import {
+  activeRequestsGauge,
+  httpRequestDuration,
+  httpRequestsTotal,
+  metricsRegistry,
+  normalizeMetricPath,
+} from "./metrics";
+import {
+  captureApiException,
+  initTelemetry,
+  recordTraceSpan,
+  resolveTraceContext,
+  type TraceContext,
+} from "./telemetry";
 
 const logger = createLogger("api-gateway");
+
+// Initialize Sentry error reporting & telemetry
+initTelemetry();
 
 type AppEnv = {
   Variables: {
     requestId: string;
+    traceContext: TraceContext;
   };
 };
 
 const app = new Hono<AppEnv>();
 
-// 1. Request logging & ID middleware with correlation ID tracking
+// 1. Telemetry, Prometheus Metrics, W3C Trace & Request Correlation Logger
 app.use("*", async (c, next) => {
   const requestId = c.req.header("x-request-id") || crypto.randomUUID();
+  const traceContext = resolveTraceContext(c.req.header("traceparent"), c.req.header("x-trace-id"));
+
   c.set("requestId", requestId);
-  const reqLogger = createRequestLogger(requestId, "http");
-  const start = Date.now();
-  await next();
-  const duration = Date.now() - start;
-  reqLogger.info({
-    method: c.req.method,
-    path: c.req.path,
-    status: c.res.status,
-    durationMs: duration,
+  c.set("traceContext", traceContext);
+
+  const reqLogger = createRequestLogger(requestId, {
+    traceId: traceContext.traceId,
+    module: "http",
   });
+
+  const startMs = Date.now();
+  const startNano = performance.timeOrigin * 1_000_000 + performance.now() * 1_000_000;
+
+  activeRequestsGauge.inc();
+
+  try {
+    await next();
+  } finally {
+    const durationMs = Date.now() - startMs;
+    const endNano = performance.timeOrigin * 1_000_000 + performance.now() * 1_000_000;
+    const durationSec = durationMs / 1000;
+    const statusCode = c.res.status;
+    const normalizedPath = normalizeMetricPath(c.req.path);
+
+    activeRequestsGauge.dec();
+
+    // Record Prometheus metrics
+    httpRequestsTotal.inc({
+      method: c.req.method,
+      path: normalizedPath,
+      status_code: String(statusCode),
+    });
+
+    httpRequestDuration.observe(
+      {
+        method: c.req.method,
+        path: normalizedPath,
+        status_code: String(statusCode),
+      },
+      durationSec,
+    );
+
+    // Forward W3C trace identifiers to response headers for frontend & caller correlation
+    c.res.headers.set("x-request-id", requestId);
+    c.res.headers.set("x-trace-id", traceContext.traceId);
+    c.res.headers.set("traceparent", traceContext.traceparent);
+
+    // Record OTel trace to Grafana Tempo (non-blocking)
+    if (!c.req.path.startsWith("/metrics") && !c.req.path.startsWith("/health")) {
+      recordTraceSpan({
+        name: `${c.req.method} ${normalizedPath}`,
+        traceContext,
+        startTimeUnixNano: Math.round(startNano),
+        endTimeUnixNano: Math.round(endNano),
+        statusCode,
+        attributes: {
+          "http.method": c.req.method,
+          "http.target": c.req.path,
+          "http.status_code": statusCode,
+          "http.request_id": requestId,
+        },
+      });
+    }
+
+    reqLogger.info({
+      method: c.req.method,
+      path: c.req.path,
+      status: statusCode,
+      durationMs,
+      traceId: traceContext.traceId,
+    });
+  }
 });
 
 // 2. OWASP Secure Headers
@@ -89,12 +168,22 @@ app.use(
   }),
 );
 
-// 6. Health check
+// 6. Health check & Prometheus Metrics
 app.get("/health", (c) => {
   return c.json({
     status: "ok",
     service: "omniheaven-api",
     timestamp: new Date().toISOString(),
+  });
+});
+
+app.get("/metrics", async (c) => {
+  if (!env.PROMETHEUS_METRICS_ENABLED) {
+    return c.text("Metrics collection disabled", 404);
+  }
+  const metrics = await metricsRegistry.metrics();
+  return c.text(metrics, 200, {
+    "Content-Type": metricsRegistry.contentType,
   });
 });
 
@@ -144,24 +233,42 @@ app.use(
         session,
         organizationId,
         requestId: c.get("requestId"),
+        traceId: c.get("traceContext")?.traceId,
       };
     },
   }),
 );
 
-// 7. Global error handler
+// 12. Global error handler & Sentry incident reporter
 app.onError((err, c) => {
+  const requestId = c.get("requestId");
+  const traceId = c.get("traceContext")?.traceId;
+
+  // Report exception to Sentry (self-hosted or cloud)
+  captureApiException(err, {
+    requestId,
+    traceId,
+    path: c.req.path,
+    method: c.req.method,
+  });
+
   logger.error(
     {
       err: err.message,
       stack: err.stack,
       path: c.req.path,
+      method: c.req.method,
+      requestId,
+      traceId,
     },
     "Unhandled API Exception",
   );
+
   return c.json(
     {
       error: "Internal Server Error",
+      requestId,
+      traceId,
       message: env.NODE_ENV === "production" ? undefined : err.message,
     },
     500,
