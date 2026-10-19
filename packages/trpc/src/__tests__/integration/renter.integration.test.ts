@@ -8,7 +8,10 @@ import {
   truncateAllTables,
 } from "../helpers/test-db";
 
-describe("Domain 03: Renter Lifecycle & Contracts Integration Suite", () => {
+const isAvailable = await isTestDbAvailable();
+const describeSuite = isAvailable ? describe : describe.skip;
+
+describeSuite("Domain 03: Renter Lifecycle & Contracts Integration Suite", () => {
   const { db } = getTestDb();
   const orgId = "org-renter-test";
   const ownerUserId = "usr-renter-owner";

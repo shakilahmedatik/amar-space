@@ -581,6 +581,34 @@ export async function terminateContract(
       )
       .returning();
 
+    if (input.deductions > 0) {
+      await tx.insert(schema.advanceAdjustments).values({
+        id: crypto.randomUUID(),
+        adjustmentType: "damage_deduction",
+        amount: input.deductions.toFixed(2),
+        balanceBefore: currentDeposit.toFixed(2),
+        balanceAfter: remainingAfterDeductions.toFixed(2),
+        note: input.terminationReason || "Deductions applied upon contract termination",
+        adjustedBy: actor.id,
+        contractId: input.contractId,
+        organizationId: orgId,
+      });
+    }
+
+    if (input.refundAmount > 0) {
+      await tx.insert(schema.advanceAdjustments).values({
+        id: crypto.randomUUID(),
+        adjustmentType: "refund_upon_termination",
+        amount: input.refundAmount.toFixed(2),
+        balanceBefore: remainingAfterDeductions.toFixed(2),
+        balanceAfter: Math.max(0, remainingAfterDeductions - input.refundAmount).toFixed(2),
+        note: "Security deposit refund upon contract termination",
+        adjustedBy: actor.id,
+        contractId: input.contractId,
+        organizationId: orgId,
+      });
+    }
+
     await tx
       .update(schema.flats)
       .set({

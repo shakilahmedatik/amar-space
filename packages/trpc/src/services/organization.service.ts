@@ -1,4 +1,6 @@
 import { and, type Database, desc, ensureOrganizationHasOwner, eq, schema } from "@omniheaven/db";
+import { renderInvitationTemplate, sendEmail } from "@omniheaven/email";
+import { env } from "@omniheaven/env";
 import { ErrorCode, throwDomainError } from "@omniheaven/errors";
 import type {
   AcceptInvitationInput,
@@ -7,8 +9,16 @@ import type {
   RemoveMemberInput,
   UpdateMemberRoleInput,
   UpdateOrganizationInput,
+  WebsiteBuilderConfig,
 } from "@omniheaven/validators";
 import { recordAuditLog } from "./audit.service";
+
+export interface ServiceActor {
+  id: string;
+  email: string;
+  name?: string | null;
+  role?: string;
+}
 
 export async function getActiveOrganization(db: Database, orgId: string, currentRole: string) {
   const org = await db.query.organizations.findFirst({
@@ -268,7 +278,7 @@ export async function listInvitations(db: Database, orgId: string) {
 export async function inviteMember(
   db: Database,
   orgId: string,
-  inviter: { id: string; email: string },
+  inviter: { id: string; email: string; name?: string | null },
   input: InviteMemberInput,
 ) {
   const existingUser = await db.query.users.findFirst({
@@ -308,6 +318,25 @@ export async function inviteMember(
     })
     .returning();
 
+  const org = await db.query?.organizations?.findFirst?.({
+    where: eq(schema.organizations.id, orgId),
+  });
+
+  const inviteUrl = `${env.AUTH_URL || "http://localhost:3000"}/accept-invitation?id=${inviteId}`;
+
+  const html = renderInvitationTemplate({
+    inviterName: inviter.name || inviter.email,
+    orgName: org?.name || "omniHeaven Workspace",
+    role: input.role,
+    inviteUrl,
+  });
+
+  await sendEmail({
+    to: input.email,
+    subject: `You've been invited to join ${org?.name || "omniHeaven"}`,
+    html,
+  });
+
   await recordAuditLog({
     db,
     organizationId: orgId,
@@ -342,6 +371,13 @@ export async function acceptInvitation(
       .where(eq(schema.invitations.id, invitation.id));
 
     throwDomainError(ErrorCode.INVITATION_EXPIRED);
+  }
+
+  if (invitation.email.toLowerCase() !== user.email.toLowerCase()) {
+    throwDomainError(
+      ErrorCode.ORG_FORBIDDEN,
+      "This invitation was sent to a different email address",
+    );
   }
 
   return await db.transaction(async (tx) => {
@@ -462,3 +498,69 @@ export async function removeMember(
 
   return { success: true };
 }
+
+export async function getWebsiteConfig(db: Database, orgId: string) {
+  const config = await db.query.websiteConfigs.findFirst({
+    where: eq(schema.websiteConfigs.organizationId, orgId),
+  });
+
+  return config || null;
+}
+
+export async function updateWebsiteConfig(
+  db: Database,
+  orgId: string,
+  actor: ServiceActor,
+  input: WebsiteBuilderConfig,
+) {
+  const now = new Date();
+
+  const [config] = await db
+    .insert(schema.websiteConfigs)
+    .values({
+      id: crypto.randomUUID(),
+      organizationId: orgId,
+      themeSlug: input.themeSlug,
+      brand: input.brand,
+      hero: input.hero,
+      enabledSections: input.enabledSections,
+      sectionOrder: input.sectionOrder,
+      customCss: input.customCss,
+      seoTitle: input.seoTitle,
+      seoDescription: input.seoDescription,
+      updatedAt: now,
+    })
+    .onConflictDoUpdate({
+      target: schema.websiteConfigs.organizationId,
+      set: {
+        themeSlug: input.themeSlug,
+        brand: input.brand,
+        hero: input.hero,
+        enabledSections: input.enabledSections,
+        sectionOrder: input.sectionOrder,
+        customCss: input.customCss,
+        seoTitle: input.seoTitle,
+        seoDescription: input.seoDescription,
+        updatedAt: now,
+      },
+    })
+    .returning();
+
+  if (!config) {
+    throwDomainError(ErrorCode.ORG_NOT_FOUND, "Failed to update website configuration");
+  }
+
+  await recordAuditLog({
+    db,
+    organizationId: orgId,
+    actorId: actor.id,
+    actorEmail: actor.email,
+    action: "WEBSITE_CONFIG_UPDATED",
+    entityType: "website_config",
+    entityId: config.id,
+    details: input as unknown as Record<string, unknown>,
+  });
+
+  return config;
+}
+

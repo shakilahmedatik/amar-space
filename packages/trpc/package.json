@@ -15,6 +15,8 @@
   "dependencies": {
     "@omniheaven/auth": "workspace:*",
     "@omniheaven/db": "workspace:*",
+    "@omniheaven/email": "workspace:*",
+    "@omniheaven/env": "workspace:*",
     "@omniheaven/errors": "workspace:*",
     "@omniheaven/logger": "workspace:*",
     "@omniheaven/rate-limit": "workspace:*",

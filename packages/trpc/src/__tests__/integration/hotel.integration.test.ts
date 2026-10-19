@@ -8,7 +8,10 @@ import {
   truncateAllTables,
 } from "../helpers/test-db";
 
-describe("Domain 07: Hotel & Resort PMS Integration Suite", () => {
+const isAvailable = await isTestDbAvailable();
+const describeSuite = isAvailable ? describe : describe.skip;
+
+describeSuite("Domain 07: Hotel & Resort PMS Integration Suite", () => {
   const { db } = getTestDb();
   const orgId = "org-hotel-resort-test";
   const ownerUserId = "usr-hotel-owner";

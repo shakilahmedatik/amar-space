@@ -574,4 +574,175 @@ describe("Domain 04: Billing, Finance & Advance Adjustments tRPC Procedures", ()
       expect(err.message).toBe("UNAUTHORIZED_BILL_ACCESS");
     }
   });
+
+  it("getPortalFlatBilling does not leak other flats' contracts or bills when flat has no active contract", async () => {
+    const mockDb = {
+      query: {
+        flats: {
+          findMany: async () => [
+            {
+              id: "flat-vacant-2b",
+              flatNumber: "2B",
+              floor: 2,
+              unitType: "residential",
+              bedrooms: 2,
+              bathrooms: 2,
+              squareFeet: 1200,
+              status: "vacant",
+              buildingId: "bld-test",
+              building: {
+                name: "Test Residency",
+                emergencyContacts: [],
+              },
+              rentalContracts: [], // No active contracts!
+            },
+            {
+              id: "flat-occupied-1a",
+              flatNumber: "1A",
+              floor: 1,
+              unitType: "residential",
+              bedrooms: 3,
+              bathrooms: 2,
+              squareFeet: 1500,
+              status: "occupied",
+              buildingId: "bld-test",
+              building: {
+                name: "Test Residency",
+                emergencyContacts: [],
+              },
+              rentalContracts: [
+                {
+                  id: "contract-other-tenant",
+                  status: "active",
+                  renter: { id: "renter-secret", fullName: "Secret Tenant" },
+                  bills: [{ id: "bill-secret", totalAmount: "45000.00" }],
+                },
+              ],
+            },
+          ],
+        },
+        notices: {
+          findMany: async () => [],
+        },
+        maintenanceRequests: {
+          findMany: async () => [],
+        },
+      },
+    } as any;
+
+    const caller = appRouter.createCaller({
+      db: mockDb,
+      session: null,
+      organizationId: null,
+      requestId: "req-portal-billing-vacant",
+    });
+
+    const result = await caller.billing.getPortalFlatBilling({ flatSlug: "flat-2b" });
+
+    expect(result.flat.flatNumber).toBe("2B");
+    expect(result.contract).toBeNull();
+    expect(result.bills).toEqual([]);
+  });
+
+  it("getPortalFlatBilling throws FLAT_NOT_FOUND when identifier matches no flat", async () => {
+    const mockDb = {
+      query: {
+        flats: {
+          findMany: async () => [
+            {
+              id: "flat-1",
+              flatNumber: "1A",
+              rentalContracts: [],
+            },
+          ],
+        },
+      },
+    } as any;
+
+    const caller = appRouter.createCaller({
+      db: mockDb,
+      session: null,
+      organizationId: null,
+      requestId: "req-portal-billing-notfound",
+    });
+
+    try {
+      await caller.billing.getPortalFlatBilling({ flatSlug: "unknown-slug-999" });
+      expect(true).toBe(false);
+    } catch (err: any) {
+      expect(err.code).toBe("NOT_FOUND");
+      expect(err.message).toBe("No flat found matching the provided identifier");
+    }
+  });
+
+  it("payPortalBill records payment as pending awaiting staff verification and does not mark bill as paid", async () => {
+    let insertedPayment: any = null;
+    let updatedBillData: any = null;
+
+    const mockDb = {
+      transaction: async (cb: any) => {
+        const txMock = {
+          query: {
+            bills: {
+              findFirst: async () => ({
+                id: billId,
+                organizationId: orgId,
+                totalAmount: "10000.00",
+                advanceAdjustedAmount: "0.00",
+                amountPaid: "0.00",
+                balanceDue: "10000.00",
+                status: "unpaid",
+                paidAt: null,
+                contract: {
+                  renter: { userId: "user-portal-tenant" },
+                  flat: { flatNumber: "1A" },
+                },
+              }),
+            },
+          },
+          insert: () => ({
+            values: (val: any) => {
+              insertedPayment = val;
+              return {
+                returning: async () => [val],
+              };
+            },
+          }),
+          update: () => ({
+            set: (data: any) => {
+              updatedBillData = data;
+              return {
+                where: () => ({
+                  returning: async () => [data],
+                }),
+              };
+            },
+          }),
+        };
+        return await cb(txMock);
+      },
+    } as any;
+
+    const caller = appRouter.createCaller({
+      db: mockDb,
+      session: null,
+      organizationId: null,
+      requestId: "req-pay-portal-bill",
+    });
+
+    const result = await caller.billing.payPortalBill({
+      billId,
+      amount: 10000, // Pays 100% of balance due
+      paymentMethod: "bkash",
+      transactionId: "TRX998877",
+    });
+
+    expect(insertedPayment).toBeDefined();
+    expect(insertedPayment.status).toBe("pending");
+    expect(insertedPayment.note).toContain("Awaiting manual verification by staff");
+    expect(updatedBillData.status).not.toBe("paid");
+    expect(updatedBillData.status).toBe("partially_paid");
+    expect(updatedBillData.paidAt).toBeNull();
+    expect(result?.payment?.status).toBe("pending");
+  });
 });

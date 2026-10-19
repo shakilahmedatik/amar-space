@@ -1,6 +1,6 @@
 import { trpcServer } from "@hono/trpc-server";
 import { auth } from "@omniheaven/auth";
-import { db } from "@omniheaven/db";
+import { and, db, eq, schema } from "@omniheaven/db";
 import { env } from "@omniheaven/env";
 import { createLogger, createRequestLogger } from "@omniheaven/logger";
 import { createHonoRateLimiter, RATE_LIMIT_PRESETS } from "@omniheaven/rate-limit";
@@ -194,21 +194,107 @@ app.get("/metrics", async (c) => {
 // 6b. Real-time WebSockets (Live Booking Alerts, Payment Confirmations & Tickets)
 app.get(
   "/ws",
-  upgradeWebSocket((c) => {
+  upgradeWebSocket(async (c) => {
+    const headers = new Headers(c.req.raw.headers);
+    const token = c.req.query("token") || c.req.query("sessionToken");
+    if (token && !headers.has("authorization")) {
+      headers.set("authorization", `Bearer ${token}`);
+    }
+
+    let session = null;
+    try {
+      session = await auth.api.getSession({ headers });
+    } catch {
+      // Failed to retrieve session
+    }
+
+    if (!session?.user) {
+      return {
+        onOpen(_event, ws) {
+          ws.send(
+            JSON.stringify({
+              type: "error",
+              error: "UNAUTHORIZED",
+              message: "Authentication required to establish real-time connection.",
+            }),
+          );
+          ws.close(4401, "Unauthorized");
+        },
+      };
+    }
+
+    const userId = session.user.id;
+    const requestedOrgId = c.req.query("orgId") || c.req.header("x-organization-id");
+
     return {
-      onOpen(_event, ws) {
-        const orgId = c.req.query("orgId") || c.req.header("x-organization-id");
-        if (orgId) {
-          subscribeToChannel(`org:${orgId}`, ws);
+      async onOpen(_event, ws) {
+        if (requestedOrgId) {
+          const membership = await db.query.members.findFirst({
+            where: and(
+              eq(schema.members.organizationId, requestedOrgId),
+              eq(schema.members.userId, userId),
+            ),
+          });
+
+          if (membership) {
+            subscribeToChannel(`org:${requestedOrgId}`, ws);
+            ws.send(
+              JSON.stringify({
+                type: "connection.ack",
+                channel: `org:${requestedOrgId}`,
+                userId,
+                timestamp: new Date().toISOString(),
+              }),
+            );
+            return;
+          }
+
+          ws.send(
+            JSON.stringify({
+              type: "error",
+              error: "FORBIDDEN",
+              message: "User is not a member of the requested organization channel.",
+            }),
+          );
         }
-        ws.send(JSON.stringify({ type: "connection.ack", timestamp: new Date().toISOString() }));
+
+        ws.send(
+          JSON.stringify({
+            type: "connection.ack",
+            userId,
+            timestamp: new Date().toISOString(),
+          }),
+        );
       },
-      onMessage(event, ws) {
+      async onMessage(event, ws) {
         try {
           const msg = JSON.parse(String(event.data));
           if (msg.action === "subscribe" && msg.channel) {
-            subscribeToChannel(msg.channel, ws);
-            ws.send(JSON.stringify({ type: "subscription.ack", channel: msg.channel }));
+            const channelStr = String(msg.channel);
+            if (channelStr.startsWith("org:")) {
+              const targetOrgId = channelStr.slice(4);
+              const membership = await db.query.members.findFirst({
+                where: and(
+                  eq(schema.members.organizationId, targetOrgId),
+                  eq(schema.members.userId, userId),
+                ),
+              });
+
+              if (!membership) {
+                ws.send(
+                  JSON.stringify({
+                    type: "error",
+                    error: "FORBIDDEN",
+                    channel: channelStr,
+                    message: "Access to this organization channel is denied.",
+                  }),
+                );
+                return;
+              }
+            }
+
+            subscribeToChannel(channelStr, ws);
+            ws.send(JSON.stringify({ type: "subscription.ack", channel: channelStr }));
           } else if (msg.action === "ping") {
             ws.send(JSON.stringify({ type: "pong", timestamp: new Date().toISOString() }));
           }

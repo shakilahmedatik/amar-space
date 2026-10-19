@@ -272,8 +272,14 @@ export const renterRouter = router({
         folder: z.enum(["nid", "signatures", "contracts", "receipts"]),
       }),
     )
-    .mutation(async ({ input }) => {
-      const res = await getPresignedUploadUrl(input.folder, input.fileName, input.fileType);
+    .mutation(async ({ ctx, input }) => {
+      const res = await getPresignedUploadUrl(
+        input.folder,
+        input.fileName,
+        input.fileType,
+        600,
+        ctx.organizationId ?? undefined,
+      );
       return {
         uploadUrl: res.uploadUrl,
         publicUrl: res.publicUrl,

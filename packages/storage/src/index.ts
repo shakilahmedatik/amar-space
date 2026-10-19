@@ -44,10 +44,13 @@ export async function getPresignedUploadUrl(
   filename: string,
   contentType: string,
   expiresInSeconds = 600,
+  organizationId?: string,
 ): Promise<PresignedUploadResult> {
   const s3 = getS3Client();
   const sanitizedFilename = filename.replace(/[^a-zA-Z0-9._-]/g, "_");
-  const fileKey = `${folder}/${Date.now()}-${sanitizedFilename}`;
+  const fileKey = organizationId
+    ? `${organizationId}/${folder}/${Date.now()}-${sanitizedFilename}`
+    : `${folder}/${Date.now()}-${sanitizedFilename}`;
 
   const command = new PutObjectCommand({
     Bucket: env.S3_BUCKET,

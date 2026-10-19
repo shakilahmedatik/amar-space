@@ -245,4 +245,147 @@ describe("Domain 01: Organization tRPC Procedures & Security", () => {
     expect(resultTaken.available).toBe(false);
     expect(resultTaken.slug).toBe("taken-slug");
   });
+
+  it("rejects invitation acceptance when user email does not match invitation recipient", async () => {
+    const futureDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+    const mockDb = {
+      query: {
+        invitations: {
+          findFirst: async () => ({
+            id: "inv-mismatch",
+            status: "pending",
+            expiresAt: futureDate,
+            organizationId: "org-1",
+            email: "intended@example.com",
+            role: "staff",
+          }),
+        },
+      },
+    } as any;
+
+    const caller = appRouter.createCaller({
+      db: mockDb,
+      session: {
+        user: { id: "user-attacker", email: "attacker@example.com", name: "Attacker" },
+        session: { id: "sess-1" },
+      } as any,
+      requestId: "req-test-mismatch",
+    });
+
+    try {
+      await caller.organization.acceptInvitation({ invitationId: "inv-mismatch" });
+      expect(true).toBe(false);
+    } catch (err: any) {
+      expect(err.code).toBe("FORBIDDEN");
+      expect(err.message).toBe("This invitation was sent to a different email address");
+    }
+  });
+
+  it("fetches website builder configuration for active organization", async () => {
+    const mockDb = {
+      query: {
+        organizations: {
+          findFirst: async () => ({ id: "org-1", status: "active" }),
+        },
+        members: {
+          findFirst: async () => ({
+            id: "mem-owner",
+            organizationId: "org-1",
+            userId: "user-owner",
+            role: "owner",
+          }),
+        },
+        websiteConfigs: {
+          findFirst: async () => ({
+            id: "config-1",
+            organizationId: "org-1",
+            themeSlug: "classic-luxury",
+            brand: { primaryColor: "#0f172a", accentColor: "#f59e0b", fontFamily: "Inter" },
+            hero: { headline: "Luxury Stay", ctaText: "Book Now", ctaLink: "#rooms" },
+            enabledSections: ["hero", "rooms"],
+            sectionOrder: ["hero", "rooms"],
+          }),
+        },
+      },
+    } as any;
+
+    const caller = appRouter.createCaller({
+      db: mockDb,
+      session: {
+        user: { id: "user-owner", email: "owner@example.com", name: "Owner" },
+        session: { id: "sess-1", activeOrganizationId: "org-1" },
+      } as any,
+      organizationId: "org-1",
+      requestId: "req-web-config",
+    });
+
+    const config = await caller.organization.getWebsiteConfig();
+    expect(config).toBeDefined();
+    expect(config?.themeSlug).toBe("classic-luxury");
+    expect(config?.organizationId).toBe("org-1");
+  });
+
+  it("updates website builder configuration for owner or admin", async () => {
+    const mockDb = {
+      query: {
+        organizations: {
+          findFirst: async () => ({ id: "org-1", status: "active" }),
+        },
+        members: {
+          findFirst: async () => ({
+            id: "mem-admin",
+            organizationId: "org-1",
+            userId: "user-admin",
+            role: "admin",
+          }),
+        },
+      },
+      insert: () => ({
+        values: () => ({
+          onConflictDoUpdate: () => ({
+            returning: async () => [
+              {
+                id: "config-1",
+                organizationId: "org-1",
+                themeSlug: "modern-minimal",
+                brand: { primaryColor: "#111827", accentColor: "#3b82f6", fontFamily: "Inter" },
+                hero: { headline: "Modern Living", ctaText: "Book", ctaLink: "#rooms" },
+                enabledSections: ["hero"],
+                sectionOrder: ["hero"],
+              },
+            ],
+          }),
+        }),
+      }),
+    } as any;
+
+    const caller = appRouter.createCaller({
+      db: mockDb,
+      session: {
+        user: { id: "user-admin", email: "admin@example.com", name: "Admin" },
+        session: { id: "sess-1", activeOrganizationId: "org-1" },
+      } as any,
+      organizationId: "org-1",
+      requestId: "req-web-update",
+    });
+
+    const updated = await caller.organization.updateWebsiteConfig({
+      themeSlug: "modern-minimal",
+      brand: {
+        primaryColor: "#111827",
+        accentColor: "#3b82f6",
+        fontFamily: "Inter",
+      },
+      hero: {
+        headline: "Modern Living",
+        ctaText: "Book",
+        ctaLink: "#rooms",
+      },
+      enabledSections: ["hero"],
+      sectionOrder: ["hero"],
+    });
+
+    expect(updated).toBeDefined();
+    expect(updated.themeSlug).toBe("modern-minimal");
+  });
 });

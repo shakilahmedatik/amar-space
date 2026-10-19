@@ -596,4 +596,44 @@ describe("Domain 05: Maintenance & Operations tRPC Procedures", () => {
     expect(portalTicket).toBeDefined();
     expect(portalTicket.priority).toBe("urgent");
   });
+
+  it("createPortalMaintenanceRequest throws FLAT_NOT_FOUND when access key does not match any flat", async () => {
+    const mockDb = {
+      query: {
+        flats: {
+          findMany: async () => [
+            {
+              id: flatId,
+              flatNumber: "1A",
+              organizationId: orgId,
+              buildingId,
+              rentalContracts: [],
+            },
+          ],
+        },
+      },
+    };
+
+    const caller = appRouter.createCaller({
+      db: mockDb as any,
+      session: null,
+      organizationId: null,
+      requestId: "req-portal-ticket-notfound",
+    });
+
+    try {
+      await caller.operations.createPortalMaintenanceRequest({
+        flatSlug: "nonexistent-flat-99z",
+        category: "plumbing",
+        title: "Test",
+        description: "Test description",
+        priority: "low",
+        photoUrls: [],
+      });
+      expect(true).toBe(false);
+    } catch (err: any) {
+      expect(err.code).toBe("NOT_FOUND");
+      expect(err.message).toBe("No flat found matching the access key");
+    }
+  });
 });

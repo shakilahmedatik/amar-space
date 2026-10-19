@@ -188,7 +188,7 @@ export async function updateBuilding(
   const [updated] = await db
     .update(schema.buildings)
     .set({ ...data, updatedAt: new Date() })
-    .where(eq(schema.buildings.id, id))
+    .where(and(eq(schema.buildings.id, id), eq(schema.buildings.organizationId, orgId)))
     .returning();
 
   await recordAuditLog({
@@ -230,7 +230,9 @@ export async function deleteBuilding(
     throwDomainError(ErrorCode.BUILDING_HAS_ACTIVE_UNITS);
   }
 
-  await db.delete(schema.buildings).where(eq(schema.buildings.id, buildingId));
+  await db
+    .delete(schema.buildings)
+    .where(and(eq(schema.buildings.id, buildingId), eq(schema.buildings.organizationId, orgId)));
 
   await recordAuditLog({
     db,
@@ -487,7 +489,7 @@ export async function updateFlat(
   const [updated] = await db
     .update(schema.flats)
     .set({ ...data, updatedAt: new Date() })
-    .where(eq(schema.flats.id, id))
+    .where(and(eq(schema.flats.id, id), eq(schema.flats.organizationId, orgId)))
     .returning();
 
   await recordAuditLog({
@@ -528,7 +530,7 @@ export async function updateFlatStatus(
   const [updated] = await db
     .update(schema.flats)
     .set({ status: input.status, updatedAt: new Date() })
-    .where(eq(schema.flats.id, input.flatId))
+    .where(and(eq(schema.flats.id, input.flatId), eq(schema.flats.organizationId, orgId)))
     .returning();
 
   await recordAuditLog({

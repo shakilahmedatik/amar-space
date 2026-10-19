@@ -6,6 +6,7 @@ import {
   removeMemberSchema,
   updateMemberRoleSchema,
   updateOrganizationSchema,
+  updateWebsiteBuilderConfigSchema,
 } from "@omniheaven/validators";
 import { z } from "zod";
 import * as organizationService from "../services/organization.service";
@@ -199,7 +200,7 @@ export const organizationRouter = router({
       return organizationService.inviteMember(
         ctx.db,
         ctx.organizationId,
-        { id: ctx.user.id, email: ctx.user.email },
+        { id: ctx.user.id, email: ctx.user.email, name: ctx.user.name },
         input,
       );
     }),
@@ -262,4 +263,39 @@ export const organizationRouter = router({
         input,
       );
     }),
+
+  // 13. Get website builder configuration for active organization
+  getWebsiteConfig: tenantProcedure
+    .meta({
+      openapi: {
+        method: "GET",
+        path: "/v1/organization/website-config",
+        tags: ["Organization"],
+        summary: "Get website builder configuration for active organization",
+      },
+    })
+    .query(async ({ ctx }) => {
+      return organizationService.getWebsiteConfig(ctx.db, ctx.organizationId);
+    }),
+
+  // 14. Update website builder configuration
+  updateWebsiteConfig: requireRole(["owner", "admin"])
+    .meta({
+      openapi: {
+        method: "PUT",
+        path: "/v1/organization/website-config",
+        tags: ["Organization"],
+        summary: "Update website builder configuration",
+      },
+    })
+    .input(updateWebsiteBuilderConfigSchema)
+    .mutation(async ({ ctx, input }) => {
+      return organizationService.updateWebsiteConfig(
+        ctx.db,
+        ctx.organizationId,
+        ctx.user,
+        input,
+      );
+    }),
 });
+

@@ -20,6 +20,7 @@ export const env = createEnv({
     // Better Auth
     BETTER_AUTH_SECRET: z.string().min(16).default("development_secret_32_characters_minimum_auth"),
     BETTER_AUTH_URL: z.string().url().default("http://localhost:4000"),
+    AUTH_URL: z.string().url().optional(),
     AUTH_TRUSTED_ORIGINS: z
       .string()
       .default(
@@ -72,6 +73,7 @@ export const env = createEnv({
   },
   runtimeEnv: {
     ...process.env,
+    AUTH_URL: process.env.AUTH_URL,
     BETTER_AUTH_SECRET: process.env.BETTER_AUTH_SECRET || process.env.AUTH_SECRET,
     BETTER_AUTH_URL: process.env.BETTER_AUTH_URL || process.env.AUTH_BASE_URL,
   },

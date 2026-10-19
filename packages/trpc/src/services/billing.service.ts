@@ -3,6 +3,7 @@ import { and, desc, eq, inArray, schema } from "@omniheaven/db";
 import { ErrorCode, throwDomainError } from "@omniheaven/errors";
 import {
   type applyAdvanceAdjustmentSchema,
+  type BillStatus,
   type billStatusEnum,
   calculateBillTotals,
   type generateMonthlyBillsSchema,
@@ -861,14 +862,20 @@ export async function payPortalBill(db: Database, input: PayBillInput) {
       Math.round((totalAmount - advanceAdjusted - parseFloat(newPaid)) * 100) / 100,
     ).toFixed(2);
 
-    const newStatus = parseFloat(newBalanceDue) <= 0 ? "paid" : "partially_paid";
-    const paidAt = parseFloat(newBalanceDue) <= 0 ? new Date() : bill.paidAt;
+    // For unauthenticated portal payments awaiting manual staff verification:
+    // Do NOT mark the bill as fully "paid" until staff verifies the transaction.
+    const newStatus: BillStatus = "partially_paid";
+    const paidAt = bill.paidAt;
 
     const dateCode = new Date().toISOString().slice(0, 10).replace(/-/g, "");
     const randCode = Math.floor(1000 + Math.random() * 9000).toString();
     const receiptNumber = `REC-${dateCode}-${randCode}`;
 
     const paymentId = `pay-${crypto.randomUUID()}`;
+    const paymentNote = input.note
+      ? `${input.note} (Awaiting manual verification by staff)`
+      : `Digital ${input.paymentMethod.toUpperCase()} payment via Flat Portal (Awaiting manual verification by staff)`;
+
     const [payment] = await tx
       .insert(schema.payments)
       .values({
@@ -881,8 +888,8 @@ export async function payPortalBill(db: Database, input: PayBillInput) {
         paymentDate: new Date().toISOString().slice(0, 10),
         receiptNumber,
         receivedBy: bill.contract.renter.userId || "portal-system",
-        status: "completed",
-        note: input.note || `Digital ${input.paymentMethod.toUpperCase()} payment via Flat Portal`,
+        status: "pending",
+        note: paymentNote,
       })
       .returning();
 
@@ -942,19 +949,19 @@ export async function getPortalFlatBilling(db: Database, flatSlug: string) {
     },
   });
 
-  let targetFlat = allFlats.find(
+  const targetFlat = allFlats.find(
     (f) =>
+      f.id === flatSlug ||
       f.flatNumber.toUpperCase() === normalized ||
       f.flatNumber.toUpperCase() === flatSlug.toUpperCase() ||
       `flat-${f.flatNumber.toLowerCase()}` === flatSlug.toLowerCase(),
   );
 
-  if (!targetFlat || targetFlat.rentalContracts.length === 0) {
-    targetFlat = allFlats.find((f) => f.rentalContracts.length > 0) ?? allFlats[0];
-  }
-
   if (!targetFlat) {
-    throwDomainError(ErrorCode.FLAT_NOT_FOUND, "No flat found");
+    throwDomainError(
+      ErrorCode.FLAT_NOT_FOUND,
+      "No flat found matching the provided identifier",
+    );
   }
 
   const activeContract = targetFlat.rentalContracts[0] ?? null;

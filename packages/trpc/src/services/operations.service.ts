@@ -746,13 +746,13 @@ export async function createPortalMaintenanceRequest(
     },
   });
 
-  const targetFlat =
-    allFlats.find(
-      (f) =>
-        f.flatNumber.toUpperCase() === normalized ||
-        f.flatNumber.toUpperCase() === input.flatSlug.toUpperCase() ||
-        `flat-${f.flatNumber.toLowerCase()}` === input.flatSlug.toLowerCase(),
-    ) ?? allFlats[0];
+  const targetFlat = allFlats.find(
+    (f) =>
+      f.id === input.flatSlug ||
+      f.flatNumber.toUpperCase() === normalized ||
+      f.flatNumber.toUpperCase() === input.flatSlug.toUpperCase() ||
+      `flat-${f.flatNumber.toLowerCase()}` === input.flatSlug.toLowerCase(),
+  );
 
   if (!targetFlat) {
     throwDomainError(ErrorCode.FLAT_NOT_FOUND, "No flat found matching the access key");

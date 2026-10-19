@@ -16,9 +16,14 @@ export function getRedisClient(): Redis {
     maxRetriesPerRequest: 1,
     enableReadyCheck: true,
     lazyConnect: true,
+    enableOfflineQueue: false,
+    connectTimeout: 500,
     retryStrategy(times) {
-      // Exponential backoff with 2000ms max delay
-      return Math.min(times * 100, 2000);
+      if (times > 3) {
+        return null;
+      }
+      // Exponential backoff with 500ms max delay
+      return Math.min(times * 100, 500);
     },
   };
 

@@ -8,7 +8,10 @@ import {
   truncateAllTables,
 } from "../helpers/test-db";
 
-describe("Domain 01: Organization Multi-Tenancy Integration Suite", () => {
+const isAvailable = await isTestDbAvailable();
+const describeSuite = isAvailable ? describe : describe.skip;
+
+describeSuite("Domain 01: Organization Multi-Tenancy Integration Suite", () => {
   const { db } = getTestDb();
 
   beforeAll(async () => {
