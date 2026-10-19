@@ -1,5 +1,7 @@
+import { randomBytes, scryptSync } from "node:crypto";
 import { client, db } from "./client";
 import {
+  accounts,
   advanceAdjustments,
   auditLogs,
   bills,
@@ -22,6 +24,17 @@ import {
   users,
   websiteConfigs,
 } from "./schema";
+
+function hashPassword(password: string): string {
+  const salt = randomBytes(16).toString("hex");
+  const key = scryptSync(password.normalize("NFKC"), salt, 64, {
+    N: 16384,
+    r: 16,
+    p: 1,
+    maxmem: 128 * 16384 * 16 * 2,
+  }).toString("hex");
+  return `${salt}:${key}`;
+}
 
 async function main() {
   console.log("Seeding initial database data...");
@@ -95,7 +108,7 @@ async function main() {
       },
     });
 
-  // Platform superadmin user
+  // Platform superadmin user & credential
   const adminId = "superadmin-root";
   await db
     .insert(users)
@@ -110,6 +123,23 @@ async function main() {
       target: users.id,
       set: {
         globalRole: "superadmin",
+      },
+    });
+
+  const superadminPassword = process.env.SUPERADMIN_DEFAULT_PASSWORD || "OmniAdmin2026!";
+  await db
+    .insert(accounts)
+    .values({
+      id: "acc-superadmin",
+      userId: adminId,
+      accountId: adminId,
+      providerId: "credential",
+      password: hashPassword(superadminPassword),
+    })
+    .onConflictDoUpdate({
+      target: accounts.id,
+      set: {
+        password: hashPassword(superadminPassword),
       },
     });
 
@@ -215,11 +245,50 @@ async function main() {
     email: "owner@grandhaven.com",
     emailVerified: true,
   };
+  const hotelManagerUser = {
+    id: "user-hotel-manager-1",
+    name: "Zubair Al-Mamun",
+    email: "manager@grandhaven.com",
+    emailVerified: true,
+  };
 
   await db
     .insert(users)
-    .values([landlordUser, managerUser, staffUser, renterUser, hotelOwnerUser])
+    .values([landlordUser, managerUser, staffUser, renterUser, hotelOwnerUser, hotelManagerUser])
     .onConflictDoNothing();
+
+  // Accounts for credential authentication
+  await db
+    .insert(accounts)
+    .values([
+      {
+        id: "acc-landlord",
+        userId: landlordUser.id,
+        accountId: landlordUser.id,
+        providerId: "credential",
+        password: hashPassword("OmniLandlord2026!"),
+      },
+      {
+        id: "acc-hotel-owner",
+        userId: hotelOwnerUser.id,
+        accountId: hotelOwnerUser.id,
+        providerId: "credential",
+        password: hashPassword("OmniManager2026!"),
+      },
+      {
+        id: "acc-hotel-manager",
+        userId: hotelManagerUser.id,
+        accountId: hotelManagerUser.id,
+        providerId: "credential",
+        password: hashPassword("OmniManager2026!"),
+      },
+    ])
+    .onConflictDoUpdate({
+      target: accounts.id,
+      set: {
+        password: hashPassword("OmniManager2026!"),
+      },
+    });
 
   // Memberships
   await db
@@ -253,6 +322,12 @@ async function main() {
         id: "member-owner-hotel",
         organizationId: demoHotelOrgId,
         userId: hotelOwnerUser.id,
+        role: "owner",
+      },
+      {
+        id: "member-manager-hotel",
+        organizationId: demoHotelOrgId,
+        userId: hotelManagerUser.id,
         role: "owner",
       },
     ])

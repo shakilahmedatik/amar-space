@@ -1,5 +1,6 @@
 export * from "./components/alert";
 export * from "./components/alert-dialog";
+export * from "./components/auth-layout";
 export * from "./components/badge";
 export * from "./components/button";
 export * from "./components/card";
@@ -13,6 +14,8 @@ export * from "./components/skeleton";
 export * from "./components/status-badge";
 export * from "./components/table";
 export * from "./components/tabs";
+export * from "./components/unverified-email-banner";
+export * from "./components/user-profile-menu";
 export * from "./lib/formatters";
 export * from "./lib/utils";
 export * from "./motion";

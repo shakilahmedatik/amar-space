@@ -2,6 +2,7 @@
 
 import type { ProductType } from "@omniheaven/validators";
 import { useQueryClient } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
 import type React from "react";
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { trpc } from "./trpc";
@@ -73,6 +74,8 @@ export function OrganizationProvider({ children }: { children: React.ReactNode }
 
   const switchActiveMutation = trpc.organization.switchActive.useMutation();
 
+  const router = useRouter();
+
   // Combine server orgs or fallback to demo orgs
   const organizations: OrganizationInfo[] = useMemo(() => {
     if (serverOrgs && serverOrgs.length > 0) {
@@ -84,6 +87,10 @@ export function OrganizationProvider({ children }: { children: React.ReactNode }
         logo: o.logo,
         role: o.role,
       }));
+    }
+    // Only fallback if query hasn't finished or in pure offline preview
+    if (serverOrgs && serverOrgs.length === 0) {
+      return [];
     }
     return DEMO_ORGANIZATIONS;
   }, [serverOrgs]);
@@ -105,6 +112,15 @@ export function OrganizationProvider({ children }: { children: React.ReactNode }
       }
     }
   }, [organizations, activeOrgId]);
+
+  // If user is authenticated but has 0 organizations, redirect to /onboarding
+  useEffect(() => {
+    if (!isLoading && serverOrgs && serverOrgs.length === 0) {
+      if (typeof window !== "undefined" && !window.location.pathname.startsWith("/onboarding")) {
+        router.push("/onboarding");
+      }
+    }
+  }, [isLoading, serverOrgs, router]);
 
   const switchOrganization = async (newOrgId: string) => {
     try {

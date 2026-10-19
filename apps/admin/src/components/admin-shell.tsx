@@ -1,7 +1,9 @@
 "use client";
 
-import { Badge, Button } from "@omniheaven/ui";
+import { sendVerificationEmail, signOut, useSession } from "@omniheaven/auth/client";
+import { Badge, Button, UnverifiedEmailBanner, UserProfileMenu } from "@omniheaven/ui";
 import { LogOut, Menu, Sparkles, X } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useOrganization } from "../lib/organization-context";
 import { AuditLogsView } from "./audit-logs-view";
@@ -25,14 +27,32 @@ interface AdminShellProps {
 }
 
 export function AdminShell({ initialLocale }: AdminShellProps) {
+  const router = useRouter();
+  const { data: session } = useSession();
   const { activeOrg, productType } = useOrganization();
   const [activeTab, setActiveTab] = useState<string>("overview");
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const handleSignOut = async () => {
+    await signOut();
+    router.push("/login");
+    router.refresh();
+  };
+
+  const handleResendVerification = async () => {
+    if (!session?.user?.email) return;
+    await sendVerificationEmail({ email: session.user.email });
+  };
 
   const navItems = getNavItemsForProductType(productType);
 
   return (
     <div className="min-h-screen bg-[hsl(var(--canvas))] text-foreground flex flex-col antialiased">
+      {/* Unverified Email Warning Banner */}
+      {session?.user && !session.user.emailVerified && (
+        <UnverifiedEmailBanner email={session.user.email} onResend={handleResendVerification} />
+      )}
+
       {/* Top Navigation Bar */}
       <header className="h-16 border-b border-border bg-card/85 backdrop-blur-md sticky top-0 z-40 px-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -82,11 +102,13 @@ export function AdminShell({ initialLocale }: AdminShellProps) {
           {/* Bilingual Language Switcher (EN / BN) */}
           <LanguageToggle currentLocale={initialLocale} />
 
-          {/* User Profile Avatar */}
+          {/* User Profile Dropdown Menu */}
           <div className="flex items-center gap-2 pl-2 border-l border-border">
-            <div className="size-8 rounded-full bg-surface-elevated border border-border text-foreground font-bold text-xs flex items-center justify-center shadow-xs">
-              SA
-            </div>
+            <UserProfileMenu
+              user={session?.user || { name: "Manager", email: "manager@omniheaven.com" }}
+              roleLabel={activeOrg.role}
+              onSignOut={handleSignOut}
+            />
           </div>
         </div>
       </header>
@@ -144,7 +166,8 @@ export function AdminShell({ initialLocale }: AdminShellProps) {
 
             <button
               type="button"
-              className="w-full flex items-center gap-2 px-3 py-2 text-xs font-medium text-foreground-muted hover:text-rose-600 transition-colors min-h-[40px]"
+              onClick={handleSignOut}
+              className="w-full flex items-center gap-2 px-3 py-2 text-xs font-medium text-foreground-muted hover:text-rose-600 transition-colors min-h-[40px] cursor-pointer"
             >
               <LogOut className="size-4" />
               Sign Out

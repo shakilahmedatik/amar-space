@@ -77,6 +77,13 @@ export const auth = betterAuth({
       maxAge: 5 * 60,
     },
   },
+  advanced: {
+    crossSubDomainCookies: {
+      enabled: true,
+      domain: env.COOKIE_DOMAIN || undefined,
+    },
+    useSecureCookies: env.NODE_ENV === "production",
+  },
   rateLimit: {
     enabled: true,
     window: FIFTEEN_MINUTES_IN_SECONDS,
@@ -84,5 +91,6 @@ export const auth = betterAuth({
   },
 });
 
+export { hashPassword, verifyPassword } from "better-auth/crypto";
 export type Auth = typeof auth;
 export type Session = typeof auth.$Infer.Session;

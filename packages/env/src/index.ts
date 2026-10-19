@@ -25,6 +25,7 @@ export const env = createEnv({
       .default(
         "http://localhost:3000,http://localhost:3001,http://localhost:3002,http://localhost:3003,http://localhost:3004",
       ),
+    COOKIE_DOMAIN: z.string().optional(),
 
     // In-Memory Cache & Rate Limiting (Valkey 8 / Redis)
     REDIS_URL: z.string().url().default("redis://localhost:6379"),

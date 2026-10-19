@@ -1,6 +1,7 @@
 "use client";
 
-import { Badge, Button, Card } from "@omniheaven/ui";
+import { signOut, useSession } from "@omniheaven/auth/client";
+import { Badge, Button, Card, UserProfileMenu } from "@omniheaven/ui";
 import {
   Activity,
   AlertOctagon,
@@ -10,6 +11,7 @@ import {
   Filter,
   Globe,
   Layers,
+  Loader2,
   RefreshCw,
   Search,
   Server,
@@ -19,6 +21,7 @@ import {
   Unlock,
   X,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { trpc } from "../lib/trpc";
 
@@ -155,6 +158,15 @@ const DICTIONARY = {
 };
 
 export default function SuperAdminHQPage() {
+  const router = useRouter();
+  const { data: session, isPending: sessionLoading } = useSession();
+
+  const handleSignOut = async () => {
+    await signOut();
+    router.push("/login");
+    router.refresh();
+  };
+
   const [locale, setLocale] = useState<Locale>("en");
   const [activeTab, setActiveTab] = useState<"overview" | "organizations" | "plans">("overview");
   const [searchTerm, setSearchTerm] = useState("");
@@ -244,6 +256,57 @@ export default function SuperAdminHQPage() {
     return target.maxUnits < changePlanOrg.currentUnits;
   }, [changePlanOrg, selectedPlanId, plans]);
 
+  // Loading state
+  if (sessionLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[hsl(var(--canvas))] text-foreground">
+        <div className="flex flex-col items-center gap-3">
+          <Loader2 className="size-8 animate-spin text-primary" />
+          <p className="text-xs text-foreground-muted font-medium">
+            Verifying Platform HQ Credentials...
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // 403 Forbidden RBAC Guard
+  const userGlobalRole = (session?.user as { globalRole?: string | null } | undefined)?.globalRole;
+  if (session?.user && userGlobalRole !== "superadmin") {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-[hsl(var(--canvas))] text-foreground">
+        <Card className="max-w-md w-full p-8 border border-rose-500/30 bg-card rounded-2xl text-center space-y-4 shadow-2xl">
+          <div className="size-14 rounded-full bg-rose-500/10 text-rose-600 dark:text-rose-400 mx-auto flex items-center justify-center border border-rose-500/20">
+            <ShieldAlert className="size-7" />
+          </div>
+          <div>
+            <Badge
+              variant="destructive"
+              className="text-[10px] tracking-wider uppercase font-bold px-2.5 py-0.5"
+            >
+              403 Forbidden
+            </Badge>
+          </div>
+          <h1 className="text-xl font-display font-bold text-foreground">
+            Platform SuperAdmin Access Required
+          </h1>
+          <p className="text-xs text-foreground-muted leading-relaxed">
+            Your account (<strong className="text-foreground">{session.user.email}</strong>) does
+            not have root administrative permissions for omniHeaven Platform HQ.
+          </p>
+          <div className="pt-2 flex flex-col gap-2">
+            <Button variant="luxury" onClick={handleSignOut} className="w-full text-xs">
+              Sign Out & Switch Account
+            </Button>
+            <Button asChild variant="outline" className="w-full text-xs">
+              <a href="http://localhost:3000">Go to Property Manager Portal</a>
+            </Button>
+          </div>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[hsl(var(--canvas))] text-foreground p-4 sm:p-8 space-y-8 font-sans selection:bg-primary/20 selection:text-foreground">
       {/* Top Header */}
@@ -295,6 +358,20 @@ export default function SuperAdminHQPage() {
             />
             <span>{t.refresh}</span>
           </Button>
+
+          {/* User Profile Menu */}
+          <div className="pl-2 border-l border-border-gold/20">
+            <UserProfileMenu
+              user={{
+                name: session?.user?.name || "Root SuperAdmin",
+                email: session?.user?.email || "admin@omniheaven.com",
+                image: session?.user?.image,
+                globalRole: userGlobalRole || "superadmin",
+              }}
+              roleLabel="SuperAdmin"
+              onSignOut={handleSignOut}
+            />
+          </div>
         </div>
       </header>
 
