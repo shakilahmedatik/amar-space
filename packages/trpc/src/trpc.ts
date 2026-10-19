@@ -1,5 +1,6 @@
 import type { Session } from "@omniheaven/auth";
 import { and, type Database, eq, type OrganizationRole, schema } from "@omniheaven/db";
+import { ErrorCode, throwDomainError } from "@omniheaven/errors";
 import { defaultLimiter, type RateLimitConfig } from "@omniheaven/rate-limit";
 import { initTRPC, TRPCError } from "@trpc/server";
 import { ZodError } from "zod";
@@ -11,34 +12,59 @@ export interface TRPCContext {
   requestId: string;
 }
 
-const t = initTRPC.context<TRPCContext>().create({
-  errorFormatter({ shape, error }) {
-    return {
-      ...shape,
-      data: {
-        ...shape.data,
-        zodError: error.cause instanceof ZodError ? error.cause.flatten() : null,
-      },
-    };
-  },
-});
+export interface AuthenticatedContext extends TRPCContext {
+  session: Session;
+  user: Session["user"];
+}
+
+export interface OrganizationContext extends AuthenticatedContext {
+  organizationId: string;
+  organization: typeof schema.organizations.$inferSelect | null;
+  role: OrganizationRole;
+  membership: typeof schema.members.$inferSelect;
+}
+
+export interface OpenApiMeta {
+  openapi?: {
+    method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
+    path: string;
+    tags?: string[];
+    summary?: string;
+    description?: string;
+    protect?: boolean;
+  };
+}
+
+const t = initTRPC
+  .context<TRPCContext>()
+  .meta<OpenApiMeta>()
+  .create({
+    errorFormatter({ shape, error }) {
+      return {
+        ...shape,
+        data: {
+          ...shape.data,
+          zodError: error.cause instanceof ZodError ? error.cause.flatten() : null,
+        },
+      };
+    },
+  });
 
 export const router = t.router;
 export const publicProcedure = t.procedure;
 
 // Middleware ensuring user is signed in
 export const protectedProcedure = t.procedure.use(({ ctx, next }) => {
-  if (!ctx.session?.user) {
-    throw new TRPCError({
-      code: "UNAUTHORIZED",
-      message: "You must be signed in to access this resource",
-    });
+  const currentSession = ctx.session;
+  if (!currentSession?.user) {
+    throwDomainError(ErrorCode.AUTH_UNAUTHORIZED, "You must be signed in to access this resource");
   }
+
   return next({
     ctx: {
       ...ctx,
-      session: ctx.session,
-      user: ctx.session.user,
+      session: currentSession,
+      user: currentSession.user,
     },
   });
 });
@@ -54,19 +80,18 @@ export const orgProtectedProcedure = protectedProcedure.use(async ({ ctx, next }
   }
 
   // Verify organization is not suspended
-  let organization: any = null;
+  let organization: typeof schema.organizations.$inferSelect | null = null;
   if (ctx.db.query?.organizations?.findFirst) {
     const org = await ctx.db.query.organizations.findFirst({
       where: eq(schema.organizations.id, orgId),
     });
-    organization = org;
+    organization = org || null;
 
     if (org?.status === "suspended") {
-      throw new TRPCError({
-        code: "FORBIDDEN",
-        message:
-          "ORG_SUSPENDED: Organization has been suspended by platform administration. Contact support@omniheaven.com",
-      });
+      throwDomainError(
+        ErrorCode.ORG_SUSPENDED,
+        `${ErrorCode.ORG_SUSPENDED}: Organization has been suspended by platform administration. Contact support@omniheaven.com`,
+      );
     }
   }
 
@@ -76,26 +101,28 @@ export const orgProtectedProcedure = protectedProcedure.use(async ({ ctx, next }
   });
 
   if (!membership) {
-    throw new TRPCError({
-      code: "FORBIDDEN",
-      message: "User is not an authorized member of the requested organization",
-    });
+    throwDomainError(
+      ErrorCode.ORG_FORBIDDEN,
+      "User is not an authorized member of the requested organization",
+    );
   }
+
+  const verifiedMembership = membership;
 
   return next({
     ctx: {
       ...ctx,
       organizationId: orgId,
       organization,
-      role: membership.role as OrganizationRole,
-      membership,
+      role: verifiedMembership.role as OrganizationRole,
+      membership: verifiedMembership,
     },
   });
 });
 
 // Middleware ensuring user is a global platform superadministrator
 export const superadminProcedure = protectedProcedure.use(async ({ ctx, next }) => {
-  let userRole = (ctx.user as any)?.globalRole;
+  let userRole = (ctx.user as { globalRole?: string | null })?.globalRole;
   if (!userRole && ctx.user?.id) {
     const dbUser = await ctx.db.query.users.findFirst({
       where: eq(schema.users.id, ctx.user.id),
@@ -104,10 +131,10 @@ export const superadminProcedure = protectedProcedure.use(async ({ ctx, next }) 
   }
 
   if (userRole !== "superadmin" && userRole !== "admin") {
-    throw new TRPCError({
-      code: "FORBIDDEN",
-      message: "SUPERADMIN_FORBIDDEN: User is not a global platform superadministrator",
-    });
+    throwDomainError(
+      ErrorCode.SUPERADMIN_FORBIDDEN,
+      `${ErrorCode.SUPERADMIN_FORBIDDEN}: User is not a global platform superadministrator`,
+    );
   }
 
   return next({
@@ -126,10 +153,10 @@ export const tenantProcedure = orgProtectedProcedure;
 export const requireRole = (allowedRoles: OrganizationRole[]) =>
   orgProtectedProcedure.use(({ ctx, next }) => {
     if (!allowedRoles.includes(ctx.role)) {
-      throw new TRPCError({
-        code: "FORBIDDEN",
-        message: `This action requires one of the following roles: ${allowedRoles.join(", ")}`,
-      });
+      throwDomainError(
+        ErrorCode.ORG_FORBIDDEN,
+        `This action requires one of the following roles: ${allowedRoles.join(", ")}`,
+      );
     }
     return next({ ctx });
   });
@@ -140,9 +167,11 @@ export interface TRPCRateLimitOptions<TContext> {
 }
 
 // Procedural rate limit middleware
-export const trpcRateLimit = <TContext = any>(options: TRPCRateLimitOptions<TContext>) =>
+export const trpcRateLimit = <TContext extends object = OrganizationContext>(
+  options: TRPCRateLimitOptions<TContext>,
+) =>
   t.middleware(async ({ ctx, next }) => {
-    const rawKey = options.keyGenerator(ctx as TContext);
+    const rawKey = options.keyGenerator(ctx as unknown as TContext);
     const result = await defaultLimiter.check(rawKey, options.config);
 
     if (!result.allowed) {

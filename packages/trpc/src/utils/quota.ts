@@ -1,6 +1,8 @@
 import { count, type Database, eq, schema } from "@omniheaven/db";
-import { evaluateQuota, SUPERADMIN_ERROR_CODES } from "@omniheaven/validators";
-import { TRPCError } from "@trpc/server";
+import { ErrorCode, throwDomainError } from "@omniheaven/errors";
+import { evaluateQuota } from "@omniheaven/validators";
+
+export type DbOrTx = Pick<Database, "select"> & { query?: Database["query"] };
 
 export interface QuotaVerificationResult {
   allowed: boolean;
@@ -20,7 +22,7 @@ export interface QuotaVerificationResult {
  * and evaluates whether adding units satisfies subscription plan constraints.
  */
 export async function verifyOrganizationQuota(
-  db: Database,
+  db: DbOrTx,
   orgId: string,
   unitsToAdd = 1,
 ): Promise<QuotaVerificationResult> {
@@ -80,20 +82,25 @@ export async function verifyOrganizationQuota(
 }
 
 /**
- * Asserts quota and throws TRPCError FORBIDDEN (PLAN_QUOTA_EXCEEDED) if exceeded.
+ * Asserts quota and throws DomainError (ErrorCode.PLAN_QUOTA_EXCEEDED) if exceeded.
  */
 export async function assertOrganizationQuota(
-  db: Database,
+  db: DbOrTx,
   orgId: string,
   unitsToAdd = 1,
 ): Promise<QuotaVerificationResult> {
   const result = await verifyOrganizationQuota(db, orgId, unitsToAdd);
 
   if (!result.allowed) {
-    throw new TRPCError({
-      code: "FORBIDDEN",
-      message: `${SUPERADMIN_ERROR_CODES.PLAN_QUOTA_EXCEEDED}: Organization has reached the unit limit of ${result.maxUnits} units for plan "${result.planName}". Current units: ${result.currentUnits}.`,
-    });
+    throwDomainError(
+      ErrorCode.PLAN_QUOTA_EXCEEDED,
+      `${ErrorCode.PLAN_QUOTA_EXCEEDED}: Organization has reached the unit limit of ${result.maxUnits} units for plan "${result.planName}". Current units: ${result.currentUnits}.`,
+      {
+        currentUnits: result.currentUnits,
+        maxUnits: result.maxUnits,
+        planName: result.planName,
+      },
+    );
   }
 
   return result;

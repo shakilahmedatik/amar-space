@@ -34,14 +34,14 @@
 - [x] Register `operationsRouter` in main `appRouter` (`packages/trpc/src/routers/app.ts`)
 
 ### Tier 4: UI/UX & Responsive Frontends (`apps/admin`, `apps/renter-portal`, `packages/ui`)
-- [x] Build Kanban Board / Grid for Maintenance Tickets: Open, Assigned, In Progress, Resolved, Closed
-- [x] Build "Report Maintenance Issue" form with multi-photo upload preview and emergency flag
-- [x] Build Ticket Detail Drawer with resolution proof timeline and expense logger
-- [x] Build "Notice Board" widget with pinned alert cards and collapsible notice history
-- [x] Build "Create Notice" modal with markdown formatting and target building selector
-- [x] Build Renter Portal Maintenance Tab (`apps/renter-portal`) with 1-tap "Report a Problem" CTA
-- [x] Ensure mobile viewports (< 768px) render accessible touch targets (≥48px) and responsive photo carousels
-- [x] Bengali (`bn-BD`) and English (`en-US`) i18n translation keys for all maintenance and notice views
+- [ ] Build Kanban Board / Grid for Maintenance Tickets: Open, Assigned, In Progress, Resolved, Closed
+- [ ] Build "Report Maintenance Issue" form with multi-photo upload preview and emergency flag
+- [ ] Build Ticket Detail Drawer with resolution proof timeline and expense logger
+- [ ] Build "Notice Board" widget with pinned alert cards and collapsible notice history
+- [ ] Build "Create Notice" modal with markdown formatting and target building selector
+- [ ] Build Renter Portal Maintenance Tab (`apps/renter-portal`) with 1-tap "Report a Problem" CTA
+- [ ] Ensure mobile viewports (< 768px) render accessible touch targets (≥48px) and responsive photo carousels
+- [ ] Bengali (`bn-BD`) and English (`en-US`) i18n translation keys for all maintenance and notice views
 
 ### Tier 5: Security, Audit Logging & Telemetry
 - [x] Strict row-level tenant validation: Tenants cannot query or update tickets outside their flat
@@ -52,5 +52,6 @@
 - [x] Unit test: Ticket resolution requires non-empty resolution notes
 - [x] Integration test: Tenant cannot access maintenance ticket belonging to another flat (throws `FORBIDDEN_TICKET_ACCESS`)
 - [x] Integration test: Expired notices are omitted from active resident feed
-- [x] Manual smoke test: Report maintenance ticket with photo on mobile, assign to manager, resolve with cost
+- [ ] Manual smoke test: Report maintenance ticket with photo on mobile, assign to manager, resolve with cost
+
 

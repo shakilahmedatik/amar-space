@@ -33,13 +33,13 @@
 - [x] Register `hotelRouter` in main `appRouter` (`packages/trpc/src/routers/app.ts`)
 
 ### Tier 4: UI/UX & Responsive Frontends (`apps/admin`, `apps/hotel-resort-web`, `packages/ui`)
-- [x] Build Front Desk Calendar / Tape Chart (Room vs Date matrix with color-coded reservation blocks)
-- [x] Build "Quick Check-in" modal with instant guest NID input
-- [x] Build Housekeeping Dashboard showing rooms needing cleaning, inspection, and maintenance
-- [x] Build Folio & Room Charges drawer for adding food, beverage, and laundry items
-- [x] Build Guest Booking Engine (`apps/hotel-resort-web`) with room photo carousels, date picker, and bKash checkout
-- [x] Mobile-first viewports with touch-friendly room status toggles (≥48px)
-- [x] Bengali (`bn-BD`) and English (`en-US`) i18n translation keys
+- [ ] Build Front Desk Calendar / Tape Chart (Room vs Date matrix with color-coded reservation blocks)
+- [ ] Build "Quick Check-in" modal with instant guest NID input
+- [ ] Build Housekeeping Dashboard showing rooms needing cleaning, inspection, and maintenance
+- [ ] Build Folio & Room Charges drawer for adding food, beverage, and laundry items
+- [ ] Build Guest Booking Engine (`apps/hotel-resort-web`) with room photo carousels, date picker, and bKash checkout
+- [ ] Mobile-first viewports with touch-friendly room status toggles (≥48px)
+- [ ] Bengali (`bn-BD`) and English (`en-US`) i18n translation keys
 
 ### Tier 5: Security, Audit Logging & Telemetry
 - [x] Role authorization: Frontdesk procedures require `staff`, `manager`, or `owner`
@@ -50,4 +50,5 @@
 - [x] Unit test: Check-out date must be strictly greater than check-in date
 - [x] Integration test: Booking the same room for overlapping dates throws `ROOM_NOT_AVAILABLE`
 - [x] Integration test: Checking out a guest flips room status to `cleaning` in single transaction
-- [x] Manual smoke test: Complete public guest booking on mobile, check in guest from admin, complete checkout
+- [ ] Manual smoke test: Complete public guest booking on mobile, check in guest from admin, complete checkout
+

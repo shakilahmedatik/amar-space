@@ -38,6 +38,30 @@ services:
       - omniheaven-dev-net
 
   # =========================================================================
+  # 1b. TEST DATABASE: PostgreSQL 16 (Dedicated for automated test suites)
+  # =========================================================================
+  postgres_test:
+    image: postgres:16-alpine
+    container_name: omniheaven-postgres-test
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-omniheaven}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-omniheaven_secret_pass}
+      POSTGRES_DB: ${POSTGRES_TEST_DB:-omniheaven_test}
+    ports:
+      - "${POSTGRES_TEST_PORT:-5433}:5432"
+    volumes:
+      - postgres_test_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-omniheaven} -d $${POSTGRES_TEST_DB:-omniheaven_test}"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 3s
+    networks:
+      - omniheaven-dev-net
+
+  # =========================================================================
   # 2. IN-MEMORY CACHE & RATE LIMITER: Valkey 8 (Redis-compatible, BSD-3)
   # =========================================================================
   valkey:
@@ -144,6 +168,7 @@ networks:
 
 volumes:
   postgres_dev_data:
+  postgres_test_data:
   valkey_dev_data:
   seaweedfs_dev_data:
   mailpit_dev_data:

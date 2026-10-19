@@ -1,23 +1,14 @@
-import {
-  and,
-  DomainInvariantError,
-  desc,
-  ensureOrganizationHasOwner,
-  eq,
-  schema,
-} from "@omniheaven/db";
 import { RATE_LIMIT_PRESETS } from "@omniheaven/rate-limit";
 import {
   acceptInvitationSchema,
   createOrganizationSchema,
   inviteMemberSchema,
-  ORG_ERROR_CODES,
   removeMemberSchema,
   updateMemberRoleSchema,
   updateOrganizationSchema,
 } from "@omniheaven/validators";
-import { TRPCError } from "@trpc/server";
 import { z } from "zod";
+import * as organizationService from "../services/organization.service";
 import {
   orgProtectedProcedure,
   protectedProcedure,
@@ -27,257 +18,140 @@ import {
   tenantProcedure,
   trpcRateLimit,
 } from "../trpc";
-import { recordAuditLog } from "../utils/audit";
 
 export const organizationRouter = router({
   // 1. Get active organization details
-  getActiveOrganization: orgProtectedProcedure.query(async ({ ctx }) => {
-    const org = await ctx.db.query.organizations.findFirst({
-      where: eq(schema.organizations.id, ctx.organizationId),
-      with: {
-        subscription: true,
-        websiteConfig: true,
+  getActiveOrganization: orgProtectedProcedure
+    .meta({
+      openapi: {
+        method: "GET",
+        path: "/v1/organization/active",
+        tags: ["Organization"],
+        summary: "Get active organization details and current user role",
       },
-    });
-
-    if (!org) {
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message: ORG_ERROR_CODES.ORG_NOT_FOUND,
-      });
-    }
-
-    return {
-      ...org,
-      currentRole: ctx.role,
-    };
-  }),
+    })
+    .query(async ({ ctx }) => {
+      return organizationService.getActiveOrganization(ctx.db, ctx.organizationId, ctx.role);
+    }),
 
   // Backward compatible alias
   getCurrent: tenantProcedure.query(async ({ ctx }) => {
-    const org = await ctx.db.query.organizations.findFirst({
-      where: eq(schema.organizations.id, ctx.organizationId),
-      with: {
-        subscription: true,
-        websiteConfig: true,
-      },
-    });
-
-    if (!org) {
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message: ORG_ERROR_CODES.ORG_NOT_FOUND,
-      });
-    }
-
-    return org;
+    return organizationService.getActiveOrganization(ctx.db, ctx.organizationId, ctx.role);
   }),
 
   // 2. Public lookup by slug (for tenant portals / public website)
   getBySlug: publicProcedure
+    .meta({
+      openapi: {
+        method: "GET",
+        path: "/v1/organization/by-slug/{slug}",
+        tags: ["Organization"],
+        summary: "Public organization profile lookup by slug",
+      },
+    })
     .input(z.object({ slug: z.string().min(1) }))
     .query(async ({ ctx, input }) => {
-      const org = await ctx.db.query.organizations.findFirst({
-        where: eq(schema.organizations.slug, input.slug),
-        with: {
-          websiteConfig: true,
-          roomTypes: true,
-        },
-      });
-
-      if (!org) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Organization not found for slug",
-        });
-      }
-
-      return org;
+      return organizationService.getBySlug(ctx.db, input.slug);
     }),
 
   // 2b. Check if an organization slug is available (used for real-time form validation)
   checkSlugAvailability: publicProcedure
+    .meta({
+      openapi: {
+        method: "GET",
+        path: "/v1/organization/check-slug",
+        tags: ["Organization"],
+        summary: "Check if an organization slug is available",
+      },
+    })
     .input(z.object({ slug: z.string().min(1) }))
     .query(async ({ ctx, input }) => {
-      const normalizedSlug = input.slug.toLowerCase().trim();
-      const existing = await ctx.db.query.organizations.findFirst({
-        where: eq(schema.organizations.slug, normalizedSlug),
-      });
-
-      return {
-        available: !existing,
-        slug: normalizedSlug,
-      };
+      return organizationService.checkSlugAvailability(ctx.db, input.slug);
     }),
 
   // 3. List all organizations the current authenticated user belongs to
-  listMyOrganizations: protectedProcedure.query(async ({ ctx }) => {
-    const memberships = await ctx.db.query.members.findMany({
-      where: eq(schema.members.userId, ctx.user.id),
-      with: {
-        organization: {
-          with: {
-            subscription: true,
-          },
-        },
+  listMyOrganizations: protectedProcedure
+    .meta({
+      openapi: {
+        method: "GET",
+        path: "/v1/organization/my",
+        tags: ["Organization"],
+        summary: "List all organizations the user is a member of",
       },
-      orderBy: [desc(schema.members.createdAt)],
-    });
-
-    return memberships.map((m) => ({
-      ...m.organization,
-      role: m.role,
-      joinedAt: m.createdAt,
-    }));
-  }),
+    })
+    .query(async ({ ctx }) => {
+      return organizationService.listMyOrganizations(ctx.db, ctx.user.id);
+    }),
 
   // 4. Create a new organization and assign caller as sole initial owner
-  create: protectedProcedure.input(createOrganizationSchema).mutation(async ({ ctx, input }) => {
-    // Check slug uniqueness
-    const existing = await ctx.db.query.organizations.findFirst({
-      where: eq(schema.organizations.slug, input.slug),
-    });
-
-    if (existing) {
-      throw new TRPCError({
-        code: "CONFLICT",
-        message: ORG_ERROR_CODES.ORG_SLUG_TAKEN,
-      });
-    }
-
-    const orgId = crypto.randomUUID();
-    const now = new Date();
-    const trialEndsAt = new Date(now.getTime() + 180 * 24 * 60 * 60 * 1000); // 6 months trial
-
-    return await ctx.db.transaction(async (tx) => {
-      // Create organization
-      const [newOrg] = await tx
-        .insert(schema.organizations)
-        .values({
-          id: orgId,
-          name: input.name,
-          slug: input.slug,
-          productType: input.productType,
-          logo: input.logo,
-          contactPhone: input.contactPhone,
-          contactEmail: input.contactEmail,
-          address: input.address,
-          createdAt: now,
-          updatedAt: now,
-        })
-        .returning();
-
-      // Assign current user as owner
-      await tx.insert(schema.members).values({
-        id: crypto.randomUUID(),
-        organizationId: orgId,
-        userId: ctx.user.id,
-        role: "owner",
-        createdAt: now,
-      });
-
-      // Set up initial 6-month trial subscription
-      await tx.insert(schema.subscriptions).values({
-        id: crypto.randomUUID(),
-        organizationId: orgId,
-        plan: "trial_6_month",
-        status: "trialing",
-        trialStartsAt: now,
-        trialEndsAt: trialEndsAt,
-        paymentProvider: "paystation",
-        createdAt: now,
-        updatedAt: now,
-      });
-
-      // Emit audit log
-      await recordAuditLog({
-        db: tx,
-        organizationId: orgId,
-        actorId: ctx.user.id,
-        actorEmail: ctx.user.email,
-        action: "ORGANIZATION_CREATED",
-        entityType: "organization",
-        entityId: orgId,
-        details: { name: input.name, slug: input.slug, productType: input.productType },
-      });
-
-      return newOrg;
-    });
-  }),
+  create: protectedProcedure
+    .meta({
+      openapi: {
+        method: "POST",
+        path: "/v1/organization",
+        tags: ["Organization"],
+        summary: "Create a new organization workspace",
+      },
+    })
+    .input(createOrganizationSchema)
+    .mutation(async ({ ctx, input }) => {
+      return organizationService.createOrganization(
+        ctx.db,
+        { id: ctx.user.id, email: ctx.user.email },
+        input,
+      );
+    }),
 
   // 5. Update organization settings (Owners & Admins only)
   update: requireRole(["owner", "admin"])
+    .meta({
+      openapi: {
+        method: "PATCH",
+        path: "/v1/organization/active",
+        tags: ["Organization"],
+        summary: "Update active organization branding and details",
+      },
+    })
     .input(updateOrganizationSchema)
     .mutation(async ({ ctx, input }) => {
-      const now = new Date();
-
-      const [updatedOrg] = await ctx.db
-        .update(schema.organizations)
-        .set({
-          ...(input.name ? { name: input.name } : {}),
-          ...(input.logo !== undefined ? { logo: input.logo } : {}),
-          ...(input.contactPhone !== undefined ? { contactPhone: input.contactPhone } : {}),
-          ...(input.contactEmail !== undefined ? { contactEmail: input.contactEmail } : {}),
-          ...(input.address !== undefined ? { address: input.address } : {}),
-          ...(input.customDomain !== undefined ? { customDomain: input.customDomain } : {}),
-          updatedAt: now,
-        })
-        .where(eq(schema.organizations.id, ctx.organizationId))
-        .returning();
-
-      await recordAuditLog({
-        db: ctx.db,
-        organizationId: ctx.organizationId,
-        actorId: ctx.user.id,
-        actorEmail: ctx.user.email,
-        action: "ORGANIZATION_UPDATED",
-        entityType: "organization",
-        entityId: ctx.organizationId,
-        details: input,
-      });
-
-      return updatedOrg;
+      return organizationService.updateOrganization(
+        ctx.db,
+        ctx.organizationId,
+        { id: ctx.user.id, email: ctx.user.email },
+        input,
+      );
     }),
 
   // 6. Switch active organization in session
   switchActive: protectedProcedure
+    .meta({
+      openapi: {
+        method: "POST",
+        path: "/v1/organization/switch",
+        tags: ["Organization"],
+        summary: "Switch active organization in session",
+      },
+    })
     .input(z.object({ organizationId: z.string().min(1) }))
     .mutation(async ({ ctx, input }) => {
-      // Verify user has membership in target organization
-      const membership = await ctx.db.query.members.findFirst({
-        where: and(
-          eq(schema.members.organizationId, input.organizationId),
-          eq(schema.members.userId, ctx.user.id),
-        ),
-        with: {
-          organization: true,
-        },
-      });
-
-      if (!membership) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: ORG_ERROR_CODES.ORG_FORBIDDEN,
-        });
-      }
-
-      // Update session activeOrganizationId in database
-      if (ctx.session?.session?.id) {
-        await ctx.db
-          .update(schema.sessions)
-          .set({ activeOrganizationId: input.organizationId, updatedAt: new Date() })
-          .where(eq(schema.sessions.id, ctx.session.session.id));
-      }
-
-      return {
-        success: true,
-        activeOrganization: membership.organization,
-        role: membership.role,
-      };
+      return organizationService.switchActiveOrganization(
+        ctx.db,
+        ctx.user.id,
+        ctx.session?.session?.id,
+        input.organizationId,
+      );
     }),
 
   // 7. List members of the active organization
   listMembers: orgProtectedProcedure
+    .meta({
+      openapi: {
+        method: "GET",
+        path: "/v1/organization/members",
+        tags: ["Organization"],
+        summary: "List members of active organization",
+      },
+    })
     .input(
       z
         .object({
@@ -287,56 +161,33 @@ export const organizationRouter = router({
         .default({ limit: 50, offset: 0 }),
     )
     .query(async ({ ctx, input }) => {
-      const memberList = await ctx.db.query.members.findMany({
-        where: eq(schema.members.organizationId, ctx.organizationId),
-        with: {
-          user: true,
-        },
-        limit: input.limit,
-        offset: input.offset,
-        orderBy: [desc(schema.members.createdAt)],
-      });
-
-      return memberList.map((m) => ({
-        id: m.id,
-        role: m.role,
-        createdAt: m.createdAt,
-        user: {
-          id: m.user.id,
-          name: m.user.name,
-          email: m.user.email,
-          image: m.user.image,
-        },
-      }));
+      return organizationService.listMembers(ctx.db, ctx.organizationId, input);
     }),
 
   // 8. List pending and past invitations for the active organization
-  listInvitations: requireRole(["owner", "admin", "manager"]).query(async ({ ctx }) => {
-    const invites = await ctx.db.query.invitations.findMany({
-      where: eq(schema.invitations.organizationId, ctx.organizationId),
-      with: {
-        inviter: true,
+  listInvitations: requireRole(["owner", "admin", "manager"])
+    .meta({
+      openapi: {
+        method: "GET",
+        path: "/v1/organization/invitations",
+        tags: ["Organization"],
+        summary: "List organization invitations",
       },
-      orderBy: [desc(schema.invitations.createdAt)],
-    });
-
-    return invites.map((inv) => ({
-      id: inv.id,
-      email: inv.email,
-      role: inv.role,
-      status: inv.status,
-      expiresAt: inv.expiresAt,
-      createdAt: inv.createdAt,
-      inviter: {
-        id: inv.inviter.id,
-        name: inv.inviter.name,
-        email: inv.inviter.email,
-      },
-    }));
-  }),
+    })
+    .query(async ({ ctx }) => {
+      return organizationService.listInvitations(ctx.db, ctx.organizationId);
+    }),
 
   // 9. Invite a new team member (Rate limit: max 10 invites per hour per user)
   inviteMember: requireRole(["owner", "admin"])
+    .meta({
+      openapi: {
+        method: "POST",
+        path: "/v1/organization/invitations",
+        tags: ["Organization"],
+        summary: "Invite team member to organization",
+      },
+    })
     .use(
       trpcRateLimit({
         config: RATE_LIMIT_PRESETS.INVITATIONS,
@@ -345,241 +196,70 @@ export const organizationRouter = router({
     )
     .input(inviteMemberSchema)
     .mutation(async ({ ctx, input }) => {
-      // Check if user is already a member
-      const existingUser = await ctx.db.query.users.findFirst({
-        where: eq(schema.users.email, input.email),
-      });
-
-      if (existingUser) {
-        const existingMember = await ctx.db.query.members.findFirst({
-          where: and(
-            eq(schema.members.organizationId, ctx.organizationId),
-            eq(schema.members.userId, existingUser.id),
-          ),
-        });
-
-        if (existingMember) {
-          throw new TRPCError({
-            code: "CONFLICT",
-            message: ORG_ERROR_CODES.MEMBER_ALREADY_EXISTS,
-          });
-        }
-      }
-
-      const inviteId = crypto.randomUUID();
-      const expiresAt = new Date(Date.now() + input.expiresInDays * 24 * 60 * 60 * 1000);
-
-      const [invitation] = await ctx.db
-        .insert(schema.invitations)
-        .values({
-          id: inviteId,
-          organizationId: ctx.organizationId,
-          email: input.email,
-          role: input.role,
-          status: "pending",
-          expiresAt,
-          inviterId: ctx.user.id,
-          createdAt: new Date(),
-        })
-        .returning();
-
-      await recordAuditLog({
-        db: ctx.db,
-        organizationId: ctx.organizationId,
-        actorId: ctx.user.id,
-        actorEmail: ctx.user.email,
-        action: "MEMBER_INVITED",
-        entityType: "invitation",
-        entityId: inviteId,
-        details: { email: input.email, role: input.role, expiresAt },
-      });
-
-      return invitation;
+      return organizationService.inviteMember(
+        ctx.db,
+        ctx.organizationId,
+        { id: ctx.user.id, email: ctx.user.email },
+        input,
+      );
     }),
 
   // 10. Accept an invitation (User must be logged in with matching email)
   acceptInvitation: protectedProcedure
+    .meta({
+      openapi: {
+        method: "POST",
+        path: "/v1/organization/invitations/accept",
+        tags: ["Organization"],
+        summary: "Accept pending organization invitation",
+      },
+    })
     .input(acceptInvitationSchema)
     .mutation(async ({ ctx, input }) => {
-      const invitation = await ctx.db.query.invitations.findFirst({
-        where: eq(schema.invitations.id, input.invitationId),
-      });
-
-      if (invitation?.status !== "pending") {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Invitation not found or no longer active",
-        });
-      }
-
-      if (new Date() > invitation.expiresAt) {
-        await ctx.db
-          .update(schema.invitations)
-          .set({ status: "canceled" })
-          .where(eq(schema.invitations.id, invitation.id));
-
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: ORG_ERROR_CODES.INVITATION_EXPIRED,
-        });
-      }
-
-      return await ctx.db.transaction(async (tx) => {
-        // Check if member already exists
-        const existingMember = await tx.query.members.findFirst({
-          where: and(
-            eq(schema.members.organizationId, invitation.organizationId),
-            eq(schema.members.userId, ctx.user.id),
-          ),
-        });
-
-        if (!existingMember) {
-          await tx.insert(schema.members).values({
-            id: crypto.randomUUID(),
-            organizationId: invitation.organizationId,
-            userId: ctx.user.id,
-            role: invitation.role,
-            createdAt: new Date(),
-          });
-        }
-
-        // Mark invitation as accepted
-        await tx
-          .update(schema.invitations)
-          .set({ status: "accepted" })
-          .where(eq(schema.invitations.id, invitation.id));
-
-        await recordAuditLog({
-          db: tx,
-          organizationId: invitation.organizationId,
-          actorId: ctx.user.id,
-          actorEmail: ctx.user.email,
-          action: "INVITATION_ACCEPTED",
-          entityType: "invitation",
-          entityId: invitation.id,
-          details: { role: invitation.role },
-        });
-
-        return {
-          success: true,
-          organizationId: invitation.organizationId,
-        };
-      });
+      return organizationService.acceptInvitation(
+        ctx.db,
+        { id: ctx.user.id, email: ctx.user.email },
+        input,
+      );
     }),
 
   // 11. Update team member role with sole-owner protection
   updateMemberRole: requireRole(["owner", "admin"])
+    .meta({
+      openapi: {
+        method: "PATCH",
+        path: "/v1/organization/members/role",
+        tags: ["Organization"],
+        summary: "Update member role with sole-owner protection",
+      },
+    })
     .input(updateMemberRoleSchema)
     .mutation(async ({ ctx, input }) => {
-      const targetMember = await ctx.db.query.members.findFirst({
-        where: and(
-          eq(schema.members.id, input.memberId),
-          eq(schema.members.organizationId, ctx.organizationId),
-        ),
-      });
-
-      if (!targetMember) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: ORG_ERROR_CODES.MEMBER_NOT_FOUND,
-        });
-      }
-
-      // Admin cannot modify an Owner or promote someone to Owner
-      if (ctx.role === "admin" && (targetMember.role === "owner" || input.newRole === "owner")) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Admins cannot modify or assign the owner role",
-        });
-      }
-
-      // Sole-owner invariant check: if target is owner and role is changing
-      if (targetMember.role === "owner" && input.newRole !== "owner") {
-        try {
-          await ensureOrganizationHasOwner(ctx.db, ctx.organizationId, targetMember.userId);
-        } catch (err) {
-          if (err instanceof DomainInvariantError) {
-            throw new TRPCError({
-              code: "BAD_REQUEST",
-              message: err.message,
-            });
-          }
-          throw err;
-        }
-      }
-
-      const [updatedMember] = await ctx.db
-        .update(schema.members)
-        .set({ role: input.newRole })
-        .where(eq(schema.members.id, input.memberId))
-        .returning();
-
-      await recordAuditLog({
-        db: ctx.db,
-        organizationId: ctx.organizationId,
-        actorId: ctx.user.id,
-        actorEmail: ctx.user.email,
-        action: "MEMBER_ROLE_UPDATED",
-        entityType: "member",
-        entityId: input.memberId,
-        details: { previousRole: targetMember.role, newRole: input.newRole },
-      });
-
-      return updatedMember;
+      return organizationService.updateMemberRole(
+        ctx.db,
+        ctx.organizationId,
+        { id: ctx.user.id, email: ctx.user.email, role: ctx.role },
+        input,
+      );
     }),
 
   // 12. Remove a member from the organization
   removeMember: requireRole(["owner", "admin"])
+    .meta({
+      openapi: {
+        method: "DELETE",
+        path: "/v1/organization/members",
+        tags: ["Organization"],
+        summary: "Remove member from organization",
+      },
+    })
     .input(removeMemberSchema)
     .mutation(async ({ ctx, input }) => {
-      const targetMember = await ctx.db.query.members.findFirst({
-        where: and(
-          eq(schema.members.id, input.memberId),
-          eq(schema.members.organizationId, ctx.organizationId),
-        ),
-      });
-
-      if (!targetMember) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: ORG_ERROR_CODES.MEMBER_NOT_FOUND,
-        });
-      }
-
-      // Admin cannot remove an Owner
-      if (ctx.role === "admin" && targetMember.role === "owner") {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Admins cannot remove an owner",
-        });
-      }
-
-      // Sole-owner invariant check
-      try {
-        await ensureOrganizationHasOwner(ctx.db, ctx.organizationId, targetMember.userId);
-      } catch (err) {
-        if (err instanceof DomainInvariantError) {
-          throw new TRPCError({
-            code: "BAD_REQUEST",
-            message: err.message,
-          });
-        }
-        throw err;
-      }
-
-      await ctx.db.delete(schema.members).where(eq(schema.members.id, input.memberId));
-
-      await recordAuditLog({
-        db: ctx.db,
-        organizationId: ctx.organizationId,
-        actorId: ctx.user.id,
-        actorEmail: ctx.user.email,
-        action: "MEMBER_REMOVED",
-        entityType: "member",
-        entityId: input.memberId,
-        details: { removedUserId: targetMember.userId, previousRole: targetMember.role },
-      });
-
-      return { success: true };
+      return organizationService.removeMember(
+        ctx.db,
+        ctx.organizationId,
+        { id: ctx.user.id, email: ctx.user.email, role: ctx.role },
+        input,
+      );
     }),
 });

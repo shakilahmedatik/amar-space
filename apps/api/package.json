@@ -6,18 +6,21 @@
   "scripts": {
     "dev": "bun run --hot src/index.ts",
     "start": "bun run src/index.ts",
+    "test": "bun test",
     "check-types": "tsc --noEmit"
   },
   "dependencies": {
     "@hono/trpc-server": "^0.4.2",
     "@omniheaven/auth": "workspace:*",
     "@omniheaven/db": "workspace:*",
+    "@omniheaven/env": "workspace:*",
+    "@omniheaven/logger": "workspace:*",
     "@omniheaven/rate-limit": "workspace:*",
     "@omniheaven/trpc": "workspace:*",
     "@omniheaven/validators": "workspace:*",
+    "@scalar/hono-api-reference": "^0.12.13",
     "@trpc/server": "^11.19.0",
-    "hono": "^4.13.13",
-    "pino": "^9.6.0"
+    "hono": "^4.13.13"
   },
   "devDependencies": {
     "@omniheaven/typescript-config": "workspace:*",

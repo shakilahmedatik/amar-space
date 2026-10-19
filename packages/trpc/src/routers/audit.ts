@@ -26,11 +26,18 @@ const auditProtectedProcedure = orgProtectedProcedure.use(({ ctx, next }) => {
 export const auditRouter = router({
   // 1. List Audit Logs (Paginated & Filterable)
   listAuditLogs: auditProtectedProcedure
+    .meta({
+      openapi: {
+        method: "GET",
+        path: "/v1/audit/logs",
+        tags: ["Audit & Compliance"],
+        summary: "List immutable audit logs with multi-attribute filtering",
+      },
+    })
     .input(listAuditLogsSchema.optional())
     .query(async ({ ctx, input }) => {
       const filters = input ?? { limit: 50, offset: 0 };
 
-      // Validate date range if provided
       if (filters.startDate || filters.endDate) {
         const dateCheck = validateDateRange(filters.startDate, filters.endDate, 365);
         if (!dateCheck.valid) {
@@ -88,6 +95,14 @@ export const auditRouter = router({
 
   // 2. Get Entity Audit Trail (Timeline of state changes for a flat, lease, bill, or ticket)
   getEntityAuditTrail: auditProtectedProcedure
+    .meta({
+      openapi: {
+        method: "GET",
+        path: "/v1/audit/trail/{entityType}/{entityId}",
+        tags: ["Audit & Compliance"],
+        summary: "Get entity chronological lifecycle audit trail",
+      },
+    })
     .input(getEntityAuditTrailSchema)
     .query(async ({ ctx, input }) => {
       const logs = await ctx.db.query.auditLogs.findMany({
@@ -105,9 +120,16 @@ export const auditRouter = router({
 
   // 3. Export Certified Audit Report as CSV (For CA/Tax Compliance in Bangladesh)
   exportAuditReportCsv: auditProtectedProcedure
+    .meta({
+      openapi: {
+        method: "POST",
+        path: "/v1/audit/export",
+        tags: ["Audit & Compliance"],
+        summary: "Export certified 90-day compliance audit trail as CSV",
+      },
+    })
     .input(exportAuditReportCsvSchema)
     .mutation(async ({ ctx, input }) => {
-      // Validate date window strictly (max 90 days as per legal/regulatory compliance)
       const dateCheck = validateDateRange(input.startDate, input.endDate, 90);
       if (!dateCheck.valid) {
         throw new TRPCError({
@@ -138,7 +160,6 @@ export const auditRouter = router({
       const csvContent = generateAuditCsv(logs);
       const filename = `audit_report_${ctx.organizationId}_${input.startDate}_to_${input.endDate}.csv`;
 
-      // Log compliance record of this export action itself
       await recordAuditLog({
         db: ctx.db,
         organizationId: ctx.organizationId,

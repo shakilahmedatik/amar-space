@@ -12,6 +12,8 @@
     "check-types": "tsc --noEmit"
   },
   "dependencies": {
+    "@omniheaven/env": "workspace:*",
+    "@omniheaven/logger": "workspace:*",
     "hono": "^4.13.13",
     "ioredis": "^5.5.0"
   },

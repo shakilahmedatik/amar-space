@@ -30,12 +30,12 @@
 - [x] Register `superadminRouter` in main `appRouter` (`packages/trpc/src/routers/app.ts`)
 
 ### Tier 4: UI/UX & Responsive Frontends (`apps/superadmin`, `packages/ui`)
-- [x] Build Platform HQ Executive Dashboard with high-level KPI stat cards (MRR, Total Buildings, Total Flats)
-- [x] Build Organizations Directory with quick-action suspension modals and search bar
-- [x] Build Organization Detail view showing live unit counts against plan quota limits
-- [x] Build SaaS Plan Editor and pricing adjustment interface
-- [x] Mobile-responsive layout for Platform HQ monitoring on phones (< 768px)
-- [x] Bengali (`bn-BD`) and English (`en-US`) i18n support
+- [ ] Build Platform HQ Executive Dashboard with high-level KPI stat cards (MRR, Total Buildings, Total Flats)
+- [ ] Build Organizations Directory with quick-action suspension modals and search bar
+- [ ] Build Organization Detail view showing live unit counts against plan quota limits
+- [ ] Build SaaS Plan Editor and pricing adjustment interface
+- [ ] Mobile-responsive layout for Platform HQ monitoring on phones (< 768px)
+- [ ] Bengali (`bn-BD`) and English (`en-US`) i18n support
 
 ### Tier 5: Security, Audit Logging & Telemetry
 - [x] Strict isolation: Superadmin routes cannot be invoked by any non-superadmin user
@@ -46,4 +46,5 @@
 - [x] Unit test: Quota validator blocks unit creation when unit count reaches plan limit
 - [x] Integration test: Non-superadmin calling superadmin procedures receives `SUPERADMIN_FORBIDDEN`
 - [x] Integration test: Suspended organization member requests return `ORG_SUSPENDED`
-- [x] Manual smoke test: Log in to Superadmin HQ, view organization, trigger trial extension
+- [ ] Manual smoke test: Log in to Superadmin HQ, view organization, trigger trial extension
+

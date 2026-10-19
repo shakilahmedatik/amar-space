@@ -8,6 +8,7 @@ import { organizationRouter } from "./organization";
 import { propertyRouter } from "./property";
 import { renterRouter } from "./renter";
 import { superadminRouter } from "./superadmin";
+import { uploadRouter } from "./upload";
 
 export const appRouter = router({
   health: healthRouter,
@@ -19,6 +20,7 @@ export const appRouter = router({
   audit: auditRouter,
   hotel: hotelRouter,
   superadmin: superadminRouter,
+  upload: uploadRouter,
 });
 
 export type AppRouter = typeof appRouter;

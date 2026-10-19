@@ -218,7 +218,7 @@ describe("Domain 03: Renter Lifecycle & Contracts tRPC Procedures", () => {
       initialDepositReceived: true,
     });
 
-    expect(result.status).toBe("active");
+    expect(result?.status).toBe("active");
     expect(updatedContractStatus).toBe("active");
     expect(updatedFlatStatus).toBe("occupied");
     expect(linkedRenterFlatId).toBe(flatId);
@@ -285,8 +285,8 @@ describe("Domain 03: Renter Lifecycle & Contracts tRPC Procedures", () => {
       reason: "Relocating for job",
     });
 
-    expect(result.status).toBe("notice_period");
-    expect(result.terminationDate).toBe("2026-11-30");
+    expect(result?.status).toBe("notice_period");
+    expect(result?.terminationDate).toBe("2026-11-30");
     expect(recordedAudit).toBe(true);
   });
 
@@ -374,7 +374,7 @@ describe("Domain 03: Renter Lifecycle & Contracts tRPC Procedures", () => {
       inspectionNotes: "Repainted walls; all good",
     });
 
-    expect(result.status).toBe("terminated");
+    expect(result?.status).toBe("terminated");
     expect(finalContractStatus).toBe("terminated");
     expect(nextFlatStatus).toBe("vacant");
     expect(unlinkedRenter).toBe(true);

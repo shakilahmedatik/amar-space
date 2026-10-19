@@ -14,6 +14,9 @@
   },
   "dependencies": {
     "@omniheaven/db": "workspace:*",
+    "@omniheaven/email": "workspace:*",
+    "@omniheaven/env": "workspace:*",
+    "@omniheaven/logger": "workspace:*",
     "better-auth": "^1.7.10"
   },
   "devDependencies": {

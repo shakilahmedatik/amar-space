@@ -36,15 +36,15 @@
 - [x] Register `billingRouter` in main `appRouter` (`packages/trpc/src/routers/app.ts`)
 
 ### Tier 4: UI/UX & Responsive Frontends (`apps/admin`, `apps/renter-portal`, `packages/ui`)
-- [x] Build Financial Summary Cards: Total Billed, Total Collected, Total Outstanding, Advance Deposit Held
-- [x] Build Monthly Invoices Table with filters for Status (`unpaid`, `partially_paid`, `paid`, `adjusted`, `overdue`), Month, and Flat
-- [x] Build "Generate Monthly Bills" modal with confirmation preview of total tenants to bill
-- [x] Build "Bill Details & Utility Entry" modal with breakdown of Rent, Service Charge, Gas, Electricity, Water
-- [x] Build "Adjust Against Advance Deposit" modal showing current advance balance, requested adjustment, and projected balance
-- [x] Build "Record Payment" modal with method selector (bKash, Nagad, Cash, Bank) and instant receipt generator
-- [x] Build Renter Portal "My Bills & Payment History" screen (`apps/renter-portal`) with direct "Pay with bKash" action
-- [x] Mobile-first responsive invoice cards with minimum 48px touch targets
-- [x] Bengali (`bn-BD`) and English (`en-US`) i18n support including Bengali numeral formatting
+- [ ] Build Financial Summary Cards: Total Billed, Total Collected, Total Outstanding, Advance Deposit Held
+- [ ] Build Monthly Invoices Table with filters for Status (`unpaid`, `partially_paid`, `paid`, `adjusted`, `overdue`), Month, and Flat
+- [ ] Build "Generate Monthly Bills" modal with confirmation preview of total tenants to bill
+- [ ] Build "Bill Details & Utility Entry" modal with breakdown of Rent, Service Charge, Gas, Electricity, Water
+- [ ] Build "Adjust Against Advance Deposit" modal showing current advance balance, requested adjustment, and projected balance
+- [ ] Build "Record Payment" modal with method selector (bKash, Nagad, Cash, Bank) and instant receipt generator
+- [ ] Build Renter Portal "My Bills & Payment History" screen (`apps/renter-portal`) with direct "Pay with bKash" action
+- [ ] Mobile-first responsive invoice cards with minimum 48px touch targets
+- [ ] Bengali (`bn-BD`) and English (`en-US`) i18n support including Bengali numeral formatting
 
 ### Tier 5: Security, Audit Logging & Telemetry
 - [x] Enforce `manager` or `owner` role for generating bills, adjusting advance deposits, and recording payments
@@ -58,4 +58,5 @@
 - [x] Integration test: Advance adjustment decrements contract `remainingDepositBalance` and bill `balanceDue` atomically
 - [x] Integration test: Batch bill generation is idempotent and does not create duplicate bills for same month
 - [x] Integration test: Recording payment exceeding `balanceDue` throws `PAYMENT_EXCEEDS_BALANCE`
-- [x] Manual smoke test: Generate monthly bills, apply advance adjustment to one, pay another via bKash on mobile screen
+- [ ] Manual smoke test: Generate monthly bills, apply advance adjustment to one, pay another via bKash on mobile screen
+

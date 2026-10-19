@@ -1,0 +1,205 @@
+import { TRPCError } from "@trpc/server";
+
+/**
+ * Platform-wide standard error codes grouped by operational domain.
+ */
+export const ErrorCode = {
+  // Domain 01: Core Auth & Multi-Tenancy
+  AUTH_UNAUTHORIZED: "AUTH_UNAUTHORIZED",
+  AUTH_SESSION_EXPIRED: "AUTH_SESSION_EXPIRED",
+  ORG_NOT_FOUND: "ORG_NOT_FOUND",
+  ORG_FORBIDDEN: "ORG_FORBIDDEN",
+  ORG_SLUG_TAKEN: "ORG_SLUG_TAKEN",
+  CANNOT_REMOVE_LAST_OWNER: "CANNOT_REMOVE_LAST_OWNER",
+  INVITATION_EXPIRED: "INVITATION_EXPIRED",
+  MEMBER_NOT_FOUND: "MEMBER_NOT_FOUND",
+  MEMBER_ALREADY_EXISTS: "MEMBER_ALREADY_EXISTS",
+
+  // Domain 02: Property Hierarchy
+  BUILDING_NOT_FOUND: "BUILDING_NOT_FOUND",
+  BUILDING_HAS_ACTIVE_UNITS: "BUILDING_HAS_ACTIVE_UNITS",
+  FLAT_NOT_FOUND: "FLAT_NOT_FOUND",
+  FLAT_DUPLICATE_NUMBER: "FLAT_DUPLICATE_NUMBER",
+  FLAT_OCCUPIED_STATUS_LOCKED: "FLAT_OCCUPIED_STATUS_LOCKED",
+  UNIT_NOT_AVAILABLE: "UNIT_NOT_AVAILABLE",
+
+  // Domain 03: Renter Lifecycle & Contracts
+  NID_INVALID_FORMAT: "NID_INVALID_FORMAT",
+  NID_ALREADY_EXISTS: "NID_ALREADY_EXISTS",
+  RENTER_NOT_FOUND: "RENTER_NOT_FOUND",
+  CONTRACT_NOT_FOUND: "CONTRACT_NOT_FOUND",
+  FLAT_ALREADY_OCCUPIED: "FLAT_ALREADY_OCCUPIED",
+  INVALID_BLOOD_GROUP: "INVALID_BLOOD_GROUP",
+  CONTRACT_NOT_IN_DRAFT: "CONTRACT_NOT_IN_DRAFT",
+
+  // Domain 04: Billing & Finance
+  BILL_NOT_FOUND: "BILL_NOT_FOUND",
+  BILL_ALREADY_EXISTS: "BILL_ALREADY_EXISTS",
+  BILL_ALREADY_PAID: "BILL_ALREADY_PAID",
+  DEPOSIT_INSUFFICIENT: "DEPOSIT_INSUFFICIENT",
+  PAYMENT_EXCEEDS_BALANCE: "PAYMENT_EXCEEDS_BALANCE",
+  INVALID_TRANSACTION_ID: "INVALID_TRANSACTION_ID",
+  UNAUTHORIZED_BILL_ACCESS: "UNAUTHORIZED_BILL_ACCESS",
+
+  // Domain 05: Maintenance Operations & Notices
+  TICKET_NOT_FOUND: "TICKET_NOT_FOUND",
+  TICKET_ALREADY_CLOSED: "TICKET_ALREADY_CLOSED",
+  RESOLUTION_NOTES_REQUIRED: "RESOLUTION_NOTES_REQUIRED",
+  FORBIDDEN_TICKET_ACCESS: "FORBIDDEN_TICKET_ACCESS",
+  CANNOT_ASSIGN_UNCONFIRMED_STAFF: "CANNOT_ASSIGN_UNCONFIRMED_STAFF",
+  NOTICE_NOT_FOUND: "NOTICE_NOT_FOUND",
+  NOTICE_EXPIRED: "NOTICE_EXPIRED",
+
+  // Domain 06: Audit Logging & Security
+  AUDIT_FORBIDDEN: "AUDIT_FORBIDDEN",
+  AUDIT_LOG_WRITE_FAILED: "AUDIT_LOG_WRITE_FAILED",
+  INVALID_DATE_RANGE: "INVALID_DATE_RANGE",
+
+  // Domain 07: Hotel & Resort PMS
+  ROOM_NOT_AVAILABLE: "ROOM_NOT_AVAILABLE",
+  ROOM_DIRTY_OR_MAINTENANCE: "ROOM_DIRTY_OR_MAINTENANCE",
+  CHECKIN_BEFORE_DATE: "CHECKIN_BEFORE_DATE",
+  OVERLAPPING_DATES: "OVERLAPPING_DATES",
+  BOOKING_NOT_FOUND: "BOOKING_NOT_FOUND",
+  ROOM_TYPE_NOT_FOUND: "ROOM_TYPE_NOT_FOUND",
+
+  // Domain 08: Superadmin Platform SaaS
+  SUPERADMIN_FORBIDDEN: "SUPERADMIN_FORBIDDEN",
+  PLAN_QUOTA_EXCEEDED: "PLAN_QUOTA_EXCEEDED",
+  ORG_SUSPENDED: "ORG_SUSPENDED",
+  INVALID_PLAN_UPGRADE: "INVALID_PLAN_UPGRADE",
+  SUBSCRIPTION_NOT_FOUND: "SUBSCRIPTION_NOT_FOUND",
+  ORGANIZATION_NOT_FOUND: "ORGANIZATION_NOT_FOUND",
+  PLAN_NOT_FOUND: "PLAN_NOT_FOUND",
+} as const;
+
+export type ErrorCodeType = (typeof ErrorCode)[keyof typeof ErrorCode];
+
+/**
+ * Mapping from domain error codes to corresponding tRPC error codes.
+ */
+export const ERROR_CODE_TO_TRPC: Record<ErrorCodeType, TRPCError["code"]> = {
+  // Domain 01
+  AUTH_UNAUTHORIZED: "UNAUTHORIZED",
+  AUTH_SESSION_EXPIRED: "UNAUTHORIZED",
+  ORG_NOT_FOUND: "NOT_FOUND",
+  ORG_FORBIDDEN: "FORBIDDEN",
+  ORG_SLUG_TAKEN: "CONFLICT",
+  CANNOT_REMOVE_LAST_OWNER: "BAD_REQUEST",
+  INVITATION_EXPIRED: "BAD_REQUEST",
+  MEMBER_NOT_FOUND: "NOT_FOUND",
+  MEMBER_ALREADY_EXISTS: "CONFLICT",
+
+  // Domain 02
+  BUILDING_NOT_FOUND: "NOT_FOUND",
+  BUILDING_HAS_ACTIVE_UNITS: "BAD_REQUEST",
+  FLAT_NOT_FOUND: "NOT_FOUND",
+  FLAT_DUPLICATE_NUMBER: "CONFLICT",
+  FLAT_OCCUPIED_STATUS_LOCKED: "BAD_REQUEST",
+  UNIT_NOT_AVAILABLE: "BAD_REQUEST",
+
+  // Domain 03
+  NID_INVALID_FORMAT: "BAD_REQUEST",
+  NID_ALREADY_EXISTS: "CONFLICT",
+  RENTER_NOT_FOUND: "NOT_FOUND",
+  CONTRACT_NOT_FOUND: "NOT_FOUND",
+  FLAT_ALREADY_OCCUPIED: "CONFLICT",
+  INVALID_BLOOD_GROUP: "BAD_REQUEST",
+  CONTRACT_NOT_IN_DRAFT: "BAD_REQUEST",
+
+  // Domain 04
+  BILL_NOT_FOUND: "NOT_FOUND",
+  BILL_ALREADY_EXISTS: "CONFLICT",
+  BILL_ALREADY_PAID: "BAD_REQUEST",
+  DEPOSIT_INSUFFICIENT: "BAD_REQUEST",
+  PAYMENT_EXCEEDS_BALANCE: "UNPROCESSABLE_CONTENT",
+  INVALID_TRANSACTION_ID: "UNPROCESSABLE_CONTENT",
+  UNAUTHORIZED_BILL_ACCESS: "FORBIDDEN",
+
+  // Domain 05
+  TICKET_NOT_FOUND: "NOT_FOUND",
+  TICKET_ALREADY_CLOSED: "BAD_REQUEST",
+  RESOLUTION_NOTES_REQUIRED: "BAD_REQUEST",
+  FORBIDDEN_TICKET_ACCESS: "FORBIDDEN",
+  CANNOT_ASSIGN_UNCONFIRMED_STAFF: "BAD_REQUEST",
+  NOTICE_NOT_FOUND: "NOT_FOUND",
+  NOTICE_EXPIRED: "BAD_REQUEST",
+
+  // Domain 06
+  AUDIT_FORBIDDEN: "FORBIDDEN",
+  AUDIT_LOG_WRITE_FAILED: "INTERNAL_SERVER_ERROR",
+  INVALID_DATE_RANGE: "BAD_REQUEST",
+
+  // Domain 07
+  ROOM_NOT_AVAILABLE: "CONFLICT",
+  ROOM_DIRTY_OR_MAINTENANCE: "BAD_REQUEST",
+  CHECKIN_BEFORE_DATE: "BAD_REQUEST",
+  OVERLAPPING_DATES: "CONFLICT",
+  BOOKING_NOT_FOUND: "NOT_FOUND",
+  ROOM_TYPE_NOT_FOUND: "NOT_FOUND",
+
+  // Domain 08
+  SUPERADMIN_FORBIDDEN: "FORBIDDEN",
+  PLAN_QUOTA_EXCEEDED: "FORBIDDEN",
+  ORG_SUSPENDED: "FORBIDDEN",
+  INVALID_PLAN_UPGRADE: "BAD_REQUEST",
+  SUBSCRIPTION_NOT_FOUND: "NOT_FOUND",
+  ORGANIZATION_NOT_FOUND: "NOT_FOUND",
+  PLAN_NOT_FOUND: "NOT_FOUND",
+};
+
+/**
+ * Standard typed Domain Error holding business metadata.
+ */
+export class DomainError extends Error {
+  public readonly domainCode: ErrorCodeType;
+  public readonly details?: Record<string, unknown>;
+
+  constructor(code: ErrorCodeType, message?: string, details?: Record<string, unknown>) {
+    super(message || code);
+    this.name = "DomainError";
+    this.domainCode = code;
+    this.details = details;
+    Object.setPrototypeOf(this, new.target.prototype);
+  }
+
+  /**
+   * Compatibility alias for domainCode.
+   */
+  public get code(): ErrorCodeType {
+    return this.domainCode;
+  }
+
+  /**
+   * Converts the domain error into a tRPCError with code mapping.
+   */
+  public toTRPCError(): TRPCError {
+    const trpcCode = ERROR_CODE_TO_TRPC[this.domainCode] || "INTERNAL_SERVER_ERROR";
+    return new TRPCError({
+      code: trpcCode,
+      message: this.message || this.domainCode,
+      cause: {
+        domainCode: this.domainCode,
+        details: this.details,
+      },
+    });
+  }
+}
+
+/**
+ * Helper to throw a DomainError immediately formatted as a TRPCError.
+ */
+export function throwDomainError(
+  code: ErrorCodeType,
+  message?: string,
+  details?: Record<string, unknown>,
+): never {
+  throw new DomainError(code, message, details).toTRPCError();
+}
+
+/**
+ * Type guard for DomainError.
+ */
+export function isDomainError(error: unknown): error is DomainError {
+  return error instanceof DomainError;
+}

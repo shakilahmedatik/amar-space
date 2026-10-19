@@ -8,7 +8,8 @@
   "exports": {
     ".": "./src/index.ts",
     "./schema": "./src/schema/index.ts",
-    "./client": "./src/client.ts"
+    "./client": "./src/client.ts",
+    "./zod-schemas": "./src/zod-schemas.ts"
   },
   "scripts": {
     "db:generate": "drizzle-kit generate",
@@ -17,7 +18,10 @@
     "check-types": "tsc --noEmit"
   },
   "dependencies": {
+    "@omniheaven/env": "workspace:*",
+    "@omniheaven/errors": "workspace:*",
     "drizzle-orm": "^0.45.4",
+    "drizzle-zod": "^0.7.0",
     "postgres": "^3.4.5"
   },
   "devDependencies": {

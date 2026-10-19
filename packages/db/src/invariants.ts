@@ -1,20 +1,18 @@
+import { DomainError, ErrorCode, type ErrorCodeType } from "@omniheaven/errors";
 import { and, eq, sql } from "drizzle-orm";
 import type { Database } from "./client";
 import { members } from "./schema";
 
-export class DomainInvariantError extends Error {
-  constructor(
-    public readonly code: string,
-    message: string,
-  ) {
-    super(message);
+export class DomainInvariantError extends DomainError {
+  constructor(code: ErrorCodeType | string, message: string) {
+    super(code as ErrorCodeType, message);
     this.name = "DomainInvariantError";
   }
 }
 
 /**
  * Ensures that an organization always has at least one active owner.
- * If targetUserId is currently an owner and is the ONLY owner, throws DomainInvariantError("CANNOT_REMOVE_LAST_OWNER").
+ * If targetUserId is currently an owner and is the ONLY owner, throws DomainInvariantError(ErrorCode.CANNOT_REMOVE_LAST_OWNER).
  */
 export async function ensureOrganizationHasOwner(
   db: Pick<Database, "select">,
@@ -43,7 +41,7 @@ export async function ensureOrganizationHasOwner(
 
   if (ownerCount <= 1) {
     throw new DomainInvariantError(
-      "CANNOT_REMOVE_LAST_OWNER",
+      ErrorCode.CANNOT_REMOVE_LAST_OWNER,
       "Cannot remove or downgrade the last remaining owner of this organization. Promote another member to owner first.",
     );
   }

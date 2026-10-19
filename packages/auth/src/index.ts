@@ -1,7 +1,16 @@
 import { db, schema } from "@omniheaven/db";
+import {
+  renderEmailVerificationTemplate,
+  renderPasswordResetTemplate,
+  sendEmail,
+} from "@omniheaven/email";
+import { env } from "@omniheaven/env";
+import { createLogger } from "@omniheaven/logger";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { organization } from "better-auth/plugins";
+
+const logger = createLogger("auth");
 
 const SEVEN_DAYS_IN_SECONDS = 7 * 24 * 60 * 60;
 const FIFTEEN_MINUTES_IN_SECONDS = 15 * 60;
@@ -20,19 +29,31 @@ export const auth = betterAuth({
       invitations: schema.invitations,
     },
   }),
-  secret: process.env.BETTER_AUTH_SECRET || process.env.AUTH_SECRET,
-  baseURL: process.env.BETTER_AUTH_URL || process.env.AUTH_BASE_URL || "http://localhost:4000",
-  trustedOrigins: process.env.AUTH_TRUSTED_ORIGINS
-    ? process.env.AUTH_TRUSTED_ORIGINS.split(",")
-    : [
-        "http://localhost:3000",
-        "http://localhost:3001",
-        "http://localhost:3002",
-        "http://localhost:3003",
-        "http://localhost:3004",
-      ],
+  secret: env.BETTER_AUTH_SECRET,
+  baseURL: env.BETTER_AUTH_URL,
+  trustedOrigins: env.AUTH_TRUSTED_ORIGINS.split(",").map((o) => o.trim()),
   emailAndPassword: {
     enabled: true,
+    requireEmailVerification: false, // Allows immediate testing while verification link is delivered
+    sendResetPassword: async ({ user, url }) => {
+      logger.info({ userId: user.id, email: user.email }, "Dispatching password reset email");
+      await sendEmail({
+        to: user.email,
+        subject: "Reset your omniHeaven password",
+        html: renderPasswordResetTemplate({ name: user.name, url }),
+      });
+    },
+  },
+  emailVerification: {
+    sendOnSignUp: true,
+    sendVerificationEmail: async ({ user, url }) => {
+      logger.info({ userId: user.id, email: user.email }, "Dispatching verification email");
+      await sendEmail({
+        to: user.email,
+        subject: "Verify your omniHeaven email",
+        html: renderEmailVerificationTemplate({ name: user.name, url }),
+      });
+    },
   },
   plugins: [
     organization({
@@ -51,6 +72,10 @@ export const auth = betterAuth({
   session: {
     expiresIn: SEVEN_DAYS_IN_SECONDS,
     updateAge: 24 * 60 * 60,
+    cookieCache: {
+      enabled: true,
+      maxAge: 5 * 60,
+    },
   },
   rateLimit: {
     enabled: true,

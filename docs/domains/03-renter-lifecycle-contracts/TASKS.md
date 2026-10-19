@@ -36,14 +36,14 @@
 - [x] Register `renterRouter` in main `appRouter` (`packages/trpc/src/routers/app.ts`)
 
 ### Tier 4: UI/UX & Responsive Frontends (`apps/admin`, `apps/renter-portal`, `packages/ui`)
-- [x] Build "Renter Directory" table with search, blood group filter badges, and active flat chips
-- [x] Build "Register New Renter" step-wizard: Step 1 (Personal & NID), Step 2 (Family & Emergency), Step 3 (Photo Uploads / Signature)
-- [x] Build "New Tenancy Contract" drawer with rent, service charge, advance deposit calculator, and flat selector
-- [x] Build Contract Details view with live Advance Deposit Ledger widget
-- [x] Build "Notice Period & Handover" dialog with checkout checklist (Key return, meter reading verification, paint condition)
-- [x] Build Renter Portal Profile View (`apps/renter-portal`) where tenant sees their own agreement details and landlord emergency contacts
-- [x] Ensure mobile viewports (< 768px) render renter profiles with accessible 48px action buttons
-- [x] Bengali (`bn-BD`) and English (`en-US`) i18n translation strings for all renter and lease forms
+- [ ] Build "Renter Directory" table with search, blood group filter badges, and active flat chips
+- [ ] Build "Register New Renter" step-wizard: Step 1 (Personal & NID), Step 2 (Family & Emergency), Step 3 (Photo Uploads / Signature)
+- [ ] Build "New Tenancy Contract" drawer with rent, service charge, advance deposit calculator, and flat selector
+- [ ] Build Contract Details view with live Advance Deposit Ledger widget
+- [ ] Build "Notice Period & Handover" dialog with checkout checklist (Key return, meter reading verification, paint condition)
+- [ ] Build Renter Portal Profile View (`apps/renter-portal`) where tenant sees their own agreement details and landlord emergency contacts
+- [ ] Ensure mobile viewports (< 768px) render renter profiles with accessible 48px action buttons
+- [ ] Bengali (`bn-BD`) and English (`en-US`) i18n translation strings for all renter and lease forms
 
 ### Tier 5: Security, Audit Logging & Telemetry
 - [x] Enforce `manager` or `owner` role for creating renters and modifying leases
@@ -57,4 +57,4 @@
 - [x] Integration test: Activating a contract on an already occupied flat throws `FLAT_ALREADY_OCCUPIED`
 - [x] Integration test: Activating a contract sets flat status to `occupied` in atomic transaction
 - [x] Integration test: Terminating a contract sets flat status back to vacant and preserves historical logs
-- [x] Manual smoke test: Onboard tenant, execute lease, view lease in renter portal on mobile screen
+- [ ] Manual smoke test: Onboard tenant, execute lease, view lease in renter portal on mobile screen

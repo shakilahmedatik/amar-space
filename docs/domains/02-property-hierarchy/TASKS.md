@@ -38,14 +38,14 @@
 - [x] Register `propertyRouter` in main `appRouter` (`packages/trpc/src/routers/app.ts`)
 
 ### Tier 4: UI/UX & Responsive Frontends (`apps/admin`, `packages/ui`)
-- [x] Build Property Overview Grid showing building cards, occupancy percentage badges, and total rental value
-- [x] Build "Add New Building" drawer with Thana dropdown and amenity toggles (Lift, Generator)
-- [x] Build Floor & Unit Matrix View (Visual floor-by-floor layout showing flat occupancy status in green/orange/gray)
-- [x] Build "Bulk Generate Flats" modal wizard with preview of generated flat codes
-- [x] Build Flat Detail Drawer with edit tabs: General Specs, Utility Meters, Historical Renters
-- [x] Build Emergency Contacts directory widget
-- [x] Ensure mobile viewports (< 768px) render flats as clean swipeable cards with tap targets ≥ 48px
-- [x] Externalize all text strings to Bengali (`bn-BD`) and English (`en-US`)
+- [ ] Build Property Overview Grid showing building cards, occupancy percentage badges, and total rental value
+- [ ] Build "Add New Building" drawer with Thana dropdown and amenity toggles (Lift, Generator)
+- [ ] Build Floor & Unit Matrix View (Visual floor-by-floor layout showing flat occupancy status in green/orange/gray)
+- [ ] Build "Bulk Generate Flats" modal wizard with preview of generated flat codes
+- [ ] Build Flat Detail Drawer with edit tabs: General Specs, Utility Meters, Historical Renters
+- [ ] Build Emergency Contacts directory widget
+- [ ] Ensure mobile viewports (< 768px) render flats as clean swipeable cards with tap targets ≥ 48px
+- [ ] Externalize all text strings to Bengali (`bn-BD`) and English (`en-US`)
 
 ### Tier 5: Security, Audit Logging & Telemetry
 - [x] Ensure all tRPC procedures require `orgProtectedProcedure` and role `manager` or `owner`
@@ -58,4 +58,4 @@
 - [x] Integration test: Duplicate flat number in same building throws `FLAT_DUPLICATE_NUMBER`
 - [x] Integration test: Deleting a building with occupied flats throws `BUILDING_HAS_ACTIVE_UNITS`
 - [x] Integration test: Bulk generating 20 flats executes in < 200ms within single transaction
-- [x] Manual smoke test: Create building, generate 10 flats, edit meter info on mobile viewport
+- [ ] Manual smoke test: Create building, generate 10 flats, edit meter info on mobile viewport
