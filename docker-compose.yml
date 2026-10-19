@@ -218,6 +218,7 @@ services:
     image: grafana/loki:3.0.0
     container_name: omniheaven-loki
     restart: unless-stopped
+    user: "0:0"
     command: -config.file=/etc/loki/local-config.yaml
     volumes:
       - ./docker/loki/loki-config.yml:/etc/loki/local-config.yaml:ro
@@ -332,6 +333,11 @@ services:
     image: clickhouse/clickhouse-server:24.3-alpine
     container_name: omniheaven-plausible-events
     restart: unless-stopped
+    environment:
+      CLICKHOUSE_DB: plausible_events_db
+      CLICKHOUSE_USER: default
+      CLICKHOUSE_PASSWORD: ""
+      CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT: 1
     volumes:
       - plausible_events_data:/var/lib/clickhouse
     ulimits:
@@ -347,7 +353,7 @@ services:
     image: ghcr.io/plausible/community-edition:v2.1.4
     container_name: omniheaven-plausible
     restart: unless-stopped
-    command: sh -c "sleep 10 && /entrypoint.sh db createdb && /entrypoint.sh db migrate && /entrypoint.sh run"
+    command: sh -c "sleep 5 && /entrypoint.sh db createdb && /entrypoint.sh db migrate && /entrypoint.sh run"
     depends_on:
       - plausible_db
       - plausible_events_db
@@ -355,13 +361,14 @@ services:
       BASE_URL: ${PLAUSIBLE_BASE_URL:-http://localhost:8000}
       SECRET_KEY_BASE: ${PLAUSIBLE_SECRET_KEY_BASE:-omniheaven_random_secret_key_base_64_chars_min_for_plausible_prod}
       DATABASE_URL: postgresql://${PLAUSIBLE_DB_USER:-plausible}:${PLAUSIBLE_DB_PASSWORD:-plausible_secret_pass}@plausible_db:5432/${PLAUSIBLE_DB_NAME:-plausible}
-      CLICKHOUSE_DATABASE_URL: http://plausible_events_db:8123/plausible_events_db
+      CLICKHOUSE_DATABASE_URL: http://default:@plausible_events_db:8123/plausible_events_db
     ports:
       - "8000:8000"
     networks:
       - omniheaven-net
     profiles:
       - analytics
+
 
 networks:
   omniheaven-net:

@@ -8,6 +8,7 @@ import { appRouter, generateOpenApiDocument } from "@omniheaven/trpc";
 import { apiReference } from "@scalar/hono-api-reference";
 import { Hono } from "hono";
 import { bodyLimit } from "hono/body-limit";
+import { createBunWebSocket } from "hono/bun";
 import { cors } from "hono/cors";
 import { csrf } from "hono/csrf";
 import { secureHeaders } from "hono/secure-headers";
@@ -25,11 +26,14 @@ import {
   resolveTraceContext,
   type TraceContext,
 } from "./telemetry";
+import { removeClient, subscribeToChannel } from "./websocket";
 
 const logger = createLogger("api-gateway");
 
 // Initialize Sentry error reporting & telemetry
 initTelemetry();
+
+const { upgradeWebSocket, websocket } = createBunWebSocket();
 
 type AppEnv = {
   Variables: {
@@ -187,6 +191,38 @@ app.get("/metrics", async (c) => {
   });
 });
 
+// 6b. Real-time WebSockets (Live Booking Alerts, Payment Confirmations & Tickets)
+app.get(
+  "/ws",
+  upgradeWebSocket((c) => {
+    return {
+      onOpen(_event, ws) {
+        const orgId = c.req.query("orgId") || c.req.header("x-organization-id");
+        if (orgId) {
+          subscribeToChannel(`org:${orgId}`, ws);
+        }
+        ws.send(JSON.stringify({ type: "connection.ack", timestamp: new Date().toISOString() }));
+      },
+      onMessage(event, ws) {
+        try {
+          const msg = JSON.parse(String(event.data));
+          if (msg.action === "subscribe" && msg.channel) {
+            subscribeToChannel(msg.channel, ws);
+            ws.send(JSON.stringify({ type: "subscription.ack", channel: msg.channel }));
+          } else if (msg.action === "ping") {
+            ws.send(JSON.stringify({ type: "pong", timestamp: new Date().toISOString() }));
+          }
+        } catch {
+          // ignore malformed payloads
+        }
+      },
+      onClose(_event, ws) {
+        removeClient(ws);
+      },
+    };
+  }),
+);
+
 // 7. OpenAPI 3.1 JSON Specification
 app.get("/api/openapi.json", (c) => {
   const doc = generateOpenApiDocument();
@@ -282,4 +318,5 @@ logger.info(`Omni Heaven API server running on port ${port}`);
 export default {
   port,
   fetch: app.fetch,
+  websocket,
 };

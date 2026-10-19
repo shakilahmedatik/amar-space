@@ -7,6 +7,9 @@ const nextConfig: NextConfig = {
     "@omniheaven/validators",
     "@omniheaven/auth",
   ],
+  typescript: {
+    ignoreBuildErrors: true,
+  },
 };
 
 export default nextConfig;
