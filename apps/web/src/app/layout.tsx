@@ -1,6 +1,6 @@
-import { PlausibleTracker } from "@omniheaven/ui";
+import { LanguageProvider, PlausibleTracker, ThemeProvider } from "@omniheaven/ui";
 import type { Metadata } from "next";
-import { Playfair_Display, Plus_Jakarta_Sans } from "next/font/google";
+import { Hind_Siliguri, Playfair_Display, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 
 const playfair = Playfair_Display({
@@ -12,6 +12,13 @@ const playfair = Playfair_Display({
 const plusJakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
   variable: "--font-sans",
+  display: "swap",
+});
+
+const hindSiliguri = Hind_Siliguri({
+  weight: ["300", "400", "500", "600", "700"],
+  subsets: ["bengali", "latin"],
+  variable: "--font-bangla",
   display: "swap",
 });
 
@@ -33,10 +40,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${playfair.variable} ${plusJakarta.variable}`}>
-      <body className="antialiased bg-[hsl(var(--canvas))] text-[hsl(var(--foreground))] selection:bg-primary/20 selection:text-foreground font-sans">
+    <html
+      lang="en"
+      suppressHydrationWarning
+      className={`${playfair.variable} ${plusJakarta.variable} ${hindSiliguri.variable}`}
+    >
+      <body className="antialiased bg-[hsl(var(--canvas))] text-[hsl(var(--foreground))] selection:bg-primary/20 selection:text-foreground font-sans transition-colors duration-200">
         <PlausibleTracker />
-        {children}
+        <ThemeProvider defaultTheme="light">
+          <LanguageProvider defaultLocale="en">{children}</LanguageProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

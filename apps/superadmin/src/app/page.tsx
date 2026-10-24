@@ -22,7 +22,7 @@ import {
   X,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { trpc } from "../lib/trpc";
 
 type Locale = "en" | "bn";
@@ -163,8 +163,7 @@ export default function SuperAdminHQPage() {
 
   const handleSignOut = async () => {
     await signOut();
-    router.push("/login");
-    router.refresh();
+    router.replace("/login");
   };
 
   const [locale, setLocale] = useState<Locale>("en");
@@ -256,8 +255,15 @@ export default function SuperAdminHQPage() {
     return target.maxUnits < changePlanOrg.currentUnits;
   }, [changePlanOrg, selectedPlanId, plans]);
 
-  // Loading state
-  if (sessionLoading) {
+  // Redirect unauthenticated visitors to login
+  useEffect(() => {
+    if (!sessionLoading && !session) {
+      router.replace("/login");
+    }
+  }, [sessionLoading, session, router]);
+
+  // Loading state or Unauthenticated redirecting
+  if (sessionLoading || !session) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[hsl(var(--canvas))] text-foreground">
         <div className="flex flex-col items-center gap-3">

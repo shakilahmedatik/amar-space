@@ -5,6 +5,7 @@ import { AuthLayout, Button, Input } from "@omniheaven/ui";
 import { AlertCircle, Eye, EyeOff, Loader2, Lock, Mail, ShieldAlert } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
+import { GuestGuard } from "@/components/guest-guard";
 
 function SuperAdminLoginForm() {
   const router = useRouter();
@@ -76,7 +77,7 @@ function SuperAdminLoginForm() {
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="admin@omniheaven.com"
+            placeholder="you@omniheaven.com"
             className="pl-9 text-xs h-10 font-mono"
             disabled={isLoading}
           />
@@ -134,7 +135,7 @@ function SuperAdminLoginForm() {
         )}
       </Button>
 
-      <div className="pt-2 text-center">
+      <div className="pt-1 text-center">
         <p className="text-[10px] text-foreground-muted uppercase tracking-wider font-medium">
           Confidential · Internal Systems Only
         </p>
@@ -145,20 +146,22 @@ function SuperAdminLoginForm() {
 
 export default function SuperAdminLoginPage() {
   return (
-    <AuthLayout
-      title="Platform HQ Command Center"
-      subtitle="Restricted access zone. Global SaaS tenant governance and platform telemetry."
-      badge="Root Governance · Level 5"
-    >
-      <Suspense
-        fallback={
-          <div className="h-48 flex items-center justify-center">
-            <Loader2 className="size-6 animate-spin text-primary" />
-          </div>
-        }
+    <GuestGuard>
+      <AuthLayout
+        title="Platform HQ Command Center"
+        subtitle="Restricted access zone. Global SaaS tenant governance and platform telemetry."
+        badge="Root Governance · Level 5"
       >
-        <SuperAdminLoginForm />
-      </Suspense>
-    </AuthLayout>
+        <Suspense
+          fallback={
+            <div className="h-48 flex items-center justify-center">
+              <Loader2 className="size-6 animate-spin text-primary" />
+            </div>
+          }
+        >
+          <SuperAdminLoginForm />
+        </Suspense>
+      </AuthLayout>
+    </GuestGuard>
   );
 }

@@ -17,6 +17,7 @@ import {
   TrendingUp,
   Wrench,
 } from "lucide-react";
+import { trpc } from "../lib/trpc";
 
 export function DashboardOverviewView({
   productType,
@@ -26,6 +27,54 @@ export function DashboardOverviewView({
   organizationName: string;
 }) {
   const isHospitality = productType === "hotel" || productType === "resort";
+
+  // Live tRPC queries
+  const { data: buildings = [] } = trpc.property.listBuildings.useQuery();
+  const { data: billsData } = trpc.billing.listBills.useQuery({ limit: 50 });
+  const { data: rooms = [] } = trpc.hotel.listRooms.useQuery(undefined, {
+    enabled: isHospitality,
+  });
+  const { data: bookings = [] } = trpc.hotel.listBookings.useQuery({}, { enabled: isHospitality });
+  const { data: maintenanceData } = trpc.operations.listMaintenanceRequests.useQuery(
+    { limit: 20 },
+    { enabled: !isHospitality },
+  );
+
+  // Compute live hospitality stats
+  const totalRooms = rooms.length;
+  const occupiedRooms = rooms.filter((r) => r.status === "occupied").length;
+  const vacantRooms = rooms.filter((r) => r.status === "available").length;
+  const cleaningRooms = rooms.filter((r) => r.status === "cleaning").length;
+  const hospitalityOccupancyRate =
+    totalRooms > 0 ? ((occupiedRooms / totalRooms) * 100).toFixed(1) : "0.0";
+
+  const todayArrivals = bookings.filter(
+    (b) => b.status === "confirmed" || b.status === "checked_in",
+  ).length;
+  const checkedInCount = bookings.filter((b) => b.status === "checked_in").length;
+  const dailyRevenue = bookings
+    .filter((b) => b.paymentStatus === "paid")
+    .reduce((sum, b) => sum + Number(b.totalPrice || 0) + Number(b.extraCharges || 0), 0);
+
+  // Compute live residential / estate stats
+  const totalUnits = buildings.reduce((acc, b) => acc + (b.stats?.totalFlats || 0), 0);
+  const occupiedUnits = buildings.reduce((acc, b) => acc + (b.stats?.occupiedFlats || 0), 0);
+  const vacantUnits = Math.max(0, totalUnits - occupiedUnits);
+  const estateOccupancyRate =
+    totalUnits > 0 ? ((occupiedUnits / totalUnits) * 100).toFixed(1) : "0.0";
+
+  const monthlyCollected = billsData?.metrics?.totalCollected || 0;
+  const settledBillsCount = (billsData?.bills || []).filter((b) => b.status === "paid").length;
+  const totalBillsCount = billsData?.bills?.length || 0;
+
+  const pendingDues = billsData?.metrics?.totalOutstanding || 0;
+  const overdueCount = (billsData?.bills || []).filter(
+    (b) => b.status === "overdue" || Number(b.balanceDue || 0) > 0,
+  ).length;
+
+  const openMaintenanceCount = (maintenanceData || []).filter(
+    (m) => m.status === "open" || m.status === "in_progress",
+  ).length;
 
   return (
     <div className="space-y-6">
@@ -114,56 +163,70 @@ export function DashboardOverviewView({
             </div>
             <div className="flex items-baseline justify-between">
               <span className="text-2xl font-bold text-foreground tabular-nums tracking-tight">
-                84.2%
+                {hospitalityOccupancyRate}%
               </span>
               <span className="text-xs font-semibold text-emerald-700 dark:text-emerald-400 flex items-center gap-0.5">
-                <TrendingUp className="size-3" /> +5.4%
+                <TrendingUp className="size-3" /> Live
               </span>
             </div>
             {/* Progress bar */}
             <div className="w-full bg-surface rounded-full h-1.5 overflow-hidden border border-border/50">
-              <div className="gold-gradient h-1.5 rounded-full" style={{ width: "84.2%" }} />
+              <div
+                className="gold-gradient h-1.5 rounded-full transition-all"
+                style={{
+                  width: `${Math.min(100, Math.max(0, Number(hospitalityOccupancyRate)))}%`,
+                }}
+              />
             </div>
             <p className="text-[11px] text-foreground-muted flex items-center justify-between">
-              <span>38 of 45 rooms occupied</span>
-              <span className="text-primary font-semibold">7 vacant</span>
+              <span>
+                {occupiedRooms} of {totalRooms} rooms occupied
+              </span>
+              <span className="text-primary font-semibold">{vacantRooms} vacant</span>
             </p>
           </Card>
 
           <Card variant="default" className="p-5 space-y-3">
             <div className="flex items-center justify-between text-foreground-muted">
               <span className="text-[11px] font-semibold uppercase tracking-wider">
-                Today's Arrivals
+                Active & Upcoming Arrivals
               </span>
               <CalendarCheck className="size-4 text-emerald-600 dark:text-emerald-400" />
             </div>
             <div className="flex items-baseline justify-between">
               <span className="text-2xl font-bold text-foreground tabular-nums tracking-tight">
-                12
+                {todayArrivals}
               </span>
-              <span className="text-xs text-foreground-muted">8 checked in</span>
+              <span className="text-xs text-foreground-muted">{checkedInCount} checked in</span>
             </div>
             <div className="w-full bg-surface rounded-full h-1.5 overflow-hidden border border-border/50">
-              <div className="bg-emerald-600 h-1.5 rounded-full" style={{ width: "66.6%" }} />
+              <div
+                className="bg-emerald-600 h-1.5 rounded-full transition-all"
+                style={{
+                  width: `${todayArrivals > 0 ? (checkedInCount / todayArrivals) * 100 : 0}%`,
+                }}
+              />
             </div>
-            <p className="text-[11px] text-foreground-muted">4 expected before 9:00 PM</p>
+            <p className="text-[11px] text-foreground-muted">
+              {Math.max(0, todayArrivals - checkedInCount)} expected arrivals
+            </p>
           </Card>
 
           <Card variant="default" className="p-5 space-y-3">
             <div className="flex items-center justify-between text-foreground-muted">
               <span className="text-[11px] font-semibold uppercase tracking-wider">
-                Daily Settled Revenue
+                Settled Booking Revenue
               </span>
               <DollarSign className="size-4 text-primary" />
             </div>
             <div className="flex items-baseline justify-between">
-              <CurrencyDisplay amount={92400} large />
+              <CurrencyDisplay amount={dailyRevenue} large />
               <span className="text-xs font-semibold text-emerald-700 dark:text-emerald-400 flex items-center gap-0.5">
-                <TrendingUp className="size-3" /> +8.2%
+                <TrendingUp className="size-3" /> Live
               </span>
             </div>
             <div className="w-full bg-surface rounded-full h-1.5 overflow-hidden border border-border/50">
-              <div className="gold-gradient h-1.5 rounded-full" style={{ width: "77%" }} />
+              <div className="gold-gradient h-1.5 rounded-full" style={{ width: "100%" }} />
             </div>
             <p className="text-[11px] text-foreground-muted">
               Direct website + front desk receipts
@@ -179,14 +242,19 @@ export function DashboardOverviewView({
             </div>
             <div className="flex items-baseline justify-between">
               <span className="text-2xl font-bold text-foreground tabular-nums tracking-tight">
-                5
+                {cleaningRooms}
               </span>
               <StatusBadge status="cleaning" />
             </div>
             <div className="w-full bg-surface rounded-full h-1.5 overflow-hidden border border-border/50">
-              <div className="bg-sky-500 h-1.5 rounded-full" style={{ width: "45%" }} />
+              <div
+                className="bg-sky-500 h-1.5 rounded-full transition-all"
+                style={{
+                  width: `${totalRooms > 0 ? (cleaningRooms / totalRooms) * 100 : 0}%`,
+                }}
+              />
             </div>
-            <p className="text-[11px] text-foreground-muted">Housekeeping actively assigned</p>
+            <p className="text-[11px] text-foreground-muted">Housekeeping turnover underway</p>
           </Card>
         </div>
       ) : (
@@ -201,32 +269,44 @@ export function DashboardOverviewView({
             </div>
             <div className="flex items-baseline justify-between">
               <span className="text-2xl font-bold text-foreground tabular-nums tracking-tight">
-                24
+                {totalUnits}
               </span>
               <span className="text-xs font-semibold text-emerald-700 dark:text-emerald-400">
-                22 Occupied
+                {occupiedUnits} Occupied ({estateOccupancyRate}%)
               </span>
             </div>
             <div className="w-full bg-surface rounded-full h-1.5 overflow-hidden border border-border/50">
-              <div className="gold-gradient h-1.5 rounded-full" style={{ width: "91.6%" }} />
+              <div
+                className="gold-gradient h-1.5 rounded-full transition-all"
+                style={{ width: `${Math.min(100, Math.max(0, Number(estateOccupancyRate)))}%` }}
+              />
             </div>
-            <p className="text-[11px] text-foreground-muted">2 vacant units available for lease</p>
+            <p className="text-[11px] text-foreground-muted">
+              {vacantUnits} vacant {vacantUnits === 1 ? "unit" : "units"} available for lease
+            </p>
           </Card>
 
           <Card variant="default" className="p-5 space-y-3">
             <div className="flex items-center justify-between text-foreground-muted">
               <span className="text-[11px] font-semibold uppercase tracking-wider">
-                Monthly Rent Collected
+                Rent & Dues Collected
               </span>
               <DollarSign className="size-4 text-primary" />
             </div>
             <div className="flex items-baseline justify-between">
-              <CurrencyDisplay amount={385000} large />
+              <CurrencyDisplay amount={monthlyCollected} large />
             </div>
             <div className="w-full bg-surface rounded-full h-1.5 overflow-hidden border border-border/50">
-              <div className="bg-emerald-600 h-1.5 rounded-full" style={{ width: "81.8%" }} />
+              <div
+                className="bg-emerald-600 h-1.5 rounded-full transition-all"
+                style={{
+                  width: `${totalBillsCount > 0 ? (settledBillsCount / totalBillsCount) * 100 : 0}%`,
+                }}
+              />
             </div>
-            <p className="text-[11px] text-foreground-muted">18 of 22 tenant contracts settled</p>
+            <p className="text-[11px] text-foreground-muted">
+              {settledBillsCount} of {totalBillsCount} resident invoices settled
+            </p>
           </Card>
 
           <Card variant="default" className="p-5 space-y-3">
@@ -237,14 +317,19 @@ export function DashboardOverviewView({
               <AlertCircle className="size-4 text-destructive" />
             </div>
             <div className="flex items-baseline justify-between">
-              <CurrencyDisplay amount={72000} large className="text-destructive font-bold" />
-              <StatusBadge status="overdue" />
+              <CurrencyDisplay amount={pendingDues} large className="text-destructive font-bold" />
+              <StatusBadge status={overdueCount > 0 ? "overdue" : "paid"} />
             </div>
             <div className="w-full bg-surface rounded-full h-1.5 overflow-hidden border border-border/50">
-              <div className="bg-destructive h-1.5 rounded-full" style={{ width: "18.2%" }} />
+              <div
+                className="bg-destructive h-1.5 rounded-full transition-all"
+                style={{
+                  width: `${totalBillsCount > 0 ? (overdueCount / totalBillsCount) * 100 : 0}%`,
+                }}
+              />
             </div>
             <p className="text-[11px] text-foreground-muted">
-              4 tenants with past-due payment cycles
+              {overdueCount} {overdueCount === 1 ? "invoice" : "invoices"} with outstanding balances
             </p>
           </Card>
 
@@ -257,14 +342,17 @@ export function DashboardOverviewView({
             </div>
             <div className="flex items-baseline justify-between">
               <span className="text-2xl font-bold text-foreground tabular-nums tracking-tight">
-                3
+                {openMaintenanceCount}
               </span>
-              <StatusBadge status="in_progress" />
+              <StatusBadge status={openMaintenanceCount > 0 ? "in_progress" : "paid"} />
             </div>
             <div className="w-full bg-surface rounded-full h-1.5 overflow-hidden border border-border/50">
-              <div className="bg-amber-500 h-1.5 rounded-full" style={{ width: "50%" }} />
+              <div
+                className="bg-amber-500 h-1.5 rounded-full transition-all"
+                style={{ width: `${openMaintenanceCount > 0 ? 50 : 0}%` }}
+              />
             </div>
-            <p className="text-[11px] text-foreground-muted">Plumbing & HVAC tickets assigned</p>
+            <p className="text-[11px] text-foreground-muted">Active maintenance & repair orders</p>
           </Card>
         </div>
       )}
@@ -274,10 +362,10 @@ export function DashboardOverviewView({
         <div className="flex items-center justify-between border-b border-border/60 pb-3">
           <div>
             <h2 className="font-display text-lg font-semibold tracking-tight text-foreground">
-              {isHospitality ? "Recent Guest Reservations & Stays" : "Recent Resident Collections"}
+              {isHospitality ? "Recent Guest Reservations & Stays" : "Recent Resident Invoices"}
             </h2>
             <p className="text-xs text-foreground-muted">
-              Live transaction ledger synchronized with mobile concierge and payment gateway
+              Live transaction ledger synchronized with property database
             </p>
           </div>
           <Button
@@ -294,91 +382,79 @@ export function DashboardOverviewView({
             <thead className="bg-surface/70 text-foreground-muted uppercase font-semibold text-[10px] tracking-wider border-b border-border">
               <tr>
                 <th className="px-4 py-3">{isHospitality ? "Guest Name" : "Renter / Flat"}</th>
-                <th className="px-4 py-3">{isHospitality ? "Room / Suite" : "Billing Period"}</th>
                 <th className="px-4 py-3">
-                  {isHospitality ? "Check-in / Check-out" : "Payment Method"}
+                  {isHospitality ? "Booking Reference" : "Billing Period"}
                 </th>
+                <th className="px-4 py-3">{isHospitality ? "Check-in / Check-out" : "Due Date"}</th>
                 <th className="px-4 py-3 text-right">Settled Amount</th>
                 <th className="px-4 py-3 text-center">Status</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border/60">
               {isHospitality ? (
-                <>
-                  <tr className="hover:bg-surface/50 transition-colors">
-                    <td className="px-4 py-3.5">
-                      <span className="font-semibold text-foreground block">Tanvir Chowdhury</span>
-                      <span className="text-[11px] text-foreground-muted font-normal">
-                        +880 1711-223344 · VIP Tier II
-                      </span>
-                    </td>
-                    <td className="px-4 py-3.5 text-foreground">Deluxe Ocean Suite (Room 304)</td>
-                    <td className="px-4 py-3.5 text-foreground-muted">
-                      Oct 17, 2026 – Oct 20, 2026
-                    </td>
-                    <td className="px-4 py-3.5 text-right font-bold text-foreground">
-                      <CurrencyDisplay amount={25500} />
-                    </td>
-                    <td className="px-4 py-3.5 text-center">
-                      <StatusBadge status="confirmed" />
-                    </td>
-                  </tr>
-                  <tr className="hover:bg-surface/50 transition-colors">
-                    <td className="px-4 py-3.5">
-                      <span className="font-semibold text-foreground block">Farhana Rahman</span>
-                      <span className="text-[11px] text-foreground-muted font-normal">
-                        +880 1819-887766 · Executive Steward
-                      </span>
-                    </td>
-                    <td className="px-4 py-3.5 text-foreground">Presidential Villa (Villa 02)</td>
-                    <td className="px-4 py-3.5 text-foreground-muted">
-                      Oct 18, 2026 – Oct 22, 2026
-                    </td>
-                    <td className="px-4 py-3.5 text-right font-bold text-foreground">
-                      <CurrencyDisplay amount={96000} />
-                    </td>
-                    <td className="px-4 py-3.5 text-center">
-                      <StatusBadge status="checked_in" />
+                bookings.length > 0 ? (
+                  bookings.slice(0, 5).map((booking) => (
+                    <tr key={booking.id} className="hover:bg-surface/50 transition-colors">
+                      <td className="px-4 py-3.5">
+                        <span className="font-semibold text-foreground block">
+                          {booking.guestName}
+                        </span>
+                        <span className="text-[11px] text-foreground-muted font-normal">
+                          {booking.guestPhone} · {booking.guestEmail}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3.5 font-mono text-foreground">
+                        {booking.bookingReference}
+                      </td>
+                      <td className="px-4 py-3.5 text-foreground-muted">
+                        {booking.checkInDate} – {booking.checkOutDate}
+                      </td>
+                      <td className="px-4 py-3.5 text-right font-bold text-foreground">
+                        <CurrencyDisplay
+                          amount={
+                            Number(booking.totalPrice || 0) + Number(booking.extraCharges || 0)
+                          }
+                        />
+                      </td>
+                      <td className="px-4 py-3.5 text-center">
+                        <StatusBadge status={booking.status} />
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={5} className="px-4 py-8 text-center text-foreground-muted">
+                      No hospitality reservations found yet.
                     </td>
                   </tr>
-                </>
+                )
+              ) : billsData?.bills && billsData.bills.length > 0 ? (
+                billsData.bills.slice(0, 5).map((bill) => (
+                  <tr key={bill.id} className="hover:bg-surface/50 transition-colors">
+                    <td className="px-4 py-3.5">
+                      <span className="font-semibold text-foreground block">
+                        {bill.contract?.renter?.fullName || "Resident"}
+                      </span>
+                      <span className="text-[11px] text-foreground-muted font-normal">
+                        Flat {bill.contract?.flat?.flatNumber || "N/A"}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3.5 text-foreground">{bill.billingMonth}</td>
+                    <td className="px-4 py-3.5 text-foreground-muted">{bill.dueDate}</td>
+                    <td className="px-4 py-3.5 text-right font-bold text-foreground">
+                      <CurrencyDisplay amount={Number(bill.amountPaid || bill.totalAmount || 0)} />
+                    </td>
+                    <td className="px-4 py-3.5 text-center">
+                      <StatusBadge status={bill.status} />
+                    </td>
+                  </tr>
+                ))
               ) : (
-                <>
-                  <tr className="hover:bg-surface/50 transition-colors">
-                    <td className="px-4 py-3.5">
-                      <span className="font-semibold text-foreground block">Shafiqul Islam</span>
-                      <span className="text-[11px] text-foreground-muted font-normal">
-                        Flat 4A · Lakeview Residence
-                      </span>
-                    </td>
-                    <td className="px-4 py-3.5 text-foreground">October 2026</td>
-                    <td className="px-4 py-3.5 text-foreground-muted">
-                      Oct 05, 2026 (bKash Corporate)
-                    </td>
-                    <td className="px-4 py-3.5 text-right font-bold text-foreground">
-                      <CurrencyDisplay amount={28500} />
-                    </td>
-                    <td className="px-4 py-3.5 text-center">
-                      <StatusBadge status="paid" />
-                    </td>
-                  </tr>
-                  <tr className="hover:bg-surface/50 transition-colors">
-                    <td className="px-4 py-3.5">
-                      <span className="font-semibold text-foreground block">Nazmul Hasan</span>
-                      <span className="text-[11px] text-foreground-muted font-normal">
-                        Flat 2B · Lakeview Residence
-                      </span>
-                    </td>
-                    <td className="px-4 py-3.5 text-foreground">October 2026</td>
-                    <td className="px-4 py-3.5 text-foreground-muted">Oct 08, 2026 (Bank Wire)</td>
-                    <td className="px-4 py-3.5 text-right font-bold text-foreground">
-                      <CurrencyDisplay amount={32000} />
-                    </td>
-                    <td className="px-4 py-3.5 text-center">
-                      <StatusBadge status="paid" />
-                    </td>
-                  </tr>
-                </>
+                <tr>
+                  <td colSpan={5} className="px-4 py-8 text-center text-foreground-muted">
+                    No billing transactions recorded yet.
+                  </td>
+                </tr>
               )}
             </tbody>
           </table>

@@ -123,6 +123,19 @@
     font-family: var(--font-display);
     letter-spacing: -0.015em;
   }
+
+  html.locale-bn,
+  html.locale-bn body {
+    font-family: var(--font-bangla), var(--font-sans), system-ui, sans-serif;
+  }
+
+  html.locale-bn h1,
+  html.locale-bn h2,
+  html.locale-bn h3,
+  html.locale-bn .font-display,
+  html.locale-bn .font-serif {
+    font-family: var(--font-bangla), var(--font-display), Georgia, serif;
+  }
 }
 
 /* =========================================================================

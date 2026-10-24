@@ -19,6 +19,7 @@ import * as hotelService from "../services/hotel.service";
 import {
   orgProtectedProcedure,
   publicProcedure,
+  publicRateLimitKey,
   requireRole,
   router,
   trpcRateLimit,
@@ -295,7 +296,7 @@ export const hotelRouter = router({
     .use(
       trpcRateLimit({
         config: RATE_LIMIT_PRESETS.PUBLIC_READ,
-        keyGenerator: (ctx) => `pub-search-${ctx.requestId}`,
+        keyGenerator: (ctx) => publicRateLimitKey(ctx, "pub-search"),
       }),
     )
     .input(searchAvailabilitySchema)
@@ -315,7 +316,7 @@ export const hotelRouter = router({
     .use(
       trpcRateLimit({
         config: RATE_LIMIT_PRESETS.PUBLIC_READ,
-        keyGenerator: (ctx) => `pub-booking-${ctx.requestId}`,
+        keyGenerator: (ctx) => publicRateLimitKey(ctx, "pub-booking"),
       }),
     )
     .input(publicCreateBookingSchema)

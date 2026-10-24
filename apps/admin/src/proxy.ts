@@ -1,11 +1,10 @@
+import { getSessionCookie } from "@omniheaven/auth/cookies";
 import { type NextRequest, NextResponse } from "next/server";
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
 
-  const sessionCookie =
-    request.cookies.get("better-auth.session_token") ||
-    request.cookies.get("__Secure-better-auth.session_token");
+  const sessionCookie = getSessionCookie(request);
 
   const isAuthRoute =
     pathname.startsWith("/login") ||
@@ -28,16 +27,11 @@ export function middleware(request: NextRequest) {
   return NextResponse.next();
 }
 
+// Keep middleware export for backwards compatibility
+export const middleware = proxy;
+
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except for:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - public assets / images (svg, png, jpg, etc.)
-     * - api routes
-     */
     "/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };

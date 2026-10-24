@@ -137,7 +137,17 @@ app.use(
       return null;
     },
     credentials: true,
-    allowHeaders: ["Content-Type", "Authorization", "x-request-id", "x-organization-id"],
+    allowHeaders: [
+      "Content-Type",
+      "Authorization",
+      "x-request-id",
+      "x-organization-id",
+      "x-trace-id",
+      "traceparent",
+      "trpc-accept",
+      "x-trpc-source",
+      "x-portal-token",
+    ],
     allowMethods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
   }),
 );
@@ -334,6 +344,22 @@ app.use(
   }),
 );
 
+// 9b. Production Auth Rate Limiter (Brute-force credential abuse protection)
+if (env.NODE_ENV === "production") {
+  app.use(
+    "/api/auth/sign-in/*",
+    createHonoRateLimiter({
+      config: RATE_LIMIT_PRESETS.AUTH_SENSITIVE,
+    }),
+  );
+  app.use(
+    "/api/auth/sign-up/*",
+    createHonoRateLimiter({
+      config: RATE_LIMIT_PRESETS.AUTH_SENSITIVE,
+    }),
+  );
+}
+
 // 10. Mount Better Auth
 app.all("/api/auth/*", (c) => auth.handler(c.req.raw));
 
@@ -350,12 +376,24 @@ app.use(
       const organizationId =
         c.req.header("x-organization-id") || session?.session?.activeOrganizationId || null;
 
+      // Best-effort client IP used to key public rate limits. Only trust
+      // forwarded headers when the API is behind the Cloudflare tunnel /
+      // reverse proxy that overwrites them.
+      const forwardedFor = c.req.header("x-forwarded-for");
+      const clientIp =
+        forwardedFor?.split(",")[0]?.trim() ||
+        c.req.header("x-real-ip") ||
+        c.req.header("cf-connecting-ip") ||
+        "unknown";
+
       return {
         db,
         session,
         organizationId,
         requestId: c.get("requestId"),
         traceId: c.get("traceContext")?.traceId,
+        clientIp,
+        portalToken: c.req.header("x-portal-token") ?? null,
       };
     },
   }),

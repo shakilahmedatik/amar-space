@@ -8,10 +8,11 @@ services:
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-omniheaven}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-omniheaven_secret_pass}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set (no default is shipped)}
       POSTGRES_DB: ${POSTGRES_DB:-omniheaven_prod}
     ports:
-      - "5432:5432"
+      # Loopback only: never expose the database to the LAN/host network.
+      - "127.0.0.1:5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -31,7 +32,7 @@ services:
     restart: unless-stopped
     command: valkey-server --save 60 1 --loglevel warning
     ports:
-      - "6379:6379"
+      - "127.0.0.1:6379:6379"
     volumes:
       - valkey_data:/data
     healthcheck:
@@ -51,8 +52,8 @@ services:
     restart: unless-stopped
     command: "server -s3 -dir=/data -s3.port=8333 -s3.allowEmptyFolder=false"
     ports:
-      - "8333:8333" # S3 Endpoint API
-      - "9333:9333" # Master Status / Filer
+      - "127.0.0.1:8333:8333" # S3 Endpoint API
+      - "127.0.0.1:9333:9333" # Master Status / Filer
     volumes:
       - seaweedfs_data:/data
     networks:
@@ -70,16 +71,19 @@ services:
     environment:
       PORT: 4000
       NODE_ENV: production
-      DATABASE_URL: postgresql://${POSTGRES_USER:-omniheaven}:${POSTGRES_PASSWORD:-omniheaven_secret_pass}@postgres:5432/${POSTGRES_DB:-omniheaven_prod}
-      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:-omniheaven_auth_secret_key_32chars_min}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-omniheaven}:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}@postgres:5432/${POSTGRES_DB:-omniheaven_prod}
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:?BETTER_AUTH_SECRET must be set (min 16 chars)}
       BETTER_AUTH_URL: ${BETTER_AUTH_URL:-http://localhost:4000}
+      AUTH_URL: ${AUTH_URL:-http://localhost:3000}
+      AUTH_TRUSTED_ORIGINS: ${AUTH_TRUSTED_ORIGINS:-http://localhost:3000,http://localhost:3001,http://localhost:3002,http://localhost:3003,http://localhost:3004}
+      COOKIE_DOMAIN: ${COOKIE_DOMAIN:-}
       REDIS_URL: ${REDIS_URL:-redis://valkey:6379}
       S3_ENDPOINT: http://seaweedfs:8333
       S3_BUCKET: omniheaven-assets
       PAYSTATION_MERCHANT_ID: ${PAYSTATION_MERCHANT_ID:-}
       PAYSTATION_API_KEY: ${PAYSTATION_API_KEY:-}
     ports:
-      - "4000:4000"
+      - "127.0.0.1:4000:4000"
     depends_on:
       postgres:
         condition: service_healthy
@@ -97,14 +101,20 @@ services:
       dockerfile: docker/Dockerfile.nextjs
       args:
         APP_NAME: admin
+        # Baked into the client bundle at build time.
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:?NEXT_PUBLIC_API_URL must be set for production builds}
     container_name: omniheaven-admin
     restart: unless-stopped
     environment:
       PORT: 3000
       NODE_ENV: production
-      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:4000}
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:?NEXT_PUBLIC_API_URL must be set for production builds}
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:?BETTER_AUTH_SECRET must be set}
+      BETTER_AUTH_URL: ${BETTER_AUTH_URL:-http://localhost:4000}
+      AUTH_TRUSTED_ORIGINS: ${AUTH_TRUSTED_ORIGINS:-http://localhost:3000,http://localhost:3001,http://localhost:3002,http://localhost:3003,http://localhost:3004}
+      COOKIE_DOMAIN: ${COOKIE_DOMAIN:-}
     ports:
-      - "3000:3000"
+      - "127.0.0.1:3000:3000"
     depends_on:
       - api
     networks:
@@ -119,14 +129,17 @@ services:
       dockerfile: docker/Dockerfile.nextjs
       args:
         APP_NAME: hotel-resort-web
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:?NEXT_PUBLIC_API_URL must be set for production builds}
     container_name: omniheaven-hotel-resort-web
     restart: unless-stopped
     environment:
       PORT: 3003
       NODE_ENV: production
-      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:4000}
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:?NEXT_PUBLIC_API_URL must be set for production builds}
+      # Rendered server-side: the public site reads organization/website data.
+      DATABASE_URL: postgresql://${POSTGRES_USER:-omniheaven}:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}@postgres:5432/${POSTGRES_DB:-omniheaven_prod}
     ports:
-      - "3003:3003"
+      - "127.0.0.1:3003:3003"
     depends_on:
       - api
     networks:
@@ -141,14 +154,15 @@ services:
       dockerfile: docker/Dockerfile.nextjs
       args:
         APP_NAME: renter-portal
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:?NEXT_PUBLIC_API_URL must be set for production builds}
     container_name: omniheaven-renter-portal
     restart: unless-stopped
     environment:
       PORT: 3002
       NODE_ENV: production
-      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:4000}
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:?NEXT_PUBLIC_API_URL must be set for production builds}
     ports:
-      - "3002:3002"
+      - "127.0.0.1:3002:3002"
     depends_on:
       - api
     networks:
@@ -163,14 +177,19 @@ services:
       dockerfile: docker/Dockerfile.nextjs
       args:
         APP_NAME: superadmin
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:?NEXT_PUBLIC_API_URL must be set for production builds}
     container_name: omniheaven-superadmin
     restart: unless-stopped
     environment:
       PORT: 3001
       NODE_ENV: production
-      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:4000}
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:?NEXT_PUBLIC_API_URL must be set for production builds}
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:?BETTER_AUTH_SECRET must be set}
+      BETTER_AUTH_URL: ${BETTER_AUTH_URL:-http://localhost:4000}
+      AUTH_TRUSTED_ORIGINS: ${AUTH_TRUSTED_ORIGINS:-http://localhost:3000,http://localhost:3001,http://localhost:3002,http://localhost:3003,http://localhost:3004}
+      COOKIE_DOMAIN: ${COOKIE_DOMAIN:-}
     ports:
-      - "3001:3001"
+      - "127.0.0.1:3001:3001"
     depends_on:
       - api
     networks:
@@ -185,13 +204,15 @@ services:
       dockerfile: docker/Dockerfile.nextjs
       args:
         APP_NAME: web
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:?NEXT_PUBLIC_API_URL must be set for production builds}
     container_name: omniheaven-web
     restart: unless-stopped
     environment:
       PORT: 3004
       NODE_ENV: production
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:?NEXT_PUBLIC_API_URL must be set for production builds}
     ports:
-      - "3004:3004"
+      - "127.0.0.1:3004:3004"
     networks:
       - omniheaven-net
 
@@ -224,7 +245,7 @@ services:
       - ./docker/loki/loki-config.yml:/etc/loki/local-config.yaml:ro
       - loki_data:/tmp/loki
     ports:
-      - "3100:3100"
+      - "127.0.0.1:3100:3100"
     networks:
       - omniheaven-net
     profiles:
@@ -258,7 +279,7 @@ services:
       - ./docker/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - prometheus_data:/prometheus
     ports:
-      - "9090:9090"
+      - "127.0.0.1:9090:9090"
     depends_on:
       - api
     networks:
@@ -275,9 +296,9 @@ services:
       - ./docker/tempo/tempo.yml:/etc/tempo.yml:ro
       - tempo_data:/tmp/tempo
     ports:
-      - "3200:3200" # Tempo HTTP
-      - "4317:4317" # OTLP gRPC
-      - "4318:4318" # OTLP HTTP
+      - "127.0.0.1:3200:3200" # Tempo HTTP
+      - "127.0.0.1:4317:4317" # OTLP gRPC
+      - "127.0.0.1:4318:4318" # OTLP HTTP
     networks:
       - omniheaven-net
     profiles:
@@ -289,7 +310,7 @@ services:
     restart: unless-stopped
     environment:
       GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
-      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-omniheaven_grafana_pass}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?GRAFANA_ADMIN_PASSWORD must be set}
       GF_USERS_ALLOW_SIGN_UP: false
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
       TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID:-}
@@ -300,7 +321,7 @@ services:
       - ./docker/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro
       - ./docker/grafana/dashboards:/var/lib/grafana/dashboards:ro
     ports:
-      - "3105:3000" # Mapped to 3105 to avoid collision with admin dashboard on port 3000
+      - "127.0.0.1:3105:3000" # Mapped to 3105 to avoid collision with admin dashboard on port 3000
     depends_on:
       - prometheus
       - loki
@@ -320,7 +341,7 @@ services:
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${PLAUSIBLE_DB_USER:-plausible}
-      POSTGRES_PASSWORD: ${PLAUSIBLE_DB_PASSWORD:-plausible_secret_pass}
+      POSTGRES_PASSWORD: ${PLAUSIBLE_DB_PASSWORD:?PLAUSIBLE_DB_PASSWORD must be set}
       POSTGRES_DB: ${PLAUSIBLE_DB_NAME:-plausible}
     volumes:
       - plausible_db_data:/var/lib/postgresql/data
@@ -359,11 +380,11 @@ services:
       - plausible_events_db
     environment:
       BASE_URL: ${PLAUSIBLE_BASE_URL:-http://localhost:8000}
-      SECRET_KEY_BASE: ${PLAUSIBLE_SECRET_KEY_BASE:-omniheaven_random_secret_key_base_64_chars_min_for_plausible_prod}
-      DATABASE_URL: postgresql://${PLAUSIBLE_DB_USER:-plausible}:${PLAUSIBLE_DB_PASSWORD:-plausible_secret_pass}@plausible_db:5432/${PLAUSIBLE_DB_NAME:-plausible}
+      SECRET_KEY_BASE: ${PLAUSIBLE_SECRET_KEY_BASE:?PLAUSIBLE_SECRET_KEY_BASE must be set}
+      DATABASE_URL: postgresql://${PLAUSIBLE_DB_USER:-plausible}:${PLAUSIBLE_DB_PASSWORD:?PLAUSIBLE_DB_PASSWORD must be set}@plausible_db:5432/${PLAUSIBLE_DB_NAME:-plausible}
       CLICKHOUSE_DATABASE_URL: http://default:@plausible_events_db:8123/plausible_events_db
     ports:
-      - "8000:8000"
+      - "127.0.0.1:8000:8000"
     networks:
       - omniheaven-net
     profiles:

@@ -131,19 +131,20 @@ export function TenantPaymentModal({
         {/* Success Screen */}
         {successPayment ? (
           <div className="py-6 text-center space-y-4">
-            <div className="size-16 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 mx-auto flex items-center justify-center shadow-lg animate-in zoom-in duration-300">
+            <div className="size-16 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 mx-auto flex items-center justify-center shadow-lg animate-in zoom-in duration-300">
               <CheckCircle2 className="size-10" />
             </div>
             <div>
               <h4 className="text-lg font-serif font-bold text-foreground">
-                Payment Successfully Settled!
+                Payment Submitted for Verification
               </h4>
               <p className="text-xs text-foreground-muted mt-1">
-                Your payment of{" "}
-                <span className="font-bold text-emerald-600 dark:text-emerald-400">
+                Your payment claim of{" "}
+                <span className="font-bold text-foreground">
                   ৳{amountToPay.toLocaleString("en-BD")}
                 </span>{" "}
-                has been recorded and verified.
+                has been received. Your bill will update once the property team verifies the
+                transaction.
               </p>
             </div>
 
@@ -170,9 +171,9 @@ export function TenantPaymentModal({
                 <span className="text-foreground-muted">Status:</span>
                 <Badge
                   variant="outline"
-                  className="text-[10px] bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 font-semibold"
+                  className="text-[10px] bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30 font-semibold"
                 >
-                  Completed & Verified
+                  Awaiting Verification
                 </Badge>
               </div>
             </div>

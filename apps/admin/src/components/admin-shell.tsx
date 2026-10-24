@@ -35,8 +35,7 @@ export function AdminShell({ initialLocale }: AdminShellProps) {
 
   const handleSignOut = async () => {
     await signOut();
-    router.push("/login");
-    router.refresh();
+    router.replace("/login");
   };
 
   const handleResendVerification = async () => {

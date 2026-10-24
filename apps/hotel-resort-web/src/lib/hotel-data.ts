@@ -1,4 +1,5 @@
-import type { HotelWebsiteData } from "../types/hotel-website";
+import { db, eq, schema } from "@omniheaven/db";
+import type { HotelRoomTypeView, HotelWebsiteData } from "../types/hotel-website";
 
 export const DEFAULT_HOTEL_DATA: HotelWebsiteData = {
   id: "org-grand-haven",
@@ -310,35 +311,94 @@ export const DEFAULT_HOTEL_DATA: HotelWebsiteData = {
 };
 
 export async function getHotelWebsiteData(slugOrDomain: string): Promise<HotelWebsiteData> {
-  // If slug is provided and matches or demo mode, return enhanced data
-  // In production, this can also query the database:
-  // const tenant = await db.query.organizations.findFirst(...)
-  // const websiteConfig = await db.query.websiteConfigs.findFirst(...)
-  // For resilience, always fallback to full styled mock data
-  const data = structuredClone(DEFAULT_HOTEL_DATA);
+  const cleanSlug = slugOrDomain.replace(/^www\./, "").split(".")[0] || "grand-haven";
 
-  // If a specific slug is requested (e.g. "coastal-breeze", "boutique-stay")
+  try {
+    const org = await db.query.organizations.findFirst({
+      where: eq(schema.organizations.slug, cleanSlug),
+    });
+
+    if (org) {
+      const config = await db.query.websiteConfigs.findFirst({
+        where: eq(schema.websiteConfigs.organizationId, org.id),
+      });
+
+      const dbRoomTypes = await db.query.roomTypes.findMany({
+        where: eq(schema.roomTypes.organizationId, org.id),
+      });
+
+      // Map dynamic room types from database
+      const roomTypesData: HotelRoomTypeView[] =
+        dbRoomTypes.length > 0
+          ? dbRoomTypes.map((rt) => ({
+              id: rt.id,
+              name: rt.name,
+              description: rt.description || "",
+              basePrice: Number(rt.basePrice || "7500"),
+              capacityAdults: rt.capacityAdults ?? 2,
+              capacityChildren: rt.capacityChildren ?? 1,
+              bedType: (rt.bedType as "single" | "double" | "queen" | "king" | "twin") || "king",
+              bedCount: rt.bedCount ?? 1,
+              sizeSqFt: rt.sizeSqFt ? Number(rt.sizeSqFt) : 550,
+              amenities: Array.isArray(rt.amenities)
+                ? (rt.amenities as string[])
+                : ["WiFi", "Air Conditioning", "Ensuite Bathroom"],
+              photos:
+                Array.isArray(rt.photos) && rt.photos.length > 0
+                  ? (rt.photos as string[])
+                  : [
+                      "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=1200&q=80",
+                    ],
+              tag: Number(rt.basePrice || 0) > 10000 ? "Exclusive Suite" : "Popular Choice",
+              availableRoomCount: 3,
+            }))
+          : DEFAULT_HOTEL_DATA.roomTypes;
+
+      const dynamicData: HotelWebsiteData = {
+        ...DEFAULT_HOTEL_DATA,
+        id: org.id,
+        name: org.name,
+        slug: org.slug,
+        productType: (org.productType as "hotel" | "resort") || "hotel",
+        contactPhone: org.contactPhone || DEFAULT_HOTEL_DATA.contactPhone,
+        contactEmail: org.contactEmail || DEFAULT_HOTEL_DATA.contactEmail,
+        address: org.address || DEFAULT_HOTEL_DATA.address,
+        roomTypes: roomTypesData,
+        builderConfig: config
+          ? {
+              themeSlug: (config.themeSlug as any) || "classic-luxury",
+              brand: {
+                ...DEFAULT_HOTEL_DATA.builderConfig.brand,
+                ...(config.brand as any),
+              },
+              hero: {
+                ...DEFAULT_HOTEL_DATA.builderConfig.hero,
+                ...(config.hero as any),
+              },
+              enabledSections:
+                (config.enabledSections as any) || DEFAULT_HOTEL_DATA.builderConfig.enabledSections,
+              sectionOrder:
+                (config.sectionOrder as any) || DEFAULT_HOTEL_DATA.builderConfig.sectionOrder,
+            }
+          : DEFAULT_HOTEL_DATA.builderConfig,
+      };
+
+      return dynamicData;
+    }
+  } catch (err) {
+    console.warn("Failed to query live hotel data from database, falling back to default:", err);
+  }
+
+  // Fallback if not found in DB
+  const data = structuredClone(DEFAULT_HOTEL_DATA);
   if (slugOrDomain.includes("coastal")) {
     data.name = "Coastal Breeze Tropical Resort";
     data.slug = "coastal-breeze";
     data.builderConfig.themeSlug = "coastal-resort";
-    data.builderConfig.brand.primaryColor = "#0284c7";
-    data.builderConfig.brand.accentColor = "#f97316";
-    data.builderConfig.brand.fontFamily = "Outfit";
   } else if (slugOrDomain.includes("minimal") || slugOrDomain.includes("modern")) {
     data.name = "The Urban Minimal Boutique Hotel";
     data.slug = "urban-minimal";
     data.builderConfig.themeSlug = "modern-minimal";
-    data.builderConfig.brand.primaryColor = "#18181b";
-    data.builderConfig.brand.accentColor = "#10b981";
-    data.builderConfig.brand.fontFamily = "Plus Jakarta Sans";
-  } else if (slugOrDomain.includes("boutique") || slugOrDomain.includes("haven")) {
-    data.name = "Boutique Heritage Haven";
-    data.slug = "boutique-haven";
-    data.builderConfig.themeSlug = "boutique-haven";
-    data.builderConfig.brand.primaryColor = "#78350f";
-    data.builderConfig.brand.accentColor = "#c2410c";
-    data.builderConfig.brand.fontFamily = "Playfair Display";
   }
 
   return data;

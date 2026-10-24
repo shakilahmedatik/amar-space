@@ -1,5 +1,6 @@
 import { describe, expect, it } from "bun:test";
 import { appRouter } from "../routers/app";
+import { issuePortalToken } from "../services/portal-auth.service";
 
 describe("Domain 05: Maintenance & Operations tRPC Procedures", () => {
   const orgId = "org-operations-test";
@@ -533,31 +534,30 @@ describe("Domain 05: Maintenance & Operations tRPC Procedures", () => {
     expect(notices[1]?.title).toBe("Water Tank Cleaning Notice");
   });
 
-  it("createPortalMaintenanceRequest creates a ticket without login using flatSlug", async () => {
+  it("createPortalMaintenanceRequest creates a ticket with a valid flat-scoped portal token", async () => {
     let portalTicket: any = null;
+    const token = issuePortalToken({ flatId, organizationId: orgId }).token;
 
     const mockDb = {
       query: {
         flats: {
-          findMany: async () => [
-            {
-              id: flatId,
-              flatNumber: "1A",
-              organizationId: orgId,
-              buildingId,
-              rentalContracts: [
-                {
-                  id: "contract-1",
-                  status: "active",
-                  renter: {
-                    id: "renter-1",
-                    fullName: "Farhana Yasmin",
-                    userId: "user-1",
-                  },
+          findFirst: async () => ({
+            id: flatId,
+            flatNumber: "1A",
+            organizationId: orgId,
+            buildingId,
+            rentalContracts: [
+              {
+                id: "contract-1",
+                status: "active",
+                renter: {
+                  id: "renter-1",
+                  fullName: "Farhana Yasmin",
+                  userId: "user-1",
                 },
-              ],
-            },
-          ],
+              },
+            ],
+          }),
         },
       },
       insert: () => ({
@@ -575,10 +575,10 @@ describe("Domain 05: Maintenance & Operations tRPC Procedures", () => {
       session: null,
       organizationId: null,
       requestId: "req-portal-ticket",
+      portalToken: token,
     });
 
     const ticket = await caller.operations.createPortalMaintenanceRequest({
-      flatSlug: "flat-1a",
       category: "plumbing",
       title: "Water leaking from kitchen sink pipe",
       description: "Severe water leakage observed under kitchen counter.",
@@ -597,19 +597,12 @@ describe("Domain 05: Maintenance & Operations tRPC Procedures", () => {
     expect(portalTicket.priority).toBe("urgent");
   });
 
-  it("createPortalMaintenanceRequest throws FLAT_NOT_FOUND when access key does not match any flat", async () => {
+  it("createPortalMaintenanceRequest rejects a token that does not resolve to a flat", async () => {
+    const token = issuePortalToken({ flatId: "flat-missing", organizationId: orgId }).token;
     const mockDb = {
       query: {
         flats: {
-          findMany: async () => [
-            {
-              id: flatId,
-              flatNumber: "1A",
-              organizationId: orgId,
-              buildingId,
-              rentalContracts: [],
-            },
-          ],
+          findFirst: async () => undefined,
         },
       },
     };
@@ -619,11 +612,11 @@ describe("Domain 05: Maintenance & Operations tRPC Procedures", () => {
       session: null,
       organizationId: null,
       requestId: "req-portal-ticket-notfound",
+      portalToken: token,
     });
 
     try {
       await caller.operations.createPortalMaintenanceRequest({
-        flatSlug: "nonexistent-flat-99z",
         category: "plumbing",
         title: "Test",
         description: "Test description",
@@ -633,7 +626,7 @@ describe("Domain 05: Maintenance & Operations tRPC Procedures", () => {
       expect(true).toBe(false);
     } catch (err: any) {
       expect(err.code).toBe("NOT_FOUND");
-      expect(err.message).toBe("No flat found matching the access key");
+      expect(err.message).toBe("Portal session is not linked to a valid flat");
     }
   });
 });

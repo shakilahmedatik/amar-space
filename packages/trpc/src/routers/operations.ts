@@ -1,3 +1,4 @@
+import { RATE_LIMIT_PRESETS } from "@omniheaven/rate-limit";
 import {
   assignStaffSchema,
   createMaintenanceRequestSchema,
@@ -13,10 +14,12 @@ import { z } from "zod";
 import * as operationsService from "../services/operations.service";
 import {
   orgProtectedProcedure,
+  portalProcedure,
   protectedProcedure,
-  publicProcedure,
+  publicRateLimitKey,
   requireRole,
   router,
+  trpcRateLimit,
 } from "../trpc";
 
 export const operationsRouter = router({
@@ -306,19 +309,24 @@ export const operationsRouter = router({
       return operationsService.getMyNotices(ctx.db, ctx.user.id);
     }),
 
-  // 15. Renter Portal: Create Maintenance Request without Login (Flat-Scoped)
-  createPortalMaintenanceRequest: publicProcedure
+  // 15. Renter Portal: Create Maintenance Request (flat-scoped portal token required)
+  createPortalMaintenanceRequest: portalProcedure
     .meta({
       openapi: {
         method: "POST",
         path: "/v1/portal/maintenance/create",
         tags: ["Tenant Portal"],
-        summary: "Submit maintenance request from tenant portal using flat slug",
+        summary: "Submit maintenance request from the authenticated resident portal",
       },
     })
+    .use(
+      trpcRateLimit({
+        config: RATE_LIMIT_PRESETS.MUTATIONS_STANDARD,
+        keyGenerator: (ctx) => publicRateLimitKey(ctx, "portal-maint"),
+      }),
+    )
     .input(
       z.object({
-        flatSlug: z.string().min(1),
         category: maintenanceCategoryEnum.default("general"),
         title: z
           .string()
@@ -335,6 +343,6 @@ export const operationsRouter = router({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      return operationsService.createPortalMaintenanceRequest(ctx.db, input);
+      return operationsService.createPortalMaintenanceRequest(ctx.db, ctx.portal, input);
     }),
 });

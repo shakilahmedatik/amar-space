@@ -1,27 +1,41 @@
 "use client";
 
 import { Badge, Button, Card, Input } from "@omniheaven/ui";
-import { ArrowRight, KeyRound, ShieldCheck } from "lucide-react";
+import { ArrowRight, KeyRound, Loader2, ShieldCheck } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { setPortalSession } from "../lib/portal-session";
+import { trpc } from "../lib/trpc";
 
 export default function RenterPortalHomePage() {
   const router = useRouter();
+  const [flatNumber, setFlatNumber] = useState("");
   const [accessCode, setAccessCode] = useState("");
   const [error, setError] = useState("");
 
+  const authenticate = trpc.billing.portalAuthenticate.useMutation({
+    onSuccess: (session) => {
+      setPortalSession(session.token, session.flatNumber);
+      router.push(`/flat-${encodeURIComponent(session.flatNumber.toLowerCase())}`);
+    },
+    onError: (err) => {
+      setError(err.message || "Invalid flat number or access code.");
+    },
+  });
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!accessCode.trim()) {
-      setError("Please enter your flat access code or phone number");
+    setError("");
+
+    if (!flatNumber.trim() || !accessCode.trim()) {
+      setError("Please enter both your flat number and access code.");
       return;
     }
-    // Route dynamically to entered flat slug
-    const cleanCode = accessCode
-      .trim()
-      .toLowerCase()
-      .replace(/^flat-/, "");
-    router.push(`/flat-${cleanCode}`);
+
+    authenticate.mutate({
+      flatSlug: flatNumber.trim(),
+      accessCode: accessCode.trim(),
+    });
   };
 
   return (
@@ -39,8 +53,8 @@ export default function RenterPortalHomePage() {
             OmniHeaven Resident Folio
           </h1>
           <p className="text-sm text-foreground-muted max-w-sm mx-auto">
-            Enter your flat access key or registered phone number to access your self-service
-            concierge & billing hub.
+            Enter your flat number and the access code provided by your residence manager to open
+            your self-service concierge & billing hub.
           </p>
         </div>
 
@@ -48,23 +62,47 @@ export default function RenterPortalHomePage() {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label
+                htmlFor="flat-number"
+                className="text-xs font-bold text-foreground block mb-1.5 uppercase tracking-wider"
+              >
+                Flat / Unit Number
+              </label>
+              <Input
+                id="flat-number"
+                type="text"
+                autoComplete="off"
+                placeholder="e.g. 1A or Suite-201"
+                value={flatNumber}
+                onChange={(e) => {
+                  setFlatNumber(e.target.value);
+                  setError("");
+                }}
+                className="text-sm bg-surface border-border-gold/40 text-foreground placeholder:text-foreground-muted focus:border-primary focus:ring-primary/20"
+                disabled={authenticate.isPending}
+              />
+            </div>
+
+            <div>
+              <label
                 htmlFor="access-code"
                 className="text-xs font-bold text-foreground block mb-1.5 uppercase tracking-wider"
               >
-                Residence Key or Contact Phone
+                Resident Access Code
               </label>
               <div className="relative">
                 <KeyRound className="size-4 absolute left-3 top-1/2 -translate-y-1/2 text-foreground-muted" />
                 <Input
                   id="access-code"
-                  type="text"
-                  placeholder="e.g. FLAT-4A-9821 or 017..."
+                  type="password"
+                  autoComplete="off"
+                  placeholder="Provided by your property manager"
                   value={accessCode}
                   onChange={(e) => {
                     setAccessCode(e.target.value);
                     setError("");
                   }}
                   className="pl-9 text-sm bg-surface border-border-gold/40 text-foreground placeholder:text-foreground-muted focus:border-primary focus:ring-primary/20"
+                  disabled={authenticate.isPending}
                 />
               </div>
               {error && <p className="text-xs text-rose-500 mt-1.5">{error}</p>}
@@ -73,10 +111,20 @@ export default function RenterPortalHomePage() {
             <Button
               type="submit"
               variant="luxury"
+              disabled={authenticate.isPending}
               className="w-full font-semibold flex items-center justify-center gap-2 py-3 shadow-lg shadow-primary/10"
             >
-              Access Resident Folio
-              <ArrowRight className="size-4" />
+              {authenticate.isPending ? (
+                <>
+                  <Loader2 className="size-4 animate-spin" />
+                  Verifying Access...
+                </>
+              ) : (
+                <>
+                  Access Resident Folio
+                  <ArrowRight className="size-4" />
+                </>
+              )}
             </Button>
           </form>
 
@@ -90,7 +138,7 @@ export default function RenterPortalHomePage() {
             </Badge>
             <p className="text-xs text-foreground-muted">
               Need access? Contact your residence manager or concierge desk for your flat access
-              key.
+              code.
             </p>
           </div>
         </Card>

@@ -1,5 +1,8 @@
-import { describe, expect, it } from "bun:test";
+import { describe, expect, it, spyOn } from "bun:test";
+import * as email from "@omniheaven/email";
 import { appRouter } from "../routers/app";
+
+spyOn(email, "sendEmail").mockImplementation(async () => {});
 
 describe("Domain 01: Organization tRPC Procedures & Security", () => {
   it("rejects unauthenticated requests to protectedProcedure (listMyOrganizations)", async () => {

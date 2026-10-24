@@ -1,19 +1,26 @@
+import { RATE_LIMIT_PRESETS } from "@omniheaven/rate-limit";
 import {
   applyAdvanceAdjustmentSchema,
   billStatusEnum,
   generateMonthlyBillsSchema,
   payBillSchema,
+  portalAuthSchema,
   recordPaymentSchema,
   updateBillUtilitiesSchema,
+  verifyPaymentSchema,
 } from "@omniheaven/validators";
 import { z } from "zod";
 import * as billingService from "../services/billing.service";
+import { authenticatePortal } from "../services/portal-auth.service";
 import {
   orgProtectedProcedure,
+  portalProcedure,
   protectedProcedure,
   publicProcedure,
+  publicRateLimitKey,
   requireRole,
   router,
+  trpcRateLimit,
 } from "../trpc";
 
 export const billingRouter = router({
@@ -212,33 +219,85 @@ export const billingRouter = router({
       return billingService.payMyBill(ctx.db, { id: ctx.user.id, email: ctx.user.email }, input);
     }),
 
-  // 12. Flat Portal: Pay Bill by Access Link / QR Code (Public / Flat-scoped)
-  payPortalBill: publicProcedure
+  // 12. Flat Portal: Exchange flat identifier + access code for a scoped token
+  portalAuthenticate: publicProcedure
+    .meta({
+      openapi: {
+        method: "POST",
+        path: "/v1/public/portal/authenticate",
+        tags: ["Public Portal"],
+        summary: "Exchange flat identifier and access code for a scoped portal token",
+      },
+    })
+    .use(
+      trpcRateLimit({
+        config: RATE_LIMIT_PRESETS.AUTH_SENSITIVE,
+        keyGenerator: (ctx) => publicRateLimitKey(ctx, "portal-auth"),
+      }),
+    )
+    .input(portalAuthSchema)
+    .mutation(async ({ ctx, input }) => {
+      return authenticatePortal(ctx.db, input.flatSlug, input.accessCode);
+    }),
+
+  // 13. Flat Portal: Pay Bill by Access Link / QR Code (Flat-scoped)
+  payPortalBill: portalProcedure
     .meta({
       openapi: {
         method: "POST",
         path: "/v1/public/portal/bills/pay",
         tags: ["Public Portal"],
-        summary: "Pay bill via direct QR / public link",
+        summary: "Submit a bill payment claim for staff verification",
       },
     })
+    .use(
+      trpcRateLimit({
+        config: RATE_LIMIT_PRESETS.MUTATIONS_STANDARD,
+        keyGenerator: (ctx) => publicRateLimitKey(ctx, "portal-pay"),
+      }),
+    )
     .input(payBillSchema)
     .mutation(async ({ ctx, input }) => {
-      return billingService.payPortalBill(ctx.db, input);
+      return billingService.payPortalBill(ctx.db, ctx.portal, input);
     }),
 
-  // 13. Flat Portal: Get complete billing, lease, and building metadata by flat slug or identifier
-  getPortalFlatBilling: publicProcedure
+  // 14. Flat Portal: Get billing, lease and building metadata for the scoped flat
+  getPortalFlatBilling: portalProcedure
     .meta({
       openapi: {
         method: "GET",
-        path: "/v1/public/portal/flats/{flatSlug}/billing",
+        path: "/v1/public/portal/billing",
         tags: ["Public Portal"],
-        summary: "Get public flat billing and building metadata",
+        summary: "Get billing, lease and building metadata for the authenticated portal flat",
       },
     })
-    .input(z.object({ flatSlug: z.string().min(1) }))
-    .query(async ({ ctx, input }) => {
-      return billingService.getPortalFlatBilling(ctx.db, input.flatSlug);
+    .use(
+      trpcRateLimit({
+        config: RATE_LIMIT_PRESETS.PUBLIC_READ,
+        keyGenerator: (ctx) => publicRateLimitKey(ctx, "portal-billing"),
+      }),
+    )
+    .query(async ({ ctx }) => {
+      return billingService.getPortalFlatBilling(ctx.db, ctx.portal);
+    }),
+
+  // 15. Staff: Approve or reject a pending self-service payment claim
+  verifyPayment: requireRole(["owner", "admin", "manager"])
+    .meta({
+      openapi: {
+        method: "POST",
+        path: "/v1/billing/payments/{paymentId}/verify",
+        tags: ["Billing"],
+        summary: "Approve or reject a pending payment before it affects the bill",
+      },
+    })
+    .input(verifyPaymentSchema)
+    .mutation(async ({ ctx, input }) => {
+      return billingService.verifyPayment(
+        ctx.db,
+        ctx.organizationId,
+        { id: ctx.user.id, email: ctx.user.email },
+        input,
+      );
     }),
 });

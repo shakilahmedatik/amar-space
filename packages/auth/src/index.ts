@@ -66,6 +66,10 @@ export const auth = betterAuth({
         type: "string",
         required: false,
         defaultValue: "user",
+        // Never accept this from the client. Role elevation is a server-only
+        // operation (seed/bootstrap scripts); otherwise any sign-up request
+        // could grant itself platform superadmin.
+        input: false,
       },
     },
   },

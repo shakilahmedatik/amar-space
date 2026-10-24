@@ -14,6 +14,7 @@ import type {
 } from "@omniheaven/validators";
 import type { z } from "zod";
 import { recordAuditLog } from "./audit.service";
+import type { PortalScope } from "./portal-auth.service";
 
 export type CreateMaintenanceRequestInput = z.infer<typeof createMaintenanceRequestSchema>;
 export type AssignStaffInput = z.infer<typeof assignStaffSchema>;
@@ -720,8 +721,8 @@ export async function getMyNotices(db: Database, userId: string) {
  */
 export async function createPortalMaintenanceRequest(
   db: Database,
+  scope: PortalScope,
   input: {
-    flatSlug: string;
     category: z.infer<typeof maintenanceCategoryEnum>;
     title: string;
     description: string;
@@ -729,12 +730,11 @@ export async function createPortalMaintenanceRequest(
     photoUrls: string[];
   },
 ) {
-  const normalized = input.flatSlug
-    .toLowerCase()
-    .replace(/^flat-/, "")
-    .toUpperCase();
-
-  const allFlats = await db.query.flats.findMany({
+  const targetFlat = await db.query.flats.findFirst({
+    where: and(
+      eq(schema.flats.id, scope.flatId),
+      eq(schema.flats.organizationId, scope.organizationId),
+    ),
     with: {
       rentalContracts: {
         where: inArray(schema.rentalContracts.status, ["active", "notice_period"]),
@@ -746,16 +746,8 @@ export async function createPortalMaintenanceRequest(
     },
   });
 
-  const targetFlat = allFlats.find(
-    (f) =>
-      f.id === input.flatSlug ||
-      f.flatNumber.toUpperCase() === normalized ||
-      f.flatNumber.toUpperCase() === input.flatSlug.toUpperCase() ||
-      `flat-${f.flatNumber.toLowerCase()}` === input.flatSlug.toLowerCase(),
-  );
-
   if (!targetFlat) {
-    throwDomainError(ErrorCode.FLAT_NOT_FOUND, "No flat found matching the access key");
+    throwDomainError(ErrorCode.FLAT_NOT_FOUND, "Portal session is not linked to a valid flat");
   }
 
   const activeContract = targetFlat.rentalContracts[0] ?? null;

@@ -4,6 +4,7 @@ import { ErrorCode, throwDomainError } from "@omniheaven/errors";
 import { defaultLimiter, type RateLimitConfig } from "@omniheaven/rate-limit";
 import { initTRPC, TRPCError } from "@trpc/server";
 import { ZodError } from "zod";
+import { type PortalScope, verifyPortalToken } from "./services/portal-auth.service";
 
 export interface TRPCContext {
   db: Database;
@@ -11,6 +12,10 @@ export interface TRPCContext {
   organizationId?: string | null;
   requestId: string;
   traceId?: string;
+  /** Best-effort client IP, resolved from trusted proxy headers in the API. */
+  clientIp?: string | null;
+  /** Raw scoped token presented by the public resident portal. */
+  portalToken?: string | null;
 }
 
 export interface AuthenticatedContext extends TRPCContext {
@@ -23,6 +28,10 @@ export interface OrganizationContext extends AuthenticatedContext {
   organization: typeof schema.organizations.$inferSelect | null;
   role: OrganizationRole;
   membership: typeof schema.members.$inferSelect;
+}
+
+export interface PortalContext extends TRPCContext {
+  portal: PortalScope;
 }
 
 export interface OpenApiMeta {
@@ -150,6 +159,23 @@ export const superadminProcedure = protectedProcedure.use(async ({ ctx, next }) 
 // Backward-compatible alias
 export const tenantProcedure = orgProtectedProcedure;
 
+// Public resident portal: requires a valid, flat-scoped signed token.
+// This is intentionally NOT authentication — it only proves knowledge of the
+// flat's access code and never grants access to any other tenant.
+export const portalProcedure = publicProcedure.use(({ ctx, next }) => {
+  const portal = verifyPortalToken(ctx.portalToken);
+  return next({ ctx: { ...ctx, portal } });
+});
+
+/**
+ * Stable rate-limit key for unauthenticated endpoints.
+ * `requestId` is unique per request, so using it as the key silently disables
+ * throttling entirely. Key on the client IP + route scope instead.
+ */
+export function publicRateLimitKey(ctx: Pick<TRPCContext, "clientIp">, scope: string): string {
+  return `${scope}:${ctx.clientIp || "unknown"}`;
+}
+
 // Middleware restricting procedure to specific roles
 export const requireRole = (allowedRoles: OrganizationRole[]) =>
   orgProtectedProcedure.use(({ ctx, next }) => {
@@ -168,10 +194,9 @@ export interface TRPCRateLimitOptions<TContext> {
 }
 
 // Procedural rate limit middleware
-export const trpcRateLimit = <TContext extends object = OrganizationContext>(
-  options: TRPCRateLimitOptions<TContext>,
-) =>
-  t.middleware(async ({ ctx, next }) => {
+export const trpcRateLimit =
+  <TContext extends object = OrganizationContext>(options: TRPCRateLimitOptions<TContext>) =>
+  async ({ ctx, next }: { ctx: any; next: (opts?: any) => Promise<any> }) => {
     const rawKey = options.keyGenerator(ctx as unknown as TContext);
     const result = await defaultLimiter.check(rawKey, options.config);
 
@@ -191,4 +216,4 @@ export const trpcRateLimit = <TContext extends object = OrganizationContext>(
     }
 
     return next();
-  });
+  };

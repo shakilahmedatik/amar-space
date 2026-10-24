@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { httpBatchLink } from "@trpc/client";
 import type React from "react";
 import { useState } from "react";
+import { getPortalToken } from "../lib/portal-session";
 import { trpc } from "../lib/trpc";
 
 export function RenterTRPCProvider({ children }: { children: React.ReactNode }) {
@@ -24,6 +25,10 @@ export function RenterTRPCProvider({ children }: { children: React.ReactNode }) 
       links: [
         httpBatchLink({
           url: `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"}/trpc`,
+          headers() {
+            const token = getPortalToken();
+            return token ? { "x-portal-token": token } : {};
+          },
           fetch(url, options) {
             return fetch(url, {
               ...options,

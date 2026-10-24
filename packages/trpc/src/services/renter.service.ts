@@ -1,3 +1,4 @@
+import { randomBytes } from "node:crypto";
 import type { Database } from "@omniheaven/db";
 import { and, desc, eq, ilike, inArray, or, schema, sql } from "@omniheaven/db";
 import { ErrorCode, throwDomainError } from "@omniheaven/errors";
@@ -21,6 +22,21 @@ export type TerminateContractInput = z.infer<typeof terminateContractSchema>;
 export interface ServiceActor {
   id: string;
   email: string;
+}
+
+/**
+ * Human-readable but high-entropy portal access code (e.g. "K7M2Q-9X4TR").
+ * Ambiguous characters (0/O, 1/I) are excluded so it can be read over a phone.
+ */
+export function generatePortalAccessCode(): string {
+  const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  const bytes = randomBytes(10);
+  let code = "";
+  for (let index = 0; index < 10; index += 1) {
+    const byte = bytes[index] ?? 0;
+    code += alphabet[byte % alphabet.length];
+  }
+  return `${code.slice(0, 5)}-${code.slice(5)}`;
 }
 
 /**
@@ -145,6 +161,7 @@ export async function createRenter(
       nidFrontPhoto: input.nidFrontPhoto ?? null,
       nidBackPhoto: input.nidBackPhoto ?? null,
       digitalSignatureUrl: input.digitalSignatureUrl ?? null,
+      accessCode: generatePortalAccessCode(),
       createdAt: now,
       updatedAt: now,
     })

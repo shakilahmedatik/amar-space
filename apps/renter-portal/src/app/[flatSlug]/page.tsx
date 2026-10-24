@@ -15,11 +15,13 @@ import {
   ShieldCheck,
   Wrench,
 } from "lucide-react";
-import { use, useState } from "react";
+import { useRouter } from "next/navigation";
+import { use, useEffect, useState } from "react";
 import { TenantLeaseModal } from "../../components/tenant-lease-modal";
 import { TenantPaymentModal } from "../../components/tenant-payment-modal";
 import { TenantReceiptModal } from "../../components/tenant-receipt-modal";
 import { TenantReportProblemModal } from "../../components/tenant-report-problem-modal";
+import { clearPortalSession, getPortalToken } from "../../lib/portal-session";
 import { trpc } from "../../lib/trpc";
 
 interface PageProps {
@@ -29,6 +31,18 @@ interface PageProps {
 export default function FlatPortalDashboardPage({ params }: PageProps) {
   const resolvedParams = use(params);
   const flatSlug = resolvedParams?.flatSlug || "flat-1a";
+  const router = useRouter();
+
+  // The dashboard is only rendered once a flat-scoped portal token exists.
+  const [portalToken, setPortalToken] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!getPortalToken()) {
+      router.replace("/");
+      return;
+    }
+    setPortalToken(getPortalToken());
+  }, [router]);
 
   const [activeTab, setActiveTab] = useState<
     "lease" | "bills" | "maintenance" | "notices" | "contacts"
@@ -41,10 +55,22 @@ export default function FlatPortalDashboardPage({ params }: PageProps) {
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [paymentSuccessNotice, setPaymentSuccessNotice] = useState<string | null>(null);
 
-  // tRPC Queries
-  const { data: portalData, refetch: refetchBilling } = trpc.billing.getPortalFlatBilling.useQuery({
-    flatSlug,
+  // tRPC Queries (token is attached by the provider as x-portal-token)
+  const {
+    data: portalData,
+    refetch: refetchBilling,
+    error: portalError,
+  } = trpc.billing.getPortalFlatBilling.useQuery(undefined, {
+    enabled: Boolean(portalToken),
+    retry: false,
   });
+
+  useEffect(() => {
+    if (portalError?.data?.code === "UNAUTHORIZED") {
+      clearPortalSession();
+      router.replace("/");
+    }
+  }, [portalError, router]);
 
   const myTickets = portalData?.maintenanceRequests ?? [];
 

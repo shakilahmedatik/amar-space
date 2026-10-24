@@ -110,7 +110,6 @@ export function TenantReportProblemModal({
 
     if (flatSlug) {
       createPortalTicketMutation.mutate({
-        flatSlug,
         category: category as any,
         priority: isUrgent ? "urgent" : "medium",
         title: title.trim(),

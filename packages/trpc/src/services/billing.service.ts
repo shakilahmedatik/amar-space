@@ -11,14 +11,17 @@ import {
   type recordPaymentSchema,
   type updateBillUtilitiesSchema,
   validateDepositAdjustmentSafety,
+  type verifyPaymentSchema,
 } from "@omniheaven/validators";
 import type { z } from "zod";
 import { recordAuditLog } from "./audit.service";
+import type { PortalScope } from "./portal-auth.service";
 
 export type GenerateMonthlyBillsInput = z.infer<typeof generateMonthlyBillsSchema>;
 export type UpdateBillUtilitiesInput = z.infer<typeof updateBillUtilitiesSchema>;
 export type ApplyAdvanceAdjustmentInput = z.infer<typeof applyAdvanceAdjustmentSchema>;
 export type RecordPaymentInput = z.infer<typeof recordPaymentSchema>;
+export type VerifyPaymentInput = z.infer<typeof verifyPaymentSchema>;
 export type PayBillInput = z.infer<typeof payBillSchema>;
 
 export interface ServiceActor {
@@ -750,18 +753,6 @@ export async function payMyBill(
       throwDomainError(ErrorCode.PAYMENT_EXCEEDS_BALANCE);
     }
 
-    const currentPaid = parseFloat(bill.amountPaid || "0.00");
-    const newPaid = (currentPaid + input.amount).toFixed(2);
-    const totalAmount = parseFloat(bill.totalAmount);
-    const advanceAdjusted = parseFloat(bill.advanceAdjustedAmount || "0.00");
-    const newBalanceDue = Math.max(
-      0,
-      Math.round((totalAmount - advanceAdjusted - parseFloat(newPaid)) * 100) / 100,
-    ).toFixed(2);
-
-    const newStatus = parseFloat(newBalanceDue) <= 0 ? "paid" : "partially_paid";
-    const paidAt = parseFloat(newBalanceDue) <= 0 ? new Date() : bill.paidAt;
-
     const dateCode = new Date().toISOString().slice(0, 10).replace(/-/g, "");
     const randCode = Math.floor(1000 + Math.random() * 9000).toString();
     const receiptNumber = `REC-${dateCode}-${randCode}`;
@@ -779,22 +770,11 @@ export async function payMyBill(
         paymentDate: new Date().toISOString().slice(0, 10),
         receiptNumber,
         receivedBy: user.id,
-        status: "completed",
+        status: "pending",
         note:
-          input.note || `Digital ${input.paymentMethod.toUpperCase()} payment via Renter Portal`,
+          input.note ||
+          `Digital ${input.paymentMethod.toUpperCase()} payment via Renter Portal (awaiting staff verification)`,
       })
-      .returning();
-
-    const [updatedBill] = await tx
-      .update(schema.bills)
-      .set({
-        amountPaid: newPaid,
-        balanceDue: newBalanceDue,
-        status: newStatus,
-        paidAt,
-        updatedAt: new Date(),
-      })
-      .where(eq(schema.bills.id, input.billId))
       .returning();
 
     await recordAuditLog({
@@ -802,7 +782,7 @@ export async function payMyBill(
       organizationId: bill.organizationId,
       actorId: user.id,
       actorEmail: user.email,
-      action: "PAYMENT_RECORDED",
+      action: "PAYMENT_SUBMITTED",
       entityType: "payment",
       entityId: paymentId,
       details: {
@@ -811,14 +791,16 @@ export async function payMyBill(
         paymentMethod: input.paymentMethod,
         transactionId: input.transactionId,
         receiptNumber,
-        newBalanceDue: parseFloat(newBalanceDue),
-        status: newStatus,
+        status: "pending",
       },
     });
 
+    // Do not touch the bill here. A self-service payment is a claim, not a
+    // settlement: staff must verify the transaction before any balance moves.
     return {
       payment,
-      updatedBill,
+      updatedBill: bill,
+      requiresVerification: true,
     };
   });
 }
@@ -826,7 +808,7 @@ export async function payMyBill(
 /**
  * 12. Flat Portal: Pay Bill by Access Link / QR Code (Public / Flat-scoped)
  */
-export async function payPortalBill(db: Database, input: PayBillInput) {
+export async function payPortalBill(db: Database, scope: PortalScope, input: PayBillInput) {
   return await db.transaction(async (tx) => {
     const bill = await tx.query.bills.findFirst({
       where: eq(schema.bills.id, input.billId),
@@ -844,6 +826,12 @@ export async function payPortalBill(db: Database, input: PayBillInput) {
       throwDomainError(ErrorCode.BILL_NOT_FOUND);
     }
 
+    // The bill must belong to the flat proven by the portal token. Without
+    // this, any visitor could pay/modify another tenant's bill by id.
+    if (bill.organizationId !== scope.organizationId || bill.contract.flatId !== scope.flatId) {
+      throwDomainError(ErrorCode.UNAUTHORIZED_BILL_ACCESS);
+    }
+
     const balanceDue = parseFloat(bill.balanceDue);
     if (balanceDue <= 0) {
       throwDomainError(ErrorCode.BILL_ALREADY_PAID);
@@ -852,20 +840,6 @@ export async function payPortalBill(db: Database, input: PayBillInput) {
     if (input.amount > balanceDue) {
       throwDomainError(ErrorCode.PAYMENT_EXCEEDS_BALANCE);
     }
-
-    const currentPaid = parseFloat(bill.amountPaid || "0.00");
-    const newPaid = (currentPaid + input.amount).toFixed(2);
-    const totalAmount = parseFloat(bill.totalAmount);
-    const advanceAdjusted = parseFloat(bill.advanceAdjustedAmount || "0.00");
-    const newBalanceDue = Math.max(
-      0,
-      Math.round((totalAmount - advanceAdjusted - parseFloat(newPaid)) * 100) / 100,
-    ).toFixed(2);
-
-    // For unauthenticated portal payments awaiting manual staff verification:
-    // Do NOT mark the bill as fully "paid" until staff verifies the transaction.
-    const newStatus: BillStatus = "partially_paid";
-    const paidAt = bill.paidAt;
 
     const dateCode = new Date().toISOString().slice(0, 10).replace(/-/g, "");
     const randCode = Math.floor(1000 + Math.random() * 9000).toString();
@@ -887,41 +861,51 @@ export async function payPortalBill(db: Database, input: PayBillInput) {
         transactionId: input.transactionId,
         paymentDate: new Date().toISOString().slice(0, 10),
         receiptNumber,
-        receivedBy: bill.contract.renter.userId || "portal-system",
+        receivedBy: bill.contract.renter.userId ?? null,
         status: "pending",
         note: paymentNote,
       })
       .returning();
 
-    const [updatedBill] = await tx
-      .update(schema.bills)
-      .set({
-        amountPaid: newPaid,
-        balanceDue: newBalanceDue,
-        status: newStatus,
-        paidAt,
-        updatedAt: new Date(),
-      })
-      .where(eq(schema.bills.id, input.billId))
-      .returning();
+    await recordAuditLog({
+      db: tx,
+      organizationId: bill.organizationId,
+      actorId: bill.contract.renter.userId || "portal-system",
+      actorEmail: "portal@omniheaven.local",
+      action: "PAYMENT_SUBMITTED",
+      entityType: "payment",
+      entityId: paymentId,
+      details: {
+        billId: bill.id,
+        amount: input.amount,
+        paymentMethod: input.paymentMethod,
+        transactionId: input.transactionId,
+        receiptNumber,
+        status: "pending",
+        source: "portal",
+      },
+    });
 
+    // The bill is deliberately left untouched until staff verifies the
+    // transaction, so an unverified claim can never reduce the balance due.
     return {
       payment,
-      updatedBill,
+      updatedBill: bill,
+      requiresVerification: true,
     };
   });
 }
 
 /**
- * 13. Flat Portal: Get complete billing, lease, and building metadata by flat slug or identifier
+ * 13. Flat Portal: Get billing, lease and building metadata for the flat proven
+ * by the portal token. Never resolves by flat number alone.
  */
-export async function getPortalFlatBilling(db: Database, flatSlug: string) {
-  const normalized = flatSlug
-    .toLowerCase()
-    .replace(/^flat-/, "")
-    .toUpperCase();
-
-  const allFlats = await db.query.flats.findMany({
+export async function getPortalFlatBilling(db: Database, scope: PortalScope) {
+  const targetFlat = await db.query.flats.findFirst({
+    where: and(
+      eq(schema.flats.id, scope.flatId),
+      eq(schema.flats.organizationId, scope.organizationId),
+    ),
     with: {
       building: {
         with: {
@@ -949,19 +933,8 @@ export async function getPortalFlatBilling(db: Database, flatSlug: string) {
     },
   });
 
-  const targetFlat = allFlats.find(
-    (f) =>
-      f.id === flatSlug ||
-      f.flatNumber.toUpperCase() === normalized ||
-      f.flatNumber.toUpperCase() === flatSlug.toUpperCase() ||
-      `flat-${f.flatNumber.toLowerCase()}` === flatSlug.toLowerCase(),
-  );
-
   if (!targetFlat) {
-    throwDomainError(
-      ErrorCode.FLAT_NOT_FOUND,
-      "No flat found matching the provided identifier",
-    );
+    throwDomainError(ErrorCode.FLAT_NOT_FOUND, "Portal session is not linked to a valid flat");
   }
 
   const activeContract = targetFlat.rentalContracts[0] ?? null;
@@ -982,6 +955,7 @@ export async function getPortalFlatBilling(db: Database, flatSlug: string) {
     orderBy: [desc(schema.maintenanceRequests.createdAt)],
   });
 
+  // Never echo the access code back to the client.
   return {
     flat: {
       id: targetFlat.id,
@@ -998,24 +972,179 @@ export async function getPortalFlatBilling(db: Database, flatSlug: string) {
     },
     building: targetFlat.building,
     contract: activeContract
-      ? {
-          id: activeContract.id,
-          status: activeContract.status,
-          startDate: activeContract.startDate,
-          endDate: activeContract.endDate,
-          monthlyRent: activeContract.monthlyRent,
-          serviceCharge: activeContract.serviceCharge,
-          advanceDepositAmount:
-            activeContract.advanceAmount || activeContract.securityDepositAmount,
-          remainingDepositBalance: activeContract.remainingDepositBalance,
-          noticePeriodDays: activeContract.noticePeriodDays,
-          signedContractUrl: activeContract.contractDocumentUrl,
-          renter: activeContract.renter,
-        }
+      ? (() => {
+          const { accessCode: _accessCode, ...renter } = activeContract.renter;
+          return {
+            id: activeContract.id,
+            status: activeContract.status,
+            startDate: activeContract.startDate,
+            endDate: activeContract.endDate,
+            monthlyRent: activeContract.monthlyRent,
+            serviceCharge: activeContract.serviceCharge,
+            advanceDepositAmount:
+              activeContract.advanceAmount || activeContract.securityDepositAmount,
+            remainingDepositBalance: activeContract.remainingDepositBalance,
+            noticePeriodDays: activeContract.noticePeriodDays,
+            signedContractUrl: activeContract.contractDocumentUrl,
+            renter,
+          };
+        })()
       : null,
     bills,
     emergencyContacts: targetFlat.building?.emergencyContacts ?? [],
     notices,
     maintenanceRequests,
   };
+}
+
+/**
+ * 14. Staff verification of a self-service payment claim.
+ * Only this path may move money from "pending" to "completed" and adjust the
+ * bill, which prevents residents from settling their own invoices.
+ */
+export async function verifyPayment(
+  db: Database,
+  orgId: string,
+  actor: ServiceActor,
+  input: VerifyPaymentInput,
+) {
+  return await db.transaction(async (tx) => {
+    const payment = await tx.query.payments.findFirst({
+      where: and(
+        eq(schema.payments.id, input.paymentId),
+        eq(schema.payments.organizationId, orgId),
+      ),
+      with: { bill: true },
+    });
+
+    if (!payment) {
+      throwDomainError(ErrorCode.BILL_NOT_FOUND, "Payment not found");
+    }
+
+    if (!payment.bill) {
+      throwDomainError(ErrorCode.BILL_NOT_FOUND, "Payment is not linked to a bill");
+    }
+
+    const billIdForPayment = payment.bill.id;
+
+    if (payment.status !== "pending") {
+      throwDomainError(
+        ErrorCode.PAYMENT_NOT_PENDING,
+        `Payment is already ${payment.status} and cannot be verified again`,
+      );
+    }
+
+    if (input.decision === "reject") {
+      const [rejected] = await tx
+        .update(schema.payments)
+        .set({
+          status: "failed",
+          note: input.note
+            ? `${payment.note ?? ""} · Rejected: ${input.note}`.trim()
+            : payment.note,
+        })
+        // Conditional on `pending` so a concurrent approval/rejection cannot
+        // both succeed on the same payment row.
+        .where(and(eq(schema.payments.id, payment.id), eq(schema.payments.status, "pending")))
+        .returning();
+
+      if (!rejected) {
+        throwDomainError(
+          ErrorCode.PAYMENT_NOT_PENDING,
+          "Payment was already processed by another user",
+        );
+      }
+
+      await recordAuditLog({
+        db: tx,
+        organizationId: orgId,
+        actorId: actor.id,
+        actorEmail: actor.email,
+        action: "PAYMENT_REJECTED",
+        entityType: "payment",
+        entityId: payment.id,
+        details: {
+          billId: payment.billId,
+          amount: payment.amount,
+          transactionId: payment.transactionId,
+          note: input.note ?? null,
+        },
+      });
+
+      return { payment: rejected, updatedBill: payment.bill };
+    }
+
+    // Lock the bill row for the duration of the transaction so two different
+    // pending payments approved at the same time cannot overwrite each other's
+    // balance update.
+    const [bill] = await tx
+      .select()
+      .from(schema.bills)
+      .where(and(eq(schema.bills.id, billIdForPayment), eq(schema.bills.organizationId, orgId)))
+      .for("update");
+
+    if (!bill) {
+      throwDomainError(ErrorCode.BILL_NOT_FOUND, "Payment is not linked to a valid bill");
+    }
+
+    const [completed] = await tx
+      .update(schema.payments)
+      .set({
+        status: "completed",
+        note: input.note ? `${payment.note ?? ""} · Verified: ${input.note}`.trim() : payment.note,
+      })
+      // Conditional on `pending`: a second concurrent approval returns no row
+      // and aborts before the bill is credited twice.
+      .where(and(eq(schema.payments.id, payment.id), eq(schema.payments.status, "pending")))
+      .returning();
+
+    if (!completed) {
+      throwDomainError(
+        ErrorCode.PAYMENT_NOT_PENDING,
+        "Payment was already processed by another user",
+      );
+    }
+
+    const currentPaid = parseFloat(bill.amountPaid || "0.00");
+    const newPaid = (currentPaid + parseFloat(payment.amount)).toFixed(2);
+    const totalAmount = parseFloat(bill.totalAmount);
+    const advanceAdjusted = parseFloat(bill.advanceAdjustedAmount || "0.00");
+    const newBalanceDue = Math.max(
+      0,
+      Math.round((totalAmount - advanceAdjusted - parseFloat(newPaid)) * 100) / 100,
+    ).toFixed(2);
+    const newStatus: BillStatus = parseFloat(newBalanceDue) <= 0 ? "paid" : "partially_paid";
+    const paidAt = parseFloat(newBalanceDue) <= 0 ? new Date() : bill.paidAt;
+
+    const [updatedBill] = await tx
+      .update(schema.bills)
+      .set({
+        amountPaid: newPaid,
+        balanceDue: newBalanceDue,
+        status: newStatus,
+        paidAt,
+        updatedAt: new Date(),
+      })
+      .where(and(eq(schema.bills.id, bill.id), eq(schema.bills.organizationId, orgId)))
+      .returning();
+
+    await recordAuditLog({
+      db: tx,
+      organizationId: orgId,
+      actorId: actor.id,
+      actorEmail: actor.email,
+      action: "PAYMENT_VERIFIED",
+      entityType: "payment",
+      entityId: payment.id,
+      details: {
+        billId: payment.billId,
+        amount: payment.amount,
+        transactionId: payment.transactionId,
+        newBalanceDue: parseFloat(newBalanceDue),
+        status: newStatus,
+      },
+    });
+
+    return { payment: completed, updatedBill };
+  });
 }

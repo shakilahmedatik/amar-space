@@ -162,6 +162,28 @@ services:
     profiles:
       - tunnel
 
+  # =========================================================================
+  # 6. DATABASE SEED: Idempotent Dev User & Schema Provisioning
+  # =========================================================================
+  db_seed:
+    image: oven/bun:1.4
+    container_name: omniheaven-db-seed-dev
+    working_dir: /app
+    volumes:
+      - .:/app
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-omniheaven}:${POSTGRES_PASSWORD:-omniheaven_secret_pass}@postgres:5432/${POSTGRES_DB:-omniheaven_prod}
+      NODE_ENV: development
+      SEED_DEFAULT_PASSWORD: ${SEED_DEFAULT_PASSWORD:-Password123!}
+      SUPERADMIN_DEFAULT_PASSWORD: ${SUPERADMIN_DEFAULT_PASSWORD:-Password123!}
+    command: sh -c "bun run packages/db/src/migrate.ts && bun run packages/db/src/seed.ts"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - omniheaven-dev-net
+    restart: "no"
+
 networks:
   omniheaven-dev-net:
     driver: bridge

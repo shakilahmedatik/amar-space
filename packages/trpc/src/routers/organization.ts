@@ -14,6 +14,7 @@ import {
   orgProtectedProcedure,
   protectedProcedure,
   publicProcedure,
+  publicRateLimitKey,
   requireRole,
   router,
   tenantProcedure,
@@ -50,6 +51,12 @@ export const organizationRouter = router({
         summary: "Public organization profile lookup by slug",
       },
     })
+    .use(
+      trpcRateLimit({
+        config: RATE_LIMIT_PRESETS.PUBLIC_READ,
+        keyGenerator: (ctx) => publicRateLimitKey(ctx, "pub-slug"),
+      }),
+    )
     .input(z.object({ slug: z.string().min(1) }))
     .query(async ({ ctx, input }) => {
       return organizationService.getBySlug(ctx.db, input.slug);
@@ -65,6 +72,12 @@ export const organizationRouter = router({
         summary: "Check if an organization slug is available",
       },
     })
+    .use(
+      trpcRateLimit({
+        config: RATE_LIMIT_PRESETS.PUBLIC_READ,
+        keyGenerator: (ctx) => publicRateLimitKey(ctx, "pub-check-slug"),
+      }),
+    )
     .input(z.object({ slug: z.string().min(1) }))
     .query(async ({ ctx, input }) => {
       return organizationService.checkSlugAvailability(ctx.db, input.slug);
@@ -290,12 +303,6 @@ export const organizationRouter = router({
     })
     .input(updateWebsiteBuilderConfigSchema)
     .mutation(async ({ ctx, input }) => {
-      return organizationService.updateWebsiteConfig(
-        ctx.db,
-        ctx.organizationId,
-        ctx.user,
-        input,
-      );
+      return organizationService.updateWebsiteConfig(ctx.db, ctx.organizationId, ctx.user, input);
     }),
 });
-

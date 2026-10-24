@@ -1,6 +1,5 @@
 import { describe, expect, it, spyOn } from "bun:test";
 import * as storage from "@omniheaven/storage";
-import { appRouter } from "../routers/app";
 import { renterRouter } from "../routers/renter";
 import { uploadRouter } from "../routers/upload";
 

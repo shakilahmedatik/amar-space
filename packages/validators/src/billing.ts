@@ -78,6 +78,17 @@ export const recordPaymentSchema = z.object({
   note: z.string().max(500).optional().nullable(),
 });
 
+export const verifyPaymentSchema = z.object({
+  paymentId: z.string().min(1, "Payment ID is required"),
+  decision: z.enum(["approve", "reject"]),
+  note: z.string().max(500).optional().nullable(),
+});
+
+export const portalAuthSchema = z.object({
+  flatSlug: z.string().trim().min(1, "Flat identifier is required").max(100),
+  accessCode: z.string().trim().min(1, "Access code is required").max(100),
+});
+
 export const payBillSchema = z.object({
   billId: z.string().min(1, "Bill ID is required"),
   amount: z.coerce.number().positive("Payment amount must be greater than zero"),
@@ -161,4 +172,6 @@ export type GenerateMonthlyBillsInput = z.infer<typeof generateMonthlyBillsSchem
 export type UpdateBillUtilitiesInput = z.infer<typeof updateBillUtilitiesSchema>;
 export type ApplyAdvanceAdjustmentInput = z.infer<typeof applyAdvanceAdjustmentSchema>;
 export type RecordPaymentInput = z.infer<typeof recordPaymentSchema>;
+export type VerifyPaymentInput = z.infer<typeof verifyPaymentSchema>;
+export type PortalAuthInput = z.infer<typeof portalAuthSchema>;
 export type PayBillInput = z.infer<typeof payBillSchema>;

@@ -1,4 +1,5 @@
 import { randomBytes, scryptSync } from "node:crypto";
+import { and, eq } from "drizzle-orm";
 import { client, db } from "./client";
 import {
   accounts,
@@ -13,7 +14,9 @@ import {
   maintenanceRequests,
   members,
   notices,
+  type OrganizationRole,
   organizations,
+  type ProductType,
   payments,
   rentalContracts,
   renters,
@@ -34,6 +37,135 @@ function hashPassword(password: string): string {
     maxmem: 128 * 16384 * 16 * 2,
   }).toString("hex");
   return `${salt}:${key}`;
+}
+
+async function ensureUser(userDef: {
+  id: string;
+  name: string;
+  email: string;
+  globalRole?: string;
+  password?: string;
+}): Promise<typeof users.$inferSelect> {
+  const existing = await db.query.users.findFirst({
+    where: eq(users.email, userDef.email),
+  });
+  if (existing) {
+    console.log(`[SEED:USER] User "${userDef.email}" already exists -> skipping.`);
+    return existing;
+  }
+
+  console.log(`[SEED:USER] Creating user "${userDef.email}" (${userDef.name})...`);
+  const [created] = await db
+    .insert(users)
+    .values({
+      id: userDef.id,
+      name: userDef.name,
+      email: userDef.email,
+      emailVerified: true,
+      globalRole: userDef.globalRole ?? "user",
+    })
+    .returning();
+
+  const pwd = userDef.password;
+  if (!pwd) {
+    throw new Error(`Refusing to seed user "${userDef.email}" without an explicit password`);
+  }
+  await db
+    .insert(accounts)
+    .values({
+      id: `acc-${userDef.id}`,
+      userId: userDef.id,
+      accountId: userDef.id,
+      providerId: "credential",
+      password: hashPassword(pwd),
+    })
+    .onConflictDoNothing();
+
+  if (!created) {
+    throw new Error(`Failed to create user ${userDef.email}`);
+  }
+  return created;
+}
+
+async function ensureOrganization(orgDef: {
+  id: string;
+  name: string;
+  slug: string;
+  productType: ProductType;
+  contactPhone: string;
+  contactEmail: string;
+  address: string;
+  status?: "active" | "trialing" | "suspended";
+}): Promise<typeof organizations.$inferSelect> {
+  const existing = await db.query.organizations.findFirst({
+    where: eq(organizations.slug, orgDef.slug),
+  });
+  if (existing) {
+    console.log(`[SEED:ORG] Organization "${orgDef.slug}" already exists -> skipping.`);
+    return existing;
+  }
+
+  console.log(`[SEED:ORG] Creating organization "${orgDef.name}" (${orgDef.slug})...`);
+  const [created] = await db
+    .insert(organizations)
+    .values({
+      id: orgDef.id,
+      name: orgDef.name,
+      slug: orgDef.slug,
+      productType: orgDef.productType,
+      contactPhone: orgDef.contactPhone,
+      contactEmail: orgDef.contactEmail,
+      address: orgDef.address,
+      status: orgDef.status ?? "active",
+    })
+    .returning();
+
+  // Ensure subscription for new organization
+  const now = new Date();
+  const trialEnd = new Date(now.getTime() + 180 * 24 * 60 * 60 * 1000);
+  await db
+    .insert(subscriptions)
+    .values({
+      id: `sub-${orgDef.id}`,
+      organizationId: orgDef.id,
+      planId: "pro",
+      plan: "pro",
+      status: "active",
+      billingCycle: "monthly",
+      trialStartsAt: now,
+      trialEndsAt: trialEnd,
+      paymentProvider: "bkash",
+    })
+    .onConflictDoNothing();
+
+  if (!created) {
+    throw new Error(`Failed to create organization ${orgDef.slug}`);
+  }
+  return created;
+}
+
+async function ensureMembership(
+  organizationId: string,
+  userId: string,
+  role: OrganizationRole = "owner",
+) {
+  const existing = await db.query.members.findFirst({
+    where: and(eq(members.organizationId, organizationId), eq(members.userId, userId)),
+  });
+  if (existing) {
+    return existing;
+  }
+
+  const [member] = await db
+    .insert(members)
+    .values({
+      id: `member-${userId}-${organizationId}`,
+      organizationId,
+      userId,
+      role,
+    })
+    .returning();
+  return member;
 }
 
 async function main() {
@@ -108,232 +240,212 @@ async function main() {
       },
     });
 
-  // Platform superadmin user & credential
-  const adminId = "superadmin-root";
-  await db
-    .insert(users)
-    .values({
-      id: adminId,
-      name: "Platform Super Admin",
-      email: "admin@omniheaven.com",
-      emailVerified: true,
-      globalRole: "superadmin",
-    })
-    .onConflictDoUpdate({
-      target: users.id,
-      set: {
-        globalRole: "superadmin",
-      },
-    });
+  const isProduction = process.env.NODE_ENV === "production";
+  const defaultPassword = process.env.SEED_DEFAULT_PASSWORD || (isProduction ? "" : "Password123!");
+  if (!defaultPassword) {
+    throw new Error(
+      "SEED_DEFAULT_PASSWORD must be set when seeding in production; refusing to use a built-in demo password.",
+    );
+  }
+  const superadminPassword =
+    process.env.SUPERADMIN_PASSWORD || process.env.SUPERADMIN_DEFAULT_PASSWORD || defaultPassword;
+  const superadminEmail = process.env.SUPERADMIN_EMAIL || "admin@omniheaven.com";
+  const superadminName = process.env.SUPERADMIN_NAME || "Platform Super Admin";
 
-  const superadminPassword = process.env.SUPERADMIN_DEFAULT_PASSWORD || "OmniAdmin2026!";
-  await db
-    .insert(accounts)
-    .values({
-      id: "acc-superadmin",
-      userId: adminId,
-      accountId: adminId,
-      providerId: "credential",
-      password: hashPassword(superadminPassword),
-    })
-    .onConflictDoUpdate({
-      target: accounts.id,
-      set: {
-        password: hashPassword(superadminPassword),
-      },
-    });
+  // =========================================================================
+  // 1. PLATFORM SUPERADMIN (Saas Platform HQ)
+  // =========================================================================
+  const superAdmin = await ensureUser({
+    id: "superadmin-root",
+    name: superadminName,
+    email: superadminEmail,
+    globalRole: "superadmin",
+    password: superadminPassword,
+  });
+  const adminId = superAdmin.id;
 
-  // Test Organization 1: Commercial / Residential Building
-  const demoBuildingOrgId = "org-bashundhara-tower";
-  await db
-    .insert(organizations)
-    .values({
-      id: demoBuildingOrgId,
-      name: "Bashundhara Royal Heights",
-      slug: "bashundhara-royal-heights",
-      productType: "building",
-      contactPhone: "01711223344",
-      contactEmail: "info@bashundhararoyal.com",
-      address: "Plot 14, Block C, Bashundhara R/A, Dhaka-1229",
-      status: "active",
-    })
-    .onConflictDoNothing();
+  // =========================================================================
+  // 2. TENANT ORGANIZATIONS (All Verticals)
+  // =========================================================================
+  // Org 1: Building Vertical (Bashundhara Royal Heights)
+  const demoBuildingOrg = await ensureOrganization({
+    id: "org-bashundhara-tower",
+    name: "Bashundhara Royal Heights",
+    slug: "bashundhara-royal-heights",
+    productType: "building",
+    contactPhone: "01711223344",
+    contactEmail: "info@bashundhararoyal.com",
+    address: "Plot 14, Block C, Bashundhara R/A, Dhaka-1229",
+    status: "active",
+  });
+  const demoBuildingOrgId = demoBuildingOrg.id;
 
-  // Test Organization 2: Hotel & Resort
-  const demoHotelOrgId = "org-grand-haven";
-  await db
-    .insert(organizations)
-    .values({
-      id: demoHotelOrgId,
-      name: "Grand Haven Luxury Resort",
-      slug: "grand-haven",
-      productType: "hotel",
-      contactPhone: "01700000000",
-      contactEmail: "info@grandhaven.com",
-      address: "Marine Drive, Cox's Bazar",
-      status: "active",
-    })
-    .onConflictDoNothing();
+  // Org 2: Flat / Apartment Landlord (Gulshan Lakeview Luxury Suites)
+  const demoFlatOrg = await ensureOrganization({
+    id: "org-gulshan-flat",
+    name: "Gulshan Lakeview Luxury Suites",
+    slug: "gulshan-lakeview-suites",
+    productType: "building",
+    contactPhone: "01711998877",
+    contactEmail: "landlord@gulshanluxury.com",
+    address: "House 12, Road 45, Gulshan-2, Dhaka",
+    status: "active",
+  });
+  const demoFlatOrgId = demoFlatOrg.id;
 
-  // Subscriptions for both demo orgs
-  const now = new Date();
-  const trialEnd = new Date(now.getTime() + 180 * 24 * 60 * 60 * 1000); // 180 days
+  // Org 3: Hotel Vertical (Grand Haven Luxury Hotel)
+  const demoHotelOrg = await ensureOrganization({
+    id: "org-grand-haven",
+    name: "Grand Haven Luxury Resort",
+    slug: "grand-haven",
+    productType: "hotel",
+    contactPhone: "01700000000",
+    contactEmail: "info@grandhaven.com",
+    address: "Marine Drive, Cox's Bazar",
+    status: "active",
+  });
+  const demoHotelOrgId = demoHotelOrg.id;
 
-  await db
-    .insert(subscriptions)
-    .values([
-      {
-        id: "sub-demo-building",
-        organizationId: demoBuildingOrgId,
-        planId: "starter",
-        plan: "starter",
-        status: "trialing",
-        billingCycle: "monthly",
-        trialStartsAt: now,
-        trialEndsAt: trialEnd,
-        paymentProvider: "bkash",
-      },
-      {
-        id: "sub-demo-hotel",
-        organizationId: demoHotelOrgId,
-        planId: "pro",
-        plan: "pro",
-        status: "active",
-        billingCycle: "monthly",
-        trialStartsAt: now,
-        trialEndsAt: trialEnd,
-        paymentProvider: "bkash",
-      },
-    ])
-    .onConflictDoUpdate({
-      target: subscriptions.id,
-      set: {
-        planId: subscriptions.planId,
-        status: subscriptions.status,
-        billingCycle: subscriptions.billingCycle,
-      },
-    });
+  // Org 4: Resort Vertical (Sreemangal Tea Valley Resort)
+  const demoResortOrg = await ensureOrganization({
+    id: "org-sreemangal-resort",
+    name: "Sreemangal Tea Valley Resort",
+    slug: "sreemangal-tea-valley",
+    productType: "resort",
+    contactPhone: "01755123456",
+    contactEmail: "reservations@teavalleyresort.com",
+    address: "Radhanagar, Sreemangal, Moulvibazar",
+    status: "active",
+  });
+  const demoResortOrgId = demoResortOrg.id;
 
-  // Multi-Role Fixture Users for Building
-  const landlordUser = {
+  // Org 5: Commercial Vertical (Banani Commercial Complex)
+  const demoCommercialOrg = await ensureOrganization({
+    id: "org-banani-commercial",
+    name: "Banani Commercial Complex",
+    slug: "banani-commercial-complex",
+    productType: "commercial",
+    contactPhone: "01733445566",
+    contactEmail: "leasing@bananitower.com",
+    address: "Kamal Ataturk Avenue, Banani, Dhaka-1213",
+    status: "active",
+  });
+  const demoCommercialOrgId = demoCommercialOrg.id;
+
+  // Org 6: Society Vertical (Uttara Sector 7 Resident Society)
+  const demoSocietyOrg = await ensureOrganization({
+    id: "org-uttara-society",
+    name: "Uttara Sector 7 Resident Society",
+    slug: "uttara-sector-7-society",
+    productType: "building",
+    contactPhone: "01788776655",
+    contactEmail: "secretary@uttarasector7.org",
+    address: "Sector 7 Welfare Society Office, Uttara, Dhaka-1230",
+    status: "active",
+  });
+  const demoSocietyOrgId = demoSocietyOrg.id;
+
+  // =========================================================================
+  // 3. OWNER PERSONAS (1 Building, 1 Flat, 1 Hotel, 1 Resort, 1 Commercial, 1 Society)
+  // =========================================================================
+  const ownerBuilding = await ensureUser({
+    id: "user-owner-building",
+    name: "Tariqul Islam (Building Owner)",
+    email: "owner.building@omniheaven.com",
+    password: defaultPassword,
+  });
+  await ensureMembership(demoBuildingOrgId, ownerBuilding.id, "owner");
+
+  const ownerFlat = await ensureUser({
+    id: "user-owner-flat",
+    name: "Farzana Yasmin (Flat Owner)",
+    email: "owner.flat@omniheaven.com",
+    password: defaultPassword,
+  });
+  await ensureMembership(demoFlatOrgId, ownerFlat.id, "owner");
+
+  const ownerHotel = await ensureUser({
+    id: "user-owner-hotel",
+    name: "Zubair Al-Mamun (Hotel Owner)",
+    email: "owner.hotel@omniheaven.com",
+    password: defaultPassword,
+  });
+  await ensureMembership(demoHotelOrgId, ownerHotel.id, "owner");
+
+  const ownerResort = await ensureUser({
+    id: "user-owner-resort",
+    name: "Shamim Ahsan (Resort Owner)",
+    email: "owner.resort@omniheaven.com",
+    password: defaultPassword,
+  });
+  await ensureMembership(demoResortOrgId, ownerResort.id, "owner");
+
+  const ownerCommercial = await ensureUser({
+    id: "user-owner-commercial",
+    name: "Kazi Monirul Islam (Commercial Owner)",
+    email: "owner.commercial@omniheaven.com",
+    password: defaultPassword,
+  });
+  await ensureMembership(demoCommercialOrgId, ownerCommercial.id, "owner");
+
+  const ownerSociety = await ensureUser({
+    id: "user-owner-society",
+    name: "Anisur Rahman (Society President)",
+    email: "owner.society@omniheaven.com",
+    password: defaultPassword,
+  });
+  await ensureMembership(demoSocietyOrgId, ownerSociety.id, "owner");
+
+  // =========================================================================
+  // 4. MULTI-ROLE FIXTURE USERS & BACKWARD COMPATIBILITY
+  // =========================================================================
+  const landlordUser = await ensureUser({
     id: "user-landlord-1",
     name: "Mohammad Tanvir Rahman",
     email: "landlord@bashundhara.com",
-    emailVerified: true,
-  };
-  const managerUser = {
+    password: defaultPassword,
+  });
+  const managerUser = await ensureUser({
     id: "user-manager-1",
     name: "Kamrul Hasan",
     email: "manager@bashundhara.com",
-    emailVerified: true,
-  };
-  const staffUser = {
+    password: defaultPassword,
+  });
+  const staffUser = await ensureUser({
     id: "user-staff-1",
     name: "Abdur Rahim",
     email: "staff@bashundhara.com",
-    emailVerified: true,
-  };
-  const renterUser = {
+    password: defaultPassword,
+  });
+  const renterUser = await ensureUser({
     id: "user-renter-1",
     name: "Nazmul Huda",
     email: "renter@bashundhara.com",
-    emailVerified: true,
-  };
-  const hotelOwnerUser = {
+    password: defaultPassword,
+  });
+  const hotelOwnerUser = await ensureUser({
     id: "user-hotel-owner-1",
     name: "Zubair Al-Mamun",
     email: "owner@grandhaven.com",
-    emailVerified: true,
-  };
-  const hotelManagerUser = {
+    password: defaultPassword,
+  });
+  const hotelManagerUser = await ensureUser({
     id: "user-hotel-manager-1",
     name: "Zubair Al-Mamun",
     email: "manager@grandhaven.com",
-    emailVerified: true,
-  };
+    password: defaultPassword,
+  });
 
-  await db
-    .insert(users)
-    .values([landlordUser, managerUser, staffUser, renterUser, hotelOwnerUser, hotelManagerUser])
-    .onConflictDoNothing();
-
-  // Accounts for credential authentication
-  await db
-    .insert(accounts)
-    .values([
-      {
-        id: "acc-landlord",
-        userId: landlordUser.id,
-        accountId: landlordUser.id,
-        providerId: "credential",
-        password: hashPassword("OmniLandlord2026!"),
-      },
-      {
-        id: "acc-hotel-owner",
-        userId: hotelOwnerUser.id,
-        accountId: hotelOwnerUser.id,
-        providerId: "credential",
-        password: hashPassword("OmniManager2026!"),
-      },
-      {
-        id: "acc-hotel-manager",
-        userId: hotelManagerUser.id,
-        accountId: hotelManagerUser.id,
-        providerId: "credential",
-        password: hashPassword("OmniManager2026!"),
-      },
-    ])
-    .onConflictDoUpdate({
-      target: accounts.id,
-      set: {
-        password: hashPassword("OmniManager2026!"),
-      },
-    });
-
-  // Memberships
-  await db
-    .insert(members)
-    .values([
-      {
-        id: "member-landlord-building",
-        organizationId: demoBuildingOrgId,
-        userId: landlordUser.id,
-        role: "owner",
-      },
-      {
-        id: "member-manager-building",
-        organizationId: demoBuildingOrgId,
-        userId: managerUser.id,
-        role: "manager",
-      },
-      {
-        id: "member-staff-building",
-        organizationId: demoBuildingOrgId,
-        userId: staffUser.id,
-        role: "staff",
-      },
-      {
-        id: "member-renter-building",
-        organizationId: demoBuildingOrgId,
-        userId: renterUser.id,
-        role: "member",
-      },
-      {
-        id: "member-owner-hotel",
-        organizationId: demoHotelOrgId,
-        userId: hotelOwnerUser.id,
-        role: "owner",
-      },
-      {
-        id: "member-manager-hotel",
-        organizationId: demoHotelOrgId,
-        userId: hotelManagerUser.id,
-        role: "owner",
-      },
-    ])
-    .onConflictDoNothing();
+  // Assign memberships for fixture users
+  await ensureMembership(demoBuildingOrgId, landlordUser.id, "owner");
+  await ensureMembership(demoBuildingOrgId, managerUser.id, "manager");
+  await ensureMembership(demoBuildingOrgId, staffUser.id, "staff");
+  await ensureMembership(demoBuildingOrgId, renterUser.id, "member");
+  await ensureMembership(demoHotelOrgId, hotelOwnerUser.id, "owner");
+  await ensureMembership(demoHotelOrgId, hotelManagerUser.id, "owner");
 
   // Pending invitation fixture
+  const now = new Date();
   const inviteExpiresAt = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
   await db
     .insert(invitations)
@@ -509,7 +621,7 @@ async function main() {
       nidFrontPhoto: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400",
       nidBackPhoto: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400",
       digitalSignatureUrl: "https://omniheaven-storage.s3.amazonaws.com/signatures/farhana-sig.png",
-      accessCode: "9871",
+      accessCode: "K7M2Q-9X4TR",
     },
     {
       id: "renter-naimul-1b",
@@ -535,7 +647,7 @@ async function main() {
       nidFrontPhoto: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400",
       nidBackPhoto: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400",
       digitalSignatureUrl: "https://omniheaven-storage.s3.amazonaws.com/signatures/naimul-sig.png",
-      accessCode: "4432",
+      accessCode: "R4T8N-2WZ6P",
     },
     {
       id: "renter-sharmin-2a",
@@ -556,7 +668,7 @@ async function main() {
       nidFrontPhoto: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400",
       nidBackPhoto: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400",
       digitalSignatureUrl: "https://omniheaven-storage.s3.amazonaws.com/signatures/sharmin-sig.png",
-      accessCode: "6655",
+      accessCode: "B9N5Y-6YH3M",
     },
   ];
 
@@ -1278,6 +1390,279 @@ async function main() {
   ];
 
   await db.insert(bookings).values(hotelBookings).onConflictDoNothing();
+
+  // =========================================================================
+  // FIXTURES FOR SREEMANGAL RESORT, GULSHAN FLAT, BANANI COMMERCIAL, UTTARA SOCIETY
+  // =========================================================================
+  // Sreemangal Resort Website Config
+  await db
+    .insert(websiteConfigs)
+    .values({
+      id: "config-sreemangal-resort",
+      organizationId: demoResortOrgId,
+      themeSlug: "tropical-resort",
+      brand: {
+        primaryColor: "#065f46",
+        accentColor: "#10b981",
+        fontFamily: "Outfit",
+      },
+      hero: {
+        headline: "Sreemangal Tea Valley Eco Resort",
+        tagline: "Serenity in the Heart of Bangladesh's Lush Tea Estates",
+        ctaText: "Discover Eco Cottages",
+        ctaLink: "#rooms",
+      },
+      enabledSections: ["hero", "rooms", "amenities", "gallery", "about", "contact"],
+      sectionOrder: ["hero", "rooms", "amenities", "gallery", "about", "contact"],
+    })
+    .onConflictDoNothing();
+
+  // Sreemangal Resort Room Types
+  const resortCottage = {
+    id: "rtype-resort-cottage",
+    organizationId: demoResortOrgId,
+    name: "Tea Garden Eco Cottage",
+    description: "Handcrafted wooden cottage overlooking panoramic tea gardens.",
+    basePrice: "8500.00",
+    maxOccupancy: 3,
+    amenities: ["Tea Estate View", "King Bed", "Private Balcony", "Breakfast Included", "WiFi"],
+    photos: [
+      "https://images.unsplash.com/photo-1587061949409-02df41d5e562?auto=format&fit=crop&w=1200&q=80",
+    ],
+  };
+  const resortVilla = {
+    id: "rtype-resort-villa",
+    organizationId: demoResortOrgId,
+    name: "Canopy Luxury Villa",
+    description: "Two-story luxury timber villa with plunge pool and private tea garden trail.",
+    basePrice: "14500.00",
+    maxOccupancy: 5,
+    amenities: [
+      "Private Plunge Pool",
+      "Two King Suites",
+      "Butler Service",
+      "Fire Pit",
+      "Organic Breakfast",
+    ],
+    photos: [
+      "https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=1200&q=80",
+    ],
+  };
+  await db.insert(roomTypes).values([resortCottage, resortVilla]).onConflictDoNothing();
+
+  // Sreemangal Physical Cottages
+  await db
+    .insert(rooms)
+    .values([
+      {
+        id: "room-sreemangal-c101",
+        organizationId: demoResortOrgId,
+        roomTypeId: resortCottage.id,
+        roomNumber: "C-101",
+        floor: 1,
+        status: "available",
+        housekeepingNotes: "Organic toiletries restocked",
+      },
+      {
+        id: "room-sreemangal-c102",
+        organizationId: demoResortOrgId,
+        roomTypeId: resortCottage.id,
+        roomNumber: "C-102",
+        floor: 1,
+        status: "occupied",
+        housekeepingNotes: "Guest staying 3 nights",
+      },
+      {
+        id: "room-sreemangal-v201",
+        organizationId: demoResortOrgId,
+        roomTypeId: resortVilla.id,
+        roomNumber: "V-201",
+        floor: 1,
+        status: "available",
+        housekeepingNotes: "Plunge pool serviced",
+      },
+    ])
+    .onConflictDoNothing();
+
+  // Gulshan Lakeview Building & Luxury Flats
+  const gulshanBuildingId = "bld-gulshan-lakeview";
+  await db
+    .insert(buildings)
+    .values({
+      id: gulshanBuildingId,
+      organizationId: demoFlatOrgId,
+      name: "Gulshan Lakeview Luxury Suites",
+      address: "House 12, Road 45, Gulshan-2",
+      city: "Dhaka",
+      thana: "Gulshan",
+      postalCode: "1212",
+      totalFloors: 5,
+      hasElevator: true,
+      hasGenerator: true,
+      caretakerPhone: "01711998877",
+    })
+    .onConflictDoNothing();
+
+  await db
+    .insert(flats)
+    .values([
+      {
+        id: "flat-gulshan-1a",
+        organizationId: demoFlatOrgId,
+        buildingId: gulshanBuildingId,
+        flatNumber: "1A",
+        floor: 1,
+        unitType: "residential",
+        bedrooms: 3,
+        bathrooms: 3,
+        balconies: 2,
+        squareFeet: 2200,
+        defaultRentAmount: 85000,
+        defaultServiceCharge: 12000,
+        status: "occupied",
+      },
+      {
+        id: "flat-gulshan-1b",
+        organizationId: demoFlatOrgId,
+        buildingId: gulshanBuildingId,
+        flatNumber: "1B",
+        floor: 1,
+        unitType: "residential",
+        bedrooms: 3,
+        bathrooms: 3,
+        balconies: 2,
+        squareFeet: 2200,
+        defaultRentAmount: 85000,
+        defaultServiceCharge: 12000,
+        status: "vacant",
+      },
+      {
+        id: "flat-gulshan-2a",
+        organizationId: demoFlatOrgId,
+        buildingId: gulshanBuildingId,
+        flatNumber: "2A",
+        floor: 2,
+        unitType: "residential",
+        bedrooms: 4,
+        bathrooms: 4,
+        balconies: 3,
+        squareFeet: 2800,
+        defaultRentAmount: 120000,
+        defaultServiceCharge: 15000,
+        status: "occupied",
+      },
+    ])
+    .onConflictDoNothing();
+
+  // Banani Commercial Complex Building & Commercial Suites
+  const bananiBuildingId = "bld-banani-commercial";
+  await db
+    .insert(buildings)
+    .values({
+      id: bananiBuildingId,
+      organizationId: demoCommercialOrgId,
+      name: "Banani Commercial Complex",
+      address: "Kamal Ataturk Avenue, Banani",
+      city: "Dhaka",
+      thana: "Banani",
+      postalCode: "1213",
+      totalFloors: 12,
+      hasElevator: true,
+      hasGenerator: true,
+      caretakerPhone: "01733445566",
+    })
+    .onConflictDoNothing();
+
+  await db
+    .insert(flats)
+    .values([
+      {
+        id: "flat-banani-suite-201",
+        organizationId: demoCommercialOrgId,
+        buildingId: bananiBuildingId,
+        flatNumber: "Suite-201",
+        floor: 2,
+        unitType: "commercial",
+        bedrooms: 0,
+        bathrooms: 2,
+        balconies: 0,
+        squareFeet: 3500,
+        defaultRentAmount: 250000,
+        defaultServiceCharge: 35000,
+        status: "occupied",
+      },
+      {
+        id: "flat-banani-suite-301",
+        organizationId: demoCommercialOrgId,
+        buildingId: bananiBuildingId,
+        flatNumber: "Suite-301",
+        floor: 3,
+        unitType: "commercial",
+        bedrooms: 0,
+        bathrooms: 2,
+        balconies: 0,
+        squareFeet: 3500,
+        defaultRentAmount: 250000,
+        defaultServiceCharge: 35000,
+        status: "vacant",
+      },
+    ])
+    .onConflictDoNothing();
+
+  // Uttara Resident Society Building & Community Units
+  const uttaraBuildingId = "bld-uttara-society";
+  await db
+    .insert(buildings)
+    .values({
+      id: uttaraBuildingId,
+      organizationId: demoSocietyOrgId,
+      name: "Uttara Sector 7 Resident Society Building",
+      address: "Road 10, Sector 7, Uttara",
+      city: "Dhaka",
+      thana: "Uttara",
+      postalCode: "1230",
+      totalFloors: 4,
+      hasElevator: true,
+      hasGenerator: true,
+      caretakerPhone: "01788776655",
+    })
+    .onConflictDoNothing();
+
+  await db
+    .insert(flats)
+    .values([
+      {
+        id: "flat-uttara-soc-1",
+        organizationId: demoSocietyOrgId,
+        buildingId: uttaraBuildingId,
+        flatNumber: "Unit-1",
+        floor: 1,
+        unitType: "residential",
+        bedrooms: 3,
+        bathrooms: 2,
+        balconies: 2,
+        squareFeet: 1550,
+        defaultRentAmount: 35000,
+        defaultServiceCharge: 5000,
+        status: "occupied",
+      },
+      {
+        id: "flat-uttara-soc-2",
+        organizationId: demoSocietyOrgId,
+        buildingId: uttaraBuildingId,
+        flatNumber: "Unit-2",
+        floor: 2,
+        unitType: "residential",
+        bedrooms: 3,
+        bathrooms: 2,
+        balconies: 2,
+        squareFeet: 1550,
+        defaultRentAmount: 35000,
+        defaultServiceCharge: 5000,
+        status: "occupied",
+      },
+    ])
+    .onConflictDoNothing();
 
   console.log("Database seeded successfully.");
   await client.end();

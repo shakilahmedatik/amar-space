@@ -6,6 +6,7 @@ import { AlertCircle, CheckCircle2, Eye, EyeOff, Loader2, Lock } from "lucide-re
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
+import { GuestGuard } from "@/components/guest-guard";
 
 function ResetPasswordForm() {
   const searchParams = useSearchParams();
@@ -190,20 +191,22 @@ function ResetPasswordForm() {
 
 export default function AdminResetPasswordPage() {
   return (
-    <AuthLayout
-      title="Set New Password"
-      subtitle="Ensure your new account password is at least 8 characters with numbers and symbols."
-      badge="Security Verification"
-    >
-      <Suspense
-        fallback={
-          <div className="h-48 flex items-center justify-center">
-            <Loader2 className="size-6 animate-spin text-primary" />
-          </div>
-        }
+    <GuestGuard>
+      <AuthLayout
+        title="Set New Password"
+        subtitle="Ensure your new account password is at least 8 characters with numbers and symbols."
+        badge="Security Verification"
       >
-        <ResetPasswordForm />
-      </Suspense>
-    </AuthLayout>
+        <Suspense
+          fallback={
+            <div className="h-48 flex items-center justify-center">
+              <Loader2 className="size-6 animate-spin text-primary" />
+            </div>
+          }
+        >
+          <ResetPasswordForm />
+        </Suspense>
+      </AuthLayout>
+    </GuestGuard>
   );
 }
